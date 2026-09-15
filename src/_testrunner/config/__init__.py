@@ -548,6 +548,9 @@ class TestrunnerPluginManager(PluginManager):
 
         self.add_hookspecs(_testrunner.hookspec)
         self.add_hookspecs(_pytest_hookspecs())
+        from _testrunner.compatibility.pytest import PytestCompatibilityPlugin
+
+        self.register(PytestCompatibilityPlugin(), "_testrunner_pytest_compat")
         self.register(self)
         if os.environ.get("TESTRUNNER_DEBUG"):
             err: IO[str] = sys.stderr
@@ -620,6 +623,16 @@ class TestrunnerPluginManager(PluginManager):
                 )
                 opts = cast(HookspecOpts, legacy)
         return opts
+
+    def add_hookspecs(self, module_or_class: object) -> None:
+        super().add_hookspecs(module_or_class)
+        if (
+            hasattr(self.hook, "pytest_xdist_getremotemodule")
+            and self.get_plugin("_testrunner_xdist_compat") is None
+        ):
+            from _testrunner.compatibility.pytest.plugins import XdistCompatibilityPlugin
+
+            self.register(XdistCompatibilityPlugin(), "_testrunner_xdist_compat")
 
     def register(self, plugin: _PluggyPlugin, name: str | None = None) -> str | None:
         if name in _testrunner.deprecated.DEPRECATED_EXTERNAL_PLUGINS:
