@@ -121,7 +121,7 @@ Consult the `Changelog <https://github.com/jacksonsr451/test-runner/tree/main/do
 
 
 Support testrunner
---------------
+------------------
 
 `Open Collective`_ is an online funding platform for open and transparent communities.
 It provides tools to raise money and share your finances in full transparency.
@@ -136,7 +136,7 @@ See more details in the `testrunner collective`_.
 
 
 testrunner for enterprise
----------------------
+-------------------------
 
 Available as part of the Tidelift Subscription.
 
