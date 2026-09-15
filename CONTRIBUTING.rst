@@ -11,10 +11,10 @@ so do not hesitate!
 Feature requests and feedback
 -----------------------------
 
-Do you like pytest?  Share some love on social media or in your blog posts!
+Do you like testrunner?  Share some love on social media or in your blog posts!
 
 We'd also like to hear about your propositions and suggestions.  Feel free to
-`submit them as issues <https://github.com/pytest-dev/pytest/issues>`_ and:
+`submit them as issues <https://github.com/jacksonsr451/test-runner/issues>`_ and:
 
 * Explain in detail how they should work.
 * Keep the scope as narrow as possible.  This will make it easier to implement.
@@ -25,13 +25,13 @@ We'd also like to hear about your propositions and suggestions.  Feel free to
 Report bugs
 -----------
 
-Report bugs for pytest in the `issue tracker <https://github.com/pytest-dev/pytest/issues>`_.
+Report bugs for testrunner in the `issue tracker <https://github.com/jacksonsr451/test-runner/issues>`_.
 
 If you are reporting a bug, please include:
 
 * Your operating system name and version.
 * Any details about your local setup that might be helpful in troubleshooting,
-  specifically the Python interpreter version, installed libraries, and pytest
+  specifically the Python interpreter version, installed libraries, and testrunner
   version.
 * Detailed steps to reproduce the bug.
 
@@ -45,11 +45,11 @@ fix the bug itself.
 Fix bugs
 --------
 
-Look through the `GitHub issues for bugs <https://github.com/pytest-dev/pytest/labels/type:%20bug>`_.
-See also the `"good first issue" issues <https://github.com/pytest-dev/pytest/labels/good%20first%20issue>`_
+Look through the `GitHub issues for bugs <https://github.com/jacksonsr451/test-runner/labels/type:%20bug>`_.
+See also the `"good first issue" issues <https://github.com/jacksonsr451/test-runner/labels/good%20first%20issue>`_
 that are friendly to new contributors.
 
-`Talk to developers <https://docs.pytest.org/en/stable/contact.html>`_ to find out how you can fix specific bugs. To indicate that you are going
+`Talk to developers <https://github.com/jacksonsr451/test-runner/tree/main/doc/en/contact.html>`_ to find out how you can fix specific bugs. To indicate that you are going
 to work on a particular issue, add a comment to that effect on the specific issue.
 
 Don't forget to check the issue trackers of your favourite plugins, too!
@@ -59,15 +59,15 @@ Don't forget to check the issue trackers of your favourite plugins, too!
 Implement features
 ------------------
 
-Look through the `GitHub issues for enhancements <https://github.com/pytest-dev/pytest/labels/type:%20enhancement>`_.
+Look through the `GitHub issues for enhancements <https://github.com/jacksonsr451/test-runner/labels/type:%20enhancement>`_.
 
-`Talk to developers <https://docs.pytest.org/en/stable/contact.html>`_ to find out how you can implement specific
+`Talk to developers <https://github.com/jacksonsr451/test-runner/tree/main/doc/en/contact.html>`_ to find out how you can implement specific
 features.
 
 Write documentation
 -------------------
 
-Pytest could always use more documentation.  What exactly is needed?
+Testrunner could always use more documentation.  What exactly is needed?
 
 * More complementary documentation.  Have you perhaps found something unclear?
 * Documentation translations.  We currently have only English.
@@ -87,9 +87,9 @@ without using a local copy.  This can be convenient for small fixes.
     The built documentation should be available in ``doc/en/_build/html``,
     where 'en' refers to the documentation language.
 
-Pytest has an API reference which in large part is
+Testrunner has an API reference which in large part is
 `generated automatically <https://www.sphinx-doc.org/en/master/usage/extensions/autodoc.html>`_
-from the docstrings of the documented items. Pytest uses the
+from the docstrings of the documented items. Testrunner uses the
 `Sphinx docstring format <https://sphinx-rtd-tutorial.readthedocs.io/en/latest/docstrings.html>`_.
 For example:
 
@@ -121,29 +121,29 @@ For example:
 
 .. _submitplugin:
 
-Submitting Plugins to pytest-dev
+Submitting Plugins to testrunner-dev
 --------------------------------
 
-Development of the pytest core, support code, and some plugins happens
-in repositories living under the ``pytest-dev`` organisations:
+Development of the testrunner core, support code, and some plugins happens
+in repositories living under the ``testrunner-dev`` organisations:
 
-- `pytest-dev on GitHub <https://github.com/pytest-dev>`_
+- `testrunner-dev on GitHub <https://github.com/testrunner-dev>`_
 
-All pytest-dev Contributors team members have write access to all contained
-repositories.  Pytest core and plugins are generally developed
+All testrunner-dev Contributors team members have write access to all contained
+repositories.  Testrunner core and plugins are generally developed
 using `pull requests`_ to respective repositories.
 
-The objectives of the ``pytest-dev`` organisation are:
+The objectives of the ``testrunner-dev`` organisation are:
 
-* Having a central location for popular pytest plugins
+* Having a central location for popular testrunner plugins
 * Sharing some of the maintenance responsibility (in case a maintainer no
   longer wishes to maintain a plugin)
 
-You can submit your plugin by posting a new topic in the `pytest-dev GitHub Discussions
-<https://github.com/pytest-dev/pytest/discussions>`_ pointing to your existing pytest plugin repository which must have
+You can submit your plugin by posting a new topic in the `testrunner-dev GitHub Discussions
+<https://github.com/jacksonsr451/test-runner/discussions>`_ pointing to your existing testrunner plugin repository which must have
 the following:
 
-- PyPI presence with packaging metadata that contains a ``pytest-``
+- PyPI presence with packaging metadata that contains a ``testrunner-``
   prefixed name, version number, authors, short and long description.
 
 - a `tox configuration <https://tox.readthedocs.io/en/latest/config.html#configuration-discovery>`_
@@ -160,23 +160,23 @@ the following:
 - a `changelog <https://keepachangelog.com/>`_.
 
 If no contributor strongly objects and two agree, the repository can then be
-transferred to the ``pytest-dev`` organisation.
+transferred to the ``testrunner-dev`` organisation.
 
 Here's a rundown of how a repository transfer usually proceeds
-(using a repository named ``joedoe/pytest-xyz`` as example):
+(using a repository named ``joedoe/testrunner-xyz`` as example):
 
-* ``joedoe`` transfers repository ownership to ``pytest-dev`` administrator ``calvin``.
-* ``calvin`` creates ``pytest-xyz-admin`` and ``pytest-xyz-developers`` teams, inviting ``joedoe`` to both as **maintainer**.
-* ``calvin`` transfers repository to ``pytest-dev`` and configures team access:
+* ``joedoe`` transfers repository ownership to ``testrunner-dev`` administrator ``calvin``.
+* ``calvin`` creates ``testrunner-xyz-admin`` and ``testrunner-xyz-developers`` teams, inviting ``joedoe`` to both as **maintainer**.
+* ``calvin`` transfers repository to ``testrunner-dev`` and configures team access:
 
-  - ``pytest-xyz-admin`` **admin** access;
-  - ``pytest-xyz-developers`` **write** access;
+  - ``testrunner-xyz-admin`` **admin** access;
+  - ``testrunner-xyz-developers`` **write** access;
 
-The ``pytest-dev/Contributors`` team has write access to all projects, and
+The ``testrunner-dev/Contributors`` team has write access to all projects, and
 every project administrator is in it. We recommend that each plugin has at least three
 people who have the right to release to PyPI.
 
-Repository owners can rest assured that no ``pytest-dev`` administrator will ever make
+Repository owners can rest assured that no ``testrunner-dev`` administrator will ever make
 releases of your repository or take ownership in any way, except in rare cases
 where someone becomes unresponsive after months of contact attempts.
 As stated, the objective is to share maintenance and avoid "plugin-abandon".
@@ -192,7 +192,7 @@ as part of their workflow. We genuinely encourage you to reach for these tools w
 they help you learn, explore, and produce better work. However, we have requirements
 to protect the time and effort of our reviewers:
 
-**We use these tools ourselves.** Several pytest-core maintainers have access to
+**We use these tools ourselves.** Several testrunner-core maintainers have access to
 Anthropic's open-source grant (including Opus on Claude Max). We reach for AI daily
 and value it — which is exactly why this policy is about *human effort*, not about the
 tools. The bar is the one we hold ourselves to: understand what you ship, and stand
@@ -219,7 +219,7 @@ understood, and taken responsibility for the changes. If you submit it, you own 
 little to no human effort — unattended agent output, bulk-generated changes, PRs the
 author cannot explain — is not collaboration. It is a denial-of-service on a volunteer
 team: it spends finite review capacity that belongs to people who are genuinely trying
-to learn and build. This is bigger than pytest — flooding *any* open-source project
+to learn and build. This is bigger than testrunner — flooding *any* open-source project
 with unattended AI output is hostile to a shared resource all of us depend on.
 
 **We recognize the patterns, and we ban with prejudice.** Having driven these tools
@@ -287,7 +287,7 @@ Short version
 ~~~~~~~~~~~~~
 
 #. Fork the repository.
-#. Fetch tags from upstream if necessary (if you cloned only main `git fetch --tags https://github.com/pytest-dev/pytest`).
+#. Fetch tags from upstream if necessary (if you cloned only main `git fetch --tags https://github.com/jacksonsr451/test-runner`).
 #. Enable and install `pre-commit <https://pre-commit.com>`_ to ensure style-guides and code checks are followed.
 #. Follow `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`_ for naming.
 #. Tests are run using ``tox``::
@@ -310,24 +310,24 @@ Long version
 
 What is a "pull request"?  It informs the project's core developers about the
 changes you want to review and merge.  Pull requests are stored on
-`GitHub servers <https://github.com/pytest-dev/pytest/pulls>`_.
+`GitHub servers <https://github.com/jacksonsr451/test-runner/pulls>`_.
 Once you send a pull request, we can discuss its potential modifications and
 even add more commits to it later on. There's an excellent tutorial on how Pull
 Requests work in the
 `GitHub Help Center <https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests>`_.
 
-Here is a simple overview, with pytest-specific bits:
+Here is a simple overview, with testrunner-specific bits:
 
 #. Fork the
-   `pytest GitHub repository <https://github.com/pytest-dev/pytest>`__.  It's
-   fine to use ``pytest`` as your fork repository name because it will live
+   `testrunner GitHub repository <https://github.com/jacksonsr451/test-runner>`__.  It's
+   fine to use ``testrunner`` as your fork repository name because it will live
    under your user.
 
 #. Clone your fork locally using `git <https://git-scm.com/>`_ and create a branch::
 
-    $ git clone git@github.com:YOUR_GITHUB_USERNAME/pytest.git
-    $ cd pytest
-    $ git fetch --tags https://github.com/pytest-dev/pytest
+    $ git clone git@github.com:YOUR_GITHUB_USERNAME/testrunner.git
+    $ cd testrunner
+    $ git fetch --tags https://github.com/jacksonsr451/test-runner
     # now, create your own branch off "main":
 
         $ git checkout -b your-bugfix-branch-name main
@@ -338,13 +338,13 @@ Here is a simple overview, with pytest-specific bits:
 
    You will need the tags to test locally, so be sure you have the tags from the main repository. If you suspect you don't, set the main repository as upstream and fetch the tags::
 
-     $ git remote add upstream https://github.com/pytest-dev/pytest
+     $ git remote add upstream https://github.com/jacksonsr451/test-runner
      $ git fetch upstream --tags
 
    If you need some help with Git, follow this quick start
    guide: https://git.wiki.kernel.org/index.php/QuickStart
 
-#. Install `pre-commit <https://pre-commit.com>`_ and its hook on the pytest repo::
+#. Install `pre-commit <https://pre-commit.com>`_ and its hook on the testrunner repo::
 
      $ pip install --user pre-commit
      $ pre-commit install
@@ -374,7 +374,7 @@ Here is a simple overview, with pytest-specific bits:
 
 #. You can now edit your local working copy and run the tests again as necessary. Please follow `PEP-8 <https://www.python.org/dev/peps/pep-0008/>`_ for naming.
 
-   You can pass different options to ``tox``. For example, to run tests on Python 3.13 and pass options to pytest
+   You can pass different options to ``tox``. For example, to run tests on Python 3.13 and pass options to testrunner
    (e.g. enter pdb on failure) you can do::
 
     $ tox -e py313 -- --pdb
@@ -398,16 +398,16 @@ Here is a simple overview, with pytest-specific bits:
 
        $ uv sync --group dev
 
-   Afterwards, you can edit the files and run pytest normally::
+   Afterwards, you can edit the files and run testrunner normally::
 
-       $ pytest testing/test_config.py
+       $ testrunner testing/test_config.py
 
 #. Create a new changelog entry in ``changelog``. The file should be named ``<issueid>.<type>.rst``,
    where *issueid* is the number of the issue related to the change and *type* is one of
    ``feature``, ``improvement``, ``bugfix``, ``doc``, ``deprecation``, ``breaking``, ``vendor``,
    ``packaging``, ``contrib``, or ``misc``.
    You may skip creating the changelog entry if the change doesn't affect the
-   documented behaviour of pytest.
+   documented behaviour of testrunner.
 
 #. Add yourself to ``AUTHORS`` file if not there yet, in alphabetical order.
 
@@ -418,30 +418,30 @@ Here is a simple overview, with pytest-specific bits:
 
 #. Finally, submit a pull request through the GitHub website using this data::
 
-    head-fork: YOUR_GITHUB_USERNAME/pytest
+    head-fork: YOUR_GITHUB_USERNAME/testrunner
     compare: your-branch-name
 
-    base-fork: pytest-dev/pytest
+    base-fork: jacksonsr451/test-runner
     base: main
 
 
 Writing Tests
 ~~~~~~~~~~~~~
 
-Writing tests for plugins or for pytest itself is often done using the `pytester fixture <https://docs.pytest.org/en/stable/reference/reference.html#pytester>`_, as a "black-box" test.
+Writing tests for plugins or for testrunner itself is often done using the `testrunnerer fixture <https://github.com/jacksonsr451/test-runner/tree/main/doc/en/reference/reference.html#testrunnerer>`_, as a "black-box" test.
 
 For example, to ensure a simple test passes you can write:
 
 .. code-block:: python
 
-    def test_true_assertion(pytester):
-        pytester.makepyfile(
+    def test_true_assertion(testrunnerer):
+        testrunnerer.makepyfile(
             """
             def test_foo():
                 assert True
         """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.assert_outcomes(failed=0, passed=1)
 
 
@@ -450,14 +450,14 @@ Alternatively, it is possible to make checks based on the actual output of the t
 
 .. code-block:: python
 
-    def test_true_assertion(pytester):
-        pytester.makepyfile(
+    def test_true_assertion(testrunnerer):
+        testrunnerer.makepyfile(
             """
             def test_foo():
                 assert False
         """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["*assert False*", "*1 failed*"])
 
 When choosing a file where to write a new test, take a look at the existing files and see if there's
@@ -527,7 +527,7 @@ Here are some guidelines on how to proceed, based on examples of a single PR com
    In this case, prefer to use the **Merge** strategy: each commit is valuable on its own, and the information on each is valuable in the long term.
 
 
-As mentioned, those are overall guidelines, not rules cast in stone. This topic was discussed in `#12633 <https://github.com/pytest-dev/pytest/discussions/12633>`_.
+As mentioned, those are overall guidelines, not rules cast in stone. This topic was discussed in `#12633 <https://github.com/jacksonsr451/test-runner/discussions/12633>`_.
 
 
 *Backport PRs* (as those created automatically from a ``backport`` label) should always be **squashed**, as they preserve the original PR author.
@@ -536,13 +536,13 @@ As mentioned, those are overall guidelines, not rules cast in stone. This topic 
 Backporting bug fixes for the next patch release
 ------------------------------------------------
 
-Pytest makes a feature release every few weeks or months. In between, patch releases
+Testrunner makes a feature release every few weeks or months. In between, patch releases
 are made to the previous feature release, containing bug fixes only. The bug fixes
 usually fix regressions, but may be any change that should reach users before the
 next feature release.
 
 Suppose for example that the latest release was 1.2.3, and you want to include
-a bug fix in 1.2.4 (check https://github.com/pytest-dev/pytest/releases for the
+a bug fix in 1.2.4 (check https://github.com/jacksonsr451/test-runner/releases for the
 actual latest release). The procedure for this is:
 
 #. First, make sure the bug is fixed in the ``main`` branch, with a regular pull
@@ -560,7 +560,7 @@ Manual method:
 
 #. Locate the merge commit on the PR, in the *merged* message, for example:
 
-    nicoddemus merged commit 0f8b462 into pytest-dev:main
+    nicoddemus merged commit 0f8b462 into testrunner-dev:main
 
 #. ``git cherry-pick -x -m1 REVISION`` # use the revision you found above (``0f8b462``).
 
@@ -596,7 +596,7 @@ Backports should be **squashed** (rather than **merged**), as doing so preserves
 Handling stale issues/PRs
 -------------------------
 
-Stale issues/PRs are those where pytest contributors have asked for questions/changes
+Stale issues/PRs are those where testrunner contributors have asked for questions/changes
 and the authors didn't get around to answer/implement them yet after a somewhat long time, or
 the discussion simply died because people seemed to lose interest.
 
@@ -604,7 +604,7 @@ There are many reasons why people don't answer questions or implement requested 
 they might get busy, lose interest, or just forget about it,
 but the fact is that this is very common in open source software.
 
-The pytest team really appreciates every issue and pull request, but being a high-volume project
+The testrunner team really appreciates every issue and pull request, but being a high-volume project
 with many issues and pull requests being submitted daily, we try to reduce the number of stale
 issues and PRs by regularly closing them. When an issue/pull request is closed in this manner,
 it is by no means a dismissal of the topic being tackled by the issue/pull request, but it
@@ -630,9 +630,9 @@ When closing a Pull Request, we should acknowledge the time, effort, and interes
 
     Hi <contributor>,
 
-    First of all, we would like to thank you for your time and effort on working on this, the pytest team deeply appreciates it.
+    First of all, we would like to thank you for your time and effort on working on this, the testrunner team deeply appreciates it.
 
-    We noticed it has been awhile since you have updated this PR, however. pytest is a high activity project, with many issues/PRs being opened daily, so it is hard for us maintainers to track which PRs are ready for merging, for review, or need more attention.
+    We noticed it has been awhile since you have updated this PR, however. testrunner is a high activity project, with many issues/PRs being opened daily, so it is hard for us maintainers to track which PRs are ready for merging, for review, or need more attention.
 
     So for those reasons, we think it is best to close the PR for now, but with the only intention to clean up our queue, it is by no means a rejection of your changes. We still encourage you to re-open this PR (it is just a click of a button away) when you are ready to get back to it.
 

@@ -1,12 +1,12 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-from pytest_bdd import given
-from pytest_bdd import scenario
-from pytest_bdd import then
-from pytest_bdd import when
+from testrunner_bdd import given
+from testrunner_bdd import scenario
+from testrunner_bdd import then
+from testrunner_bdd import when
 
-import pytest
+import testrunner
 
 
 @scenario("bdd_wallet.feature", "Buy fruits")
@@ -14,7 +14,7 @@ def test_publish():
     pass
 
 
-@pytest.fixture
+@testrunner.fixture
 def wallet():
     class Wallet:
         amount = 0

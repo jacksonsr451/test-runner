@@ -17,44 +17,44 @@ from types import ModuleType
 from typing import Any
 import unittest.mock
 
-from _pytest.config import ExitCode
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.pathlib import _import_module_using_spec
-from _pytest.pathlib import bestrelpath
-from _pytest.pathlib import commonpath
-from _pytest.pathlib import compute_module_name
-from _pytest.pathlib import CouldNotResolvePathError
-from _pytest.pathlib import ensure_deletable
-from _pytest.pathlib import fnmatch_ex
-from _pytest.pathlib import get_extended_length_path_str
-from _pytest.pathlib import get_lock_path
-from _pytest.pathlib import import_path
-from _pytest.pathlib import ImportMode
-from _pytest.pathlib import ImportPathMismatchError
-from _pytest.pathlib import insert_missing_modules
-from _pytest.pathlib import is_importable
-from _pytest.pathlib import maybe_delete_a_numbered_dir
-from _pytest.pathlib import module_name_from_path
-from _pytest.pathlib import resolve_package_path
-from _pytest.pathlib import resolve_pkg_root_and_module_name
-from _pytest.pathlib import safe_exists
-from _pytest.pathlib import samefile_nofollow
-from _pytest.pathlib import scandir
-from _pytest.pathlib import spec_matches_module_path
-from _pytest.pathlib import symlink_or_skip
-from _pytest.pathlib import visit
-from _pytest.pytester import Pytester
-from _pytest.pytester import RunResult
-from _pytest.tmpdir import TempPathFactory
-import pytest
+from _testrunner.config import ExitCode
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.pathlib import _import_module_using_spec
+from _testrunner.pathlib import bestrelpath
+from _testrunner.pathlib import commonpath
+from _testrunner.pathlib import compute_module_name
+from _testrunner.pathlib import CouldNotResolvePathError
+from _testrunner.pathlib import ensure_deletable
+from _testrunner.pathlib import fnmatch_ex
+from _testrunner.pathlib import get_extended_length_path_str
+from _testrunner.pathlib import get_lock_path
+from _testrunner.pathlib import import_path
+from _testrunner.pathlib import ImportMode
+from _testrunner.pathlib import ImportPathMismatchError
+from _testrunner.pathlib import insert_missing_modules
+from _testrunner.pathlib import is_importable
+from _testrunner.pathlib import maybe_delete_a_numbered_dir
+from _testrunner.pathlib import module_name_from_path
+from _testrunner.pathlib import resolve_package_path
+from _testrunner.pathlib import resolve_pkg_root_and_module_name
+from _testrunner.pathlib import safe_exists
+from _testrunner.pathlib import samefile_nofollow
+from _testrunner.pathlib import scandir
+from _testrunner.pathlib import spec_matches_module_path
+from _testrunner.pathlib import symlink_or_skip
+from _testrunner.pathlib import visit
+from _testrunner.testrunnerer import Testrunnerer
+from _testrunner.testrunnerer import RunResult
+from _testrunner.tmpdir import TempPathFactory
+import testrunner
 
 
-@pytest.fixture(autouse=True)
-def autouse_pytester(pytester: Pytester) -> None:
+@testrunner.fixture(autouse=True)
+def autouse_testrunnerer(testrunnerer: Testrunnerer) -> None:
     """
-    Fixture to make pytester() being autouse for all tests in this module.
+    Fixture to make testrunnerer() being autouse for all tests in this module.
 
-    pytester makes sure to restore sys.path to its previous state, and many tests in this module
+    testrunnerer makes sure to restore sys.path to its previous state, and many tests in this module
     import modules and change sys.path because of that, so common module names such as "test" or "test.conftest"
     end up leaking to tests in other modules.
 
@@ -73,7 +73,7 @@ class TestFNMatcherPort:
         drv1 = "/c"
         drv2 = "/d"
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "pattern, path",
         [
             ("*.py", "foo.py"),
@@ -94,7 +94,7 @@ class TestFNMatcherPort:
         abspath = os.path.abspath(os.path.join("tests/foo.py"))
         assert fnmatch_ex("tests/foo.py", abspath)
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "pattern, path",
         [
             ("*.py", "foo.pyc"),
@@ -112,8 +112,8 @@ class TestFNMatcherPort:
         assert not fnmatch_ex(pattern, path)
 
 
-@pytest.fixture(params=[True, False])
-def ns_param(request: pytest.FixtureRequest) -> bool:
+@testrunner.fixture(params=[True, False])
+def ns_param(request: testrunner.FixtureRequest) -> bool:
     """
     Simple parametrized fixture for tests which call import_path() with consider_namespace_packages
     using True and False.
@@ -129,7 +129,7 @@ class TestImportPath:
     Having our own pyimport-like function is inline with removing py.path dependency in the future.
     """
 
-    @pytest.fixture(scope="session")
+    @testrunner.fixture(scope="session")
     @classmethod
     def path1(cls, tmp_path_factory: TempPathFactory) -> Generator[Path]:
         path = tmp_path_factory.mktemp("path")
@@ -137,7 +137,7 @@ class TestImportPath:
         yield path
         assert path.joinpath("samplefile").exists()
 
-    @pytest.fixture(autouse=True)
+    @testrunner.fixture(autouse=True)
     def preserve_sys(self):
         with unittest.mock.patch.dict(sys.modules):
             with unittest.mock.patch.object(sys, "path", list(sys.path)):
@@ -201,7 +201,7 @@ class TestImportPath:
         assert obj.__name__ == "execfile"
 
     def test_import_path_missing_file(self, path1: Path, ns_param: bool) -> None:
-        with pytest.raises(ImportPathMismatchError):
+        with testrunner.raises(ImportPathMismatchError):
             import_path(
                 path1 / "sampledir", root=path1, consider_namespace_packages=ns_param
             )
@@ -214,7 +214,7 @@ class TestImportPath:
         p.touch()
         import_path(p, root=tmp_path, consider_namespace_packages=ns_param)
         tmp_path.joinpath("a").rename(tmp_path.joinpath("b"))
-        with pytest.raises(ImportPathMismatchError):
+        with testrunner.raises(ImportPathMismatchError):
             import_path(
                 tmp_path.joinpath("b", "test_x123.py"),
                 root=tmp_path,
@@ -231,7 +231,7 @@ class TestImportPath:
 
         # PY_IGNORE_IMPORTMISMATCH=0 does not ignore error.
         monkeypatch.setenv("PY_IGNORE_IMPORTMISMATCH", "0")
-        with pytest.raises(ImportPathMismatchError):
+        with testrunner.raises(ImportPathMismatchError):
             import_path(
                 tmp_path.joinpath("b", "test_x123.py"),
                 root=tmp_path,
@@ -320,7 +320,7 @@ class TestImportPath:
         pseudopath.touch()
         mod.__file__ = str(pseudopath)
         monkeypatch.setitem(sys.modules, name, mod)
-        with pytest.raises(ImportPathMismatchError) as excinfo:
+        with testrunner.raises(ImportPathMismatchError) as excinfo:
             import_path(p, root=tmp_path, consider_namespace_packages=ns_param)
         modname, modfile, orig = excinfo.value.args
         assert modname == name
@@ -341,16 +341,16 @@ class TestImportPath:
         assert str(root1) not in sys.path[:-1]
 
     def test_invalid_path(self, tmp_path: Path, ns_param: bool) -> None:
-        with pytest.raises(ImportError):
+        with testrunner.raises(ImportError):
             import_path(
                 tmp_path / "invalid.py",
                 root=tmp_path,
                 consider_namespace_packages=ns_param,
             )
 
-    @pytest.fixture
+    @testrunner.fixture
     def simple_module(
-        self, tmp_path: Path, request: pytest.FixtureRequest
+        self, tmp_path: Path, request: testrunner.FixtureRequest
     ) -> Iterator[Path]:
         name = f"mymod_{request.node.name}"
         fn = tmp_path / f"_src/tests/{name}.py"
@@ -364,7 +364,7 @@ class TestImportPath:
         self,
         simple_module: Path,
         tmp_path: Path,
-        request: pytest.FixtureRequest,
+        request: testrunner.FixtureRequest,
         ns_param: bool,
     ) -> None:
         """`importlib` mode does not change sys.path."""
@@ -425,7 +425,7 @@ class TestImportPath:
         monkeypatch.setattr(
             importlib.util, "spec_from_file_location", lambda *args, **kwargs: None
         )
-        with pytest.raises(ImportError):
+        with testrunner.raises(ImportError):
             import_path(
                 simple_module,
                 mode="importlib",
@@ -551,7 +551,7 @@ def test_visit_ignores_errors(tmp_path: Path) -> None:
     ] == ["bar", "foo"]
 
 
-@pytest.mark.skipif(not sys.platform.startswith("win"), reason="Windows only")
+@testrunner.mark.skipif(not sys.platform.startswith("win"), reason="Windows only")
 def test_samefile_false_negatives(tmp_path: Path, monkeypatch: MonkeyPatch) -> None:
     """
     import_file() should not raise ImportPathMismatchError if the paths are exactly
@@ -622,7 +622,7 @@ def test_scandir_handles_os_error() -> None:
         mock_scandir.return_value.__enter__.return_value = [mock_entry]
         # Call the scandir function with a path
         # We expect an OSError to be raised here
-        with pytest.raises(OSError, match="some permission error"):
+        with testrunner.raises(OSError, match="some permission error"):
             scandir("/fake/path")
         # Verify that the is_file method was called on the mock entry
         mock_entry.is_file.assert_called_once()
@@ -786,14 +786,14 @@ class TestImportLibMode:
         assert result == "_env_310.tests.test_foo"
 
     def test_resolve_pkg_root_and_module_name(
-        self, tmp_path: Path, monkeypatch: MonkeyPatch, pytester: Pytester
+        self, tmp_path: Path, monkeypatch: MonkeyPatch, testrunnerer: Testrunnerer
     ) -> None:
         # Create a directory structure first without __init__.py files.
         (tmp_path / "src/app/core").mkdir(parents=True)
         models_py = tmp_path / "src/app/core/models.py"
         models_py.touch()
 
-        with pytest.raises(CouldNotResolvePathError):
+        with testrunner.raises(CouldNotResolvePathError):
             _ = resolve_pkg_root_and_module_name(models_py)
 
         # Create the __init__.py files, it should now resolve to a proper module name.
@@ -808,7 +808,7 @@ class TestImportLibMode:
 
         # If we add tmp_path to sys.path, src becomes a namespace package.
         monkeypatch.syspath_prepend(tmp_path)
-        validate_namespace_package(pytester, [tmp_path], ["src.app.core.models"])
+        validate_namespace_package(testrunnerer, [tmp_path], ["src.app.core.models"])
 
         assert resolve_pkg_root_and_module_name(
             models_py, consider_namespace_packages=True
@@ -842,8 +842,8 @@ class TestImportLibMode:
         insert_missing_modules(modules, "")
         assert modules == {}
 
-    @pytest.mark.parametrize("b_is_package", [True, False])
-    @pytest.mark.parametrize("insert_modules", [True, False])
+    @testrunner.mark.parametrize("b_is_package", [True, False])
+    @testrunner.mark.parametrize("insert_modules", [True, False])
     def test_import_module_using_spec(
         self, b_is_package, insert_modules, tmp_path: Path
     ):
@@ -894,7 +894,7 @@ class TestImportLibMode:
 
         else:
             assert "namespace" in str(mod_b).lower()
-            with pytest.raises(AttributeError):  # Not imported __init__.py
+            with testrunner.raises(AttributeError):  # Not imported __init__.py
                 assert mod_b.my_name
 
     def test_parent_contains_child_module_attribute(
@@ -964,28 +964,28 @@ class TestImportLibMode:
         )
         assert mod is mod2
 
-    def test_importlib_root_is_package(self, pytester: Pytester) -> None:
+    def test_importlib_root_is_package(self, testrunnerer: Testrunnerer) -> None:
         """
         Regression for importing a `__init__`.py file that is at the root
         (#11417).
         """
-        pytester.makepyfile(__init__="")
-        pytester.makepyfile(
+        testrunnerer.makepyfile(__init__="")
+        testrunnerer.makepyfile(
             """
             def test_my_test():
                 assert True
             """
         )
 
-        result = pytester.runpytest("--import-mode=importlib")
+        result = testrunnerer.runtestrunner("--import-mode=importlib")
         result.stdout.fnmatch_lines("* 1 passed *")
 
-    @pytest.mark.parametrize("name", ["code", "time", "math"])
+    @testrunner.mark.parametrize("name", ["code", "time", "math"])
     def test_importlib_same_name_as_stl(
-        self, pytester, ns_param: bool, tmp_path: Path, name: str
+        self, testrunnerer, ns_param: bool, tmp_path: Path, name: str
     ):
         """Import a namespace package with the same name as the standard library (#13026)."""
-        file_path = pytester.path / f"{name}/foo/test_demo.py"
+        file_path = testrunnerer.path / f"{name}/foo/test_demo.py"
         file_path.parent.mkdir(parents=True)
         file_path.write_text(
             dedent(
@@ -1003,12 +1003,12 @@ class TestImportLibMode:
         import_path(  # import user files
             file_path,
             mode=ImportMode.importlib,
-            root=pytester.path,
+            root=testrunnerer.path,
             consider_namespace_packages=ns_param,
         )
 
         # E2E test
-        result = pytester.runpytest("--import-mode=importlib")
+        result = testrunnerer.runtestrunner("--import-mode=importlib")
         result.stdout.fnmatch_lines("* 1 passed *")
 
     def create_installed_doctests_and_tests_dir(
@@ -1054,8 +1054,8 @@ class TestImportLibMode:
         conftest_path1.write_text(
             dedent(
                 """
-                import pytest
-                @pytest.fixture
+                import testrunner
+                @testrunner.fixture
                 def a_fix(): return "a"
                 """
             ),
@@ -1078,8 +1078,8 @@ class TestImportLibMode:
         conftest_path2.write_text(
             dedent(
                 """
-                import pytest
-                @pytest.fixture
+                import testrunner
+                @testrunner.fixture
                 def b_fix(): return "b"
                 """
             ),
@@ -1100,21 +1100,21 @@ class TestImportLibMode:
         return (site_packages / "app/core.py"), test_path1, test_path2
 
     def test_import_using_normal_mechanism_first(
-        self, monkeypatch: MonkeyPatch, pytester: Pytester, ns_param: bool
+        self, monkeypatch: MonkeyPatch, testrunnerer: Testrunnerer, ns_param: bool
     ) -> None:
         """
         Test import_path imports from the canonical location when possible first, only
         falling back to its normal flow when the module being imported is not reachable via sys.path (#11475).
         """
         core_py, test_path1, test_path2 = self.create_installed_doctests_and_tests_dir(
-            pytester.path, monkeypatch
+            testrunnerer.path, monkeypatch
         )
 
         # core_py is reached from sys.path, so should be imported normally.
         mod = import_path(
             core_py,
             mode="importlib",
-            root=pytester.path,
+            root=testrunnerer.path,
             consider_namespace_packages=ns_param,
         )
         assert mod.__name__ == "app.core"
@@ -1124,7 +1124,7 @@ class TestImportLibMode:
         mod2 = import_path(
             core_py,
             mode="importlib",
-            root=pytester.path,
+            root=testrunnerer.path,
             consider_namespace_packages=ns_param,
         )
         assert mod is mod2
@@ -1135,7 +1135,7 @@ class TestImportLibMode:
         mod = import_path(
             test_path1,
             mode="importlib",
-            root=pytester.path,
+            root=testrunnerer.path,
             consider_namespace_packages=ns_param,
         )
         assert mod.__name__ == "_tests.a.test_core"
@@ -1144,7 +1144,7 @@ class TestImportLibMode:
         mod2 = import_path(
             test_path1,
             mode="importlib",
-            root=pytester.path,
+            root=testrunnerer.path,
             consider_namespace_packages=ns_param,
         )
         assert mod is mod2
@@ -1152,7 +1152,7 @@ class TestImportLibMode:
         mod = import_path(
             test_path2,
             mode="importlib",
-            root=pytester.path,
+            root=testrunnerer.path,
             consider_namespace_packages=ns_param,
         )
         assert mod.__name__ == "_tests.b.test_core"
@@ -1161,24 +1161,24 @@ class TestImportLibMode:
         mod2 = import_path(
             test_path2,
             mode="importlib",
-            root=pytester.path,
+            root=testrunnerer.path,
             consider_namespace_packages=ns_param,
         )
         assert mod is mod2
 
     def test_import_using_normal_mechanism_first_integration(
-        self, monkeypatch: MonkeyPatch, pytester: Pytester, ns_param: bool
+        self, monkeypatch: MonkeyPatch, testrunnerer: Testrunnerer, ns_param: bool
     ) -> None:
         """
-        Same test as above, but verify the behavior calling pytest.
+        Same test as above, but verify the behavior calling testrunner.
 
         We should not make this call in the same test as above, as the modules have already
         been imported by separate import_path() calls.
         """
         core_py, test_path1, test_path2 = self.create_installed_doctests_and_tests_dir(
-            pytester.path, monkeypatch
+            testrunnerer.path, monkeypatch
         )
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--import-mode=importlib",
             "-o",
             f"consider_namespace_packages={ns_param}",
@@ -1189,29 +1189,29 @@ class TestImportLibMode:
         )
         result.stdout.fnmatch_lines(
             [
-                f"{core_py.relative_to(pytester.path)} . *",
-                f"{test_path1.relative_to(pytester.path)} . *",
-                f"{test_path2.relative_to(pytester.path)} . *",
+                f"{core_py.relative_to(testrunnerer.path)} . *",
+                f"{test_path1.relative_to(testrunnerer.path)} . *",
+                f"{test_path2.relative_to(testrunnerer.path)} . *",
                 "* 3 passed*",
             ]
         )
 
     def test_import_path_imports_correct_file(
-        self, pytester: Pytester, ns_param: bool
+        self, testrunnerer: Testrunnerer, ns_param: bool
     ) -> None:
         """
         Import the module by the given path, even if other module with the same name
         is reachable from sys.path.
         """
-        pytester.syspathinsert()
+        testrunnerer.syspathinsert()
         # Create a 'x.py' module reachable from sys.path that raises AssertionError
         # if imported.
-        x_at_root = pytester.path / "x.py"
+        x_at_root = testrunnerer.path / "x.py"
         x_at_root.write_text("raise AssertionError('x at root')", encoding="ascii")
 
         # Create another x.py module, but in some subdirectories to ensure it is not
         # accessible from sys.path.
-        x_in_sub_dir = pytester.path / "a/b/x.py"
+        x_in_sub_dir = testrunnerer.path / "a/b/x.py"
         x_in_sub_dir.parent.mkdir(parents=True)
         x_in_sub_dir.write_text("X = 'a/b/x'", encoding="ascii")
 
@@ -1221,7 +1221,7 @@ class TestImportLibMode:
         mod = import_path(
             x_in_sub_dir,
             mode=ImportMode.importlib,
-            root=pytester.path,
+            root=testrunnerer.path,
             consider_namespace_packages=ns_param,
         )
         assert mod.__file__ and Path(mod.__file__) == x_in_sub_dir
@@ -1230,17 +1230,17 @@ class TestImportLibMode:
         mod2 = import_path(
             x_in_sub_dir,
             mode=ImportMode.importlib,
-            root=pytester.path,
+            root=testrunnerer.path,
             consider_namespace_packages=ns_param,
         )
         assert mod is mod2
 
         # Attempt to import root 'x.py'.
-        with pytest.raises(AssertionError, match="x at root"):
+        with testrunner.raises(AssertionError, match="x at root"):
             _ = import_path(
                 x_at_root,
                 mode=ImportMode.importlib,
-                root=pytester.path,
+                root=testrunnerer.path,
                 consider_namespace_packages=ns_param,
             )
 
@@ -1274,19 +1274,19 @@ def test_safe_exists(tmp_path: Path) -> None:
         assert safe_exists(p) is False
 
 
-def test_import_sets_module_as_attribute(pytester: Pytester) -> None:
+def test_import_sets_module_as_attribute(testrunnerer: Testrunnerer) -> None:
     """Unittest test for #12194."""
-    pytester.path.joinpath("foo/bar/baz").mkdir(parents=True)
-    pytester.path.joinpath("foo/__init__.py").touch()
-    pytester.path.joinpath("foo/bar/__init__.py").touch()
-    pytester.path.joinpath("foo/bar/baz/__init__.py").touch()
-    pytester.syspathinsert()
+    testrunnerer.path.joinpath("foo/bar/baz").mkdir(parents=True)
+    testrunnerer.path.joinpath("foo/__init__.py").touch()
+    testrunnerer.path.joinpath("foo/bar/__init__.py").touch()
+    testrunnerer.path.joinpath("foo/bar/baz/__init__.py").touch()
+    testrunnerer.syspathinsert()
 
     # Import foo.bar.baz and ensure parent modules also ended up imported.
     baz = import_path(
-        pytester.path.joinpath("foo/bar/baz/__init__.py"),
+        testrunnerer.path.joinpath("foo/bar/baz/__init__.py"),
         mode=ImportMode.importlib,
-        root=pytester.path,
+        root=testrunnerer.path,
         consider_namespace_packages=False,
     )
     assert baz.__name__ == "foo.bar.baz"
@@ -1301,25 +1301,25 @@ def test_import_sets_module_as_attribute(pytester: Pytester) -> None:
 
     # Ensure we returned the "foo.bar" module cached in sys.modules.
     bar_2 = import_path(
-        pytester.path.joinpath("foo/bar/__init__.py"),
+        testrunnerer.path.joinpath("foo/bar/__init__.py"),
         mode=ImportMode.importlib,
-        root=pytester.path,
+        root=testrunnerer.path,
         consider_namespace_packages=False,
     )
     assert bar_2 is bar
 
 
-def test_import_sets_module_as_attribute_without_init_files(pytester: Pytester) -> None:
+def test_import_sets_module_as_attribute_without_init_files(testrunnerer: Testrunnerer) -> None:
     """Similar to test_import_sets_module_as_attribute, but without __init__.py files."""
-    pytester.path.joinpath("foo/bar").mkdir(parents=True)
-    pytester.path.joinpath("foo/bar/baz.py").touch()
-    pytester.syspathinsert()
+    testrunnerer.path.joinpath("foo/bar").mkdir(parents=True)
+    testrunnerer.path.joinpath("foo/bar/baz.py").touch()
+    testrunnerer.syspathinsert()
 
     # Import foo.bar.baz and ensure parent modules also ended up imported.
     baz = import_path(
-        pytester.path.joinpath("foo/bar/baz.py"),
+        testrunnerer.path.joinpath("foo/bar/baz.py"),
         mode=ImportMode.importlib,
-        root=pytester.path,
+        root=testrunnerer.path,
         consider_namespace_packages=False,
     )
     assert baz.__name__ == "foo.bar.baz"
@@ -1334,21 +1334,21 @@ def test_import_sets_module_as_attribute_without_init_files(pytester: Pytester) 
 
     # Ensure we returned the "foo.bar.baz" module cached in sys.modules.
     baz_2 = import_path(
-        pytester.path.joinpath("foo/bar/baz.py"),
+        testrunnerer.path.joinpath("foo/bar/baz.py"),
         mode=ImportMode.importlib,
-        root=pytester.path,
+        root=testrunnerer.path,
         consider_namespace_packages=False,
     )
     assert baz_2 is baz
 
 
-def test_import_sets_module_as_attribute_regression(pytester: Pytester) -> None:
+def test_import_sets_module_as_attribute_regression(testrunnerer: Testrunnerer) -> None:
     """Regression test for #12194."""
-    pytester.path.joinpath("foo/bar/baz").mkdir(parents=True)
-    pytester.path.joinpath("foo/__init__.py").touch()
-    pytester.path.joinpath("foo/bar/__init__.py").touch()
-    pytester.path.joinpath("foo/bar/baz/__init__.py").touch()
-    f = pytester.makepyfile(
+    testrunnerer.path.joinpath("foo/bar/baz").mkdir(parents=True)
+    testrunnerer.path.joinpath("foo/__init__.py").touch()
+    testrunnerer.path.joinpath("foo/bar/__init__.py").touch()
+    testrunnerer.path.joinpath("foo/bar/baz/__init__.py").touch()
+    f = testrunnerer.makepyfile(
         """
         import foo
         from foo.bar import baz
@@ -1359,44 +1359,44 @@ def test_import_sets_module_as_attribute_regression(pytester: Pytester) -> None:
         """
     )
 
-    pytester.syspathinsert()
-    result = pytester.runpython(f)
+    testrunnerer.syspathinsert()
+    result = testrunnerer.runpython(f)
     assert result.ret == 0
 
-    result = pytester.runpytest("--import-mode=importlib", "--doctest-modules")
+    result = testrunnerer.runtestrunner("--import-mode=importlib", "--doctest-modules")
     assert result.ret == 0
 
 
-def test_import_submodule_not_namespace(pytester: Pytester) -> None:
+def test_import_submodule_not_namespace(testrunnerer: Testrunnerer) -> None:
     """
     Regression test for importing a submodule 'foo.bar' while there is a 'bar' directory
     reachable from sys.path -- ensuring the top-level module does not end up imported as a namespace
     package.
 
     #12194
-    https://github.com/pytest-dev/pytest/pull/12208#issuecomment-2056458432
+    https://github.com/jacksonsr451/test-runner/pull/12208#issuecomment-2056458432
     """
-    pytester.syspathinsert()
+    testrunnerer.syspathinsert()
     # Create package 'foo' with a submodule 'bar'.
-    pytester.path.joinpath("foo").mkdir()
-    foo_path = pytester.path.joinpath("foo/__init__.py")
+    testrunnerer.path.joinpath("foo").mkdir()
+    foo_path = testrunnerer.path.joinpath("foo/__init__.py")
     foo_path.touch()
-    bar_path = pytester.path.joinpath("foo/bar.py")
+    bar_path = testrunnerer.path.joinpath("foo/bar.py")
     bar_path.touch()
     # Create top-level directory in `sys.path` with the same name as that submodule.
-    pytester.path.joinpath("bar").mkdir()
+    testrunnerer.path.joinpath("bar").mkdir()
 
     # Import `foo`, then `foo.bar`, and check they were imported from the correct location.
     foo = import_path(
         foo_path,
         mode=ImportMode.importlib,
-        root=pytester.path,
+        root=testrunnerer.path,
         consider_namespace_packages=False,
     )
     bar = import_path(
         bar_path,
         mode=ImportMode.importlib,
-        root=pytester.path,
+        root=testrunnerer.path,
         consider_namespace_packages=False,
     )
     assert foo.__name__ == "foo"
@@ -1410,22 +1410,22 @@ def test_import_submodule_not_namespace(pytester: Pytester) -> None:
 class TestNamespacePackages:
     """Test import_path support when importing from properly namespace packages."""
 
-    @pytest.fixture(autouse=True)
+    @testrunner.fixture(autouse=True)
     def setup_imports_tracking(self, monkeypatch: MonkeyPatch) -> None:
-        monkeypatch.setattr(sys, "pytest_namespace_packages_test", [], raising=False)
+        monkeypatch.setattr(sys, "testrunner_namespace_packages_test", [], raising=False)
 
     def setup_directories(
-        self, tmp_path: Path, monkeypatch: MonkeyPatch | None, pytester: Pytester
+        self, tmp_path: Path, monkeypatch: MonkeyPatch | None, testrunnerer: Testrunnerer
     ) -> tuple[Path, Path]:
         # Use a code to guard against modules being imported more than once.
         # This is a safeguard in case future changes break this invariant.
         code = dedent(
             """
             import sys
-            imported = getattr(sys, "pytest_namespace_packages_test", [])
+            imported = getattr(sys, "testrunner_namespace_packages_test", [])
             assert __name__ not in imported, f"{__name__} already imported"
             imported.append(__name__)
-            sys.pytest_namespace_packages_test = imported
+            sys.testrunner_namespace_packages_test = imported
             """
         )
 
@@ -1452,7 +1452,7 @@ class TestNamespacePackages:
         algorithms_py.write_text(code, encoding="UTF-8")
 
         r = validate_namespace_package(
-            pytester,
+            testrunnerer,
             [tmp_path / "src/dist1", tmp_path / "src/dist2"],
             ["com.company.app.core.models", "com.company.calc.algo.algorithms"],
         )
@@ -1462,16 +1462,16 @@ class TestNamespacePackages:
             monkeypatch.syspath_prepend(tmp_path / "src/dist2")
         return models_py, algorithms_py
 
-    @pytest.mark.parametrize("import_mode", ["prepend", "append", "importlib"])
+    @testrunner.mark.parametrize("import_mode", ["prepend", "append", "importlib"])
     def test_resolve_pkg_root_and_module_name_ns_multiple_levels(
         self,
         tmp_path: Path,
         monkeypatch: MonkeyPatch,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
         import_mode: str,
     ) -> None:
         models_py, algorithms_py = self.setup_directories(
-            tmp_path, monkeypatch, pytester
+            tmp_path, monkeypatch, testrunnerer
         )
 
         pkg_root, module_name = resolve_pkg_root_and_module_name(
@@ -1524,10 +1524,10 @@ class TestNamespacePackages:
         self,
         tmp_path: Path,
         monkeypatch: MonkeyPatch,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
     ) -> None:
         """Check assert rewriting with `--import-mode=importlib` (#12659)."""
-        self.setup_directories(tmp_path, monkeypatch, pytester)
+        self.setup_directories(tmp_path, monkeypatch, testrunnerer)
         code = dedent("""
         def test():
             assert "four lights" == "five lights"
@@ -1545,7 +1545,7 @@ class TestNamespacePackages:
             "com.company.calc.algo.test_demo",
         )
 
-        result = pytester.runpytest("--import-mode=importlib", test_py)
+        result = testrunnerer.runtestrunner("--import-mode=importlib", test_py)
 
         result.stdout.fnmatch_lines(
             [
@@ -1559,15 +1559,15 @@ class TestNamespacePackages:
     def test_ns_multiple_levels_import_error(
         self,
         tmp_path: Path,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
     ) -> None:
         # Trigger condition 1: ns and file with the same name
-        file = pytester.path / "cow/moo/moo.py"
+        file = testrunnerer.path / "cow/moo/moo.py"
         file.parent.mkdir(parents=True)
         file.write_text("data=123", encoding="utf-8")
 
         # Trigger condition 2: tests are located in ns
-        tests = pytester.path / "cow/moo/test_moo.py"
+        tests = testrunnerer.path / "cow/moo/test_moo.py"
 
         tests.write_text(
             dedent(
@@ -1581,19 +1581,19 @@ class TestNamespacePackages:
             encoding="utf-8",
         )
 
-        result = pytester.runpytest("--import-mode=importlib")
+        result = testrunnerer.runtestrunner("--import-mode=importlib")
         assert result.ret == ExitCode.OK
 
-    @pytest.mark.parametrize("import_mode", ["prepend", "append", "importlib"])
+    @testrunner.mark.parametrize("import_mode", ["prepend", "append", "importlib"])
     def test_incorrect_namespace_package(
         self,
         tmp_path: Path,
         monkeypatch: MonkeyPatch,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
         import_mode: str,
     ) -> None:
         models_py, algorithms_py = self.setup_directories(
-            tmp_path, monkeypatch, pytester
+            tmp_path, monkeypatch, testrunnerer
         )
         # Namespace packages must not have an __init__.py at its top-level
         # directory; if it does, it is no longer a namespace package, and we fall back
@@ -1604,7 +1604,7 @@ class TestNamespacePackages:
         # 'com.company.app' is importable as a normal module.
         # 'com.company.calc' is no longer importable because 'com' is not a namespace package anymore.
         r = validate_namespace_package(
-            pytester,
+            testrunnerer,
             [tmp_path / "src/dist1", tmp_path / "src/dist2"],
             ["com.company.app.core.models", "com.company.calc.algo.algorithms"],
         )
@@ -1632,7 +1632,7 @@ class TestNamespacePackages:
         self,
         tmp_path: Path,
         monkeypatch: MonkeyPatch,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
     ) -> None:
         """
         resolve_pkg_root_and_module_name() considers sys.meta_path when importing namespace packages.
@@ -1659,7 +1659,7 @@ class TestNamespacePackages:
 
         # Setup directories without configuring sys.path.
         models_py, _algorithms_py = self.setup_directories(
-            tmp_path, monkeypatch=None, pytester=pytester
+            tmp_path, monkeypatch=None, testrunnerer=testrunnerer
         )
         com_root_1 = tmp_path / "src/dist1/com"
         com_root_2 = tmp_path / "src/dist2/com"
@@ -1686,9 +1686,9 @@ class TestNamespacePackages:
             "com.company.app.core.models",
         )
 
-    @pytest.mark.parametrize("insert", [True, False])
+    @testrunner.mark.parametrize("insert", [True, False])
     def test_full_ns_packages_without_init_files(
-        self, pytester: Pytester, tmp_path: Path, monkeypatch: MonkeyPatch, insert: bool
+        self, testrunnerer: Testrunnerer, tmp_path: Path, monkeypatch: MonkeyPatch, insert: bool
     ) -> None:
         (tmp_path / "src/dist1/ns/b/app/bar/test").mkdir(parents=True)
         (tmp_path / "src/dist1/ns/b/app/bar/m.py").touch()
@@ -1702,7 +1702,7 @@ class TestNamespacePackages:
 
         # Validate the namespace package by importing it in a Python subprocess.
         r = validate_namespace_package(
-            pytester,
+            testrunnerer,
             [tmp_path / "src/dist1", tmp_path / "src/dist2"],
             ["ns.b.app.bar.m", "ns.a.core.foo.m"],
         )
@@ -1719,7 +1719,7 @@ class TestNamespacePackages:
 
 
 def test_ns_import_same_name_directory_12592(
-    tmp_path: Path, pytester: Pytester
+    tmp_path: Path, testrunnerer: Testrunnerer
 ) -> None:
     """Regression for `--import-mode=importlib` with directory parent and child with same name (#12592)."""
     y_dir = tmp_path / "x/y/y"
@@ -1727,31 +1727,31 @@ def test_ns_import_same_name_directory_12592(
     test_y = tmp_path / "x/y/test_y.py"
     test_y.write_text("def test(): pass", encoding="UTF-8")
 
-    result = pytester.runpytest("--import-mode=importlib", test_y)
+    result = testrunnerer.runtestrunner("--import-mode=importlib", test_y)
     assert result.ret == ExitCode.OK
 
 
-def test_is_importable(pytester: Pytester) -> None:
-    pytester.syspathinsert()
+def test_is_importable(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.syspathinsert()
 
-    path = pytester.path / "bar/foo.py"
+    path = testrunnerer.path / "bar/foo.py"
     path.parent.mkdir()
     path.touch()
     assert is_importable("bar.foo", path) is True
 
     # Ensure that the module that can be imported points to the path we expect.
-    path = pytester.path / "some/other/path/bar/foo.py"
+    path = testrunnerer.path / "some/other/path/bar/foo.py"
     path.mkdir(parents=True, exist_ok=True)
     assert is_importable("bar.foo", path) is False
 
     # Paths containing "." cannot be imported.
-    path = pytester.path / "bar.x/__init__.py"
+    path = testrunnerer.path / "bar.x/__init__.py"
     path.parent.mkdir()
     path.touch()
     assert is_importable("bar.x", path) is False
 
     # Pass starting with "." denote relative imports and cannot be checked using is_importable.
-    path = pytester.path / ".bar.x/__init__.py"
+    path = testrunnerer.path / ".bar.x/__init__.py"
     path.parent.mkdir()
     path.touch()
     assert is_importable(".bar.x", path) is False
@@ -1771,7 +1771,7 @@ def test_compute_module_name(tmp_path: Path) -> None:
 
 
 def validate_namespace_package(
-    pytester: Pytester, paths: Sequence[Path], modules: Sequence[str]
+    testrunnerer: Testrunnerer, paths: Sequence[Path], modules: Sequence[str]
 ) -> RunResult:
     """
     Validate that a Python namespace package is set up correctly.
@@ -1788,4 +1788,4 @@ def validate_namespace_package(
         # Imports.
         *[f"import {x}" for x in modules],
     ]
-    return pytester.runpython_c("\n".join(lines))
+    return testrunnerer.runpython_c("\n".join(lines))

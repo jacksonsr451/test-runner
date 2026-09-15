@@ -1,18 +1,18 @@
-py.test 2.0.3: bug fixes and speed ups
+testrunner 2.0.3: bug fixes and speed ups
 ===========================================================================
 
-Welcome to pytest-2.0.3, a maintenance and bug fix release of pytest,
+Welcome to testrunner-2.0.3, a maintenance and bug fix release of testrunner,
 a mature testing tool for Python, supporting CPython 2.4-3.2, Jython
 and latest PyPy interpreters.  See the extensive docs with tested examples here:
 
-    http://pytest.org/
+    http://testrunner.org/
 
-If you want to install or upgrade pytest, just type one of::
+If you want to install or upgrade testrunner, just type one of::
 
-    pip install -U pytest # or
-    easy_install -U pytest
+    pip install -U testrunner # or
+    easy_install -U testrunner
 
-There also is a bugfix release 1.6 of pytest-xdist, the plugin
+There also is a bugfix release 1.6 of testrunner-xdist, the plugin
 that enables seamless distributed and "looponfail" testing for Python.
 
 best,

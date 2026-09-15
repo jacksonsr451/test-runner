@@ -3,7 +3,7 @@
 How to monkeypatch/mock modules and environments
 ================================================================
 
-.. currentmodule:: pytest
+.. currentmodule:: testrunner
 
 Sometimes tests need to invoke functionality which depends
 on global settings or which invokes code which cannot be easily
@@ -14,15 +14,15 @@ environment variable, or to modify ``sys.path`` for importing.
 The ``monkeypatch`` fixture provides these helper methods for safely patching and mocking
 functionality in tests:
 
-* :meth:`monkeypatch.setattr(obj, name, value, raising=True) <pytest.MonkeyPatch.setattr>`
-* :meth:`monkeypatch.delattr(obj, name, raising=True) <pytest.MonkeyPatch.delattr>`
-* :meth:`monkeypatch.setitem(mapping, name, value) <pytest.MonkeyPatch.setitem>`
-* :meth:`monkeypatch.delitem(obj, name, raising=True) <pytest.MonkeyPatch.delitem>`
-* :meth:`monkeypatch.setenv(name, value, prepend=None) <pytest.MonkeyPatch.setenv>`
-* :meth:`monkeypatch.delenv(name, raising=True) <pytest.MonkeyPatch.delenv>`
-* :meth:`monkeypatch.syspath_prepend(path) <pytest.MonkeyPatch.syspath_prepend>`
-* :meth:`monkeypatch.chdir(path) <pytest.MonkeyPatch.chdir>`
-* :meth:`monkeypatch.context() <pytest.MonkeyPatch.context>`
+* :meth:`monkeypatch.setattr(obj, name, value, raising=True) <testrunner.MonkeyPatch.setattr>`
+* :meth:`monkeypatch.delattr(obj, name, raising=True) <testrunner.MonkeyPatch.delattr>`
+* :meth:`monkeypatch.setitem(mapping, name, value) <testrunner.MonkeyPatch.setitem>`
+* :meth:`monkeypatch.delitem(obj, name, raising=True) <testrunner.MonkeyPatch.delitem>`
+* :meth:`monkeypatch.setenv(name, value, prepend=None) <testrunner.MonkeyPatch.setenv>`
+* :meth:`monkeypatch.delenv(name, raising=True) <testrunner.MonkeyPatch.delenv>`
+* :meth:`monkeypatch.syspath_prepend(path) <testrunner.MonkeyPatch.syspath_prepend>`
+* :meth:`monkeypatch.chdir(path) <testrunner.MonkeyPatch.chdir>`
+* :meth:`monkeypatch.context() <testrunner.MonkeyPatch.context>`
 
 
 All modifications will be undone after the requesting
@@ -174,7 +174,7 @@ This mock can be shared across tests using a ``fixture``:
 .. code-block:: python
 
     # contents of test_app.py, a simple test for our API retrieval
-    import pytest
+    import testrunner
     import requests
 
     # app.py that includes the get_json() function
@@ -189,7 +189,7 @@ This mock can be shared across tests using a ``fixture``:
 
 
     # monkeypatched requests.get moved to a fixture
-    @pytest.fixture
+    @testrunner.fixture
     def mock_response(monkeypatch):
         """Requests.get() mocked to return {'mock_key':'mock_response'}."""
 
@@ -218,10 +218,10 @@ requests in all your tests, you can do:
 .. code-block:: python
 
     # contents of conftest.py
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture(autouse=True)
+    @testrunner.fixture(autouse=True)
     def no_requests(monkeypatch):
         """Remove requests.sessions.Session.request for all tests."""
         monkeypatch.delattr("requests.sessions.Session.request")
@@ -234,14 +234,14 @@ so that any attempts within tests to create http requests will fail.
 .. note::
 
     Be advised that it is not recommended to patch builtin functions such as ``open``,
-    ``compile``, etc., because it might break pytest's internals. If that's
+    ``compile``, etc., because it might break testrunner's internals. If that's
     unavoidable, passing :option:`--tb=native`, :option:`--assert=plain` and :option:`--capture=no` might
     help although there's no guarantee.
 
 .. note::
 
-    Mind that patching ``stdlib`` functions and some third-party libraries used by pytest
-    might break pytest itself. Prefer patching the reference that your code uses
+    Mind that patching ``stdlib`` functions and some third-party libraries used by testrunner
+    might break testrunner itself. Prefer patching the reference that your code uses
     instead of patching the original object in the standard library. For example,
     if your module does ``from os import getcwd``, patch ``mymodule.getcwd``
     rather than ``os.getcwd``.
@@ -294,7 +294,7 @@ both paths can be safely tested without impacting the running environment:
 .. code-block:: python
 
     # contents of our test file e.g. test_code.py
-    import pytest
+    import testrunner
 
 
     def test_upper_to_lower(monkeypatch):
@@ -307,7 +307,7 @@ both paths can be safely tested without impacting the running environment:
         """Remove the USER env var and assert OSError is raised."""
         monkeypatch.delenv("USER", raising=False)
 
-        with pytest.raises(OSError):
+        with testrunner.raises(OSError):
             _ = get_os_user_lower()
 
 This behavior can be moved into ``fixture`` structures and shared across tests:
@@ -315,15 +315,15 @@ This behavior can be moved into ``fixture`` structures and shared across tests:
 .. code-block:: python
 
     # contents of our test file e.g. test_code.py
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def mock_env_user(monkeypatch):
         monkeypatch.setenv("USER", "TestingUser")
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def mock_env_missing(monkeypatch):
         monkeypatch.delenv("USER", raising=False)
 
@@ -334,7 +334,7 @@ This behavior can be moved into ``fixture`` structures and shared across tests:
 
 
     def test_raise_exception(mock_env_missing):
-        with pytest.raises(OSError):
+        with testrunner.raises(OSError):
             _ = get_os_user_lower()
 
 
@@ -382,7 +382,7 @@ You can use the :py:meth:`monkeypatch.delitem <MonkeyPatch.delitem>` to remove v
 .. code-block:: python
 
     # contents of test_app.py
-    import pytest
+    import testrunner
 
     # app.py with the connection string function
     import app
@@ -394,7 +394,7 @@ You can use the :py:meth:`monkeypatch.delitem <MonkeyPatch.delitem>` to remove v
 
         # Key error expected because a config is not passed, and the
         # default is now missing the 'user' entry.
-        with pytest.raises(KeyError):
+        with testrunner.raises(KeyError):
             _ = app.create_connection_string()
 
 
@@ -404,26 +404,26 @@ separate fixtures for each potential mock and reference them in the needed tests
 .. code-block:: python
 
     # contents of test_app.py
-    import pytest
+    import testrunner
 
     # app.py with the connection string function
     import app
 
 
     # all of the mocks are moved into separated fixtures
-    @pytest.fixture
+    @testrunner.fixture
     def mock_test_user(monkeypatch):
         """Set the DEFAULT_CONFIG user to test_user."""
         monkeypatch.setitem(app.DEFAULT_CONFIG, "user", "test_user")
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def mock_test_database(monkeypatch):
         """Set the DEFAULT_CONFIG database to test_db."""
         monkeypatch.setitem(app.DEFAULT_CONFIG, "database", "test_db")
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def mock_missing_default_user(monkeypatch):
         """Remove the user key from DEFAULT_CONFIG"""
         monkeypatch.delitem(app.DEFAULT_CONFIG, "user", raising=False)
@@ -438,11 +438,11 @@ separate fixtures for each potential mock and reference them in the needed tests
 
 
     def test_missing_user(mock_missing_default_user):
-        with pytest.raises(KeyError):
+        with testrunner.raises(KeyError):
             _ = app.create_connection_string()
 
 
-.. currentmodule:: pytest
+.. currentmodule:: testrunner
 
 API Reference
 -------------

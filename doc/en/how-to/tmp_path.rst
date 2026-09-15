@@ -31,11 +31,11 @@ unique to each test function.
 Running this would result in a passed test except for the last
 ``assert 0`` line which we use to look at values:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest test_tmp_path.py
+    $ testrunner test_tmp_path.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 1 item
 
@@ -44,7 +44,7 @@ Running this would result in a passed test except for the last
     ================================= FAILURES =================================
     _____________________________ test_create_file _____________________________
 
-    tmp_path = PosixPath('PYTEST_TMPDIR/test_create_file0')
+    tmp_path = PosixPath('TESTRUNNER_TMPDIR/test_create_file0')
 
         def test_create_file(tmp_path):
             d = tmp_path / "sub"
@@ -61,7 +61,7 @@ Running this would result in a passed test except for the last
     FAILED test_tmp_path.py::test_create_file - assert 0
     ============================ 1 failed in 0.12s =============================
 
-By default, ``pytest`` retains the temporary directory for the last 3 ``pytest``
+By default, ``testrunner`` retains the temporary directory for the last 3 ``testrunner``
 invocations. Concurrent invocations of the same test function are supported by
 configuring the base temporary directory to be unique for each concurrent
 run. See `temporary directory location and retention`_ for details.
@@ -82,10 +82,10 @@ to save time:
 .. code-block:: python
 
     # contents of conftest.py
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture(scope="session")
+    @testrunner.fixture(scope="session")
     def image_file(tmp_path_factory):
         img = compute_expensive_image()
         fn = tmp_path_factory.mktemp("data") / "img.png"
@@ -113,12 +113,12 @@ rather than standard :class:`pathlib.Path` objects.
 .. note::
     These days, it is preferred to use ``tmp_path`` and ``tmp_path_factory``.
 
-    In order to help modernize old code bases, one can run pytest with the legacypath
+    In order to help modernize old code bases, one can run testrunner with the legacypath
     plugin disabled:
 
     .. code-block:: bash
 
-        pytest -p no:legacypath
+        testrunner -p no:legacypath
 
     This will trigger errors on tests using the legacy paths.
     It can also be permanently set as part of the :confval:`addopts` parameter in the
@@ -143,16 +143,16 @@ in a structure that depends on the :option:`--basetemp` option:
 
   .. code-block:: text
 
-      {temproot}/pytest-of-{user}/pytest-{num}/{testname}/
+      {temproot}/testrunner-of-{user}/testrunner-{num}/{testname}/
 
   where:
 
   - ``{temproot}`` is the system temporary directory
     as determined by :py:func:`tempfile.gettempdir`.
-    It can be overridden by the :envvar:`PYTEST_DEBUG_TEMPROOT` environment variable.
+    It can be overridden by the :envvar:`TESTRUNNER_DEBUG_TEMPROOT` environment variable.
   - ``{user}`` is the user name running the tests,
   - ``{num}`` is a number that is incremented with each test suite run
-  - ``{testname}`` is a sanitized version of :py:attr:`the name of the current test <_pytest.nodes.Node.name>`.
+  - ``{testname}`` is a sanitized version of :py:attr:`the name of the current test <_testrunner.nodes.Node.name>`.
 
   The auto-incrementing ``{num}`` placeholder provides a basic retention feature
   and avoids that existing results of previous test runs are blindly removed.
@@ -160,7 +160,7 @@ in a structure that depends on the :option:`--basetemp` option:
   but this behavior can be configured with
   :confval:`tmp_path_retention_count` and :confval:`tmp_path_retention_policy`.
 
-- When the :option:`--basetemp` option is used (e.g. ``pytest --basetemp=mydir``),
+- When the :option:`--basetemp` option is used (e.g. ``testrunner --basetemp=mydir``),
   it will be used directly as base temporary directory:
 
   .. code-block:: text
@@ -175,7 +175,7 @@ in a structure that depends on the :option:`--basetemp` option:
       The directory given to :option:`--basetemp` will be cleared blindly before each test run,
       so make sure to use a directory for that purpose only.
 
-When distributing tests on the local machine using ``pytest-xdist``, care is taken to
+When distributing tests on the local machine using ``testrunner-xdist``, care is taken to
 automatically configure a `basetemp` directory for the sub processes such that all temporary
 data lands below a single per-test run temporary directory.
 

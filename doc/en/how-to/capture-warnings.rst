@@ -5,7 +5,7 @@ How to capture warnings
 
 
 
-Starting from version ``3.1``, pytest now automatically catches warnings during test execution
+Starting from version ``3.1``, testrunner now automatically catches warnings during test execution
 and displays them at the end of the session:
 
 .. code-block:: python
@@ -22,13 +22,13 @@ and displays them at the end of the session:
     def test_one():
         assert api_v1() == 1
 
-Running pytest now produces this output:
+Running testrunner now produces this output:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest test_show_warnings.py
+    $ testrunner test_show_warnings.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 1 item
 
@@ -39,7 +39,7 @@ Running pytest now produces this output:
       /home/sweet/project/test_show_warnings.py:5: UserWarning: api v1, should use functions from v2
         warnings.warn(UserWarning("api v1, should use functions from v2"))
 
-    -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+    -- Docs: https://github.com/jacksonsr451/test-runner/tree/main/doc/en/how-to/capture-warnings.html
     ======================= 1 passed, 1 warning in 0.12s =======================
 
 .. _`controlling-warnings`:
@@ -47,7 +47,7 @@ Running pytest now produces this output:
 Controlling warnings
 --------------------
 
-Similar to Python's `warning filter`_ and :option:`-W option <python:-W>` flag, pytest provides
+Similar to Python's `warning filter`_ and :option:`-W option <python:-W>` flag, testrunner provides
 its own ``-W`` flag to control which warnings are ignored, displayed, or turned into
 errors. See the `warning filter`_ documentation for more
 advanced use-cases.
@@ -57,9 +57,9 @@ advanced use-cases.
 This code sample shows how to treat any ``UserWarning`` category class of warning
 as an error:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q test_show_warnings.py -W error::UserWarning
+    $ testrunner -q test_show_warnings.py -W error::UserWarning
     F                                                                    [100%]
     ================================= FAILURES =================================
     _________________________________ test_one _________________________________
@@ -89,7 +89,7 @@ all other warnings into errors.
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         filterwarnings = [
             'error',
             'ignore::UserWarning',
@@ -101,7 +101,7 @@ all other warnings into errors.
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         filterwarnings =
             error
             ignore::UserWarning
@@ -126,12 +126,12 @@ is performed.
 
 .. _`filterwarnings`:
 
-``@pytest.mark.filterwarnings``
+``@testrunner.mark.filterwarnings``
 -------------------------------
 
 
 
-You can use the :ref:`@pytest.mark.filterwarnings <pytest.mark.filterwarnings ref>` mark to add warning filters to specific test items,
+You can use the :ref:`@testrunner.mark.filterwarnings <testrunner.mark.filterwarnings ref>` mark to add warning filters to specific test items,
 allowing you to have finer control of which warnings should be captured at test, class or
 even module level:
 
@@ -145,7 +145,7 @@ even module level:
         return 1
 
 
-    @pytest.mark.filterwarnings("ignore:api v1")
+    @testrunner.mark.filterwarnings("ignore:api v1")
     def test_one():
         assert api_v1() == 1
 
@@ -155,8 +155,8 @@ You can specify multiple filters with separate decorators:
 .. code-block:: python
 
     # Ignore "api v1" warnings, but fail on all other warnings
-    @pytest.mark.filterwarnings("ignore:api v1")
-    @pytest.mark.filterwarnings("error")
+    @testrunner.mark.filterwarnings("ignore:api v1")
+    @testrunner.mark.filterwarnings("error")
     def test_one():
         assert api_v1() == 1
 
@@ -165,7 +165,7 @@ You can also pass multiple filters to a single mark by providing multiple argume
 .. code-block:: python
 
     # Later arguments take precedence, matching warnings.filterwarnings behavior.
-    @pytest.mark.filterwarnings("error", "ignore:api v1")
+    @testrunner.mark.filterwarnings("error", "ignore:api v1")
     def test_one():
         assert api_v1() == 1
 
@@ -175,34 +175,34 @@ You can also pass multiple filters to a single mark by providing multiple argume
     it's important to remember that decorators are evaluated in reverse order,
     so you have to list the warning filters in the reverse order
     compared to traditional :py:func:`warnings.filterwarnings` and :option:`-W option <python:-W>` usage.
-    This means in practice that filters from earlier :ref:`@pytest.mark.filterwarnings <pytest.mark.filterwarnings ref>` decorators
+    This means in practice that filters from earlier :ref:`@testrunner.mark.filterwarnings <testrunner.mark.filterwarnings ref>` decorators
     take precedence over filters from later decorators, as illustrated in the example above.
 
 
 Filters applied using a mark take precedence over filters passed on the command line or configured
 by the :confval:`filterwarnings` configuration option.
 
-You may apply a filter to all tests of a class by using the :ref:`filterwarnings <pytest.mark.filterwarnings ref>` mark as a class
-decorator or to all tests in a module by setting the :globalvar:`pytestmark` variable:
+You may apply a filter to all tests of a class by using the :ref:`filterwarnings <testrunner.mark.filterwarnings ref>` mark as a class
+decorator or to all tests in a module by setting the :globalvar:`_testrunner_mark` variable:
 
 .. code-block:: python
 
     # turns all warnings into errors for this module
-    pytestmark = pytest.mark.filterwarnings("error")
+    _testrunner_mark = testrunner.mark.filterwarnings("error")
 
 
 .. note::
 
     If you want to apply multiple filters
-    (by assigning a list of :ref:`filterwarnings <pytest.mark.filterwarnings ref>` mark to :globalvar:`pytestmark`),
+    (by assigning a list of :ref:`filterwarnings <testrunner.mark.filterwarnings ref>` mark to :globalvar:`_testrunner_mark`),
     you must use the traditional :py:func:`warnings.filterwarnings` ordering approach (later filters take precedence),
     which is the reverse of the decorator approach mentioned above.
 
 
-*Credits go to Florian Schulze for the reference implementation in the* `pytest-warnings`_
+*Credits go to Florian Schulze for the reference implementation in the* `testrunner-warnings`_
 *plugin.*
 
-.. _`pytest-warnings`: https://github.com/fschulze/pytest-warnings
+.. _`testrunner-warnings`: https://github.com/fschulze/testrunner-warnings
 
 Setting a maximum number of warnings
 -------------------------------------
@@ -214,10 +214,10 @@ if the total number of warnings exceeds a given threshold:
 
 .. code-block:: bash
 
-    pytest --max-warnings=10
+    testrunner --max-warnings=10
 
-If all tests pass but the number of warnings exceeds the threshold, pytest will exit with code ``6``
-(:class:`~pytest.ExitCode` ``MAX_WARNINGS_ERROR``). This is useful for gradually
+If all tests pass but the number of warnings exceeds the threshold, testrunner will exit with code ``6``
+(:class:`~testrunner.ExitCode` ``MAX_WARNINGS_ERROR``). This is useful for gradually
 ratcheting down warnings in a codebase.
 
 Note that :confval:`filtered warnings <filterwarnings>` do not count toward this maximum total.
@@ -228,19 +228,19 @@ The threshold can also be set in the configuration file using :confval:`max_warn
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         max_warnings = 10
 
 .. tab:: ini
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         max_warnings = 10
 
 .. note::
 
-    If tests fail, the exit code will be ``1`` (:class:`~pytest.ExitCode` ``TESTS_FAILED``)
+    If tests fail, the exit code will be ``1`` (:class:`~testrunner.ExitCode` ``TESTS_FAILED``)
     regardless of the warning count. ``MAX_WARNINGS_ERROR`` is only reported when all tests pass
     but the warning threshold is exceeded.
 
@@ -259,14 +259,14 @@ This plugin is enabled by default but can be disabled entirely in your configura
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         addopts = ["-p", "no:warnings"]
 
 .. tab:: ini
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         addopts = -p no:warnings
 
 Or passing ``-p no:warnings`` in the command-line. This might be useful if your test suite handles warnings
@@ -278,12 +278,12 @@ using an external system.
 DeprecationWarning and PendingDeprecationWarning
 ------------------------------------------------
 
-By default pytest will display ``DeprecationWarning`` and ``PendingDeprecationWarning`` warnings from
+By default testrunner will display ``DeprecationWarning`` and ``PendingDeprecationWarning`` warnings from
 user code and third-party libraries, as recommended by :pep:`565`.
 This helps users keep their code modern and avoid breakages when deprecated warnings are effectively removed.
 
 However, in the specific case where users capture any type of warnings in their test, either with
-:func:`pytest.warns`, :func:`pytest.deprecated_call` or using the :fixture:`recwarn` fixture,
+:func:`testrunner.warns`, :func:`testrunner.deprecated_call` or using the :fixture:`recwarn` fixture,
 no warning will be displayed at all.
 
 Sometimes it is useful to hide some specific deprecation warnings that happen in code that you have no control over
@@ -296,7 +296,7 @@ For example:
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         filterwarnings = [
             'ignore:.*U.*mode is deprecated:DeprecationWarning',
         ]
@@ -305,7 +305,7 @@ For example:
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         filterwarnings =
             ignore:.*U.*mode is deprecated:DeprecationWarning
 
@@ -313,16 +313,16 @@ For example:
 This will ignore all warnings of type ``DeprecationWarning`` where the start of the message matches
 the regular expression ``".*U.*mode is deprecated"``.
 
-See :ref:`@pytest.mark.filterwarnings <filterwarnings>` and
+See :ref:`@testrunner.mark.filterwarnings <filterwarnings>` and
 :ref:`Controlling warnings <controlling-warnings>` for more examples.
 
 .. note::
 
     If warnings are configured at the interpreter level, using
     the :envvar:`python:PYTHONWARNINGS` environment variable or the
-    ``-W`` command-line option, pytest will not configure any filters by default.
+    ``-W`` command-line option, testrunner will not configure any filters by default.
 
-    Also pytest doesn't follow :pep:`565` suggestion of resetting all warning filters because
+    Also testrunner doesn't follow :pep:`565` suggestion of resetting all warning filters because
     it might break test suites that configure warning filters themselves
     by calling :func:`warnings.simplefilter` (see :issue:`2430` for an example of that).
 
@@ -334,17 +334,17 @@ See :ref:`@pytest.mark.filterwarnings <filterwarnings>` and
 Ensuring code triggers a deprecation warning
 --------------------------------------------
 
-You can also use :func:`pytest.deprecated_call` for checking
+You can also use :func:`testrunner.deprecated_call` for checking
 that a certain function call triggers a ``DeprecationWarning``, ``PendingDeprecationWarning`` or
 ``FutureWarning``:
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
     def test_myfunction_deprecated():
-        with pytest.deprecated_call():
+        with testrunner.deprecated_call():
             myfunction(17)
 
 This test will fail if ``myfunction`` does not issue a deprecation warning
@@ -364,7 +364,7 @@ when called with a ``17`` argument.
 Asserting warnings with the warns function
 ------------------------------------------
 
-You can check that code raises a particular warning using :func:`pytest.warns`,
+You can check that code raises a particular warning using :func:`testrunner.warns`,
 which works in a similar manner to :ref:`raises <assertraises>` (except that
 :ref:`raises <assertraises>` does not capture all exceptions, only the
 ``expected_exception``):
@@ -373,11 +373,11 @@ which works in a similar manner to :ref:`raises <assertraises>` (except that
 
     import warnings
 
-    import pytest
+    import testrunner
 
 
     def test_warning():
-        with pytest.warns(UserWarning):
+        with testrunner.warns(UserWarning):
             warnings.warn("my warning", UserWarning)
 
 The test will fail if the warning in question is not raised. Use the keyword
@@ -417,7 +417,7 @@ additional information:
 
 .. code-block:: python
 
-    with pytest.warns(RuntimeWarning) as record:
+    with testrunner.warns(RuntimeWarning) as record:
         warnings.warn("another warning", RuntimeWarning)
 
     # check that only one warning was raised
@@ -438,15 +438,15 @@ The :fixture:`recwarn` fixture automatically resets the warnings filter at the e
 Recording warnings
 ------------------
 
-You can record raised warnings either using the :func:`pytest.warns` context manager or with
+You can record raised warnings either using the :func:`testrunner.warns` context manager or with
 the :fixture:`recwarn` fixture.
 
-To record with :func:`pytest.warns` without asserting anything about the warnings,
+To record with :func:`testrunner.warns` without asserting anything about the warnings,
 pass no arguments as the expected warning type and it will default to a generic Warning:
 
 .. code-block:: python
 
-    with pytest.warns() as record:
+    with testrunner.warns() as record:
         warnings.warn("user", UserWarning)
         warnings.warn("runtime", RuntimeWarning)
 
@@ -470,8 +470,8 @@ The :fixture:`recwarn` fixture will record warnings for the whole function:
         assert w.filename
         assert w.lineno
 
-Both the :fixture:`recwarn` fixture and the :func:`pytest.warns` context manager return the same interface for recorded
-warnings: a :class:`~_pytest.recwarn.WarningsRecorder` instance. To view the recorded warnings, you can
+Both the :fixture:`recwarn` fixture and the :func:`testrunner.warns` context manager return the same interface for recorded
+warnings: a :class:`~_testrunner.recwarn.WarningsRecorder` instance. To view the recorded warnings, you can
 iterate over this instance, call ``len`` on it to get the number of recorded
 warnings, or index into it to get a particular recorded warning.
 
@@ -488,7 +488,7 @@ Here are some use cases involving warnings that often come up in tests, and sugg
 .. code-block:: python
 
     def test_warning():
-        with pytest.warns((RuntimeWarning, UserWarning)):
+        with testrunner.warns((RuntimeWarning, UserWarning)):
             ...
 
 - To ensure that **only** certain warnings are issued, use:
@@ -531,28 +531,28 @@ are met.
 .. code-block:: python
 
     def test():
-        with pytest.warns(Warning) as record:
+        with testrunner.warns(Warning) as record:
             f()
             if not record:
-                pytest.fail("Expected a warning!")
+                testrunner.fail("Expected a warning!")
 
 If no warnings are issued when calling ``f``, then ``not record`` will
-evaluate to ``True``.  You can then call :func:`pytest.fail` with a
+evaluate to ``True``.  You can then call :func:`testrunner.fail` with a
 custom error message.
 
 .. _internal-warnings:
 
-Internal pytest warnings
+Internal testrunner warnings
 ------------------------
 
-pytest may generate its own warnings in some situations, such as improper usage or deprecated features.
+testrunner may generate its own warnings in some situations, such as improper usage or deprecated features.
 
-For example, pytest will emit a warning if it encounters a class that matches :confval:`python_classes` but also
+For example, testrunner will emit a warning if it encounters a class that matches :confval:`python_classes` but also
 defines an ``__init__`` constructor, as this prevents the class from being instantiated:
 
 .. code-block:: python
 
-    # content of test_pytest_warnings.py
+    # content of test_testrunner_warnings.py
     class Test:
         def __init__(self):
             pass
@@ -560,16 +560,16 @@ defines an ``__init__`` constructor, as this prevents the class from being insta
         def test_foo(self):
             assert 1 == 1
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest test_pytest_warnings.py -q
+    $ testrunner test_testrunner_warnings.py -q
 
     ============================= warnings summary =============================
-    test_pytest_warnings.py:1
-      /home/sweet/project/test_pytest_warnings.py:1: PytestCollectionWarning: cannot collect test class 'Test' because it has a __init__ constructor (from: test_pytest_warnings.py)
+    test_testrunner_warnings.py:1
+      /home/sweet/project/test_testrunner_warnings.py:1: TestrunnerCollectionWarning: cannot collect test class 'Test' because it has a __init__ constructor (from: test_testrunner_warnings.py)
         class Test:
 
-    -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+    -- Docs: https://github.com/jacksonsr451/test-runner/tree/main/doc/en/how-to/capture-warnings.html
     1 warning in 0.12s
 
 These warnings might be filtered using the same builtin mechanisms used to filter other types of warnings.
@@ -585,7 +585,7 @@ The full list of warnings is listed in :ref:`the reference documentation <warnin
 Resource Warnings
 -----------------
 
-Additional information of the source of a :class:`ResourceWarning` can be obtained when captured by pytest if
+Additional information of the source of a :class:`ResourceWarning` can be obtained when captured by testrunner if
 :mod:`tracemalloc` module is enabled.
 
 One convenient way to enable :mod:`tracemalloc` when running tests is to set the :envvar:`PYTHONTRACEMALLOC` to a large

@@ -1,6 +1,6 @@
 .. _types:
 
-Typing in pytest
+Typing in testrunner
 ================
 
 .. note::
@@ -42,14 +42,14 @@ Note the code above has 100% coverage, but the bug is not caught (of course the 
 Using typing in test suites
 ---------------------------
 
-To type fixtures in pytest, just add normal types to the fixture functions -- there is nothing special that needs to be done just because of the `fixture` decorator.
+To type fixtures in testrunner, just add normal types to the fixture functions -- there is nothing special that needs to be done just because of the `fixture` decorator.
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def sample_fixture() -> int:
         return 38
 
@@ -60,15 +60,15 @@ In the same manner, the fixtures passed to test functions need be annotated with
     def test_sample_fixture(sample_fixture: int) -> None:
         assert sample_fixture == 38
 
-From the POV of the type checker, it does not matter that `sample_fixture` is actually a fixture managed by pytest, all it matters to it is that `sample_fixture` is a parameter of type `int`.
+From the POV of the type checker, it does not matter that `sample_fixture` is actually a fixture managed by testrunner, all it matters to it is that `sample_fixture` is a parameter of type `int`.
 
 
-The same logic applies to :ref:`@pytest.mark.parametrize <@pytest.mark.parametrize>`:
+The same logic applies to :ref:`@testrunner.mark.parametrize <@testrunner.mark.parametrize>`:
 
 .. code-block:: python
 
 
-    @pytest.mark.parametrize("input_value, expected_output", [(1, 2), (5, 6), (10, 11)])
+    @testrunner.mark.parametrize("input_value, expected_output", [(1, 2), (5, 6), (10, 11)])
     def test_increment(input_value: int, expected_output: int) -> None:
         assert input_value + 1 == expected_output
 
@@ -77,13 +77,13 @@ The same logic applies when typing fixture functions which receive other fixture
 
 .. code-block:: python
 
-    @pytest.fixture
-    def mock_env_user(monkeypatch: pytest.MonkeyPatch) -> None:
+    @testrunner.fixture
+    def mock_env_user(monkeypatch: testrunner.MonkeyPatch) -> None:
         monkeypatch.setenv("USER", "TestingUser")
 
 
 Conclusion
 ----------
 
-Incorporating typing into pytest tests enhances **clarity**, improves **debugging** and **maintenance**, and ensures **type safety**.
+Incorporating typing into testrunner tests enhances **clarity**, improves **debugging** and **maintenance**, and ensures **type safety**.
 These practices lead to a **robust**, **readable**, and **easily maintainable** test suite that is better equipped to handle future changes with minimal risk of errors.

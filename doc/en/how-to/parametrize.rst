@@ -9,15 +9,15 @@
 How to parametrize fixtures and test functions
 ==========================================================================
 
-pytest enables test parametrization at several levels:
+testrunner enables test parametrization at several levels:
 
-- :py:func:`pytest.fixture` allows one to :ref:`parametrize fixture
+- :py:func:`testrunner.fixture` allows one to :ref:`parametrize fixture
   functions <fixture-parametrize>`.
 
-* `@pytest.mark.parametrize`_ allows one to define multiple sets of
+* `@testrunner.mark.parametrize`_ allows one to define multiple sets of
   arguments and fixtures at the test function or class.
 
-* `pytest_generate_tests`_ allows one to define custom parametrization
+* `testrunner_generate_tests`_ allows one to define custom parametrization
   schemes or extensions.
 
 
@@ -26,15 +26,15 @@ pytest enables test parametrization at several levels:
     See :ref:`subtests` for an alternative to parametrization.
 
 .. _parametrizemark:
-.. _`@pytest.mark.parametrize`:
+.. _`@testrunner.mark.parametrize`:
 
 
-``@pytest.mark.parametrize``: parametrizing test functions
+``@testrunner.mark.parametrize``: parametrizing test functions
 ---------------------------------------------------------------------
 
 .. regendoc: wipe
 
-The builtin :ref:`pytest.mark.parametrize ref` decorator enables
+The builtin :ref:`testrunner.mark.parametrize ref` decorator enables
 parametrization of arguments for a test function.  Here is a typical example
 of a test function that implements checking that a certain input leads
 to an expected output:
@@ -42,10 +42,10 @@ to an expected output:
 .. code-block:: python
 
     # content of test_expectation.py
-    import pytest
+    import testrunner
 
 
-    @pytest.mark.parametrize("test_input,expected", [("3+5", 8), ("2+4", 6), ("6*9", 42)])
+    @testrunner.mark.parametrize("test_input,expected", [("3+5", 8), ("2+4", 6), ("6*9", 42)])
     def test_eval(test_input, expected):
         assert eval(test_input) == expected
 
@@ -53,11 +53,11 @@ Here, the ``@parametrize`` decorator defines three different ``(test_input,expec
 tuples so that the ``test_eval`` function will run three times using
 them in turn:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest
+    $ testrunner
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 3 items
 
@@ -68,7 +68,7 @@ them in turn:
 
     test_input = '6*9', expected = 42
 
-        @pytest.mark.parametrize("test_input,expected", [("3+5", 8), ("2+4", 6), ("6*9", 42)])
+        @testrunner.mark.parametrize("test_input,expected", [("3+5", 8), ("2+4", 6), ("6*9", 42)])
         def test_eval(test_input, expected):
     >       assert eval(test_input) == expected
     E       AssertionError: assert 54 == 42
@@ -89,7 +89,7 @@ them in turn:
 
 .. note::
 
-    pytest by default escapes any non-ascii characters used in unicode strings
+    testrunner by default escapes any non-ascii characters used in unicode strings
     for the parametrization because it has several downsides.
     If however you would like to use unicode strings in parametrization
     and see them in the terminal as is (non-escaped), use this option
@@ -99,14 +99,14 @@ them in turn:
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             disable_test_id_escaping_and_forfeit_all_rights_to_community_support = true
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             disable_test_id_escaping_and_forfeit_all_rights_to_community_support = true
 
     Keep in mind however that this might cause unwanted side effects and
@@ -125,10 +125,10 @@ for instance:
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
-    @pytest.mark.parametrize("n,expected", [(1, 2), (3, 4)])
+    @testrunner.mark.parametrize("n,expected", [(1, 2), (3, 4)])
     class TestClass:
         def test_simple_case(self, n, expected):
             assert n + 1 == expected
@@ -137,14 +137,14 @@ for instance:
             assert (n * 1) + 1 == expected
 
 
-To parametrize all tests in a module, you can assign to the :globalvar:`pytestmark` global variable:
+To parametrize all tests in a module, you can assign to the :globalvar:`_testrunner_mark` global variable:
 
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
-    pytestmark = pytest.mark.parametrize("n,expected", [(1, 2), (3, 4)])
+    _testrunner_mark = testrunner.mark.parametrize("n,expected", [(1, 2), (3, 4)])
 
 
     class TestClass:
@@ -161,23 +161,23 @@ for example with the builtin ``mark.xfail``:
 .. code-block:: python
 
     # content of test_expectation.py
-    import pytest
+    import testrunner
 
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "test_input,expected",
-        [("3+5", 8), ("2+4", 6), pytest.param("6*9", 42, marks=pytest.mark.xfail)],
+        [("3+5", 8), ("2+4", 6), testrunner.param("6*9", 42, marks=testrunner.mark.xfail)],
     )
     def test_eval(test_input, expected):
         assert eval(test_input) == expected
 
 Let's run this:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest
+    $ testrunner
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 3 items
 
@@ -190,18 +190,18 @@ shows up as an "xfailed" (expected to fail) test.
 
 In case the values provided to ``parametrize`` result in an empty list - for
 example, if they're dynamically generated by some function - the behaviour of
-pytest is defined by the :confval:`empty_parameter_set_mark` option.
+testrunner is defined by the :confval:`empty_parameter_set_mark` option.
 
 To get all combinations of multiple parametrized arguments you can stack
 ``parametrize`` decorators:
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
-    @pytest.mark.parametrize("x", [0, 1])
-    @pytest.mark.parametrize("y", [2, 3])
+    @testrunner.mark.parametrize("x", [0, 1])
+    @testrunner.mark.parametrize("y", [2, 3])
     def test_foo(x, y):
         pass
 
@@ -209,21 +209,21 @@ This will run the test with the arguments set to ``x=0/y=2``, ``x=1/y=2``,
 ``x=0/y=3``, and ``x=1/y=3`` exhausting parameters in the order of the decorators.
 
 
-.. _`pytest_generate_tests`:
+.. _`testrunner_generate_tests`:
 
-Basic ``pytest_generate_tests`` example
+Basic ``testrunner_generate_tests`` example
 ---------------------------------------------
 
 Sometimes you may want to implement your own parametrization scheme
 or implement some dynamism for determining the parameters or scope
-of a fixture.   For this, you can use the ``pytest_generate_tests`` hook
+of a fixture.   For this, you can use the ``testrunner_generate_tests`` hook
 which is called when collecting a test function.  Through the passed in
 ``metafunc`` object you can inspect the requesting test context and, most
 importantly, you can call ``metafunc.parametrize()`` to cause
 parametrization.
 
 For example, let's say we want to run a test taking string inputs which
-we want to set via a new ``pytest`` command line option.  Let's first write
+we want to set via a new ``testrunner`` command line option.  Let's first write
 a simple test accepting a ``stringinput`` fixture function argument:
 
 .. code-block:: python
@@ -242,7 +242,7 @@ command line option and the parametrization of our test function:
     # content of conftest.py
 
 
-    def pytest_addoption(parser):
+    def testrunner_addoption(parser):
         parser.addoption(
             "--stringinput",
             action="append",
@@ -251,30 +251,30 @@ command line option and the parametrization of our test function:
         )
 
 
-    def pytest_generate_tests(metafunc):
+    def testrunner_generate_tests(metafunc):
         if "stringinput" in metafunc.fixturenames:
             metafunc.parametrize("stringinput", metafunc.config.getoption("stringinput"))
 
 .. note::
 
-    The :hook:`pytest_generate_tests` hook can also be implemented directly in a test
-    module or inside a test class; unlike other hooks, pytest will discover it there
+    The :hook:`testrunner_generate_tests` hook can also be implemented directly in a test
+    module or inside a test class; unlike other hooks, testrunner will discover it there
     as well. Other hooks must live in a :ref:`conftest.py <localplugin>` or a plugin.
     See :ref:`writinghooks`.
 
 If we now pass two stringinput values, our test will run twice:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q --stringinput="hello" --stringinput="world" test_strings.py
+    $ testrunner -q --stringinput="hello" --stringinput="world" test_strings.py
     ..                                                                   [100%]
     2 passed in 0.12s
 
 Let's also run with a stringinput that will lead to a failing test:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q --stringinput="!" test_strings.py
+    $ testrunner -q --stringinput="!" test_strings.py
     F                                                                    [100%]
     ================================= FAILURES =================================
     ___________________________ test_valid_string[!] ___________________________
@@ -298,9 +298,9 @@ If you don't specify a stringinput it will be skipped because
 ``metafunc.parametrize()`` will be called with an empty parameter
 list:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q -rs test_strings.py
+    $ testrunner -q -rs test_strings.py
     s                                                                    [100%]
     ========================= short test summary info ==========================
     SKIPPED [1] test_strings.py: got empty parameter set for (stringinput)

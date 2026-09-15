@@ -6,13 +6,13 @@ import sys
 from types import FrameType
 from unittest import mock
 
-from _pytest._code import Code
-from _pytest._code import ExceptionInfo
-from _pytest._code import Frame
-from _pytest._code import Source
-from _pytest._code.code import ExceptionChainRepr
-from _pytest._code.code import ReprFuncArgs
-import pytest
+from _testrunner._code import Code
+from _testrunner._code import ExceptionInfo
+from _testrunner._code import Frame
+from _testrunner._code import Source
+from _testrunner._code.code import ExceptionChainRepr
+from _testrunner._code.code import ReprFuncArgs
+import testrunner
 
 
 def test_ne() -> None:
@@ -35,7 +35,7 @@ def test_code_from_function_with_class() -> None:
     class A:
         pass
 
-    with pytest.raises(TypeError):
+    with testrunner.raises(TypeError):
         Code.from_function(A)
 
 
@@ -85,7 +85,7 @@ def test_code_from_func() -> None:
 def test_unicode_handling() -> None:
     value = "ąć".encode()
 
-    with pytest.raises(Exception) as excinfo:
+    with testrunner.raises(Exception) as excinfo:
         raise Exception(value)
     str(excinfo)
 
@@ -168,7 +168,7 @@ class TestExceptionInfo:
         assert exci.getrepr()
 
     def test_from_current_with_missing(self) -> None:
-        with pytest.raises(AssertionError, match="no current exception"):
+        with testrunner.raises(AssertionError, match="no current exception"):
             ExceptionInfo.from_current()
 
 

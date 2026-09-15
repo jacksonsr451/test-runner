@@ -14,14 +14,14 @@ from operator import eq
 from operator import ne
 import re
 
-from _pytest.approx import _recursive_sequence_map
-from _pytest.approx import ApproxScalar
-from _pytest.pytester import Pytester
-import pytest
-from pytest import approx
+from _testrunner.approx import _recursive_sequence_map
+from _testrunner.approx import ApproxScalar
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
+from testrunner import approx
 
 
-@pytest.fixture
+@testrunner.fixture
 def mocked_doctest_runner(monkeypatch):
     import doctest
 
@@ -59,13 +59,13 @@ def temporary_verbosity(config, verbosity=0):
         config.option.verbose = original_verbosity
 
 
-@pytest.fixture
-def assert_approx_raises_regex(pytestconfig):
+@testrunner.fixture
+def assert_approx_raises_regex(testrunnerconfig):
     def do_assert(lhs, rhs, expected_message, verbosity_level=0):
         import re
 
-        with temporary_verbosity(pytestconfig, verbosity_level):
-            with pytest.raises(AssertionError) as e:
+        with temporary_verbosity(testrunnerconfig, verbosity_level):
+            with testrunner.raises(AssertionError) as e:
                 assert lhs == approx(rhs)
 
         nl = "\n"
@@ -202,7 +202,7 @@ class TestApprox:
         )
 
     def test_error_messages_numpy_dtypes(self, assert_approx_raises_regex):
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
 
         a = np.linspace(0, 100, 20)
         b = np.linspace(0, 100, 20)
@@ -260,9 +260,9 @@ class TestApprox:
         )
 
     def test_error_messages_invalid_args(self, assert_approx_raises_regex):
-        np = pytest.importorskip("numpy")
-        with pytest.raises(AssertionError) as e:
-            assert np.array([[1.2, 3.4], [4.0, 5.0]]) == pytest.approx(
+        np = testrunner.importorskip("numpy")
+        with testrunner.raises(AssertionError) as e:
+            assert np.array([[1.2, 3.4], [4.0, 5.0]]) == testrunner.approx(
                 np.array([[4.0], [5.0]])
             )
         message = "\n".join(str(e.value).split("\n")[1:])
@@ -274,8 +274,8 @@ class TestApprox:
             ]
         )
 
-        with pytest.raises(AssertionError) as e:
-            assert [1.0, 2.0, 3.0] == pytest.approx([4.0, 5.0])
+        with testrunner.raises(AssertionError) as e:
+            assert [1.0, 2.0, 3.0] == testrunner.approx([4.0, 5.0])
         message = "\n".join(str(e.value).split("\n")[1:])
         assert message == "\n".join(
             [
@@ -286,7 +286,7 @@ class TestApprox:
         )
 
     def test_error_messages_with_different_verbosity(self, assert_approx_raises_regex):
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
         for v in [0, 1, 2]:
             # Verbosity level doesn't affect the error message for scalars
             assert_approx_raises_regex(
@@ -371,7 +371,7 @@ class TestApprox:
         # absolute tolerance is not scaled
         assert repr(approx(3.3 + 4.4 * 1j, abs=0.02)) == "(3.3+4.4j) ± 0.02 ∠ ±180°"
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "value, expected_repr_string",
         [
             (5.0, "approx(5.0 ± 5.0e-06)"),
@@ -383,12 +383,12 @@ class TestApprox:
     )
     def test_repr_nd_array(self, value, expected_repr_string):
         """Make sure that arrays of all different dimensions are repr'd correctly."""
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
         np_array = np.array(value)
         assert repr(approx(np_array)) == expected_repr_string
 
     def test_bool(self):
-        with pytest.raises(AssertionError) as err:
+        with testrunner.raises(AssertionError) as err:
             assert approx(1)
 
         assert err.match(r"approx\(\) is not supported in a boolean context")
@@ -422,7 +422,7 @@ class TestApprox:
             ],
             verbosity_level=2,
         )
-        assert [1.1, 2, "word"] == pytest.approx([1.1, 2, "word"])
+        assert [1.1, 2, "word"] == testrunner.approx([1.1, 2, "word"])
 
     def test_operator_overloading(self):
         assert 1 == approx(1, rel=1e-6, abs=1e-12)
@@ -459,7 +459,7 @@ class TestApprox:
             assert a == approx(x, rel=5e-1, abs=0.0)
             assert a != approx(x, rel=5e-2, abs=0.0)
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         ("rel", "abs"),
         [
             (-1e100, None),
@@ -471,14 +471,14 @@ class TestApprox:
     )
     def test_negative_tolerance(self, rel: float | None, abs: float | None) -> None:
         # Negative tolerances are not allowed.
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             1.1 == approx(1, rel, abs)
 
     def test_negative_tolerance_message(self):
         # Error message for negative tolerance should include the value.
-        with pytest.raises(ValueError, match="-3"):
+        with testrunner.raises(ValueError, match="-3"):
             0 == approx(1, abs=-3)
-        with pytest.raises(ValueError, match="-3"):
+        with testrunner.raises(ValueError, match="-3"):
             0 == approx(1, rel=-3)
 
     def test_inf_tolerance(self):
@@ -493,17 +493,17 @@ class TestApprox:
     def test_inf_tolerance_expecting_zero(self) -> None:
         # If the relative tolerance is zero but the expected value is infinite,
         # the actual tolerance is a NaN, which should be an error.
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             1 == approx(0, rel=inf, abs=0.0)
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             1 == approx(0, rel=inf, abs=inf)
 
     def test_nan_tolerance(self) -> None:
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             1.1 == approx(1, rel=nan)
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             1.1 == approx(1, abs=nan)
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             1.1 == approx(1, rel=nan, abs=nan)
 
     def test_reasonable_defaults(self):
@@ -667,7 +667,7 @@ class TestApprox:
 
     def test_expecting_bool_numpy(self) -> None:
         """Check approx comparing with numpy.bool (#13047)."""
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
         assert np.False_ != approx(True)
         assert np.True_ != approx(False)
         assert np.True_ == approx(True)
@@ -737,9 +737,9 @@ class TestApprox:
         assert {"a": 1, "b": 2} != approx({"a": 1, "b": 2, "c": 3})
 
     def test_dict_nonnumeric(self):
-        assert {"a": 1.0, "b": None} == pytest.approx({"a": 1.0, "b": None})
-        assert {"a": 1.0, "b": 1} != pytest.approx({"a": 1.0, "b": None})
-        assert {"a": 1.0, "b": True} != pytest.approx({"a": 1.0, "b": False}, abs=2)
+        assert {"a": 1.0, "b": None} == testrunner.approx({"a": 1.0, "b": None})
+        assert {"a": 1.0, "b": 1} != testrunner.approx({"a": 1.0, "b": None})
+        assert {"a": 1.0, "b": True} != testrunner.approx({"a": 1.0, "b": False}, abs=2)
 
     def test_dict_vs_other(self):
         assert 1 != approx({"a": 0})
@@ -770,7 +770,7 @@ class TestApprox:
         )
 
     def test_numpy_array(self):
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
 
         actual = np.array([1 + 1e-7, 2 + 1e-8])
         expected = np.array([1, 2])
@@ -794,7 +794,7 @@ class TestApprox:
         Check both sides of the operator, hopefully it doesn't impact things.
         Test all permutations of where the approx and np.array() can show up
         """
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
         expected = 100.0
         actual = 99.0
         abs_diff = expected - actual
@@ -818,7 +818,7 @@ class TestApprox:
             assert op(approx(np.array(expected), abs=_abs, rel=_rel), np.array(actual))
 
     def test_numpy_expecting_nan(self):
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
         examples = [
             (eq, nan, nan),
             (eq, -nan, -nan),
@@ -836,7 +836,7 @@ class TestApprox:
             assert op(a, approx(np.array(x), nan_ok=True))
 
     def test_numpy_expecting_inf(self):
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
         examples = [
             (eq, inf, inf),
             (eq, -inf, -inf),
@@ -850,14 +850,14 @@ class TestApprox:
             assert op(np.array(a), approx(np.array(x)))
 
     def test_numpy_actual_not_convertible(self):
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
 
-        with pytest.raises(TypeError, match=r"cannot compare .* to numpy\.ndarray"):
+        with testrunner.raises(TypeError, match=r"cannot compare .* to numpy\.ndarray"):
             # A ragged nested sequence has no array representation.
             [[1, 2], [3]] == approx(np.array([[1, 2], [3, 4]]))
 
     def test_numpy_array_wrong_shape(self):
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
 
         a12 = np.array([[1, 2]])
         a21 = np.array([[1], [2]])
@@ -865,24 +865,24 @@ class TestApprox:
         assert a12 != approx(a21)
         assert a21 != approx(a12)
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         ("values", "offset"),
         (
-            pytest.param([Decimal("1.0"), Decimal("2.0")], Decimal(5), id="decimal"),
-            pytest.param([1.0, 2.0], 5.0, id="float"),
-            pytest.param([Fraction(1), Fraction(2)], Fraction(5), id="fraction"),
+            testrunner.param([Decimal("1.0"), Decimal("2.0")], Decimal(5), id="decimal"),
+            testrunner.param([1.0, 2.0], 5.0, id="float"),
+            testrunner.param([Fraction(1), Fraction(2)], Fraction(5), id="fraction"),
         ),
     )
     def test_numpy_object_dtype(self, values, offset) -> None:
         """Object arrays hold plain Python objects, which have no item()."""
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
 
         expected = np.array(values, dtype=object)
         assert expected == approx(expected)
         assert np.array([v + offset for v in values], dtype=object) != approx(expected)
 
     def test_numpy_array_implicit_conversion(self):
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
 
         class ImplicitArray:
             """Type which is implicitly convertible to a numpy array."""
@@ -903,7 +903,7 @@ class TestApprox:
         array-like objects such as tensorflow's DeviceArray are handled like ndarray.
         See issue #8132
         """
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
 
         class DeviceArray:
             def __init__(self, value, size):
@@ -938,52 +938,52 @@ class TestApprox:
         )
         mocked_doctest_runner.run(test)
 
-    def test_unicode_plus_minus(self, pytester: Pytester) -> None:
+    def test_unicode_plus_minus(self, testrunnerer: Testrunnerer) -> None:
         """
         Comparing approx instances inside lists should not produce an error in the detailed diff.
         Integration test for issue #2111.
         """
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
             def test_foo():
-                assert [3] == [pytest.approx(4)]
+                assert [3] == [testrunner.approx(4)]
         """
         )
         expected = "4.0e-06"
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [f"*At index 0 diff: 3 != 4 ± {expected}", "=* 1 failed in *="]
         )
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "x, name",
         [
-            pytest.param([[1]], "data structures", id="nested-list"),
-            pytest.param([(1,)], "data structures", id="list-of-tuple"),
-            pytest.param([{1}], "data structures", id="list-of-set"),
-            pytest.param([{"key": 1}], "data structures", id="list-of-dict"),
-            pytest.param(({"key": 1},), "data structures", id="tuple-of-dict"),
-            pytest.param({"key": {"key": 1}}, "dictionaries", id="nested-dict"),
-            pytest.param({"key": [1]}, "dictionaries", id="dict-of-list"),
-            pytest.param({"key": (1,)}, "dictionaries", id="dict-of-tuple"),
-            pytest.param({"key": {1}}, "dictionaries", id="dict-of-set"),
+            testrunner.param([[1]], "data structures", id="nested-list"),
+            testrunner.param([(1,)], "data structures", id="list-of-tuple"),
+            testrunner.param([{1}], "data structures", id="list-of-set"),
+            testrunner.param([{"key": 1}], "data structures", id="list-of-dict"),
+            testrunner.param(({"key": 1},), "data structures", id="tuple-of-dict"),
+            testrunner.param({"key": {"key": 1}}, "dictionaries", id="nested-dict"),
+            testrunner.param({"key": [1]}, "dictionaries", id="dict-of-list"),
+            testrunner.param({"key": (1,)}, "dictionaries", id="dict-of-tuple"),
+            testrunner.param({"key": {1}}, "dictionaries", id="dict-of-set"),
         ],
     )
     def test_expected_value_type_error(self, x, name):
-        with pytest.raises(
+        with testrunner.raises(
             TypeError,
-            match=rf"pytest.approx\(\) does not support nested {name}:",
+            match=rf"testrunner.approx\(\) does not support nested {name}:",
         ):
             approx(x)
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "expected, actual",
         [
-            pytest.param([{"key": 1.0}], [{"key": 1.0 + 1e-9}], id="list-of-dict"),
-            pytest.param({"key": [1.0]}, {"key": [1.0 + 1e-9]}, id="dict-of-list"),
-            pytest.param([(1.0,)], [(1.0 + 1e-9,)], id="list-of-tuple"),
-            pytest.param(({1.0},), ({1.0 + 1e-9},), id="tuple-of-set"),
+            testrunner.param([{"key": 1.0}], [{"key": 1.0 + 1e-9}], id="list-of-dict"),
+            testrunner.param({"key": [1.0]}, {"key": [1.0 + 1e-9]}, id="dict-of-list"),
+            testrunner.param([(1.0,)], [(1.0 + 1e-9,)], id="list-of-tuple"),
+            testrunner.param(({1.0},), ({1.0 + 1e-9},), id="tuple-of-set"),
         ],
     )
     def test_mixed_nested_containers_raise_instead_of_comparing_unequal(
@@ -995,33 +995,33 @@ class TestApprox:
         despite being well inside the default tolerance, silently ignoring
         it rather than reporting that nesting is unsupported (#10210).
         """
-        with pytest.raises(TypeError, match=r"pytest.approx\(\) does not support"):
+        with testrunner.raises(TypeError, match=r"testrunner.approx\(\) does not support"):
             actual == approx(expected)
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "x",
         [
-            pytest.param(None),
-            pytest.param("string"),
-            pytest.param(["string"], id="nested-str"),
-            pytest.param({"key": "string"}, id="dict-with-string"),
-            pytest.param([b"bytes"], id="nested-bytes"),
-            pytest.param({"key": b"bytes"}, id="dict-with-bytes"),
+            testrunner.param(None),
+            testrunner.param("string"),
+            testrunner.param(["string"], id="nested-str"),
+            testrunner.param({"key": "string"}, id="dict-with-string"),
+            testrunner.param([b"bytes"], id="nested-bytes"),
+            testrunner.param({"key": b"bytes"}, id="dict-with-bytes"),
         ],
     )
     def test_nonnumeric_okay_if_equal(self, x):
         assert x == approx(x)
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "x",
         [
-            pytest.param("string"),
-            pytest.param(["string"], id="nested-str"),
-            pytest.param({"key": "string"}, id="dict-with-string"),
+            testrunner.param("string"),
+            testrunner.param(["string"], id="nested-str"),
+            testrunner.param({"key": "string"}, id="dict-with-string"),
         ],
     )
     def test_nonnumeric_false_if_unequal(self, x):
-        """For non-numeric types, x != pytest.approx(y) reduces to x != y"""
+        """For non-numeric types, x != testrunner.approx(y) reduces to x != y"""
         assert "ab" != approx("abc")
         assert ["ab"] != approx(["abc"])
         # in particular, both of these should return False
@@ -1047,22 +1047,22 @@ class TestApprox:
         x1 = [1.0000005, None, inf]
         assert repr(approx(x1)) == "approx([1.0000005 ± 1.0e-06, None, inf])"
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "op",
         [
-            pytest.param(operator.le, id="<="),
-            pytest.param(operator.lt, id="<"),
-            pytest.param(operator.ge, id=">="),
-            pytest.param(operator.gt, id=">"),
+            testrunner.param(operator.le, id="<="),
+            testrunner.param(operator.lt, id="<"),
+            testrunner.param(operator.ge, id=">="),
+            testrunner.param(operator.gt, id=">"),
         ],
     )
     def test_comparison_operator_type_error(self, op):
-        """pytest.approx should raise TypeError for operators other than == and != (#2003)."""
-        with pytest.raises(TypeError):
+        """testrunner.approx should raise TypeError for operators other than == and != (#2003)."""
+        with testrunner.raises(TypeError):
             op(1, approx(1, rel=1e-6, abs=1e-12))
 
     def test_numpy_array_with_scalar(self):
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
 
         actual = np.array([1 + 1e-7, 1 - 1e-8])
         expected = 1.0
@@ -1073,7 +1073,7 @@ class TestApprox:
         assert approx(expected, rel=5e-8, abs=0) != actual
 
     def test_numpy_scalar_with_array(self):
-        np = pytest.importorskip("numpy")
+        np = testrunner.importorskip("numpy")
 
         actual = 1.0
         expected = np.array([1 + 1e-7, 1 - 1e-8])
@@ -1099,51 +1099,51 @@ class TestApprox:
 
     def test_decimal_approx_repr(self, monkeypatch) -> None:
         monkeypatch.setitem(decimal.getcontext().traps, decimal.FloatOperation, True)
-        approx_obj = pytest.approx(decimal.Decimal("2.60"))
+        approx_obj = testrunner.approx(decimal.Decimal("2.60"))
         assert decimal.Decimal("2.600001") == approx_obj
         # Building the repr must not touch a float either (#13530); asserting
         # only the comparison above is what let #15006 slip through.
         assert repr(approx_obj) == "2.60 ± 2.6e-6"
 
     def test_decimal_approx_float_rel(self) -> None:
-        with pytest.warns(pytest.PytestApproxDecimalToleranceWarning):
-            approx_obj = pytest.approx(decimal.Decimal("2.60"), rel=0.01)
+        with testrunner.warns(testrunner.TestrunnerApproxDecimalToleranceWarning):
+            approx_obj = testrunner.approx(decimal.Decimal("2.60"), rel=0.01)
         assert decimal.Decimal("2.600001") == approx_obj
         assert repr(approx_obj) == "2.60 ± 2.6e-2"
 
     def test_decimal_approx_float_abs(self) -> None:
-        with pytest.warns(pytest.PytestApproxDecimalToleranceWarning):
-            approx_obj = pytest.approx(decimal.Decimal("2.60"), abs=0.01)
+        with testrunner.warns(testrunner.TestrunnerApproxDecimalToleranceWarning):
+            approx_obj = testrunner.approx(decimal.Decimal("2.60"), abs=0.01)
         assert decimal.Decimal("2.600001") == approx_obj
         assert repr(approx_obj) == "2.60 ± 1.0e-2"
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         ("expected", "kwargs"),
         (
-            pytest.param(Decimal("2.60"), {"rel": 0.01}, id="scalar-rel"),
-            pytest.param(Decimal("2.60"), {"abs": 0.01}, id="scalar-abs"),
-            pytest.param([Decimal("2.60")], {"rel": 0.01}, id="sequence"),
-            pytest.param({"a": Decimal("2.60")}, {"rel": 0.01}, id="mapping"),
+            testrunner.param(Decimal("2.60"), {"rel": 0.01}, id="scalar-rel"),
+            testrunner.param(Decimal("2.60"), {"abs": 0.01}, id="scalar-abs"),
+            testrunner.param([Decimal("2.60")], {"rel": 0.01}, id="sequence"),
+            testrunner.param({"a": Decimal("2.60")}, {"rel": 0.01}, id="mapping"),
         ),
     )
     def test_inexact_float_tolerance_warns(self, expected, kwargs) -> None:
         """A float tolerance is widened to its exact binary value (#15006)."""
         name = next(iter(kwargs))
-        with pytest.warns(
-            pytest.PytestApproxDecimalToleranceWarning,
+        with testrunner.warns(
+            testrunner.TestrunnerApproxDecimalToleranceWarning,
             match=rf"{name}=0\.01 cannot be represented exactly",
         ):
             approx(expected, **kwargs)
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         ("expected", "kwargs"),
         (
-            pytest.param(2.60, {"rel": 0.01}, id="float-expected"),
-            pytest.param([1.0, 2.0], {"rel": 0.01}, id="float-sequence"),
-            pytest.param(Decimal("2.60"), {}, id="no-tolerance"),
-            pytest.param(Decimal("2.60"), {"rel": Decimal("0.01")}, id="decimal-rel"),
-            pytest.param(Decimal("2.60"), {"rel": 0.5}, id="exactly-representable"),
-            pytest.param(Decimal("2.60"), {"rel": 1}, id="int-rel"),
+            testrunner.param(2.60, {"rel": 0.01}, id="float-expected"),
+            testrunner.param([1.0, 2.0], {"rel": 0.01}, id="float-sequence"),
+            testrunner.param(Decimal("2.60"), {}, id="no-tolerance"),
+            testrunner.param(Decimal("2.60"), {"rel": Decimal("0.01")}, id="decimal-rel"),
+            testrunner.param(Decimal("2.60"), {"rel": 0.5}, id="exactly-representable"),
+            testrunner.param(Decimal("2.60"), {"rel": 1}, id="int-rel"),
         ),
     )
     def test_exact_tolerance_does_not_warn(self, expected, kwargs, recwarn) -> None:
@@ -1151,30 +1151,30 @@ class TestApprox:
         assert not [
             w
             for w in recwarn
-            if issubclass(w.category, pytest.PytestApproxDecimalToleranceWarning)
+            if issubclass(w.category, testrunner.TestrunnerApproxDecimalToleranceWarning)
         ]
 
     def test_inexact_float_tolerance_warns_once_at_the_call_site(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """The warning must point at the user's line, not into approx itself."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             from decimal import Decimal
-            import pytest
+            import testrunner
 
             def test_seq():
                 values = [Decimal(i) for i in range(20)]
-                assert values == pytest.approx(values, rel=0.01)
+                assert values == testrunner.approx(values, rel=0.01)
             """
         )
-        result = pytester.runpytest("-Wdefault")
+        result = testrunnerer.runtestrunner("-Wdefault")
         result.assert_outcomes(passed=1, warnings=1)
         result.stdout.fnmatch_lines(
-            ["*:6: PytestApproxDecimalToleranceWarning: rel=0.01 *"]
+            ["*:6: TestrunnerApproxDecimalToleranceWarning: rel=0.01 *"]
         )
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         ("kwargs", "expected_repr"),
         (
             ({}, "2.60 ± 2.6e-6"),
@@ -1207,22 +1207,22 @@ class TestApprox:
         assert repr(approx(Decimal("NaN"))) == "NaN ± ???"
         assert repr(approx(nan)) == "nan ± ???"
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         ("other", "expected", "wanted"),
         (
-            pytest.param(
+            testrunner.param(
                 [Decimal(1), Decimal(2)],
                 [Decimal(1), Decimal(9)],
                 ["Max absolute difference: 7", "Max relative difference: 3.5"],
                 id="sequence",
             ),
-            pytest.param(
+            testrunner.param(
                 [Decimal(0)],
                 [Decimal(1)],
                 ["Max absolute difference: 1", "Max relative difference: inf"],
                 id="sequence-divide-by-zero",
             ),
-            pytest.param(
+            testrunner.param(
                 {"a": Decimal(1)},
                 {"a": Decimal(9)},
                 [
@@ -1231,7 +1231,7 @@ class TestApprox:
                 ],
                 id="mapping",
             ),
-            pytest.param(
+            testrunner.param(
                 {"a": Decimal(9)},
                 {"a": Decimal(0)},
                 ["Max absolute difference: 9", "Max relative difference: inf"],
@@ -1280,43 +1280,43 @@ class TestApprox:
         assert approx(expected)._repr_compare(other)[1] == "Max absolute difference: 8"
 
         monkeypatch.setitem(decimal.getcontext().traps, decimal.FloatOperation, True)
-        with pytest.raises(decimal.FloatOperation):
+        with testrunner.raises(decimal.FloatOperation):
             approx(expected)._repr_compare(other)
 
     def test_decimal_nan_tolerance_raises_value_error(self) -> None:
         """A Decimal NaN tolerance must not escape as decimal.InvalidOperation."""
         nan_abs = approx(Decimal(1), abs=Decimal("NaN"))
         assert isinstance(nan_abs, ApproxScalar)
-        with pytest.raises(ValueError, match="absolute tolerance can't be NaN"):
+        with testrunner.raises(ValueError, match="absolute tolerance can't be NaN"):
             _ = nan_abs.tolerance
 
         nan_rel = approx(Decimal(1), rel=Decimal("NaN"))
         assert isinstance(nan_rel, ApproxScalar)
-        with pytest.raises(ValueError, match="relative tolerance can't be NaN"):
+        with testrunner.raises(ValueError, match="relative tolerance can't be NaN"):
             _ = nan_rel.tolerance
 
     def test_allow_ordered_sequences_only(self) -> None:
-        """pytest.approx() should raise an error on unordered sequences (#9692)."""
-        with pytest.raises(TypeError, match="only supports ordered sequences"):
+        """testrunner.approx() should raise an error on unordered sequences (#9692)."""
+        with testrunner.raises(TypeError, match="only supports ordered sequences"):
             assert {1, 2, 3} == approx({1, 2, 3})
 
     def test_strange_sequence(self):
-        """https://github.com/pytest-dev/pytest/issues/11797"""
+        """https://github.com/jacksonsr451/test-runner/issues/11797"""
         a = MyVec3(1, 2, 3)
         b = MyVec3(0, 1, 2)
 
         # this would trigger the error inside the test
-        pytest.approx(a, abs=0.5)._repr_compare(b)
+        testrunner.approx(a, abs=0.5)._repr_compare(b)
 
-        assert b == pytest.approx(a, abs=2)
-        assert b != pytest.approx(a, abs=0.5)
+        assert b == testrunner.approx(a, abs=2)
+        assert b != testrunner.approx(a, abs=0.5)
 
     def test_approx_dicts_with_mismatch_on_keys(self) -> None:
-        """https://github.com/pytest-dev/pytest/issues/13816"""
+        """https://github.com/jacksonsr451/test-runner/issues/13816"""
         expected = {"a": 1, "b": 3}
         actual = {"a": 1, "c": 3}
 
-        with pytest.raises(
+        with testrunner.raises(
             AssertionError,
             match=re.escape(
                 "comparison failed.\n  Mappings has different keys: "
@@ -1326,20 +1326,20 @@ class TestApprox:
             assert actual == approx(expected)
 
     def test_approx_on_unordered_mapping_with_mismatch(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
-        """https://github.com/pytest-dev/pytest/issues/12444"""
-        pytester.makepyfile(
+        """https://github.com/jacksonsr451/test-runner/issues/12444"""
+        testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
             def test_approx_on_unordered_mapping_with_mismatch():
                 expected = {"a": 1, "b": 2, "c": 3, "d": 4}
                 actual = {"d": 4, "c": 5, "a": 8, "b": 2}
-                assert actual == pytest.approx(expected)
+                assert actual == testrunner.approx(expected)
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.assert_outcomes(failed=1)
         result.stdout.fnmatch_lines(
             [
@@ -1351,27 +1351,27 @@ class TestApprox:
             ]
         )
 
-    def test_approx_on_unordered_mapping_matching(self, pytester: Pytester) -> None:
-        """https://github.com/pytest-dev/pytest/issues/12444"""
-        pytester.makepyfile(
+    def test_approx_on_unordered_mapping_matching(self, testrunnerer: Testrunnerer) -> None:
+        """https://github.com/jacksonsr451/test-runner/issues/12444"""
+        testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
             def test_approx_on_unordered_mapping_matching():
                 expected = {"a": 1, "b": 2, "c": 3, "d": 4}
                 actual = {"d": 4, "c": 3, "a": 1, "b": 2}
-                assert actual == pytest.approx(expected)
+                assert actual == testrunner.approx(expected)
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.assert_outcomes(passed=1)
 
     def test_assertion_rewriting_works_with_approx_on_lhs(
-        self, pytestconfig: pytest.Config
+        self, testrunnerconfig: testrunner.Config
     ) -> None:
         """Assertion rewriting works also when approx() is on the left-hand side."""
-        with temporary_verbosity(pytestconfig, verbosity=0):
-            with pytest.raises(AssertionError) as e:
-                assert pytest.approx(1) == 2
+        with temporary_verbosity(testrunnerconfig, verbosity=0):
+            with testrunner.raises(AssertionError) as e:
+                assert testrunner.approx(1) == 2
         obtained_message = str(e.value).splitlines()[-2:]
         assert obtained_message == [
             "  Obtained: 2",
@@ -1379,23 +1379,23 @@ class TestApprox:
         ]
 
     def test_scalar_rel_type_validation(self) -> None:
-        with pytest.raises(
+        with testrunner.raises(
             TypeError, match=r"relative tolerance for a scalar value must"
         ):
-            pytest.approx(0, rel=datetime.timedelta(1))
+            testrunner.approx(0, rel=datetime.timedelta(1))
 
     def test_scalar_rel_abs_expected_validation(self) -> None:
-        with pytest.raises(
+        with testrunner.raises(
             TypeError,
             match=re.escape("expected value must support abs(...) when relative"),
         ):
-            pytest.approx(object(), rel=1)
+            testrunner.approx(object(), rel=1)
 
     def test_scalar_abs_type_validation(self) -> None:
-        with pytest.raises(
+        with testrunner.raises(
             TypeError, match=r"absolute tolerance for a scalar value must"
         ):
-            pytest.approx(0, abs=datetime.timedelta(1))
+            testrunner.approx(0, abs=datetime.timedelta(1))
 
 
 class TestApproxDatetime:
@@ -1464,53 +1464,53 @@ class TestApproxDatetime:
     def test_requires_tolerance(self):
         from datetime import datetime
 
-        with pytest.raises(TypeError, match="requires an explicit tolerance"):
+        with testrunner.raises(TypeError, match="requires an explicit tolerance"):
             approx(datetime(2024, 1, 1))
 
     def test_datetime_rejects_rel(self):
         from datetime import datetime
         from datetime import timedelta
 
-        with pytest.raises(TypeError, match="does not support relative tolerance"):
+        with testrunner.raises(TypeError, match="does not support relative tolerance"):
             approx(datetime(2024, 1, 1), rel=0.1, abs=timedelta(seconds=1))
 
-        with pytest.raises(TypeError, match="does not support relative tolerance"):
+        with testrunner.raises(TypeError, match="does not support relative tolerance"):
             approx(datetime(2024, 1, 1), rel=timedelta(seconds=1))
 
     def test_abs_must_be_timedelta(self):
         from datetime import datetime
 
-        with pytest.raises(TypeError, match="must be a timedelta"):
+        with testrunner.raises(TypeError, match="must be a timedelta"):
             approx(datetime(2024, 1, 1), abs=1.0)
 
     def test_timedelta_rel_must_be_number(self):
         from datetime import timedelta
 
-        with pytest.raises(TypeError, match="must be a number"):
+        with testrunner.raises(TypeError, match="must be a number"):
             approx(timedelta(seconds=1), rel=timedelta(seconds=1))
 
     def test_timedelta_rel_must_be_non_negative(self):
         from datetime import timedelta
 
-        with pytest.raises(ValueError, match="relative tolerance can't be negative"):
+        with testrunner.raises(ValueError, match="relative tolerance can't be negative"):
             approx(timedelta(seconds=1), rel=-0.1)
 
     def test_timedelta_rel_must_not_be_nan(self):
         from datetime import timedelta
 
-        with pytest.raises(ValueError, match="relative tolerance can't be NaN"):
+        with testrunner.raises(ValueError, match="relative tolerance can't be NaN"):
             approx(timedelta(seconds=1), rel=float("nan"))
 
     def test_timedelta_rel_must_not_be_infinite(self):
         from datetime import timedelta
 
-        with pytest.raises(ValueError, match="relative tolerance can't be infinite"):
+        with testrunner.raises(ValueError, match="relative tolerance can't be infinite"):
             approx(timedelta(seconds=1), rel=inf)
 
     def test_timedelta_abs_must_be_non_negative(self):
         from datetime import timedelta
 
-        with pytest.raises(ValueError, match="absolute tolerance can't be negative"):
+        with testrunner.raises(ValueError, match="absolute tolerance can't be negative"):
             approx(timedelta(seconds=1), abs=timedelta(seconds=-1))
 
     def test_timedelta_rel_with_abs(self):
@@ -1545,7 +1545,7 @@ class TestApproxDatetime:
         from datetime import datetime
         from datetime import timedelta
 
-        with pytest.raises(TypeError, match="does not support nan_ok"):
+        with testrunner.raises(TypeError, match="does not support nan_ok"):
             approx(datetime(2024, 1, 1), abs=timedelta(seconds=1), nan_ok=True)
 
     def test_datetime_repr(self):
@@ -1602,7 +1602,7 @@ class TestApproxDatetime:
 
         dt1 = datetime(2024, 1, 1, 12, 0, 0)
         dt2 = datetime(2024, 1, 1, 12, 0, 5)  # 5 seconds off
-        with pytest.raises(AssertionError, match="comparison failed"):
+        with testrunner.raises(AssertionError, match="comparison failed"):
             assert dt1 == approx(dt2, abs=timedelta(seconds=1))
 
     def test_timedelta_zero(self):
@@ -1634,7 +1634,7 @@ class TestApproxDatetime:
         from datetime import datetime
         from datetime import timedelta
 
-        with pytest.raises(AssertionError, match="boolean context"):
+        with testrunner.raises(AssertionError, match="boolean context"):
             bool(approx(datetime(2024, 1, 1), abs=timedelta(seconds=1)))
 
     def test_wrong_type_comparison(self):

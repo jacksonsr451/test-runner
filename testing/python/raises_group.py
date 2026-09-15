@@ -7,13 +7,13 @@ from contextlib import AbstractContextManager
 import re
 import sys
 
-from _pytest._code import ExceptionInfo
-from _pytest.outcomes import Failed
-from _pytest.pytester import Pytester
-from _pytest.raises import RaisesExc
-from _pytest.raises import RaisesGroup
-from _pytest.raises import repr_callable
-import pytest
+from _testrunner._code import ExceptionInfo
+from _testrunner.outcomes import Failed
+from _testrunner.testrunnerer import Testrunnerer
+from _testrunner.raises import RaisesExc
+from _testrunner.raises import RaisesGroup
+from _testrunner.raises import repr_callable
+import testrunner
 
 
 if sys.version_info < (3, 11):
@@ -30,21 +30,21 @@ def fails_raises_group(msg: str, add_prefix: bool = True) -> RaisesExc[Failed]:
         "developer error, expected string should not end with newline"
     )
     prefix = "Raised exception group did not match: " if add_prefix else ""
-    return pytest.raises(Failed, match=wrap_escape(prefix + msg))
+    return testrunner.raises(Failed, match=wrap_escape(prefix + msg))
 
 
 def test_raises_group() -> None:
-    with pytest.raises(
+    with testrunner.raises(
         TypeError,
         match=wrap_escape("Expected a BaseException type, but got 'int'"),
     ):
         RaisesExc(5)  # type: ignore[call-overload]
-    with pytest.raises(
+    with testrunner.raises(
         ValueError,
         match=wrap_escape("Expected a BaseException type, but got 'int'"),
     ):
         RaisesExc(int)  # type: ignore[type-var]
-    with pytest.raises(
+    with testrunner.raises(
         TypeError,
         match=wrap_escape(
             "Expected a BaseException type, RaisesExc, or RaisesGroup, but got an exception instance: ValueError",
@@ -169,7 +169,7 @@ def test_flatten_subgroups() -> None:
         )
 
     # but not the other way around
-    with pytest.raises(
+    with testrunner.raises(
         ValueError,
         match=r"^You cannot specify a nested structure inside a RaisesGroup with",
     ):
@@ -283,7 +283,7 @@ def test_catch_unwrapped_exceptions() -> None:
         raise ValueError
 
     # expecting multiple unwrapped exceptions is not possible
-    with pytest.raises(
+    with testrunner.raises(
         ValueError,
         match=r"^You cannot specify multiple exceptions with",
     ):
@@ -297,7 +297,7 @@ def test_catch_unwrapped_exceptions() -> None:
         raise ValueError
 
     # Unwrapped nested `RaisesGroup` is likely a user error, so we raise an error.
-    with pytest.raises(ValueError, match="has no effect when expecting"):
+    with testrunner.raises(ValueError, match="has no effect when expecting"):
         RaisesGroup(RaisesGroup(ValueError), allow_unwrapped=True)  # type: ignore[call-overload]
 
     # But it *can* be used to check for nesting level +- 1 if they move it to
@@ -448,9 +448,9 @@ def test_unwrapped_match_check() -> None:
         " do e.g. `if isinstance(exc.value, ExceptionGroup):"
         " assert RaisesGroup(...).matches(exc.value)` afterwards."
     )
-    with pytest.raises(ValueError, match=re.escape(msg)):
+    with testrunner.raises(ValueError, match=re.escape(msg)):
         RaisesGroup(ValueError, allow_unwrapped=True, match="foo")  # type: ignore[call-overload]
-    with pytest.raises(ValueError, match=re.escape(msg)):
+    with testrunner.raises(ValueError, match=re.escape(msg)):
         RaisesGroup(ValueError, allow_unwrapped=True, check=my_check)  # type: ignore[call-overload]
 
     # Users should instead use a RaisesExc
@@ -484,7 +484,7 @@ def test_message() -> None:
         body: RaisesGroup[BaseException],
     ) -> None:
         with (
-            pytest.raises(
+            testrunner.raises(
                 Failed,
                 match=f"^DID NOT RAISE any exception, expected `{re.escape(message)}`$",
             ),
@@ -899,7 +899,7 @@ def test_assert_message_nested() -> None:
 
 # CI always runs with hypothesis, but this is not a critical test - it overlaps
 # with several others
-@pytest.mark.skipif(
+@testrunner.mark.skipif(
     "hypothesis" in sys.modules,
     reason="hypothesis may have monkeypatched _check_repr",
 )
@@ -922,7 +922,7 @@ def test_check_no_patched_repr() -> None:  # pragma: no cover
         r"    `ValueError\(\)` is not an instance of `TypeError`$"
     )
     with (
-        pytest.raises(Failed, match=match_str),
+        testrunner.raises(Failed, match=match_str),
         RaisesGroup(RaisesExc(check=lambda x: False), TypeError),
     ):
         raise ExceptionGroup("", [ValueError("foo"), ValueError("bar")])
@@ -1070,12 +1070,12 @@ def test_identity_oopsies() -> None:
 
 
 def test_raisesexc() -> None:
-    with pytest.raises(
+    with testrunner.raises(
         ValueError,
         match=r"^You must specify at least one parameter to match on.$",
     ):
         RaisesExc()  # type: ignore[call-overload]
-    with pytest.raises(
+    with testrunner.raises(
         ValueError,
         match=wrap_escape("Expected a BaseException type, but got 'object'"),
     ):
@@ -1094,15 +1094,15 @@ def test_raisesexc() -> None:
     with RaisesExc(ValueError):
         raise ValueError
 
-    with pytest.raises(Failed, match=wrap_escape("DID NOT RAISE ValueError")):
+    with testrunner.raises(Failed, match=wrap_escape("DID NOT RAISE ValueError")):
         with RaisesExc(ValueError):
             ...
 
-    with pytest.raises(Failed, match=wrap_escape("DID NOT RAISE any exception")):
+    with testrunner.raises(Failed, match=wrap_escape("DID NOT RAISE any exception")):
         with RaisesExc(match="foo"):
             ...
 
-    with pytest.raises(
+    with testrunner.raises(
         Failed,
         match=wrap_escape("DID NOT RAISE any of (ValueError, TypeError)"),
     ):
@@ -1110,7 +1110,7 @@ def test_raisesexc() -> None:
             ...
 
     # currently RaisesGroup says "Raised exception did not match" but RaisesExc doesn't...
-    with pytest.raises(
+    with testrunner.raises(
         AssertionError,
         match=wrap_escape(
             "Regex pattern did not match.\n  Expected regex: 'foo'\n  Actual message: 'bar'"
@@ -1229,10 +1229,10 @@ def test_assert_matches() -> None:
     assert RaisesExc(ValueError).matches(e)
 
     # but you don't get a helpful error
-    with pytest.raises(AssertionError, match=r"assert False\n \+  where False = .*"):
+    with testrunner.raises(AssertionError, match=r"assert False\n \+  where False = .*"):
         assert RaisesExc(TypeError).matches(e)
 
-    with pytest.raises(
+    with testrunner.raises(
         AssertionError,
         match=wrap_escape(
             "`ValueError()` is not an instance of `TypeError`\n"
@@ -1246,43 +1246,43 @@ def test_assert_matches() -> None:
 
     # but even if we add assert_matches, will people remember to use it?
     # other than writing a linter rule, I don't think we can catch `assert RaisesExc(...).matches`
-    # ... no wait pytest catches other asserts ... so we probably can??
+    # ... no wait testrunner catches other asserts ... so we probably can??
 
 
-# https://github.com/pytest-dev/pytest/issues/12504
-def test_xfail_raisesgroup(pytester: Pytester) -> None:
-    pytester.makepyfile(
+# https://github.com/jacksonsr451/test-runner/issues/12504
+def test_xfail_raisesgroup(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         import sys
-        import pytest
+        import testrunner
         if sys.version_info < (3, 11):
             from exceptiongroup import ExceptionGroup
-        @pytest.mark.xfail(raises=pytest.RaisesGroup(ValueError))
+        @testrunner.mark.xfail(raises=testrunner.RaisesGroup(ValueError))
         def test_foo() -> None:
             raise ExceptionGroup("foo", [ValueError()])
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.assert_outcomes(xfailed=1)
 
 
-def test_xfail_RaisesExc(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_xfail_RaisesExc(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
-        @pytest.mark.xfail(raises=pytest.RaisesExc(ValueError))
+        import testrunner
+        @testrunner.mark.xfail(raises=testrunner.RaisesExc(ValueError))
         def test_foo() -> None:
             raise ValueError
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.assert_outcomes(xfailed=1)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "wrap_in_group,handler",
     [
-        (False, pytest.raises(ValueError)),
+        (False, testrunner.raises(ValueError)),
         (True, RaisesGroup(ValueError)),
     ],
 )
@@ -1301,11 +1301,11 @@ def test_annotated_group() -> None:
     msg = "Only `ExceptionGroup[Exception]` or `BaseExceptionGroup[BaseException]` are accepted as generic types but got `{}`. As `raises` will catch all instances of the specified group regardless of the generic argument specific nested exceptions has to be checked with `RaisesGroup`."
 
     fail_msg = wrap_escape(msg.format(t))
-    with pytest.raises(ValueError, match=fail_msg):
+    with testrunner.raises(ValueError, match=fail_msg):
         RaisesGroup(ExceptionGroup[ValueError])
-    with pytest.raises(ValueError, match=fail_msg):
+    with testrunner.raises(ValueError, match=fail_msg):
         RaisesExc(ExceptionGroup[ValueError])
-    with pytest.raises(
+    with testrunner.raises(
         ValueError,
         match=wrap_escape(msg.format(repr(BaseExceptionGroup[KeyboardInterrupt]))),
     ):
@@ -1332,7 +1332,7 @@ def test_annotated_group() -> None:
 
 def test_tuples() -> None:
     # raises has historically supported one of several exceptions being raised
-    with pytest.raises((ValueError, IndexError)):
+    with testrunner.raises((ValueError, IndexError)):
         raise ValueError
     # so now RaisesExc also does
     with RaisesExc((ValueError, IndexError)):
@@ -1340,7 +1340,7 @@ def test_tuples() -> None:
     # but RaisesGroup currently doesn't. There's an argument it shouldn't because
     # it can be confusing - RaisesGroup((ValueError, TypeError)) looks a lot like
     # RaisesGroup(ValueError, TypeError), and the former might be interpreted as the latter.
-    with pytest.raises(
+    with testrunner.raises(
         TypeError,
         match=wrap_escape(
             "Expected a BaseException type, RaisesExc, or RaisesGroup, but got 'tuple'.\n"

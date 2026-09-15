@@ -1,22 +1,22 @@
-py.test 2.1.2: bug fixes and fixes for jython
+testrunner 2.1.2: bug fixes and fixes for jython
 ===========================================================================
 
-pytest-2.1.2 is a minor backward compatible maintenance release of the
-popular py.test testing tool.  pytest is commonly used for unit,
+testrunner-2.1.2 is a minor backward compatible maintenance release of the
+popular testrunner testing tool.  testrunner is commonly used for unit,
 functional- and integration testing.  See extensive docs with examples
 here:
 
-     http://pytest.org/
+     http://testrunner.org/
 
 Most bug fixes address remaining issues with the perfected assertions
 introduced in the 2.1 series - many thanks to the bug reporters and to Benjamin
-Peterson for helping to fix them.  pytest should also work better with
+Peterson for helping to fix them.  testrunner should also work better with
 Jython-2.5.1 (and Jython trunk).
 
-If you want to install or upgrade pytest, just type one of::
+If you want to install or upgrade testrunner, just type one of::
 
-    pip install -U pytest # or
-    easy_install -U pytest
+    pip install -U testrunner # or
+    easy_install -U testrunner
 
 best,
 holger krekel / https://merlinux.eu/

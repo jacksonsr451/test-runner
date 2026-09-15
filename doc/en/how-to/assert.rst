@@ -8,7 +8,7 @@ How to write and report assertions in tests
 Asserting with the ``assert`` statement
 ---------------------------------------------------------
 
-``pytest`` allows you to use the standard Python ``assert`` for verifying
+``testrunner`` allows you to use the standard Python ``assert`` for verifying
 expectations and values in Python tests.  For example, you can write the
 following:
 
@@ -25,11 +25,11 @@ following:
 to assert that your function returns a certain value. If this assertion fails
 you will see the return value of the function call:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest test_assert1.py
+    $ testrunner test_assert1.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 1 item
 
@@ -48,7 +48,7 @@ you will see the return value of the function call:
     FAILED test_assert1.py::test_function - assert 3 == 4
     ============================ 1 failed in 0.12s =============================
 
-``pytest`` has support for showing the values of the most common subexpressions
+``testrunner`` has support for showing the values of the most common subexpressions
 including calls, attributes, comparisons, and binary and unary
 operators. (See :ref:`tbreportdemo`).  This allows you to use the
 idiomatic python constructs without boilerplate code while not losing
@@ -69,27 +69,27 @@ Assertions about approximate equality
 
 When comparing floating point values (or arrays of floats), small rounding
 errors are common. Instead of using ``assert abs(a - b) < tol`` or
-``numpy.isclose``, you can use :func:`pytest.approx`:
+``numpy.isclose``, you can use :func:`testrunner.approx`:
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
     import numpy as np
 
 
     def test_floats():
-        assert (0.1 + 0.2) == pytest.approx(0.3)
+        assert (0.1 + 0.2) == testrunner.approx(0.3)
 
 
     def test_arrays():
         a = np.array([1.0, 2.0, 3.0])
         b = np.array([0.9999, 2.0001, 3.0])
-        assert a == pytest.approx(b)
+        assert a == testrunner.approx(b)
 
-``pytest.approx`` works with scalars, lists, dictionaries, and NumPy arrays.
+``testrunner.approx`` works with scalars, lists, dictionaries, and NumPy arrays.
 It also supports comparisons involving NaNs.
 
-See :func:`pytest.approx` for details.
+See :func:`testrunner.approx` for details.
 
 .. _`assertraises`:
 
@@ -97,15 +97,15 @@ Assertions about expected exceptions
 ------------------------------------------
 
 In order to write assertions about raised exceptions, you can use
-:func:`pytest.raises` as a context manager like this:
+:func:`testrunner.raises` as a context manager like this:
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
     def test_zero_division():
-        with pytest.raises(ZeroDivisionError):
+        with testrunner.raises(ZeroDivisionError):
             1 / 0
 
 and if you need to have access to the actual exception info you may use:
@@ -113,7 +113,7 @@ and if you need to have access to the actual exception info you may use:
 .. code-block:: python
 
     def test_recursion_depth():
-        with pytest.raises(RuntimeError) as excinfo:
+        with testrunner.raises(RuntimeError) as excinfo:
 
             def f():
                 f()
@@ -121,11 +121,11 @@ and if you need to have access to the actual exception info you may use:
             f()
         assert "maximum recursion" in str(excinfo.value)
 
-``excinfo`` is an :class:`~pytest.ExceptionInfo` instance, which is a wrapper around
+``excinfo`` is an :class:`~testrunner.ExceptionInfo` instance, which is a wrapper around
 the actual exception raised.  The main attributes of interest are
 ``.type``, ``.value`` and ``.traceback``.
 
-Note that ``pytest.raises`` will match the exception type or any subclasses (like the standard ``except`` statement).
+Note that ``testrunner.raises`` will match the exception type or any subclasses (like the standard ``except`` statement).
 If you want to check if a block of code is raising an exact exception type, you need to check that explicitly:
 
 
@@ -135,11 +135,11 @@ If you want to check if a block of code is raising an exact exception type, you 
         def foo():
             raise NotImplementedError
 
-        with pytest.raises(RuntimeError) as excinfo:
+        with testrunner.raises(RuntimeError) as excinfo:
             foo()
         assert excinfo.type is RuntimeError
 
-The :func:`pytest.raises` call will succeed, even though the function raises :class:`NotImplementedError`, because
+The :func:`testrunner.raises` call will succeed, even though the function raises :class:`NotImplementedError`, because
 :class:`NotImplementedError` is a subclass of :class:`RuntimeError`; however the following `assert` statement will
 catch the problem.
 
@@ -152,7 +152,7 @@ that a regular expression matches on the string representation of an exception
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
     def myfunc():
@@ -160,7 +160,7 @@ that a regular expression matches on the string representation of an exception
 
 
     def test_match():
-        with pytest.raises(ValueError, match=r".* 123 .*"):
+        with testrunner.raises(ValueError, match=r".* 123 .*"):
             myfunc()
 
 Notes:
@@ -175,14 +175,14 @@ Notes:
 Assertions about expected exception groups
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When expecting a :exc:`BaseExceptionGroup` or :exc:`ExceptionGroup` you can use :class:`pytest.RaisesGroup`:
+When expecting a :exc:`BaseExceptionGroup` or :exc:`ExceptionGroup` you can use :class:`testrunner.RaisesGroup`:
 
 .. code-block:: python
 
     def test_exception_in_group():
-        with pytest.RaisesGroup(ValueError):
+        with testrunner.RaisesGroup(ValueError):
             raise ExceptionGroup("group msg", [ValueError("value msg")])
-        with pytest.RaisesGroup(ValueError, TypeError):
+        with testrunner.RaisesGroup(ValueError, TypeError):
             raise ExceptionGroup("msg", [ValueError("foo"), TypeError("bar")])
 
 
@@ -191,9 +191,9 @@ It accepts a ``match`` parameter, that checks against the group message, and a `
 .. code-block:: python
 
     def test_raisesgroup_match_and_check():
-        with pytest.RaisesGroup(BaseException, match="my group msg"):
+        with testrunner.RaisesGroup(BaseException, match="my group msg"):
             raise BaseExceptionGroup("my group msg", [KeyboardInterrupt()])
-        with pytest.RaisesGroup(
+        with testrunner.RaisesGroup(
             Exception, check=lambda eg: isinstance(eg.__cause__, ValueError)
         ):
             raise ExceptionGroup("", [TypeError()]) from ValueError()
@@ -203,22 +203,22 @@ It is strict about structure and unwrapped exceptions, unlike :ref:`except* <exc
 .. code-block:: python
 
     def test_structure():
-        with pytest.RaisesGroup(pytest.RaisesGroup(ValueError)):
+        with testrunner.RaisesGroup(testrunner.RaisesGroup(ValueError)):
             raise ExceptionGroup("", (ExceptionGroup("", (ValueError(),)),))
-        with pytest.RaisesGroup(ValueError, flatten_subgroups=True):
+        with testrunner.RaisesGroup(ValueError, flatten_subgroups=True):
             raise ExceptionGroup("1st group", [ExceptionGroup("2nd group", [ValueError()])])
-        with pytest.RaisesGroup(ValueError, allow_unwrapped=True):
+        with testrunner.RaisesGroup(ValueError, allow_unwrapped=True):
             raise ValueError
 
-To specify more details about the contained exception you can use :class:`pytest.RaisesExc`
+To specify more details about the contained exception you can use :class:`testrunner.RaisesExc`
 
 .. code-block:: python
 
     def test_raises_exc():
-        with pytest.RaisesGroup(pytest.RaisesExc(ValueError, match="foo")):
+        with testrunner.RaisesGroup(testrunner.RaisesExc(ValueError, match="foo")):
             raise ExceptionGroup("", (ValueError("foo")))
 
-They both supply a method :meth:`pytest.RaisesGroup.matches` :meth:`pytest.RaisesExc.matches` if you want to do matching outside of using it as a :external+python:std:ref:`context manager <context-managers>`. This can be helpful when checking ``.__context__`` or ``.__cause__``.
+They both supply a method :meth:`testrunner.RaisesGroup.matches` :meth:`testrunner.RaisesExc.matches` if you want to do matching outside of using it as a :external+python:std:ref:`context manager <context-managers>`. This can be helpful when checking ``.__context__`` or ``.__cause__``.
 
 .. code-block:: python
 
@@ -231,7 +231,7 @@ They both supply a method :meth:`pytest.RaisesGroup.matches` :meth:`pytest.Raise
         r = RaisesExc(ValueError)
         assert r.matches(e), r.fail_reason
 
-Check the documentation on :class:`pytest.RaisesGroup` and :class:`pytest.RaisesExc` for more details and examples.
+Check the documentation on :class:`testrunner.RaisesGroup` and :class:`testrunner.RaisesExc` for more details and examples.
 
 ``ExceptionInfo.group_contains()``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -247,7 +247,7 @@ Check the documentation on :class:`pytest.RaisesGroup` and :class:`pytest.Raises
 
 
        def test_for_value_error():
-           with pytest.raises(ExceptionGroup) as excinfo:
+           with testrunner.raises(ExceptionGroup) as excinfo:
                excs = [ValueError()]
                if very_unlucky():
                    excs.append(EXTREMELYBADERROR())
@@ -257,16 +257,16 @@ Check the documentation on :class:`pytest.RaisesGroup` and :class:`pytest.Raises
            # You can't simply list all exceptions you *don't* want to get here.
 
 
-   There is no good way of using :func:`excinfo.group_contains() <pytest.ExceptionInfo.group_contains>` to ensure you're not getting *any* other exceptions than the one you expected.
-   You should instead use :class:`pytest.RaisesGroup`, see :ref:`assert-matching-exception-groups`.
+   There is no good way of using :func:`excinfo.group_contains() <testrunner.ExceptionInfo.group_contains>` to ensure you're not getting *any* other exceptions than the one you expected.
+   You should instead use :class:`testrunner.RaisesGroup`, see :ref:`assert-matching-exception-groups`.
 
-You can also use the :func:`excinfo.group_contains() <pytest.ExceptionInfo.group_contains>`
+You can also use the :func:`excinfo.group_contains() <testrunner.ExceptionInfo.group_contains>`
 method to test for exceptions returned as part of an :class:`ExceptionGroup`:
 
 .. code-block:: python
 
     def test_exception_in_group():
-        with pytest.raises(ExceptionGroup) as excinfo:
+        with testrunner.raises(ExceptionGroup) as excinfo:
             raise ExceptionGroup(
                 "Group message",
                 [
@@ -277,7 +277,7 @@ method to test for exceptions returned as part of an :class:`ExceptionGroup`:
         assert not excinfo.group_contains(TypeError)
 
 The optional ``match`` keyword parameter works the same way as for
-:func:`pytest.raises`.
+:func:`testrunner.raises`.
 
 By default ``group_contains()`` will recursively search for a matching
 exception at any level of nested ``ExceptionGroup`` instances. You can
@@ -288,7 +288,7 @@ exception at a specific level; exceptions contained directly in the top
 .. code-block:: python
 
     def test_exception_in_group_at_given_depth():
-        with pytest.raises(ExceptionGroup) as excinfo:
+        with testrunner.raises(ExceptionGroup) as excinfo:
             raise ExceptionGroup(
                 "Group message",
                 [
@@ -306,11 +306,11 @@ exception at a specific level; exceptions contained directly in the top
         assert not excinfo.group_contains(RuntimeError, depth=2)
         assert not excinfo.group_contains(TypeError, depth=1)
 
-Alternate `pytest.raises` form (legacy)
+Alternate `testrunner.raises` form (legacy)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-There is an alternate form of :func:`pytest.raises` where you pass
-a function that will be executed, along with ``*args`` and ``**kwargs``. :func:`pytest.raises`
+There is an alternate form of :func:`testrunner.raises` where you pass
+a function that will be executed, along with ``*args`` and ``**kwargs``. :func:`testrunner.raises`
 will then execute the function with those arguments and assert that the given exception is raised:
 
 .. code-block:: python
@@ -320,17 +320,17 @@ will then execute the function with those arguments and assert that the given ex
             raise ValueError("x needs to be larger than zero")
 
 
-    pytest.raises(ValueError, func, x=-1)
+    testrunner.raises(ValueError, func, x=-1)
 
-This form was the original :func:`pytest.raises` API, developed before the ``with`` statement was
+This form was the original :func:`testrunner.raises` API, developed before the ``with`` statement was
 added to the Python language. Nowadays, this form is rarely used, with the context-manager form (using ``with``)
 being considered more readable.
 
-xfail mark and pytest.raises
+xfail mark and testrunner.raises
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 It is also possible to specify a ``raises`` argument to
-:ref:`pytest.mark.xfail <pytest.mark.xfail ref>`, which checks that the test is failing in a more
+:ref:`testrunner.mark.xfail <testrunner.mark.xfail ref>`, which checks that the test is failing in a more
 specific way than just having any exception raised:
 
 .. code-block:: python
@@ -339,20 +339,20 @@ specific way than just having any exception raised:
         raise IndexError()
 
 
-    @pytest.mark.xfail(raises=IndexError)
+    @testrunner.mark.xfail(raises=IndexError)
     def test_f():
         f()
 
 
 This will only "xfail" if the test fails by raising ``IndexError`` or subclasses.
 
-* Using :ref:`pytest.mark.xfail <pytest.mark.xfail ref>` with the ``raises`` parameter is probably better for something
+* Using :ref:`testrunner.mark.xfail <testrunner.mark.xfail ref>` with the ``raises`` parameter is probably better for something
   like documenting unfixed bugs (where the test describes what "should" happen) or bugs in dependencies.
 
-* Using :func:`pytest.raises` is likely to be better for cases where you are
+* Using :func:`testrunner.raises` is likely to be better for cases where you are
   testing exceptions your own code is deliberately raising, which is the majority of cases.
 
-You can also use :class:`pytest.RaisesGroup`:
+You can also use :class:`testrunner.RaisesGroup`:
 
 .. code-block:: python
 
@@ -360,7 +360,7 @@ You can also use :class:`pytest.RaisesGroup`:
         raise ExceptionGroup("", [IndexError()])
 
 
-    @pytest.mark.xfail(raises=RaisesGroup(IndexError))
+    @testrunner.mark.xfail(raises=RaisesGroup(IndexError))
     def test_f():
         f()
 
@@ -373,7 +373,7 @@ Assertions about expected warnings
 
 
 You can check that code raises a particular warning using
-:ref:`pytest.warns <warns>`.
+:ref:`testrunner.warns <warns>`.
 
 
 .. _newreport:
@@ -383,7 +383,7 @@ Making use of context-sensitive comparisons
 
 
 
-``pytest`` has rich support for providing context-sensitive information
+``testrunner`` has rich support for providing context-sensitive information
 when it encounters comparisons.  For example:
 
 .. code-block:: python
@@ -396,11 +396,11 @@ when it encounters comparisons.  For example:
 
 if you run this module:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest test_assert2.py
+    $ testrunner test_assert2.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 1 item
 
@@ -438,9 +438,9 @@ Defining your own explanation for failed assertions
 ---------------------------------------------------
 
 It is possible to add your own detailed explanations by implementing
-the ``pytest_assertrepr_compare`` hook.
+the ``testrunner_assertrepr_compare`` hook.
 
-.. autofunction:: _pytest.hookspec.pytest_assertrepr_compare
+.. autofunction:: _testrunner.hookspec.testrunner_assertrepr_compare
    :noindex:
 
 As an example consider adding the following hook in a :ref:`conftest.py <conftest.py>`
@@ -452,7 +452,7 @@ file which provides an alternative explanation for ``Foo`` objects:
    from test_foocompare import Foo
 
 
-   def pytest_assertrepr_compare(op, left, right):
+   def testrunner_assertrepr_compare(op, left, right):
        if isinstance(left, Foo) and isinstance(right, Foo) and op == "==":
            return [
                "Comparing Foo instances:",
@@ -480,9 +480,9 @@ now, given this test module:
 you can run the test module and get the custom output defined in
 the conftest file:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-   $ pytest -q test_foocompare.py
+   $ testrunner -q test_foocompare.py
    F                                                                    [100%]
    ================================= FAILURES =================================
    _______________________________ test_compare _______________________________
@@ -504,7 +504,7 @@ the conftest file:
 Returning non-None value in test functions
 ------------------------------------------
 
-A :class:`pytest.PytestReturnNotNoneWarning` is emitted when a test function returns a value other than ``None``.
+A :class:`testrunner.TestrunnerReturnNotNoneWarning` is emitted when a test function returns a value other than ``None``.
 
 This helps prevent a common mistake made by beginners who assume that returning a ``bool`` (e.g., ``True`` or ``False``) will determine whether a test passes or fails.
 
@@ -512,7 +512,7 @@ Example:
 
 .. code-block:: python
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         ["a", "b", "result"],
         [
             [1, 2, 5],
@@ -523,13 +523,13 @@ Example:
     def test_foo(a, b, result):
         return foo(a, b) == result  # Incorrect usage, do not do this.
 
-Since pytest ignores return values, it might be surprising that the test will never fail based on the returned value.
+Since testrunner ignores return values, it might be surprising that the test will never fail based on the returned value.
 
 The correct fix is to replace the ``return`` statement with an ``assert``:
 
 .. code-block:: python
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         ["a", "b", "result"],
         [
             [1, 2, 5],
@@ -552,7 +552,7 @@ Assertion introspection details
 
 Reporting details about a failing assertion is achieved by rewriting assert
 statements before they are run.  Rewritten assert statements put introspection
-information into the assertion failure message.  ``pytest`` only rewrites test
+information into the assertion failure message.  ``testrunner`` only rewrites test
 modules directly discovered by its test collection process, so **asserts in
 supporting modules which are not themselves test modules will not be rewritten**.
 
@@ -560,12 +560,12 @@ You can manually enable assertion rewriting for an imported module by calling
 :ref:`register_assert_rewrite <assertion-rewriting>`
 before you import it (a good place to do that is in your root ``conftest.py``).
 
-For further information, Benjamin Peterson wrote up `Behind the scenes of pytest's new assertion rewriting <http://pybites.blogspot.com/2011/07/behind-scenes-of-pytests-new-assertion.html>`_.
+For further information, Benjamin Peterson wrote up `Behind the scenes of testrunner's new assertion rewriting <http://pybites.blogspot.com/2011/07/behind-scenes-of-testrunners-new-assertion.html>`_.
 
 Assertion rewriting caches files on disk
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``pytest`` will write back the rewritten modules to disk for caching. You can disable
+``testrunner`` will write back the rewritten modules to disk for caching. You can disable
 this behavior (for example to avoid leaving stale ``.pyc`` files around in projects that
 move files around a lot) by adding this to the top of your ``conftest.py`` file:
 
@@ -585,7 +585,7 @@ e.g. in a read-only filesystem or a zipfile.
 Disabling assert rewriting
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``pytest`` rewrites test modules on import by using an import
+``testrunner`` rewrites test modules on import by using an import
 hook to write new ``pyc`` files. Most of the time this works transparently.
 However, if you are working with the import machinery yourself, the import hook may
 interfere.
@@ -593,6 +593,6 @@ interfere.
 If this is the case you have two options:
 
 * Disable rewriting for a specific module by adding the string
-  ``PYTEST_DONT_REWRITE`` to its docstring.
+  ``TESTRUNNER_DONT_REWRITE`` to its docstring.
 
 * Disable rewriting for all modules by using :option:`--assert=plain`.

@@ -6,21 +6,21 @@ Get Started
 .. _`getstarted`:
 .. _`installation`:
 
-Install ``pytest``
+Install ``testrunner``
 ----------------------------------------
 
 1. Run the following command in your command line:
 
 .. code-block:: bash
 
-    pip install -U pytest
+    pip install -U testrunner
 
 2. Check that you installed the correct version:
 
 .. code-block:: bash
 
-    $ pytest --version
-    pytest 9.1.1
+    $ testrunner --version
+    testrunner 9.1.1
 
 .. _`simpletest`:
 
@@ -41,11 +41,11 @@ Create a new file called ``test_sample.py``, containing a function, and a test:
 
 The test
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest
+    $ testrunner
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 1 item
 
@@ -64,16 +64,16 @@ The test
     FAILED test_sample.py::test_answer - assert 4 == 5
     ============================ 1 failed in 0.12s =============================
 
-The ``[100%]`` refers to the overall progress of running all test cases. After it finishes, pytest then shows a failure report because ``func(3)`` does not return ``5``.
+The ``[100%]`` refers to the overall progress of running all test cases. After it finishes, testrunner then shows a failure report because ``func(3)`` does not return ``5``.
 
 .. note::
 
-    You can use the ``assert`` statement to verify test expectations. pytest’s :ref:`Advanced assertion introspection <python:assert>` will intelligently report intermediate values of the assert expression so you can avoid the many names :ref:`of JUnit legacy methods <testcase-objects>`.
+    You can use the ``assert`` statement to verify test expectations. testrunner’s :ref:`Advanced assertion introspection <python:assert>` will intelligently report intermediate values of the assert expression so you can avoid the many names :ref:`of JUnit legacy methods <testcase-objects>`.
 
 Run multiple tests
 ----------------------------------------------------------
 
-``pytest`` will run all files of the form ``test_*.py`` or ``*_test.py`` in the current directory and its subdirectories. More generally, it follows :ref:`standard test discovery rules <test discovery>`.
+``testrunner`` will run all files of the form ``test_*.py`` or ``*_test.py`` in the current directory and its subdirectories. More generally, it follows :ref:`standard test discovery rules <test discovery>`.
 
 
 Assert that a certain exception is raised
@@ -84,7 +84,7 @@ Use the :ref:`raises <assertraises>` helper to assert that some code raises an e
 .. code-block:: python
 
     # content of test_sysexit.py
-    import pytest
+    import testrunner
 
 
     def f():
@@ -92,14 +92,14 @@ Use the :ref:`raises <assertraises>` helper to assert that some code raises an e
 
 
     def test_mytest():
-        with pytest.raises(SystemExit):
+        with testrunner.raises(SystemExit):
             f()
 
 Execute the test function with “quiet” reporting mode:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q test_sysexit.py
+    $ testrunner -q test_sysexit.py
     .                                                                    [100%]
     1 passed in 0.12s
 
@@ -114,7 +114,7 @@ Group multiple tests in a class
 
 .. regendoc:wipe
 
-Once you develop multiple tests, you may want to group them into a class. pytest makes it easy to create a class containing more than one test:
+Once you develop multiple tests, you may want to group them into a class. testrunner makes it easy to create a class containing more than one test:
 
 .. code-block:: python
 
@@ -128,11 +128,11 @@ Once you develop multiple tests, you may want to group them into a class. pytest
             x = "hello"
             assert hasattr(x, "check")
 
-``pytest`` discovers all tests following its :ref:`Conventions for Python test discovery <test discovery>`, so it finds both ``test_`` prefixed functions. There is no need to subclass anything, but make sure to prefix your class with ``Test`` otherwise the class will be skipped. We can simply run the module by passing its filename:
+``testrunner`` discovers all tests following its :ref:`Conventions for Python test discovery <test discovery>`, so it finds both ``test_`` prefixed functions. There is no need to subclass anything, but make sure to prefix your class with ``Test`` otherwise the class will be skipped. We can simply run the module by passing its filename:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q test_class.py
+    $ testrunner -q test_class.py
     .F                                                                   [100%]
     ================================= FAILURES =================================
     ____________________________ TestClass.test_two ____________________________
@@ -178,9 +178,9 @@ This is outlined below:
             assert self.value == 1
 
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -k TestClassDemoInstance -q
+    $ testrunner -k TestClassDemoInstance -q
     .F                                                                   [100%]
     ================================= FAILURES =================================
     ______________________ TestClassDemoInstance.test_two ______________________
@@ -199,21 +199,21 @@ This is outlined below:
 
 Note that attributes added at class level are *class attributes*, so they will be shared between tests.
 
-Compare floating-point values with pytest.approx
+Compare floating-point values with testrunner.approx
 --------------------------------------------------------------
 
-``pytest`` also provides a number of utilities to make writing tests easier.
-For example, you can use :func:`pytest.approx` to compare floating-point
+``testrunner`` also provides a number of utilities to make writing tests easier.
+For example, you can use :func:`testrunner.approx` to compare floating-point
 values that may have small rounding errors:
 
 .. code-block:: python
 
     # content of test_approx.py
-    import pytest
+    import testrunner
 
 
     def test_sum():
-        assert (0.1 + 0.2) == pytest.approx(0.3)
+        assert (0.1 + 0.2) == testrunner.approx(0.3)
 
 This avoids the need for manual tolerance checks or using
 ``math.isclose`` and works with scalars, lists, and NumPy arrays.
@@ -222,7 +222,7 @@ This avoids the need for manual tolerance checks or using
 Request a unique temporary directory for functional tests
 --------------------------------------------------------------
 
-``pytest`` provides :std:doc:`Builtin fixtures/function arguments <builtin>` to request arbitrary resources, like a unique temporary directory:
+``testrunner`` provides :std:doc:`Builtin fixtures/function arguments <builtin>` to request arbitrary resources, like a unique temporary directory:
 
 .. code-block:: python
 
@@ -231,16 +231,16 @@ Request a unique temporary directory for functional tests
         print(tmp_path)
         assert 0
 
-List the name ``tmp_path`` in the test function signature and ``pytest`` will lookup and call a fixture factory to create the resource before performing the test function call. Before the test runs, ``pytest`` creates a unique-per-test-invocation temporary directory:
+List the name ``tmp_path`` in the test function signature and ``testrunner`` will lookup and call a fixture factory to create the resource before performing the test function call. Before the test runs, ``testrunner`` creates a unique-per-test-invocation temporary directory:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q test_tmp_path.py
+    $ testrunner -q test_tmp_path.py
     F                                                                    [100%]
     ================================= FAILURES =================================
     _____________________________ test_needsfiles ______________________________
 
-    tmp_path = PosixPath('PYTEST_TMPDIR/test_needsfiles0')
+    tmp_path = PosixPath('TESTRUNNER_TMPDIR/test_needsfiles0')
 
         def test_needsfiles(tmp_path):
             print(tmp_path)
@@ -249,29 +249,29 @@ List the name ``tmp_path`` in the test function signature and ``pytest`` will lo
 
     test_tmp_path.py:3: AssertionError
     --------------------------- Captured stdout call ---------------------------
-    PYTEST_TMPDIR/test_needsfiles0
+    TESTRUNNER_TMPDIR/test_needsfiles0
     ========================= short test summary info ==========================
     FAILED test_tmp_path.py::test_needsfiles - assert 0
     1 failed in 0.12s
 
 More info on temporary directory handling is available at :ref:`Temporary directories and files <tmp_path handling>`.
 
-Find out what kind of builtin :ref:`pytest fixtures <fixtures>` exist with the command:
+Find out what kind of builtin :ref:`testrunner fixtures <fixtures>` exist with the command:
 
 .. code-block:: bash
 
-    pytest --fixtures   # shows builtin and custom fixtures
+    testrunner --fixtures   # shows builtin and custom fixtures
 
 Note that this command omits fixtures with leading ``_`` unless the :option:`-v` option is added.
 
 Continue reading
 -------------------------------------
 
-Check out additional pytest resources to help you customize tests for your unique workflow:
+Check out additional testrunner resources to help you customize tests for your unique workflow:
 
 * ":ref:`usage`" for command line invocation examples
 * ":ref:`existingtestsuite`" for working with preexisting tests
-* ":ref:`mark`" for information on the ``pytest.mark`` mechanism
+* ":ref:`mark`" for information on the ``testrunner.mark`` mechanism
 * ":ref:`fixtures`" for providing a functional baseline to your tests
 * ":ref:`plugins`" for managing and writing plugins
 * ":ref:`goodpractices`" for virtualenv and test layouts

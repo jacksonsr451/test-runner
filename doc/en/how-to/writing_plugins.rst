@@ -11,10 +11,10 @@ only want to use but not write plugins.
 
 A plugin contains one or multiple hook functions. :ref:`Writing hooks <writinghooks>`
 explains the basics and details of how you can write a hook function yourself.
-``pytest`` implements all aspects of configuration, collection, running and
+``testrunner`` implements all aspects of configuration, collection, running and
 reporting by calling :ref:`well specified hooks <hook-reference>` of the following plugins:
 
-* builtin plugins: loaded from pytest's internal ``_pytest`` directory.
+* builtin plugins: loaded from testrunner's internal ``_testrunner`` directory.
 
 * :ref:`external plugins <extplugins>`: installed third-party modules discovered
   through :ref:`entry points <pip-installable plugins>` in their packaging metadata
@@ -23,7 +23,7 @@ reporting by calling :ref:`well specified hooks <hook-reference>` of the followi
 
 In principle, each hook call is a ``1:N`` Python function call where ``N`` is the
 number of registered implementation functions for a given specification.
-All specifications and implementations follow the ``pytest_`` prefix
+All specifications and implementations follow the ``testrunner_`` prefix
 naming convention, making them easy to distinguish and find.
 
 .. _`pluginorder`:
@@ -31,7 +31,7 @@ naming convention, making them easy to distinguish and find.
 Plugin discovery order at tool startup
 --------------------------------------
 
-``pytest`` loads plugin modules at tool startup in the following way:
+``testrunner`` loads plugin modules at tool startup in the following way:
 
 1. by scanning the command line for the ``-p no:name`` option
    and *blocking* that plugin from being loaded (even builtin plugins can
@@ -44,9 +44,9 @@ Plugin discovery order at tool startup
 
 4. by loading all plugins registered through installed third-party package
    :ref:`entry points <pip-installable plugins>`, unless the
-   :envvar:`PYTEST_DISABLE_PLUGIN_AUTOLOAD` environment variable is set.
+   :envvar:`TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD` environment variable is set.
 
-5. by loading all plugins specified through the :envvar:`PYTEST_PLUGINS` environment variable.
+5. by loading all plugins specified through the :envvar:`TESTRUNNER_PLUGINS` environment variable.
 
 6. by loading all "initial" :file:`conftest.py` files:
 
@@ -60,7 +60,7 @@ Plugin discovery order at tool startup
      the cutoff defaults to the directory containing the config file, or to the
      :ref:`rootdir <rootdir>` if no config file is found.
      After a ``conftest.py`` file is loaded, recursively load all plugins specified
-     in its :globalvar:`pytest_plugins` variable if present.
+     in its :globalvar:`testrunner_plugins` variable if present.
 
 
 .. _`conftest.py plugins`:
@@ -74,11 +74,11 @@ Local ``conftest.py`` plugins contain directory-specific hook
 implementations.  Hook Session and test running activities will
 invoke all hooks defined in ``conftest.py`` files closer to the
 root of the filesystem.  Example of implementing the
-``pytest_runtest_setup`` hook so that is called for tests in the ``a``
+``testrunner_runtest_setup`` hook so that is called for tests in the ``a``
 sub directory but not for other directories::
 
     a/conftest.py:
-        def pytest_runtest_setup(item):
+        def testrunner_runtest_setup(item):
             # called for running each test in 'a' directory
             print("setting up", item)
 
@@ -92,8 +92,8 @@ sub directory but not for other directories::
 
 Here is how you might run it::
 
-     pytest test_flat.py --capture=no  # will not show "setting up"
-     pytest a/test_sub.py --capture=no  # will show "setting up"
+     testrunner test_flat.py --capture=no  # will not show "setting up"
+     testrunner a/test_sub.py --capture=no  # will show "setting up"
 
 .. note::
     If you have ``conftest.py`` files which do not reside in a
@@ -108,7 +108,7 @@ Here is how you might run it::
 
 .. note::
     Some hooks cannot be implemented in conftest.py files which are not
-    :ref:`initial <pluginorder>` due to how pytest discovers plugins during
+    :ref:`initial <pluginorder>` due to how testrunner discovers plugins during
     startup. See the documentation of each hook for details.
 
 Writing your own plugin
@@ -118,7 +118,7 @@ If you want to write a plugin, there are many real-life examples
 you can copy from:
 
 * a custom collection example plugin: :ref:`yaml plugin`
-* builtin plugins which provide pytest's own functionality
+* builtin plugins which provide testrunner's own functionality
 * many :ref:`external plugins <plugin-list>` providing additional features
 
 All of these plugins implement :ref:`hooks <hook-reference>` and/or :ref:`fixtures <fixture>`
@@ -126,7 +126,7 @@ to extend and add functionality.
 
 .. note::
     Make sure to check out the excellent
-    `cookiecutter-pytest-plugin <https://github.com/pytest-dev/cookiecutter-pytest-plugin>`_
+    `cookiecutter-testrunner-plugin <https://github.com/testrunner-dev/cookiecutter-testrunner-plugin>`_
     project, which is a `cookiecutter template <https://github.com/audreyr/cookiecutter>`_
     for authoring plugins.
 
@@ -134,7 +134,7 @@ to extend and add functionality.
     tests running with tox, a comprehensive README file as well as a
     pre-configured entry-point.
 
-Also consider :ref:`contributing your plugin to pytest-dev<submitplugin>`
+Also consider :ref:`contributing your plugin to testrunner-dev<submitplugin>`
 once it has some happy users other than yourself.
 
 
@@ -146,11 +146,11 @@ Making your plugin installable by others
 
 If you want to make your plugin externally available, you
 may define a so-called entry point for your distribution so
-that ``pytest`` finds your plugin module. Entry points are
+that ``testrunner`` finds your plugin module. Entry points are
 a feature that is provided by :std:doc:`packaging tools
 <packaging:specifications/entry-points>`.
 
-pytest looks up the ``pytest11`` entrypoint to discover its
+testrunner looks up the ``testrunner11`` entrypoint to discover its
 plugins, thus you can make your plugin available by defining
 it in your ``pyproject.toml`` file.
 
@@ -164,19 +164,19 @@ it in your ``pyproject.toml`` file.
     [project]
     name = "myproject"
     classifiers = [
-        "Framework :: Pytest",
+        "Framework :: Testrunner",
     ]
 
-    [project.entry-points.pytest11]
+    [project.entry-points.testrunner11]
     myproject = "myproject.pluginmodule"
 
-If a package is installed this way, ``pytest`` will load
+If a package is installed this way, ``testrunner`` will load
 ``myproject.pluginmodule`` as a plugin which can define
-:ref:`hooks <hook-reference>`. Confirm registration with ``pytest --trace-config``
+:ref:`hooks <hook-reference>`. Confirm registration with ``testrunner --trace-config``
 
 .. note::
 
-    Make sure to include ``Framework :: Pytest`` in your list of
+    Make sure to include ``Framework :: Testrunner`` in your list of
     `PyPI classifiers <https://pypi.org/classifiers/>`_
     to make it easy for users to find your plugin.
 
@@ -186,12 +186,12 @@ If a package is installed this way, ``pytest`` will load
 Assertion Rewriting
 -------------------
 
-One of the main features of ``pytest`` is the use of plain assert
+One of the main features of ``testrunner`` is the use of plain assert
 statements and the detailed introspection of expressions upon
 assertion failures.  This is provided by "assertion rewriting" which
 modifies the parsed AST before it gets compiled to bytecode.  This is
 done via a :pep:`302` import hook which gets installed early on when
-``pytest`` starts up and will perform this rewriting when modules get
+``testrunner`` starts up and will perform this rewriting when modules get
 imported.  However, since we do not want to test different bytecode
 from what you will run in production, this hook only rewrites test modules
 themselves (as defined by the :confval:`python_files` configuration option),
@@ -200,52 +200,52 @@ Any other imported module will not be rewritten and normal assertion behaviour
 will happen.
 
 If you have assertion helpers in other modules where you would need
-assertion rewriting to be enabled you need to ask ``pytest``
+assertion rewriting to be enabled you need to ask ``testrunner``
 explicitly to rewrite this module before it gets imported.
 
-.. autofunction:: pytest.register_assert_rewrite
+.. autofunction:: testrunner.register_assert_rewrite
     :noindex:
 
-This is especially important when you write a pytest plugin which is
+This is especially important when you write a testrunner plugin which is
 created using a package.  The import hook only treats ``conftest.py``
-files and any modules which are listed in the ``pytest11`` entrypoint
+files and any modules which are listed in the ``testrunner11`` entrypoint
 as plugins.  As an example consider the following package::
 
-   pytest_foo/__init__.py
-   pytest_foo/plugin.py
-   pytest_foo/helper.py
+   testrunner_foo/__init__.py
+   testrunner_foo/plugin.py
+   testrunner_foo/helper.py
 
 With the following typical ``pyproject.toml`` extract:
 
 .. code-block:: toml
 
-   [project.entry-points.pytest11]
-   foo = "pytest_foo.plugin"
+   [project.entry-points.testrunner11]
+   foo = "testrunner_foo.plugin"
 
-In this case only ``pytest_foo/plugin.py`` will be rewritten.  If the
+In this case only ``testrunner_foo/plugin.py`` will be rewritten.  If the
 helper module also contains assert statements which need to be
 rewritten it needs to be marked as such, before it gets imported.
 This is easiest by marking it for rewriting inside the
 ``__init__.py`` module, which will always be imported first when a
 module inside a package is imported.  This way ``plugin.py`` can still
 import ``helper.py`` normally.  The contents of
-``pytest_foo/__init__.py`` will then need to look like this:
+``testrunner_foo/__init__.py`` will then need to look like this:
 
 .. code-block:: python
 
-   import pytest
+   import testrunner
 
-   pytest.register_assert_rewrite("pytest_foo.helper")
+   testrunner.register_assert_rewrite("testrunner_foo.helper")
 
 
 Requiring/Loading plugins in a test module or conftest file
 -----------------------------------------------------------
 
-You can require plugins in a test module or a ``conftest.py`` file using :globalvar:`pytest_plugins`:
+You can require plugins in a test module or a ``conftest.py`` file using :globalvar:`testrunner_plugins`:
 
 .. code-block:: python
 
-    pytest_plugins = ["name1", "name2"]
+    testrunner_plugins = ["name1", "name2"]
 
 When the test module or conftest plugin is loaded the specified plugins
 will be loaded as well. Any module can be blessed as a plugin, including internal
@@ -253,29 +253,29 @@ application modules:
 
 .. code-block:: python
 
-    pytest_plugins = "myapp.testsupport.myplugin"
+    testrunner_plugins = "myapp.testsupport.myplugin"
 
 The entry point name of an installed plugin can also be used, just like with
 the :option:`-p` command-line option:
 
 .. code-block:: python
 
-    pytest_plugins = ("xdist",)
+    testrunner_plugins = ("xdist",)
 
-:globalvar:`pytest_plugins` are processed recursively, so note that in the example above
-if ``myapp.testsupport.myplugin`` also declares :globalvar:`pytest_plugins`, the contents
+:globalvar:`testrunner_plugins` are processed recursively, so note that in the example above
+if ``myapp.testsupport.myplugin`` also declares :globalvar:`testrunner_plugins`, the contents
 of the variable will also be loaded as plugins, and so on.
 
 .. _`requiring plugins in non-root conftests`:
 
 .. note::
-    Requiring plugins using :globalvar:`pytest_plugins` variable in non-root
+    Requiring plugins using :globalvar:`testrunner_plugins` variable in non-root
     ``conftest.py`` files is deprecated.
 
     This is important because ``conftest.py`` files implement per-directory
     hook implementations, but once a plugin is imported, it will affect the
     entire directory tree. In order to avoid confusion, defining
-    :globalvar:`pytest_plugins` in any ``conftest.py`` file which is not located in the
+    :globalvar:`testrunner_plugins` in any ``conftest.py`` file which is not located in the
     tests root directory is deprecated, and will raise a warning.
 
 This mechanism makes it easy to share fixtures within applications or even
@@ -283,13 +283,13 @@ external applications without the need to create external plugins using the
 :std:doc:`entry point packaging metadata
 <packaging:guides/creating-and-discovering-plugins>` technique.
 
-Plugins imported by :globalvar:`pytest_plugins` will also automatically be marked
-for assertion rewriting (see :func:`pytest.register_assert_rewrite`).
+Plugins imported by :globalvar:`testrunner_plugins` will also automatically be marked
+for assertion rewriting (see :func:`testrunner.register_assert_rewrite`).
 However for this to have any effect the module must not be
 imported already; if it was already imported at the time the
-:globalvar:`pytest_plugins` statement is processed, a warning will result and
+:globalvar:`testrunner_plugins` statement is processed, a warning will result and
 assertions inside the plugin will not be rewritten.  To fix this you
-can either call :func:`pytest.register_assert_rewrite` yourself before
+can either call :func:`testrunner.register_assert_rewrite` yourself before
 the module is imported, or you can arrange the code to delay the
 importing until after the plugin is registered.
 
@@ -315,13 +315,13 @@ Registering custom markers
 --------------------------
 
 If your plugin uses any markers, you should register them so that they appear in
-pytest's help text and do not :ref:`cause spurious warnings <unknown-marks>`.
+testrunner's help text and do not :ref:`cause spurious warnings <unknown-marks>`.
 For example, the following plugin would register ``cool_marker`` and
 ``mark_with`` for all users:
 
 .. code-block:: python
 
-    def pytest_configure(config):
+    def testrunner_configure(config):
         config.addinivalue_line("markers", "cool_marker: this one is for cool tests.")
         config.addinivalue_line(
             "markers", "mark_with(arg, arg2): this marker takes arguments."
@@ -331,7 +331,7 @@ For example, the following plugin would register ``cool_marker`` and
 Testing plugins
 ---------------
 
-pytest comes with a plugin named ``pytester`` that helps you write tests for
+testrunner comes with a plugin named ``testrunnerer`` that helps you write tests for
 your plugin code. The plugin is disabled by default, so you will have to enable
 it before you can use it.
 
@@ -342,12 +342,12 @@ testing directory:
 
     # content of conftest.py
 
-    pytest_plugins = ["pytester"]
+    testrunner_plugins = ["testrunnerer"]
 
-Alternatively you can invoke pytest with the ``-p pytester`` command line
+Alternatively you can invoke testrunner with the ``-p testrunnerer`` command line
 option.
 
-This will allow you to use the :py:class:`pytester <pytest.Pytester>`
+This will allow you to use the :py:class:`testrunnerer <testrunner.Testrunnerer>`
 fixture for testing your plugin code.
 
 Let's demonstrate what you can do with the plugin with an example. Imagine we
@@ -358,10 +358,10 @@ string value of ``Hello World!`` if we do not supply a value or ``Hello
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
-    def pytest_addoption(parser):
+    def testrunner_addoption(parser):
         group = parser.getgroup("helloworld")
         group.addoption(
             "--name",
@@ -372,7 +372,7 @@ string value of ``Hello World!`` if we do not supply a value or ``Hello
         )
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def hello(request):
         name = request.config.getoption("name")
 
@@ -384,21 +384,21 @@ string value of ``Hello World!`` if we do not supply a value or ``Hello
         return _hello
 
 
-Now the ``pytester`` fixture provides a convenient API for creating temporary
+Now the ``testrunnerer`` fixture provides a convenient API for creating temporary
 ``conftest.py`` files and test files. It also allows us to run the tests and
 return a result object, with which we can assert the tests' outcomes.
 
 .. code-block:: python
 
-    def test_hello(pytester):
+    def test_hello(testrunnerer):
         """Make sure that our plugin works."""
 
         # create a temporary conftest.py file
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            import pytest
+            import testrunner
 
-            @pytest.fixture(params=[
+            @testrunner.fixture(params=[
                 "Brianna",
                 "Andreas",
                 "Floris",
@@ -408,8 +408,8 @@ return a result object, with which we can assert the tests' outcomes.
         """
         )
 
-        # create a temporary pytest test file
-        pytester.makepyfile(
+        # create a temporary testrunner test file
+        testrunnerer.makepyfile(
             """
             def test_hello_default(hello):
                 assert hello() == "Hello World!"
@@ -419,33 +419,33 @@ return a result object, with which we can assert the tests' outcomes.
         """
         )
 
-        # run all tests with pytest
-        result = pytester.runpytest()
+        # run all tests with testrunner
+        result = testrunnerer.runtestrunner()
 
         # check that all 4 tests passed
         result.assert_outcomes(passed=4)
 
 .. note::
 
-    :meth:`pytest.RunResult.assert_outcomes` parses pytest's standard terminal
+    :meth:`testrunner.RunResult.assert_outcomes` parses testrunner's standard terminal
     summary. A plugin that changes or removes that summary can make outcome
     parsing fail. Disable the output-changing plugin for the nested run with
-    ``-p no:<plugin>``, or set ``PYTEST_DISABLE_PLUGIN_AUTOLOAD=1`` when the
+    ``-p no:<plugin>``, or set ``TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD=1`` when the
     nested run should not discover third-party plugins.
 
 
-Additionally it is possible to copy examples to the ``pytester``'s isolated environment
-before running pytest on it. This way we can abstract the tested logic to separate files,
+Additionally it is possible to copy examples to the ``testrunnerer``'s isolated environment
+before running testrunner on it. This way we can abstract the tested logic to separate files,
 which is especially useful for longer tests and/or longer ``conftest.py`` files.
 
-Note that for ``pytester.copy_example`` to work we need to set `pytester_example_dir`
-in our configuration file to tell pytest where to look for example files.
+Note that for ``testrunnerer.copy_example`` to work we need to set `testrunnerer_example_dir`
+in our configuration file to tell testrunner where to look for example files.
 
 .. code-block:: toml
 
-    # content of pytest.toml
-    [pytest]
-    pytester_example_dir = "."
+    # content of testrunner.toml
+    [testrunner]
+    testrunnerer_example_dir = "."
 
 
 .. code-block:: python
@@ -453,27 +453,27 @@ in our configuration file to tell pytest where to look for example files.
     # content of test_example.py
 
 
-    def test_plugin(pytester):
-        pytester.copy_example("test_example.py")
-        pytester.runpytest("-k", "test_example")
+    def test_plugin(testrunnerer):
+        testrunnerer.copy_example("test_example.py")
+        testrunnerer.runtestrunner("-k", "test_example")
 
 
     def test_example():
         pass
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest
+    $ testrunner
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
-    configfile: pytest.toml
+    configfile: testrunner.toml
     collected 2 items
 
     test_example.py ..                                                   [100%]
 
     ============================ 2 passed in 0.12s =============================
 
-For more information about the result object that ``runpytest()`` returns, and
+For more information about the result object that ``runtestrunner()`` returns, and
 the methods that it provides please check out the :py:class:`RunResult
-<_pytest.pytester.RunResult>` documentation.
+<_testrunner.testrunnerer.RunResult>` documentation.

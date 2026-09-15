@@ -5,8 +5,8 @@ from pathlib import Path
 import subprocess
 import sys
 
-from _pytest.monkeypatch import MonkeyPatch
-import pytest
+from _testrunner.monkeypatch import MonkeyPatch
+import testrunner
 
 
 # Test for _argcomplete but not specific for any application.
@@ -70,11 +70,11 @@ class FilesCompleter:
 
 
 class TestArgComplete:
-    @pytest.mark.skipif("sys.platform in ('win32', 'darwin')")
+    @testrunner.mark.skipif("sys.platform in ('win32', 'darwin')")
     def test_compare_with_compgen(
         self, tmp_path: Path, monkeypatch: MonkeyPatch
     ) -> None:
-        from _pytest._argcomplete import FastFilesCompleter
+        from _testrunner._argcomplete import FastFilesCompleter
 
         ffc = FastFilesCompleter()
         fc = FilesCompleter()
@@ -88,10 +88,10 @@ class TestArgComplete:
         for x in ["d", "data", "doesnotexist", ""]:
             assert equal_with_bash(x, ffc, fc, out=sys.stdout)
 
-    @pytest.mark.skipif("sys.platform in ('win32', 'darwin')")
+    @testrunner.mark.skipif("sys.platform in ('win32', 'darwin')")
     def test_remove_dir_prefix(self):
         """This is not compatible with compgen but it is with bash itself: ls /usr/<TAB>."""
-        from _pytest._argcomplete import FastFilesCompleter
+        from _testrunner._argcomplete import FastFilesCompleter
 
         ffc = FastFilesCompleter()
         fc = FilesCompleter()

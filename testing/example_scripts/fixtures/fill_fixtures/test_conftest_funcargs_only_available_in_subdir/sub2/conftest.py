@@ -1,11 +1,11 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-from _pytest.fixtures import FixtureLookupError
-import pytest
+from _testrunner.fixtures import FixtureLookupError
+import testrunner
 
 
-@pytest.fixture
+@testrunner.fixture
 def arg2(request):
-    with pytest.raises(FixtureLookupError):
+    with testrunner.raises(FixtureLookupError):
         request.getfixturevalue("arg1")

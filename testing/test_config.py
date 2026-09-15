@@ -12,38 +12,38 @@ import textwrap
 from typing import Any
 from typing import Literal
 
-import _pytest._code
-from _pytest.config import _get_plugin_specs_as_list
-from _pytest.config import _get_prog_name
-from _pytest.config import _iter_rewritable_modules
-from _pytest.config import _strtobool
-from _pytest.config import Config
-from _pytest.config import ConftestImportFailure
-from _pytest.config import console_main
-from _pytest.config import ExitCode
-from _pytest.config import parse_warning_filter
-from _pytest.config import PluginImportFailure
-from _pytest.config.argparsing import get_ini_default_for_type
-from _pytest.config.argparsing import Parser
-from _pytest.config.exceptions import UsageError
-from _pytest.config.findpaths import ConfigValue
-from _pytest.config.findpaths import determine_setup
-from _pytest.config.findpaths import get_common_ancestor
-from _pytest.config.findpaths import locate_config
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.pathlib import absolutepath
-from _pytest.pytester import Pytester
-from _pytest.warning_types import PytestDeprecationWarning
-import pytest
+import _testrunner._code
+from _testrunner.config import _get_plugin_specs_as_list
+from _testrunner.config import _get_prog_name
+from _testrunner.config import _iter_rewritable_modules
+from _testrunner.config import _strtobool
+from _testrunner.config import Config
+from _testrunner.config import ConftestImportFailure
+from _testrunner.config import console_main
+from _testrunner.config import ExitCode
+from _testrunner.config import parse_warning_filter
+from _testrunner.config import PluginImportFailure
+from _testrunner.config.argparsing import get_ini_default_for_type
+from _testrunner.config.argparsing import Parser
+from _testrunner.config.exceptions import UsageError
+from _testrunner.config.findpaths import ConfigValue
+from _testrunner.config.findpaths import determine_setup
+from _testrunner.config.findpaths import get_common_ancestor
+from _testrunner.config.findpaths import locate_config
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.pathlib import absolutepath
+from _testrunner.testrunnerer import Testrunnerer
+from _testrunner.warning_types import TestrunnerDeprecationWarning
+import testrunner
 
 
 class TestParseIni:
-    @pytest.mark.parametrize(
-        "section, filename", [("pytest", "pytest.ini"), ("tool:pytest", "setup.cfg")]
+    @testrunner.mark.parametrize(
+        "section, filename", [("testrunner", "testrunner.ini"), ("tool:testrunner", "setup.cfg")]
     )
     def test_getcfg_and_config(
         self,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
         tmp_path: Path,
         section: str,
         filename: str,
@@ -63,83 +63,83 @@ class TestParseIni:
         )
         _, _, cfg, _ = locate_config(Path.cwd(), [sub])
         assert cfg["name"] == ConfigValue("value", origin="file", mode="ini")
-        config = pytester.parseconfigure(str(sub))
+        config = testrunnerer.parseconfigure(str(sub))
         assert config._inicfg["name"] == ConfigValue("value", origin="file", mode="ini")
 
-    def test_setupcfg_uses_toolpytest_with_pytest(self, pytester: Pytester) -> None:
-        p1 = pytester.makepyfile("def test(): pass")
-        pytester.makefile(
+    def test_setupcfg_uses_tooltestrunner_with_testrunner(self, testrunnerer: Testrunnerer) -> None:
+        p1 = testrunnerer.makepyfile("def test(): pass")
+        testrunnerer.makefile(
             ".cfg",
             setup=f"""
-                [tool:pytest]
+                [tool:testrunner]
                 testpaths={p1.name}
-                [pytest]
+                [testrunner]
                 testpaths=ignored
         """,
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["configfile: setup.cfg", "* 1 passed in *"])
         assert result.ret == 0
 
     def test_append_parse_args(
-        self, pytester: Pytester, tmp_path: Path, monkeypatch: MonkeyPatch
+        self, testrunnerer: Testrunnerer, tmp_path: Path, monkeypatch: MonkeyPatch
     ) -> None:
-        monkeypatch.setenv("PYTEST_ADDOPTS", '--color no -rs --tb="short"')
-        tmp_path.joinpath("pytest.ini").write_text(
+        monkeypatch.setenv("TESTRUNNER_ADDOPTS", '--color no -rs --tb="short"')
+        tmp_path.joinpath("testrunner.ini").write_text(
             textwrap.dedent(
                 """\
-                [pytest]
+                [testrunner]
                 addopts = --verbose
                 """
             ),
             encoding="utf-8",
         )
-        config = pytester.parseconfig(tmp_path)
+        config = testrunnerer.parseconfig(tmp_path)
         assert config.option.color == "no"
         assert config.option.reportchars == "s"
         assert config.option.tbstyle == "short"
         assert config.option.verbose
 
-    @pytest.mark.parametrize("flag", ("-r", "--report-chars="))
-    @pytest.mark.parametrize("value", ("fE", "A", "fs"))
+    @testrunner.mark.parametrize("flag", ("-r", "--report-chars="))
+    @testrunner.mark.parametrize("value", ("fE", "A", "fs"))
     def test_report_chars_option(
         self,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
         tmp_path: Path,
         monkeypatch: MonkeyPatch,
         flag: str,
         value: str,
     ) -> None:
         """Test that -r/--report-chars is parsed correctly."""
-        monkeypatch.setenv("PYTEST_ADDOPTS", flag + value)
-        config = pytester.parseconfig(tmp_path)
+        monkeypatch.setenv("TESTRUNNER_ADDOPTS", flag + value)
+        config = testrunnerer.parseconfig(tmp_path)
         assert config.option.reportchars == value
 
-    def test_tox_ini_wrong_version(self, pytester: Pytester) -> None:
-        pytester.makefile(
+    def test_tox_ini_wrong_version(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makefile(
             ".ini",
             tox="""
-            [pytest]
+            [testrunner]
             minversion=999.0
         """,
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.ret != 0
         result.stderr.fnmatch_lines(
-            ["*tox.ini: 'minversion' requires pytest-999.0, actual pytest-*"]
+            ["*tox.ini: 'minversion' requires testrunner-999.0, actual testrunner-*"]
         )
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "section, name",
         [
-            ("tool:pytest", "setup.cfg"),
-            ("pytest", "tox.ini"),
-            ("pytest", "pytest.ini"),
-            ("pytest", ".pytest.ini"),
+            ("tool:testrunner", "setup.cfg"),
+            ("testrunner", "tox.ini"),
+            ("testrunner", "testrunner.ini"),
+            ("testrunner", ".testrunner.ini"),
         ],
     )
-    def test_ini_names(self, pytester: Pytester, name, section) -> None:
-        pytester.path.joinpath(name).write_text(
+    def test_ini_names(self, testrunnerer: Testrunnerer, name, section) -> None:
+        testrunnerer.path.joinpath(name).write_text(
             textwrap.dedent(
                 f"""
             [{section}]
@@ -148,28 +148,28 @@ class TestParseIni:
             ),
             encoding="utf-8",
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert config.getini("minversion") == "3.36"
 
-    @pytest.mark.parametrize("name", ["pytest.toml", ".pytest.toml"])
-    def test_toml_config_names(self, pytester: Pytester, name: str) -> None:
-        pytester.path.joinpath(name).write_text(
+    @testrunner.mark.parametrize("name", ["testrunner.toml", ".testrunner.toml"])
+    def test_toml_config_names(self, testrunnerer: Testrunnerer, name: str) -> None:
+        testrunnerer.path.joinpath(name).write_text(
             textwrap.dedent(
                 """
-            [pytest]
+            [testrunner]
             minversion = "3.36"
         """
             ),
             encoding="utf-8",
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert config.getini("minversion") == "3.36"
 
-    @pytest.mark.parametrize("name", ["pytest.toml", ".pytest.toml"])
+    @testrunner.mark.parametrize("name", ["testrunner.toml", ".testrunner.toml"])
     def test_toml_config_names_without_section_errors(
-        self, pytester: Pytester, name: str
+        self, testrunnerer: Testrunnerer, name: str
     ) -> None:
-        config_path = pytester.path.joinpath(name)
+        config_path = testrunnerer.path.joinpath(name)
         config_path.write_text(
             textwrap.dedent(
                 """
@@ -179,37 +179,37 @@ class TestParseIni:
             ),
             encoding="utf-8",
         )
-        with pytest.raises(UsageError) as excinfo:
-            pytester.parseconfig()
+        with testrunner.raises(UsageError) as excinfo:
+            testrunnerer.parseconfig()
         assert str(excinfo.value) == (
             f"{config_path}: "
-            "pytest configuration must be under a [pytest] table "
+            "testrunner configuration must be under a [testrunner] table "
             "(found top-level options: minversion, addopts)"
         )
 
-    def test_pyproject_toml(self, pytester: Pytester) -> None:
-        pyproject_toml = pytester.makepyprojecttoml(
+    def test_pyproject_toml(self, testrunnerer: Testrunnerer) -> None:
+        pyproject_toml = testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest.ini_options]
+            [tool.testrunner.ini_options]
             minversion = "1.0"
         """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert config.inipath == pyproject_toml
         assert config.getini("minversion") == "1.0"
 
-    def test_empty_pyproject_toml(self, pytester: Pytester) -> None:
+    def test_empty_pyproject_toml(self, testrunnerer: Testrunnerer) -> None:
         """An empty pyproject.toml is considered as config if no other option is found."""
-        pyproject_toml = pytester.makepyprojecttoml("")
-        config = pytester.parseconfig()
+        pyproject_toml = testrunnerer.makepyprojecttoml("")
+        config = testrunnerer.parseconfig()
         assert config.inipath == pyproject_toml
 
-    def test_empty_pyproject_toml_found_many(self, pytester: Pytester) -> None:
+    def test_empty_pyproject_toml_found_many(self, testrunnerer: Testrunnerer) -> None:
         """
-        In case we find multiple pyproject.toml files in our search, without a [tool.pytest]
+        In case we find multiple pyproject.toml files in our search, without a [tool.testrunner]
         table and without finding other candidates, the closest to where we started wins.
         """
-        pytester.makefile(
+        testrunnerer.makefile(
             ".toml",
             **{
                 "pyproject": "",
@@ -217,214 +217,214 @@ class TestParseIni:
                 "foo/bar/pyproject": "",
             },
         )
-        config = pytester.parseconfig(pytester.path / "foo/bar")
-        assert config.inipath == pytester.path / "foo/bar/pyproject.toml"
+        config = testrunnerer.parseconfig(testrunnerer.path / "foo/bar")
+        assert config.inipath == testrunnerer.path / "foo/bar/pyproject.toml"
 
-    def test_pytest_toml(self, pytester: Pytester) -> None:
-        pytest_toml = pytester.path.joinpath("pytest.toml")
-        pytest_toml = pytester.maketoml(
+    def test_testrunner_toml(self, testrunnerer: Testrunnerer) -> None:
+        testrunner_toml = testrunnerer.path.joinpath("testrunner.toml")
+        testrunner_toml = testrunnerer.maketoml(
             """
-            [pytest]
+            [testrunner]
             minversion = "1.0"
             """
         )
-        config = pytester.parseconfig()
-        assert config.inipath == pytest_toml
+        config = testrunnerer.parseconfig()
+        assert config.inipath == testrunner_toml
         assert config.getini("minversion") == "1.0"
 
-    @pytest.mark.parametrize("name", ["pytest.toml", ".pytest.toml"])
-    def test_empty_pytest_toml(self, pytester: Pytester, name: str) -> None:
-        """An empty pytest.toml is considered as config if no other option is found."""
-        pytest_toml = pytester.path / name
-        pytest_toml.write_text("", encoding="utf-8")
-        config = pytester.parseconfig()
-        assert config.inipath == pytest_toml
+    @testrunner.mark.parametrize("name", ["testrunner.toml", ".testrunner.toml"])
+    def test_empty_testrunner_toml(self, testrunnerer: Testrunnerer, name: str) -> None:
+        """An empty testrunner.toml is considered as config if no other option is found."""
+        testrunner_toml = testrunnerer.path / name
+        testrunner_toml.write_text("", encoding="utf-8")
+        config = testrunnerer.parseconfig()
+        assert config.inipath == testrunner_toml
 
-    def test_pytest_toml_trumps_pyproject_toml(self, pytester: Pytester) -> None:
-        """A pytest.toml always takes precedence over a pyproject.toml file."""
-        pytester.makepyprojecttoml(
+    def test_testrunner_toml_trumps_pyproject_toml(self, testrunnerer: Testrunnerer) -> None:
+        """A testrunner.toml always takes precedence over a pyproject.toml file."""
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest]
+            [tool.testrunner]
             minversion = "1.0"
             """
         )
-        pytest_toml = pytester.maketoml(
+        testrunner_toml = testrunnerer.maketoml(
             """
-            [pytest]
+            [testrunner]
             minversion = "2.0"
             """
         )
-        config = pytester.parseconfig()
-        assert config.inipath == pytest_toml
+        config = testrunnerer.parseconfig()
+        assert config.inipath == testrunner_toml
         assert config.getini("minversion") == "2.0"
 
-    def test_pytest_toml_trumps_pytest_ini(self, pytester: Pytester) -> None:
-        """A pytest.toml always takes precedence over a pytest.ini file."""
-        pytester.makeini(
+    def test_testrunner_toml_trumps_testrunner_ini(self, testrunnerer: Testrunnerer) -> None:
+        """A testrunner.toml always takes precedence over a testrunner.ini file."""
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             minversion = 1.0
             """,
         )
-        pytest_toml = pytester.maketoml(
+        testrunner_toml = testrunnerer.maketoml(
             """
-            [pytest]
+            [testrunner]
             minversion = "2.0"
             """,
         )
-        config = pytester.parseconfig()
-        assert config.inipath == pytest_toml
+        config = testrunnerer.parseconfig()
+        assert config.inipath == testrunner_toml
         assert config.getini("minversion") == "2.0"
 
-    def test_dot_pytest_toml_trumps_pytest_ini(self, pytester: Pytester) -> None:
-        """A .pytest.toml always takes precedence over a pytest.ini file."""
-        pytester.makeini(
+    def test_dot_testrunner_toml_trumps_testrunner_ini(self, testrunnerer: Testrunnerer) -> None:
+        """A .testrunner.toml always takes precedence over a testrunner.ini file."""
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             minversion = 1.0
             """,
         )
-        pytest_toml = pytester.maketoml(
+        testrunner_toml = testrunnerer.maketoml(
             """
-            [pytest]
+            [testrunner]
             minversion = "2.0"
             """
         )
-        config = pytester.parseconfig()
-        assert config.inipath == pytest_toml
+        config = testrunnerer.parseconfig()
+        assert config.inipath == testrunner_toml
         assert config.getini("minversion") == "2.0"
 
-    def test_pytest_ini_trumps_pyproject_toml(self, pytester: Pytester) -> None:
-        """A pytest.ini always take precedence over a pyproject.toml file."""
-        pytester.makepyprojecttoml(
+    def test_testrunner_ini_trumps_pyproject_toml(self, testrunnerer: Testrunnerer) -> None:
+        """A testrunner.ini always take precedence over a pyproject.toml file."""
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest]
+            [tool.testrunner]
             minversion = "1.0"
             """
         )
-        pytest_ini = pytester.makefile(".ini", pytest="")
-        config = pytester.parseconfig()
-        assert config.inipath == pytest_ini
+        testrunner_ini = testrunnerer.makefile(".ini", testrunner="")
+        config = testrunnerer.parseconfig()
+        assert config.inipath == testrunner_ini
 
-    def test_toxini_before_lower_pytestini(self, pytester: Pytester) -> None:
-        sub = pytester.mkdir("sub")
+    def test_toxini_before_lower_testrunnerini(self, testrunnerer: Testrunnerer) -> None:
+        sub = testrunnerer.mkdir("sub")
         sub.joinpath("tox.ini").write_text(
             textwrap.dedent(
                 """
-            [pytest]
+            [testrunner]
             minversion = 2.0
         """
             ),
             encoding="utf-8",
         )
-        pytester.path.joinpath("pytest.ini").write_text(
+        testrunnerer.path.joinpath("testrunner.ini").write_text(
             textwrap.dedent(
                 """
-            [pytest]
+            [testrunner]
             minversion = 1.5
         """
             ),
             encoding="utf-8",
         )
-        config = pytester.parseconfigure(sub)
+        config = testrunnerer.parseconfigure(sub)
         assert config.getini("minversion") == "2.0"
 
-    def test_ini_parse_error(self, pytester: Pytester) -> None:
-        pytester.path.joinpath("pytest.ini").write_text(
+    def test_ini_parse_error(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.path.joinpath("testrunner.ini").write_text(
             "addopts = -x", encoding="utf-8"
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.ret != 0
-        result.stderr.fnmatch_lines("ERROR: *pytest.ini:1: no section header defined")
+        result.stderr.fnmatch_lines("ERROR: *testrunner.ini:1: no section header defined")
 
-    def test_toml_parse_error(self, pytester: Pytester) -> None:
-        pytester.makepyprojecttoml(
+    def test_toml_parse_error(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyprojecttoml(
             """
             \\"
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.ret != 0
         result.stderr.fnmatch_lines("ERROR: *pyproject.toml: Invalid statement*")
 
-    def test_pytest_toml_parse_error(self, pytester: Pytester) -> None:
-        pytester.path.joinpath("pytest.toml").write_text(
+    def test_testrunner_toml_parse_error(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.path.joinpath("testrunner.toml").write_text(
             """
             \\"
             """,
             encoding="utf-8",
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.ret != 0
-        result.stderr.fnmatch_lines("ERROR: *pytest.toml: Invalid statement*")
+        result.stderr.fnmatch_lines("ERROR: *testrunner.toml: Invalid statement*")
 
-    def test_confcutdir_default_without_configfile(self, pytester: Pytester) -> None:
+    def test_confcutdir_default_without_configfile(self, testrunnerer: Testrunnerer) -> None:
         # If --confcutdir is not specified, and there is no configfile, default
         # to the rootpath.
-        sub = pytester.mkdir("sub")
+        sub = testrunnerer.mkdir("sub")
         os.chdir(sub)
-        config = pytester.parseconfigure()
+        config = testrunnerer.parseconfigure()
         assert config.pluginmanager._confcutdir == sub
 
-    def test_confcutdir_default_with_configfile(self, pytester: Pytester) -> None:
+    def test_confcutdir_default_with_configfile(self, testrunnerer: Testrunnerer) -> None:
         # If --confcutdir is not specified, and there is a configfile, default
         # to the configfile's directory.
-        pytester.makeini("[pytest]")
-        sub = pytester.mkdir("sub")
+        testrunnerer.makeini("[testrunner]")
+        sub = testrunnerer.mkdir("sub")
         os.chdir(sub)
-        config = pytester.parseconfigure()
-        assert config.pluginmanager._confcutdir == pytester.path
+        config = testrunnerer.parseconfigure()
+        assert config.pluginmanager._confcutdir == testrunnerer.path
 
-    @pytest.mark.xfail(reason="probably not needed")
-    def test_confcutdir(self, pytester: Pytester) -> None:
-        sub = pytester.mkdir("sub")
+    @testrunner.mark.xfail(reason="probably not needed")
+    def test_confcutdir(self, testrunnerer: Testrunnerer) -> None:
+        sub = testrunnerer.mkdir("sub")
         os.chdir(sub)
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             addopts = --qwe
         """
         )
-        result = pytester.inline_run("--confcutdir=.")
+        result = testrunnerer.inline_run("--confcutdir=.")
         assert result.ret == 0
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "ini_file_text, invalid_keys, warning_output, exception_text",
         [
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 unknown_ini = value1
                 another_unknown_ini = value2
                 """,
                 ["unknown_ini", "another_unknown_ini"],
                 [
                     "=*= warnings summary =*=",
-                    "*PytestConfigWarning:*Unknown config option: another_unknown_ini",
-                    "*PytestConfigWarning:*Unknown config option: unknown_ini",
+                    "*TestrunnerConfigWarning:*Unknown config option: another_unknown_ini",
+                    "*TestrunnerConfigWarning:*Unknown config option: unknown_ini",
                 ],
                 "Unknown config option: another_unknown_ini",
                 id="2-unknowns",
             ),
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 unknown_ini = value1
                 minversion = 5.0.0
                 """,
                 ["unknown_ini"],
                 [
                     "=*= warnings summary =*=",
-                    "*PytestConfigWarning:*Unknown config option: unknown_ini",
+                    "*TestrunnerConfigWarning:*Unknown config option: unknown_ini",
                 ],
                 "Unknown config option: unknown_ini",
                 id="1-unknown",
             ),
-            pytest.param(
+            testrunner.param(
                 """
                 [some_other_header]
                 unknown_ini = value1
-                [pytest]
+                [testrunner]
                 minversion = 5.0.0
                 """,
                 [],
@@ -432,9 +432,9 @@ class TestParseIni:
                 "",
                 id="unknown-in-other-header",
             ),
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 minversion = 5.0.0
                 """,
                 [],
@@ -442,9 +442,9 @@ class TestParseIni:
                 "",
                 id="no-unknowns",
             ),
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 conftest_ini_key = 1
                 """,
                 [],
@@ -454,53 +454,53 @@ class TestParseIni:
             ),
         ],
     )
-    @pytest.mark.filterwarnings("default")
+    @testrunner.mark.filterwarnings("default")
     def test_invalid_config_options(
         self,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
         ini_file_text,
         invalid_keys,
         warning_output,
         exception_text,
     ) -> None:
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("conftest_ini_key", "")
             """
         )
-        pytester.makepyfile("def test(): pass")
-        pytester.makeini(ini_file_text)
+        testrunnerer.makepyfile("def test(): pass")
+        testrunnerer.makeini(ini_file_text)
 
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert sorted(config._get_unknown_ini_keys()) == sorted(invalid_keys)
 
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(warning_output)
 
-        result = pytester.runpytest("--strict-config")
+        result = testrunnerer.runtestrunner("--strict-config")
         if exception_text:
             result.stderr.fnmatch_lines("ERROR: " + exception_text)
-            assert result.ret == pytest.ExitCode.USAGE_ERROR
+            assert result.ret == testrunner.ExitCode.USAGE_ERROR
         else:
             result.stderr.no_fnmatch_line(exception_text)
-            assert result.ret == pytest.ExitCode.OK
+            assert result.ret == testrunner.ExitCode.OK
 
-    @pytest.mark.filterwarnings("default")
-    def test_silence_unknown_key_warning(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default")
+    def test_silence_unknown_key_warning(self, testrunnerer: Testrunnerer) -> None:
         """Unknown config key warnings can be silenced using filterwarnings (#7620)"""
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             filterwarnings =
-                ignore:Unknown config option:pytest.PytestConfigWarning
+                ignore:Unknown config option:testrunner.TestrunnerConfigWarning
             foobar=1
         """
         )
-        result = pytester.runpytest()
-        result.stdout.no_fnmatch_line("*PytestConfigWarning*")
+        result = testrunnerer.runtestrunner()
+        result.stdout.no_fnmatch_line("*TestrunnerConfigWarning*")
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "option",
         [
             "strict_config = true",
@@ -508,117 +508,117 @@ class TestParseIni:
             "addopts = --strict-config",
         ],
     )
-    def test_strict_config_ini_option(self, pytester: Pytester, option: str) -> None:
+    def test_strict_config_ini_option(self, testrunnerer: Testrunnerer, option: str) -> None:
         """Test that strict_config and strict ini options enable strict config checking."""
-        pytester.makeini(
+        testrunnerer.makeini(
             f"""
-            [pytest]
+            [testrunner]
             unknown_option = 1
             {option}
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stderr.fnmatch_lines("ERROR: Unknown config option: unknown_option")
-        assert result.ret == pytest.ExitCode.USAGE_ERROR
+        assert result.ret == testrunner.ExitCode.USAGE_ERROR
 
-    @pytest.mark.filterwarnings("default::pytest.PytestConfigWarning")
+    @testrunner.mark.filterwarnings("default::testrunner.TestrunnerConfigWarning")
     def test_disable_warnings_plugin_disables_config_warnings(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """Disabling 'warnings' plugin also disables config time warnings"""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            import pytest
-            def pytest_configure(config):
+            import testrunner
+            def testrunner_configure(config):
                 config.issue_config_time_warning(
-                    pytest.PytestConfigWarning("custom config warning"),
+                    testrunner.TestrunnerConfigWarning("custom config warning"),
                     stacklevel=2,
                 )
         """
         )
-        result = pytester.runpytest("-pno:warnings")
-        result.stdout.no_fnmatch_line("*PytestConfigWarning*")
+        result = testrunnerer.runtestrunner("-pno:warnings")
+        result.stdout.no_fnmatch_line("*TestrunnerConfigWarning*")
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "ini_file_text, plugin_version, exception_text",
         [
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 required_plugins = a z
                 """,
                 "1.5",
                 "Missing required plugins: a, z",
                 id="2-missing",
             ),
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 required_plugins = a z myplugin
                 """,
                 "1.5",
                 "Missing required plugins: a, z",
                 id="2-missing-1-ok",
             ),
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 required_plugins = myplugin
                 """,
                 "1.5",
                 None,
                 id="1-ok",
             ),
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 required_plugins = myplugin==1.5
                 """,
                 "1.5",
                 None,
                 id="1-ok-pin-exact",
             ),
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 required_plugins = myplugin>1.0,<2.0
                 """,
                 "1.5",
                 None,
                 id="1-ok-pin-loose",
             ),
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 required_plugins = myplugin
                 """,
                 "1.5a1",
                 None,
                 id="1-ok-prerelease",
             ),
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 required_plugins = myplugin==1.6
                 """,
                 "1.5",
                 "Missing required plugins: myplugin==1.6",
                 id="missing-version",
             ),
-            pytest.param(
+            testrunner.param(
                 """
-                [pytest]
+                [testrunner]
                 required_plugins = myplugin==1.6 other==1.0
                 """,
                 "1.5",
                 "Missing required plugins: myplugin==1.6, other==1.0",
                 id="missing-versions",
             ),
-            pytest.param(
+            testrunner.param(
                 """
                 [some_other_header]
                 required_plugins = won't be triggered
-                [pytest]
+                [testrunner]
                 """,
                 "1.5",
                 None,
@@ -628,7 +628,7 @@ class TestParseIni:
     )
     def test_missing_required_plugins(
         self,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
         monkeypatch: MonkeyPatch,
         ini_file_text: str,
         plugin_version: str,
@@ -643,7 +643,7 @@ class TestParseIni:
         class DummyEntryPoint:
             name: str
             module: str
-            group: str = "pytest11"
+            group: str = "testrunner11"
 
             def load(self):
                 return importlib.import_module(self.module)
@@ -665,140 +665,140 @@ class TestParseIni:
         def my_dists():
             return [DummyDist(entry_points)]
 
-        pytester.makepyfile(myplugin1_module="# my plugin module")
-        pytester.syspathinsert()
+        testrunnerer.makepyfile(myplugin1_module="# my plugin module")
+        testrunnerer.syspathinsert()
 
         monkeypatch.setattr(importlib.metadata, "distributions", my_dists)
-        monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+        monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", raising=False)
 
-        pytester.makeini(ini_file_text)
+        testrunnerer.makeini(ini_file_text)
 
         if exception_text:
-            with pytest.raises(pytest.UsageError, match=exception_text):
-                pytester.parseconfig()
+            with testrunner.raises(testrunner.UsageError, match=exception_text):
+                testrunnerer.parseconfig()
         else:
-            pytester.parseconfig()
+            testrunnerer.parseconfig()
 
     def test_early_config_cmdline(
-        self, pytester: Pytester, monkeypatch: MonkeyPatch
+        self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
     ) -> None:
         """early_config contains options registered by third-party plugins.
 
-        This is a regression involving pytest-cov (and possibly others) introduced in #7700.
+        This is a regression involving testrunner-cov (and possibly others) introduced in #7700.
         """
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             myplugin="""
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addoption('--foo', default=None, dest='foo')
 
-            def pytest_load_initial_conftests(early_config, parser, args):
+            def testrunner_load_initial_conftests(early_config, parser, args):
                 assert early_config.known_args_namespace.foo == "1"
             """
         )
-        monkeypatch.setenv("PYTEST_PLUGINS", "myplugin")
-        pytester.syspathinsert()
-        result = pytester.runpytest("--foo=1")
+        monkeypatch.setenv("TESTRUNNER_PLUGINS", "myplugin")
+        testrunnerer.syspathinsert()
+        result = testrunnerer.runtestrunner("--foo=1")
         result.stdout.fnmatch_lines("* no tests ran in *")
 
-    def test_args_source_args(self, pytester: Pytester):
-        config = pytester.parseconfig("--", "test_filename.py")
+    def test_args_source_args(self, testrunnerer: Testrunnerer):
+        config = testrunnerer.parseconfig("--", "test_filename.py")
         assert config.args_source == Config.ArgsSource.ARGS
 
-    def test_args_source_invocation_dir(self, pytester: Pytester):
-        config = pytester.parseconfig()
+    def test_args_source_invocation_dir(self, testrunnerer: Testrunnerer):
+        config = testrunnerer.parseconfig()
         assert config.args_source == Config.ArgsSource.INVOCATION_DIR
 
-    def test_args_source_testpaths(self, pytester: Pytester):
-        pytester.makeini(
+    def test_args_source_testpaths(self, testrunnerer: Testrunnerer):
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             testpaths=*
         """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert config.args_source == Config.ArgsSource.TESTPATHS
 
 
 class TestConfigCmdlineParsing:
-    def test_parsing_again_fails(self, pytester: Pytester) -> None:
-        config = pytester.parseconfig()
-        with pytest.raises(AssertionError):
+    def test_parsing_again_fails(self, testrunnerer: Testrunnerer) -> None:
+        config = testrunnerer.parseconfig()
+        with testrunner.raises(AssertionError):
             config.parse([])
 
     def test_explicitly_specified_config_file_is_loaded(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("custom", "")
         """
         )
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             custom = 0
         """
         )
-        pytester.makefile(
+        testrunnerer.makefile(
             ".ini",
             custom="""
-            [pytest]
+            [testrunner]
             custom = 1
         """,
         )
-        config = pytester.parseconfig("-c", "custom.ini")
+        config = testrunnerer.parseconfig("-c", "custom.ini")
         assert config.getini("custom") == "1"
-        config = pytester.parseconfig("--config-file", "custom.ini")
+        config = testrunnerer.parseconfig("--config-file", "custom.ini")
         assert config.getini("custom") == "1"
 
-        pytester.makefile(
+        testrunnerer.makefile(
             ".cfg",
-            custom_tool_pytest_section="""
-            [tool:pytest]
+            custom_tool_testrunner_section="""
+            [tool:testrunner]
             custom = 1
         """,
         )
-        config = pytester.parseconfig("-c", "custom_tool_pytest_section.cfg")
+        config = testrunnerer.parseconfig("-c", "custom_tool_testrunner_section.cfg")
         assert config.getini("custom") == "1"
-        config = pytester.parseconfig("--config-file", "custom_tool_pytest_section.cfg")
+        config = testrunnerer.parseconfig("--config-file", "custom_tool_testrunner_section.cfg")
         assert config.getini("custom") == "1"
 
-        pytester.makefile(
+        testrunnerer.makefile(
             ".toml",
             custom="""
-                [tool.pytest.ini_options]
+                [tool.testrunner.ini_options]
                 custom = 1
                 value = [
                 ]  # this is here on purpose, as it makes this an invalid '.ini' file
             """,
         )
-        config = pytester.parseconfig("-c", "custom.toml")
+        config = testrunnerer.parseconfig("-c", "custom.toml")
         assert config.getini("custom") == "1"
-        config = pytester.parseconfig("--config-file", "custom.toml")
+        config = testrunnerer.parseconfig("--config-file", "custom.toml")
         assert config.getini("custom") == "1"
 
-        # A custom TOML file also reads [pytest], the table pytest's own
+        # A custom TOML file also reads [testrunner], the table testrunner's own
         # configuration files use (#14705).
-        pytester.makefile(
+        testrunnerer.makefile(
             ".toml",
-            custom_pytest_table="""
-                [pytest]
+            custom_testrunner_table="""
+                [testrunner]
                 custom = "1"
                 value = [
                 ]  # this is here on purpose, as it makes this an invalid '.ini' file
             """,
         )
-        config = pytester.parseconfig("-c", "custom_pytest_table.toml")
+        config = testrunnerer.parseconfig("-c", "custom_testrunner_table.toml")
         assert config.getini("custom") == "1"
-        config = pytester.parseconfig("--config-file", "custom_pytest_table.toml")
+        config = testrunnerer.parseconfig("--config-file", "custom_testrunner_table.toml")
         assert config.getini("custom") == "1"
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "name", ["missing.ini", "missing.in", "missing.toml", "missing"]
     )
     def test_explicitly_specified_config_file_missing(
-        self, pytester: Pytester, name: str
+        self, testrunnerer: Testrunnerer, name: str
     ) -> None:
         """A nonexistent -c path is a UsageError, whatever its extension (#14716).
 
@@ -806,492 +806,492 @@ class TestConfigCmdlineParsing:
         (unrecognized extension) or crashed with a raw FileNotFoundError
         traceback (recognized extension).
         """
-        with pytest.raises(UsageError, match=r"Config file .* not found"):
-            pytester.parseconfig("-c", name)
+        with testrunner.raises(UsageError, match=r"Config file .* not found"):
+            testrunnerer.parseconfig("-c", name)
 
     def test_explicitly_specified_config_file_unsupported_format(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """An existing -c path with an unsupported extension is a UsageError (#14716)."""
-        pytester.makefile(".in", config="[pytest]\naddopts = -v\n")
-        with pytest.raises(UsageError, match="unsupported format"):
-            pytester.parseconfig("-c", "config.in")
+        testrunnerer.makefile(".in", config="[testrunner]\naddopts = -v\n")
+        with testrunner.raises(UsageError, match="unsupported format"):
+            testrunnerer.parseconfig("-c", "config.in")
 
     def test_explicitly_specified_config_file_is_a_directory(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """A directory passed to -c is a UsageError rather than a confusing no-op."""
-        pytester.mkdir("somedir")
-        with pytest.raises(UsageError, match="is a directory"):
-            pytester.parseconfig("-c", "somedir")
+        testrunnerer.mkdir("somedir")
+        with testrunner.raises(UsageError, match="is a directory"):
+            testrunnerer.parseconfig("-c", "somedir")
 
-    @pytest.mark.skipif(
+    @testrunner.mark.skipif(
         sys.platform.startswith("win32"), reason="requires a POSIX null device"
     )
     def test_explicitly_specified_config_file_not_a_regular_file(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """``--config-file=/dev/null`` loads no config and does not set rootdir to /dev.
 
         Deriving the rootdir from a character device made the cache plugin try to
-        write to ``/dev/.pytest_cache`` (#11502).
+        write to ``/dev/.testrunner_cache`` (#11502).
         """
-        pytester.makepyfile(test_it="def test(): pass")
-        config = pytester.parseconfig("--config-file", os.devnull, str(pytester.path))
-        assert config.rootpath == pytester.path
+        testrunnerer.makepyfile(test_it="def test(): pass")
+        config = testrunnerer.parseconfig("--config-file", os.devnull, str(testrunnerer.path))
+        assert config.rootpath == testrunnerer.path
         assert config.inipath == Path(os.devnull)
 
-    def test_absolute_win32_path(self, pytester: Pytester) -> None:
-        temp_ini_file = pytester.makeini("[pytest]")
+    def test_absolute_win32_path(self, testrunnerer: Testrunnerer) -> None:
+        temp_ini_file = testrunnerer.makeini("[testrunner]")
         from os.path import normpath
 
         temp_ini_file_norm = normpath(str(temp_ini_file))
-        ret = pytest.main(["-c", temp_ini_file_norm])
+        ret = testrunner.main(["-c", temp_ini_file_norm])
         assert ret == ExitCode.NO_TESTS_COLLECTED
-        ret = pytest.main(["--config-file", temp_ini_file_norm])
+        ret = testrunner.main(["--config-file", temp_ini_file_norm])
         assert ret == ExitCode.NO_TESTS_COLLECTED
 
 
 class TestConfigAPI:
-    def test_config_trace(self, pytester: Pytester) -> None:
-        config = pytester.parseconfig()
+    def test_config_trace(self, testrunnerer: Testrunnerer) -> None:
+        config = testrunnerer.parseconfig()
         values: list[str] = []
         config.trace.root.setwriter(values.append)
         config.trace("hello")
         assert len(values) == 1
         assert values[0] == "hello [config]\n"
 
-    def test_config_getoption_declared_option_name(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_config_getoption_declared_option_name(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addoption("--hello", "-X", dest="hello")
         """
         )
-        config = pytester.parseconfig("--hello=this")
+        config = testrunnerer.parseconfig("--hello=this")
         for x in ("hello", "--hello", "-X"):
             assert config.getoption(x) == "this"
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             config.getoption("qweqwe")
 
-        config_novalue = pytester.parseconfig()
+        config_novalue = testrunnerer.parseconfig()
         assert config_novalue.getoption("hello") is None
         assert config_novalue.getoption("hello", default=1) is None
         assert config_novalue.getoption("hello", default=1, skip=True) == 1
 
-    def test_config_getoption_undeclared_option_name(self, pytester: Pytester) -> None:
-        config = pytester.parseconfig()
-        with pytest.raises(ValueError):
+    def test_config_getoption_undeclared_option_name(self, testrunnerer: Testrunnerer) -> None:
+        config = testrunnerer.parseconfig()
+        with testrunner.raises(ValueError):
             config.getoption("x")
         assert config.getoption("x", default=1) == 1
         assert config.getoption("x", default=1, skip=True) == 1
 
-    def test_config_getoption_unicode(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_config_getoption_unicode(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addoption('--hello', type=str)
         """
         )
-        config = pytester.parseconfig("--hello=this")
+        config = testrunnerer.parseconfig("--hello=this")
         assert config.getoption("hello") == "this"
 
-    def test_config_getvalueorskip(self, pytester: Pytester) -> None:
-        config = pytester.parseconfig()
-        with pytest.raises(pytest.skip.Exception):
+    def test_config_getvalueorskip(self, testrunnerer: Testrunnerer) -> None:
+        config = testrunnerer.parseconfig()
+        with testrunner.raises(testrunner.skip.Exception):
             config.getvalueorskip("hello")
         verbose = config.getvalueorskip("verbose")
         assert verbose == config.option.verbose
 
-    def test_config_getvalueorskip_None(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_config_getvalueorskip_None(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addoption("--hello")
         """
         )
-        config = pytester.parseconfig()
-        with pytest.raises(pytest.skip.Exception):
+        config = testrunnerer.parseconfig()
+        with testrunner.raises(testrunner.skip.Exception):
             config.getvalueorskip("hello")
 
-    def test_getconftest_pathlist(self, pytester: Pytester, tmp_path: Path) -> None:
+    def test_getconftest_pathlist(self, testrunnerer: Testrunnerer, tmp_path: Path) -> None:
         somepath = tmp_path.joinpath("x", "y", "z")
         p = tmp_path.joinpath("conftest.py")
         p.write_text(f"mylist = {['.', str(somepath)]}", encoding="utf-8")
-        config = pytester.parseconfigure(p)
+        config = testrunnerer.parseconfigure(p)
         assert config._getconftest_pathlist("notexist", path=tmp_path) is None
         assert config._getconftest_pathlist("mylist", path=tmp_path) == [
             tmp_path,
             somepath,
         ]
 
-    @pytest.mark.parametrize("maybe_type", ["not passed", "None", '"string"'])
-    def test_addini(self, pytester: Pytester, maybe_type: str) -> None:
+    @testrunner.mark.parametrize("maybe_type", ["not passed", "None", '"string"'])
+    def test_addini(self, testrunnerer: Testrunnerer, maybe_type: str) -> None:
         if maybe_type == "not passed":
             type_string = ""
         else:
             type_string = f", {maybe_type}"
 
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             f"""
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("myname", "my new ini value"{type_string})
         """
         )
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             myname=hello
         """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         val = config.getini("myname")
         assert val == "hello"
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             config.getini("other")
 
-    @pytest.mark.parametrize("config_type", ["ini", "pyproject"])
-    def test_addini_paths(self, pytester: Pytester, config_type: str) -> None:
-        pytester.makeconftest(
+    @testrunner.mark.parametrize("config_type", ["ini", "pyproject"])
+    def test_addini_paths(self, testrunnerer: Testrunnerer, config_type: str) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("paths", "my new ini value", type="paths")
                 parser.addini("abc", "abc value")
         """
         )
         if config_type == "ini":
-            inipath = pytester.makeini(
+            inipath = testrunnerer.makeini(
                 """
-                [pytest]
+                [testrunner]
                 paths=hello world/sub.py
             """
             )
         elif config_type == "pyproject":
-            inipath = pytester.makepyprojecttoml(
+            inipath = testrunnerer.makepyprojecttoml(
                 """
-                [tool.pytest.ini_options]
+                [tool.testrunner.ini_options]
                 paths=["hello", "world/sub.py"]
             """
             )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         values = config.getini("paths")
         assert len(values) == 2
         assert values[0] == inipath.parent.joinpath("hello")
         assert values[1] == inipath.parent.joinpath("world/sub.py")
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             config.getini("other")
 
-    def make_conftest_for_args(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def make_conftest_for_args(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("args", "new args", type="args")
                 parser.addini("a2", "", "args", default="1 2 3".split())
         """
         )
 
-    def test_addini_args_ini_files(self, pytester: Pytester) -> None:
-        self.make_conftest_for_args(pytester)
-        pytester.makeini(
+    def test_addini_args_ini_files(self, testrunnerer: Testrunnerer) -> None:
+        self.make_conftest_for_args(testrunnerer)
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             args=123 "123 hello" "this"
             """
         )
-        self.check_config_args(pytester)
+        self.check_config_args(testrunnerer)
 
-    def test_addini_args_pyproject_toml(self, pytester: Pytester) -> None:
-        self.make_conftest_for_args(pytester)
-        pytester.makepyprojecttoml(
+    def test_addini_args_pyproject_toml(self, testrunnerer: Testrunnerer) -> None:
+        self.make_conftest_for_args(testrunnerer)
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest.ini_options]
+            [tool.testrunner.ini_options]
             args = ["123", "123 hello", "this"]
             """
         )
-        self.check_config_args(pytester)
+        self.check_config_args(testrunnerer)
 
-    def check_config_args(self, pytester: Pytester) -> None:
-        config = pytester.parseconfig()
+    def check_config_args(self, testrunnerer: Testrunnerer) -> None:
+        config = testrunnerer.parseconfig()
         values = config.getini("args")
         assert values == ["123", "123 hello", "this"]
         values = config.getini("a2")
         assert values == list("123")
 
-    def make_conftest_for_linelist(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def make_conftest_for_linelist(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("xy", "", type="linelist")
                 parser.addini("a2", "", "linelist")
         """
         )
 
-    def test_addini_linelist_ini_files(self, pytester: Pytester) -> None:
-        self.make_conftest_for_linelist(pytester)
-        pytester.makeini(
+    def test_addini_linelist_ini_files(self, testrunnerer: Testrunnerer) -> None:
+        self.make_conftest_for_linelist(testrunnerer)
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             xy= 123 345
                 second line
         """
         )
-        self.check_config_linelist(pytester)
+        self.check_config_linelist(testrunnerer)
 
-    def test_addini_linelist_pprojecttoml(self, pytester: Pytester) -> None:
-        self.make_conftest_for_linelist(pytester)
-        pytester.makepyprojecttoml(
+    def test_addini_linelist_pprojecttoml(self, testrunnerer: Testrunnerer) -> None:
+        self.make_conftest_for_linelist(testrunnerer)
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest.ini_options]
+            [tool.testrunner.ini_options]
             xy = ["123 345", "second line"]
         """
         )
-        self.check_config_linelist(pytester)
+        self.check_config_linelist(testrunnerer)
 
-    def check_config_linelist(self, pytester: Pytester) -> None:
-        config = pytester.parseconfig()
+    def check_config_linelist(self, testrunnerer: Testrunnerer) -> None:
+        config = testrunnerer.parseconfig()
         values = config.getini("xy")
         assert len(values) == 2
         assert values == ["123 345", "second line"]
         values = config.getini("a2")
         assert values == []
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "str_val, bool_val", [("True", True), ("no", False), ("no-ini", True)]
     )
     def test_addini_bool(
-        self, pytester: Pytester, str_val: str, bool_val: bool
+        self, testrunnerer: Testrunnerer, str_val: str, bool_val: bool
     ) -> None:
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("strip", "", type="bool", default=True)
         """
         )
         if str_val != "no-ini":
-            pytester.makeini(
+            testrunnerer.makeini(
                 f"""
-                [pytest]
+                [testrunner]
                 strip={str_val}
             """
             )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert config.getini("strip") is bool_val
 
-    @pytest.mark.parametrize("str_val, int_val", [("10", 10), ("no-ini", 2)])
-    def test_addini_int(self, pytester: Pytester, str_val: str, int_val: bool) -> None:
-        pytester.makeconftest(
+    @testrunner.mark.parametrize("str_val, int_val", [("10", 10), ("no-ini", 2)])
+    def test_addini_int(self, testrunnerer: Testrunnerer, str_val: str, int_val: bool) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("ini_param", "", type="int", default=2)
         """
         )
         if str_val != "no-ini":
-            pytester.makeini(
+            testrunnerer.makeini(
                 f"""
-                [pytest]
+                [testrunner]
                 ini_param={str_val}
             """
             )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert config.getini("ini_param") == int_val
 
-    def test_addini_int_invalid(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_addini_int_invalid(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("ini_param", "", type="int", default=2)
         """
         )
-        pytester.makepyprojecttoml(
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest.ini_options]
+            [tool.testrunner.ini_options]
             ini_param=["foo"]
             """
         )
-        config = pytester.parseconfig()
-        with pytest.raises(
+        config = testrunnerer.parseconfig()
+        with testrunner.raises(
             UsageError, match="Expected an int string for option ini_param"
         ):
             _ = config.getini("ini_param")
 
-    @pytest.mark.parametrize("str_val, float_val", [("10.5", 10.5), ("no-ini", 2.2)])
+    @testrunner.mark.parametrize("str_val, float_val", [("10.5", 10.5), ("no-ini", 2.2)])
     def test_addini_float(
-        self, pytester: Pytester, str_val: str, float_val: bool
+        self, testrunnerer: Testrunnerer, str_val: str, float_val: bool
     ) -> None:
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("ini_param", "", type="float", default=2.2)
         """
         )
         if str_val != "no-ini":
-            pytester.makeini(
+            testrunnerer.makeini(
                 f"""
-                [pytest]
+                [testrunner]
                 ini_param={str_val}
             """
             )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert config.getini("ini_param") == float_val
 
-    def test_addini_float_invalid(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_addini_float_invalid(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("ini_param", "", type="float", default=2.2)
         """
         )
-        pytester.makepyprojecttoml(
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest.ini_options]
+            [tool.testrunner.ini_options]
             ini_param=["foo"]
             """
         )
-        config = pytester.parseconfig()
-        with pytest.raises(
+        config = testrunnerer.parseconfig()
+        with testrunner.raises(
             UsageError, match="Expected a float string for option ini_param"
         ):
             _ = config.getini("ini_param")
 
-    def test_addini_string_non_str_deprecated(self, pytester: Pytester) -> None:
+    def test_addini_string_non_str_deprecated(self, testrunnerer: Testrunnerer) -> None:
         """Passing a non-string value to a 'string'-typed ini option emits a
         deprecation warning. The value is still returned as-is for now, but will
-        raise TypeError in pytest 10."""
-        pytester.makeconftest(
+        raise TypeError in testrunner 10."""
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("myname", "", type="string")
         """
         )
-        pytester.makepyprojecttoml(
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest.ini_options]
+            [tool.testrunner.ini_options]
             myname = ["value1", "value2"]
             """
         )
-        config = pytester.parseconfig()
-        with pytest.warns(
-            pytest.PytestRemovedIn10Warning,
+        config = testrunnerer.parseconfig()
+        with testrunner.warns(
+            testrunner.TestrunnerRemovedIn10Warning,
             match="Passing a value that is not a string to a 'string'-typed ini option",
         ):
             result = config.getini("myname")
         assert result == ["value1", "value2"]
 
     UNION_CONFTEST = """
-        def pytest_addoption(parser):
+        def testrunner_addoption(parser):
             parser.addini("ini_param", "", type=int | str, default=None)
     """
 
     LITERAL_CONFTEST = """
         from typing import Literal
 
-        def pytest_addoption(parser):
+        def testrunner_addoption(parser):
             parser.addini(
                 "ini_param", "", type=Literal["auto", "long"], default="auto"
             )
     """
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "section, value, expected",
         [
             # Native TOML: int and str are both accepted; the first union
             # member that matches wins (int before str).
-            ("[tool.pytest]", '"7"', "7"),
-            ("[tool.pytest]", "7", 7),
+            ("[tool.testrunner]", '"7"', "7"),
+            ("[tool.testrunner]", "7", 7),
             # ini_options mode stringifies, then coerces to the first member.
-            ("[tool.pytest.ini_options]", '"7"', 7),
-            ("[tool.pytest.ini_options]", "7", 7),
+            ("[tool.testrunner.ini_options]", '"7"', 7),
+            ("[tool.testrunner.ini_options]", "7", 7),
         ],
         ids=["native-str", "native-int", "ini-options-str", "ini-options-int"],
     )
     def test_addini_union_type(
-        self, pytester: Pytester, section: str, value: str, expected: object
+        self, testrunnerer: Testrunnerer, section: str, value: str, expected: object
     ) -> None:
-        pytester.makeconftest(self.UNION_CONFTEST)
-        pytester.makepyprojecttoml(
+        testrunnerer.makeconftest(self.UNION_CONFTEST)
+        testrunnerer.makepyprojecttoml(
             f"""
             {section}
             ini_param = {value}
             """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         result = config.getini("ini_param")
         assert result == expected
         assert type(result) is type(expected)
 
-    def test_addini_union_type_invalid_value(self, pytester: Pytester) -> None:
-        pytester.makeconftest(self.UNION_CONFTEST)
-        pytester.makepyprojecttoml(
+    def test_addini_union_type_invalid_value(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(self.UNION_CONFTEST)
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest]
+            [tool.testrunner]
             ini_param = [1, 2]
             """
         )
-        config = pytester.parseconfig()
-        with pytest.raises(
+        config = testrunnerer.parseconfig()
+        with testrunner.raises(
             UsageError, match=r"config option 'ini_param' expects one of int \| string"
         ):
             _ = config.getini("ini_param")
 
-    def test_addini_plain_type(self, pytester: Pytester) -> None:
+    def test_addini_plain_type(self, testrunnerer: Testrunnerer) -> None:
         """A plain Python type is accepted as an alias of its string tag."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("ini_param", "", type=int)
         """
         )
-        pytester.makepyprojecttoml(
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest]
+            [tool.testrunner]
             ini_param = 7
             """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert config.getini("ini_param") == 7
 
-    @pytest.mark.parametrize("bad_type", ["integer", dict, int | dict])
+    @testrunner.mark.parametrize("bad_type", ["integer", dict, int | dict])
     def test_addini_invalid_type(self, bad_type: object) -> None:
-        parser = Parser(_ispytest=True)
-        with pytest.raises(ValueError, match="invalid type for ini option 'ini_param'"):
+        parser = Parser(_istestrunner=True)
+        with testrunner.raises(ValueError, match="invalid type for ini option 'ini_param'"):
             parser.addini("ini_param", "", type=bad_type)  # type: ignore[arg-type]
 
     def test_addini_union_type_requires_default(self) -> None:
-        parser = Parser(_ispytest=True)
-        with pytest.raises(
+        parser = Parser(_istestrunner=True)
+        with testrunner.raises(
             ValueError, match="union type, which has no implicit default"
         ):
             parser.addini("ini_param", "", type=int | str)
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "value, expected",
         [('"long"', "long"), (None, "auto")],
         ids=["value", "default"],
     )
     def test_addini_literal_type(
-        self, pytester: Pytester, value: str | None, expected: str
+        self, testrunnerer: Testrunnerer, value: str | None, expected: str
     ) -> None:
         """A Literal of strings restricts the value to the given choices."""
-        pytester.makeconftest(self.LITERAL_CONFTEST)
+        testrunnerer.makeconftest(self.LITERAL_CONFTEST)
         if value is not None:
-            pytester.makepyprojecttoml(f"[tool.pytest]\nini_param = {value}")
-        config = pytester.parseconfig()
+            testrunnerer.makepyprojecttoml(f"[tool.testrunner]\nini_param = {value}")
+        config = testrunnerer.parseconfig()
         assert config.getini("ini_param") == expected
 
-    def test_addini_literal_type_ini_and_override(self, pytester: Pytester) -> None:
-        pytester.makeconftest(self.LITERAL_CONFTEST)
-        pytester.makeini(
+    def test_addini_literal_type_ini_and_override(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(self.LITERAL_CONFTEST)
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             ini_param = long
         """
         )
-        assert pytester.parseconfig().getini("ini_param") == "long"
+        assert testrunnerer.parseconfig().getini("ini_param") == "long"
         assert (
-            pytester.parseconfig("-o", "ini_param=auto").getini("ini_param") == "auto"
+            testrunnerer.parseconfig("-o", "ini_param=auto").getini("ini_param") == "auto"
         )
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "value, match",
         [
             ('"short"', r"expects one of 'auto' \| 'long', got 'short'"),
@@ -1300,57 +1300,57 @@ class TestConfigAPI:
         ids=["bad-choice", "bad-type"],
     )
     def test_addini_literal_type_invalid_value(
-        self, pytester: Pytester, value: str, match: str
+        self, testrunnerer: Testrunnerer, value: str, match: str
     ) -> None:
-        pytester.makeconftest(self.LITERAL_CONFTEST)
-        pytester.makepyprojecttoml(f"[tool.pytest]\nini_param = {value}")
-        config = pytester.parseconfig()
-        with pytest.raises(UsageError, match=f"config option 'ini_param' {match}"):
+        testrunnerer.makeconftest(self.LITERAL_CONFTEST)
+        testrunnerer.makepyprojecttoml(f"[tool.testrunner]\nini_param = {value}")
+        config = testrunnerer.parseconfig()
+        with testrunner.raises(UsageError, match=f"config option 'ini_param' {match}"):
             _ = config.getini("ini_param")
 
     UNION_LITERAL_CONFTEST = """
         from typing import Literal
 
-        def pytest_addoption(parser):
+        def testrunner_addoption(parser):
             parser.addini(
                 "ini_param", "", type=int | Literal["auto"], default="auto"
             )
     """
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "value, expected",
         [("3", 3), ('"auto"', "auto"), (None, "auto")],
         ids=["int", "literal", "default"],
     )
     def test_addini_union_with_literal_toml(
-        self, pytester: Pytester, value: str | None, expected: object
+        self, testrunnerer: Testrunnerer, value: str | None, expected: object
     ) -> None:
         """A Literal of strings may be a union member, e.g. int | Literal["auto"]."""
-        pytester.makeconftest(self.UNION_LITERAL_CONFTEST)
+        testrunnerer.makeconftest(self.UNION_LITERAL_CONFTEST)
         if value is not None:
-            pytester.makepyprojecttoml(f"[tool.pytest]\nini_param = {value}")
-        assert pytester.parseconfig().getini("ini_param") == expected
+            testrunnerer.makepyprojecttoml(f"[tool.testrunner]\nini_param = {value}")
+        assert testrunnerer.parseconfig().getini("ini_param") == expected
 
     def test_addini_union_with_literal_ini_and_override(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
-        pytester.makeconftest(self.UNION_LITERAL_CONFTEST)
-        pytester.makeini(
+        testrunnerer.makeconftest(self.UNION_LITERAL_CONFTEST)
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             ini_param = 3
         """
         )
-        assert pytester.parseconfig().getini("ini_param") == 3
+        assert testrunnerer.parseconfig().getini("ini_param") == 3
         assert (
-            pytester.parseconfig("-o", "ini_param=auto").getini("ini_param") == "auto"
+            testrunnerer.parseconfig("-o", "ini_param=auto").getini("ini_param") == "auto"
         )
 
-    def test_addini_union_with_literal_invalid_value(self, pytester: Pytester) -> None:
-        pytester.makeconftest(self.UNION_LITERAL_CONFTEST)
-        pytester.makepyprojecttoml('[tool.pytest]\nini_param = "3"')
-        config = pytester.parseconfig()
-        with pytest.raises(
+    def test_addini_union_with_literal_invalid_value(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(self.UNION_LITERAL_CONFTEST)
+        testrunnerer.makepyprojecttoml('[tool.testrunner]\nini_param = "3"')
+        config = testrunnerer.parseconfig()
+        with testrunner.raises(
             UsageError,
             match=r"config option 'ini_param' expects one of int \| 'auto', "
             r"got str: '3'",
@@ -1358,36 +1358,36 @@ class TestConfigAPI:
             _ = config.getini("ini_param")
 
     def test_addini_union_with_literal_non_str_choice(self) -> None:
-        parser = Parser(_ispytest=True)
-        with pytest.raises(ValueError, match="Literal choices must be strings"):
+        parser = Parser(_istestrunner=True)
+        with testrunner.raises(ValueError, match="Literal choices must be strings"):
             parser.addini("ini_param", "", type=str | Literal[1], default="")
 
     def test_addini_literal_type_requires_default(self) -> None:
-        parser = Parser(_ispytest=True)
-        with pytest.raises(
+        parser = Parser(_istestrunner=True)
+        with testrunner.raises(
             ValueError, match="Literal type, which has no implicit default"
         ):
             parser.addini("ini_param", "", type=Literal["auto", "long"])
 
     def test_addini_literal_type_non_str_choice(self) -> None:
-        parser = Parser(_ispytest=True)
-        with pytest.raises(ValueError, match="Literal choices must be strings"):
+        parser = Parser(_istestrunner=True)
+        with testrunner.raises(ValueError, match="Literal choices must be strings"):
             parser.addini("ini_param", "", type=Literal["auto", 1], default="auto")
 
-    def test_addinivalue_line_existing(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_addinivalue_line_existing(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("xy", "", type="linelist")
         """
         )
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             xy= 123
         """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         values = config.getini("xy")
         assert len(values) == 1
         assert values == ["123"]
@@ -1396,14 +1396,14 @@ class TestConfigAPI:
         assert len(values) == 2
         assert values == ["123", "456"]
 
-    def test_addinivalue_line_new(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_addinivalue_line_new(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("xy", "", type="linelist")
         """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert not config.getini("xy")
         config.addinivalue_line("xy", "456")
         values = config.getini("xy")
@@ -1414,13 +1414,13 @@ class TestConfigAPI:
         assert len(values) == 2
         assert values == ["456", "123"]
 
-    def test_addini_default_values(self, pytester: Pytester) -> None:
+    def test_addini_default_values(self, testrunnerer: Testrunnerer) -> None:
         """Tests the default values for configuration based on
         config type
         """
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("linelist1", "", type="linelist")
                 parser.addini("paths1", "", type="paths")
                 parser.addini("pathlist1", "", type="pathlist")
@@ -1433,7 +1433,7 @@ class TestConfigAPI:
         """
         )
 
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         # default for linelist, paths, pathlist and args is []
         value = config.getini("linelist1")
         assert value == []
@@ -1460,139 +1460,139 @@ class TestConfigAPI:
         value = config.getini("no_type")
         assert value == ""
 
-    def test_addini_with_aliases(self, pytester: Pytester) -> None:
+    def test_addini_with_aliases(self, testrunnerer: Testrunnerer) -> None:
         """Test that ini options can have aliases."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("new_name", "my option", aliases=["old_name"])
             """
         )
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             old_name = hello
             """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         # Should be able to access via canonical name.
         assert config.getini("new_name") == "hello"
         # Should also be able to access via alias.
         assert config.getini("old_name") == "hello"
 
-    def test_addini_aliases_with_canonical_in_file(self, pytester: Pytester) -> None:
+    def test_addini_aliases_with_canonical_in_file(self, testrunnerer: Testrunnerer) -> None:
         """Test that canonical name takes precedence over alias in configuration file."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("new_name", "my option", aliases=["old_name"])
             """
         )
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             old_name = from_alias
             new_name = from_canonical
             """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         # Canonical name should take precedence.
         assert config.getini("new_name") == "from_canonical"
         assert config.getini("old_name") == "from_canonical"
 
-    def test_addini_aliases_multiple(self, pytester: Pytester) -> None:
+    def test_addini_aliases_multiple(self, testrunnerer: Testrunnerer) -> None:
         """Test that ini option can have multiple aliases."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("current_name", "my option", aliases=["old_name", "legacy_name"])
             """
         )
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             old_name = value1
             """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert config.getini("current_name") == "value1"
         assert config.getini("old_name") == "value1"
         assert config.getini("legacy_name") == "value1"
 
-    def test_addini_aliases_with_override_of_old(self, pytester: Pytester) -> None:
+    def test_addini_aliases_with_override_of_old(self, testrunnerer: Testrunnerer) -> None:
         """Test that aliases work with --override-ini -- ini sets old."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("new_name", "my option", aliases=["old_name"])
             """
         )
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             old_name = from_file
             """
         )
         # Override using alias.
-        config = pytester.parseconfig("-o", "old_name=overridden")
+        config = testrunnerer.parseconfig("-o", "old_name=overridden")
         assert config.getini("new_name") == "overridden"
         assert config.getini("old_name") == "overridden"
 
         # Override using canonical name.
-        config = pytester.parseconfig("-o", "new_name=overridden2")
+        config = testrunnerer.parseconfig("-o", "new_name=overridden2")
         assert config.getini("new_name") == "overridden2"
 
-    def test_addini_aliases_with_override_of_new(self, pytester: Pytester) -> None:
+    def test_addini_aliases_with_override_of_new(self, testrunnerer: Testrunnerer) -> None:
         """Test that aliases work with --override-ini -- ini sets new."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("new_name", "my option", aliases=["old_name"])
             """
         )
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             new_name = from_file
             """
         )
         # Override using alias.
-        config = pytester.parseconfig("-o", "old_name=overridden")
+        config = testrunnerer.parseconfig("-o", "old_name=overridden")
         assert config.getini("new_name") == "overridden"
         assert config.getini("old_name") == "overridden"
 
         # Override using canonical name.
-        config = pytester.parseconfig("-o", "new_name=overridden2")
+        config = testrunnerer.parseconfig("-o", "new_name=overridden2")
         assert config.getini("new_name") == "overridden2"
 
-    def test_addini_aliases_with_types(self, pytester: Pytester) -> None:
+    def test_addini_aliases_with_types(self, testrunnerer: Testrunnerer) -> None:
         """Test that aliases work with different types."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("mylist", "list option", type="linelist", aliases=["oldlist"])
                 parser.addini("mybool", "bool option", type="bool", aliases=["oldbool"])
             """
         )
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             oldlist = line1
                 line2
             oldbool = true
         """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert config.getini("mylist") == ["line1", "line2"]
         assert config.getini("oldlist") == ["line1", "line2"]
         assert config.getini("mybool") is True
         assert config.getini("oldbool") is True
 
-    def test_addini_aliases_conflict_error(self, pytester: Pytester) -> None:
+    def test_addini_aliases_conflict_error(self, testrunnerer: Testrunnerer) -> None:
         """Test that registering an alias that conflicts with an existing option raises an error."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("existing", "first option")
 
                 try:
@@ -1603,13 +1603,13 @@ class TestConfigAPI:
                     assert False, "Should have raised ValueError"
             """
         )
-        pytester.parseconfig()
+        testrunnerer.parseconfig()
 
-    def test_addini_aliases_duplicate_error(self, pytester: Pytester) -> None:
+    def test_addini_aliases_duplicate_error(self, testrunnerer: Testrunnerer) -> None:
         """Test that registering the same alias twice raises an error."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("option1", "first option", aliases=["shared_alias"])
                 try:
                     parser.addini("option2", "second option", aliases=["shared_alias"])
@@ -1618,36 +1618,36 @@ class TestConfigAPI:
                     assert "'shared_alias' is already an alias of 'option1'" in str(e)
             """
         )
-        pytester.parseconfig()
+        testrunnerer.parseconfig()
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "type, expected",
         [
-            pytest.param(None, "", id="None"),
-            pytest.param("string", "", id="string"),
-            pytest.param("paths", [], id="paths"),
-            pytest.param("pathlist", [], id="pathlist"),
-            pytest.param("args", [], id="args"),
-            pytest.param("linelist", [], id="linelist"),
-            pytest.param("bool", False, id="bool"),
+            testrunner.param(None, "", id="None"),
+            testrunner.param("string", "", id="string"),
+            testrunner.param("paths", [], id="paths"),
+            testrunner.param("pathlist", [], id="pathlist"),
+            testrunner.param("args", [], id="args"),
+            testrunner.param("linelist", [], id="linelist"),
+            testrunner.param("bool", False, id="bool"),
         ],
     )
     def test_get_ini_default_for_type(self, type: Any, expected: Any) -> None:
         assert get_ini_default_for_type(type) == expected
 
-    def test_confcutdir_check_isdir(self, pytester: Pytester) -> None:
+    def test_confcutdir_check_isdir(self, testrunnerer: Testrunnerer) -> None:
         """Give an error if --confcutdir is not a valid directory (#2078)"""
         exp_match = r"^--confcutdir must be a directory, given: "
-        with pytest.raises(pytest.UsageError, match=exp_match):
-            pytester.parseconfig("--confcutdir", pytester.path.joinpath("file"))
-        with pytest.raises(pytest.UsageError, match=exp_match):
-            pytester.parseconfig("--confcutdir", pytester.path.joinpath("nonexistent"))
+        with testrunner.raises(testrunner.UsageError, match=exp_match):
+            testrunnerer.parseconfig("--confcutdir", testrunnerer.path.joinpath("file"))
+        with testrunner.raises(testrunner.UsageError, match=exp_match):
+            testrunnerer.parseconfig("--confcutdir", testrunnerer.path.joinpath("nonexistent"))
 
-        p = pytester.mkdir("dir")
-        config = pytester.parseconfig("--confcutdir", p)
+        p = testrunnerer.mkdir("dir")
+        config = testrunnerer.parseconfig("--confcutdir", p)
         assert config.getoption("confcutdir") == str(p)
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "names, expected",
         [
             # dist-info based distributions root are files as will be put in PYTHONPATH
@@ -1669,7 +1669,7 @@ class TestConfigAPI:
     def test_iter_rewritable_modules(self, names, expected) -> None:
         assert list(_iter_rewritable_modules(names)) == expected
 
-    def test_add_cleanup(self, pytester: Pytester) -> None:
+    def test_add_cleanup(self, testrunnerer: Testrunnerer) -> None:
         config = Config.fromdictargs({}, [])
         config._do_configure()
         report = []
@@ -1695,7 +1695,7 @@ class TestConfigAPI:
         def cleanup_first():
             report.append("cleanup_first")
 
-        with pytest.raises(MyError, match=r"raise_2"):
+        with testrunner.raises(MyError, match=r"raise_2"):
             config._ensure_unconfigure()
 
         assert report == ["cleanup_first", "raise_1", "raise_2", "cleanup_last"]
@@ -1707,7 +1707,7 @@ class TestConfigFromdictargs:
         args = ["a", "b"]
 
         config = Config.fromdictargs(option_dict, args)
-        with pytest.raises(AssertionError):
+        with testrunner.raises(AssertionError):
             config.parse(["should refuse to parse again"])
         assert config.option.verbose == 444
         assert config.option.foo == "bar"
@@ -1733,7 +1733,7 @@ class TestConfigFromdictargs:
         p1.write_text(
             textwrap.dedent(
                 """\
-                [pytest]
+                [testrunner]
                 name = value
                 """
             ),
@@ -1745,12 +1745,12 @@ class TestConfigFromdictargs:
 
         cwd = tmp_path.joinpath("a/b")
         cwd.mkdir(parents=True)
-        p2 = cwd.joinpath("pytest.ini")
+        p2 = cwd.joinpath("testrunner.ini")
         p2.touch()
         p2.write_text(
             textwrap.dedent(
                 """\
-                [pytest]
+                [testrunner]
                 name = wrong-value
                 should_not_be_set = true
                 """
@@ -1774,15 +1774,15 @@ class TestConfigFromdictargs:
         assert config._inicfg.get("should_not_be_set") is None
 
 
-def test_options_on_small_file_do_not_blow_up(pytester: Pytester) -> None:
+def test_options_on_small_file_do_not_blow_up(testrunnerer: Testrunnerer) -> None:
     def runfiletest(opts: Sequence[str]) -> None:
-        reprec = pytester.inline_run(*opts)
+        reprec = testrunnerer.inline_run(*opts)
         passed, skipped, failed = reprec.countoutcomes()
         assert failed == 2
         assert skipped == passed == 0
 
     path = str(
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
         def test_f1(): assert 0
         def test_f2(): assert 0
@@ -1803,13 +1803,13 @@ def test_options_on_small_file_do_not_blow_up(pytester: Pytester) -> None:
 
 
 def test_preparse_ordering_with_setuptools(
-    pytester: Pytester, monkeypatch: MonkeyPatch
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
 ) -> None:
-    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+    monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", raising=False)
 
     class EntryPoint:
         name = "mytestplugin"
-        group = "pytest11"
+        group = "testrunner11"
 
         def load(self):
             class PseudoPlugin:
@@ -1826,25 +1826,25 @@ def test_preparse_ordering_with_setuptools(
         return (Dist,)
 
     monkeypatch.setattr(importlib.metadata, "distributions", my_dists)
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-        pytest_plugins = "mytestplugin",
+        testrunner_plugins = "mytestplugin",
     """
     )
-    monkeypatch.setenv("PYTEST_PLUGINS", "mytestplugin")
-    config = pytester.parseconfig()
+    monkeypatch.setenv("TESTRUNNER_PLUGINS", "mytestplugin")
+    config = testrunnerer.parseconfig()
     plugin = config.pluginmanager.getplugin("mytestplugin")
     assert plugin.x == 42
 
 
 def test_setuptools_importerror_issue1479(
-    pytester: Pytester, monkeypatch: MonkeyPatch
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
 ) -> None:
-    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+    monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", raising=False)
 
     class DummyEntryPoint:
         name = "mytestplugin"
-        group = "pytest11"
+        group = "testrunner11"
 
         def load(self):
             raise ImportError("Don't hide me!")
@@ -1859,20 +1859,20 @@ def test_setuptools_importerror_issue1479(
         return (Distribution(),)
 
     monkeypatch.setattr(importlib.metadata, "distributions", distributions)
-    with pytest.raises(PluginImportFailure) as excinfo:
-        pytester.parseconfig()
+    with testrunner.raises(PluginImportFailure) as excinfo:
+        testrunnerer.parseconfig()
     assert "Don't hide me!" in str(excinfo.value.__cause__)
 
 
 def test_setuptools_usage_error_passes_through(
-    pytester: Pytester, monkeypatch: MonkeyPatch
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
 ) -> None:
     """A UsageError from an entry-point plugin is not reclassified (#993)."""
-    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+    monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", raising=False)
 
     class DummyEntryPoint:
         name = "mytestplugin"
-        group = "pytest11"
+        group = "testrunner11"
 
         def load(self):
             raise UsageError("bad usage")
@@ -1887,19 +1887,19 @@ def test_setuptools_usage_error_passes_through(
         return (Distribution(),)
 
     monkeypatch.setattr(importlib.metadata, "distributions", distributions)
-    with pytest.raises(UsageError, match="bad usage"):
-        pytester.parseconfig()
+    with testrunner.raises(UsageError, match="bad usage"):
+        testrunnerer.parseconfig()
 
 
 def test_importlib_metadata_broken_distribution(
-    pytester: Pytester, monkeypatch: MonkeyPatch
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
 ) -> None:
     """Integration test for broken distributions with 'files' metadata being None (#5389)"""
-    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+    monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", raising=False)
 
     class DummyEntryPoint:
         name = "mytestplugin"
-        group = "pytest11"
+        group = "testrunner11"
 
         def load(self):
             return object()
@@ -1914,20 +1914,20 @@ def test_importlib_metadata_broken_distribution(
         return (Distribution(),)
 
     monkeypatch.setattr(importlib.metadata, "distributions", distributions)
-    pytester.parseconfig()
+    testrunnerer.parseconfig()
 
 
-@pytest.mark.parametrize("block_it", [True, False])
+@testrunner.mark.parametrize("block_it", [True, False])
 def test_plugin_preparse_prevents_setuptools_loading(
-    pytester: Pytester, monkeypatch: MonkeyPatch, block_it: bool
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch, block_it: bool
 ) -> None:
-    monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+    monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", raising=False)
 
     plugin_module_placeholder = object()
 
     class DummyEntryPoint:
         name = "mytestplugin"
-        group = "pytest11"
+        group = "testrunner11"
 
         def load(self):
             return plugin_module_placeholder
@@ -1943,7 +1943,7 @@ def test_plugin_preparse_prevents_setuptools_loading(
 
     monkeypatch.setattr(importlib.metadata, "distributions", distributions)
     args = ("-p", "no:mytestplugin") if block_it else ()
-    config = pytester.parseconfig(*args)
+    config = testrunnerer.parseconfig(*args)
     config.pluginmanager.import_plugin("mytestplugin")
     if block_it:
         assert "mytestplugin" not in sys.modules
@@ -1954,17 +1954,17 @@ def test_plugin_preparse_prevents_setuptools_loading(
         )
 
 
-@pytest.mark.parametrize("disable_plugin_method", ["env_var", "flag", ""])
-@pytest.mark.parametrize("enable_plugin_method", ["env_var", "flag", ""])
+@testrunner.mark.parametrize("disable_plugin_method", ["env_var", "flag", ""])
+@testrunner.mark.parametrize("enable_plugin_method", ["env_var", "flag", ""])
 def test_disable_plugin_autoload(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
     monkeypatch: MonkeyPatch,
     enable_plugin_method: str,
     disable_plugin_method: str,
 ) -> None:
     class DummyEntryPoint:
         project_name = name = "mytestplugin"
-        group = "pytest11"
+        group = "testrunner11"
         version = "1.0"
 
         def load(self):
@@ -1991,16 +1991,16 @@ def test_disable_plugin_autoload(
     parse_args: list[str] = []
 
     if disable_plugin_method == "env_var":
-        monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+        monkeypatch.setenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", "1")
     elif disable_plugin_method == "flag":
-        monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD")
+        monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD")
         parse_args.append("--disable-plugin-autoload")
     else:
         assert disable_plugin_method == ""
-        monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD")
+        monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD")
 
     if enable_plugin_method == "env_var":
-        monkeypatch.setenv("PYTEST_PLUGINS", "mytestplugin")
+        monkeypatch.setenv("TESTRUNNER_PLUGINS", "mytestplugin")
     elif enable_plugin_method == "flag":
         parse_args.extend(["-p", "mytestplugin"])
     else:
@@ -2008,7 +2008,7 @@ def test_disable_plugin_autoload(
 
     monkeypatch.setattr(importlib.metadata, "distributions", distributions)
     monkeypatch.setitem(sys.modules, "mytestplugin", PseudoPlugin())
-    config = pytester.parseconfig(*parse_args)
+    config = testrunnerer.parseconfig(*parse_args)
 
     has_loaded = config.pluginmanager.get_plugin("mytestplugin") is not None
     # it should load if it's enabled, or we haven't disabled autoloading
@@ -2025,15 +2025,15 @@ def test_disable_plugin_autoload(
     )
 
     # __spec__ is accessed in AssertionRewritingHook.exec_module, which is never
-    # reached here: since PYTEST_PLUGINS also considers entry points (#12624),
+    # reached here: since TESTRUNNER_PLUGINS also considers entry points (#12624),
     # the plugin is loaded through its entry point (like with -p) instead of
     # being imported through the rewrite hook.
     assert "__spec__" not in PseudoPlugin.attrs_used
 
 
-def test_plugin_loading_order(pytester: Pytester) -> None:
+def test_plugin_loading_order(testrunnerer: Testrunnerer) -> None:
     """Test order of plugin loading with `-p`."""
-    p1 = pytester.makepyfile(
+    p1 = testrunnerer.makepyfile(
         """
         def test_terminal_plugin(request):
             import myplugin
@@ -2042,39 +2042,39 @@ def test_plugin_loading_order(pytester: Pytester) -> None:
         myplugin="""
             terminal_plugin = []
 
-            def pytest_configure(config):
+            def testrunner_configure(config):
                 terminal_plugin.append(bool(config.pluginmanager.get_plugin("terminalreporter")))
 
-            def pytest_sessionstart(session):
+            def testrunner_sessionstart(session):
                 config = session.config
                 terminal_plugin.append(bool(config.pluginmanager.get_plugin("terminalreporter")))
             """,
     )
-    pytester.syspathinsert()
-    result = pytester.runpytest("-p", "myplugin", str(p1))
+    testrunnerer.syspathinsert()
+    result = testrunnerer.runtestrunner("-p", "myplugin", str(p1))
     assert result.ret == 0
 
 
-def test_invalid_options_show_extra_information(pytester: Pytester) -> None:
-    """Display extra information when pytest exits due to unrecognized
+def test_invalid_options_show_extra_information(testrunnerer: Testrunnerer) -> None:
+    """Display extra information when testrunner exits due to unrecognized
     options in the command-line."""
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         addopts = --invalid-option
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stderr.fnmatch_lines(
         [
             "*error: unrecognized arguments: --invalid-option*",
-            "*  inifile: {}*".format(pytester.path.joinpath("tox.ini")),
-            f"*  rootdir: {pytester.path}*",
+            "*  inifile: {}*".format(testrunnerer.path.joinpath("tox.ini")),
+            f"*  rootdir: {testrunnerer.path}*",
         ]
     )
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "args",
     [
         ["dir1", "dir2", "-v"],
@@ -2084,14 +2084,14 @@ def test_invalid_options_show_extra_information(pytester: Pytester) -> None:
     ],
 )
 def test_consider_args_after_options_for_rootdir(
-    pytester: Pytester, args: list[str]
+    testrunnerer: Testrunnerer, args: list[str]
 ) -> None:
     """
     Consider all arguments in the command-line for rootdir
     discovery, even if they happen to occur after an option. #949
     """
     # replace "dir1" and "dir2" from "args" into their real directory
-    root = pytester.mkdir("myroot")
+    root = testrunnerer.mkdir("myroot")
     d1 = root.joinpath("dir1")
     d1.mkdir()
     d2 = root.joinpath("dir2")
@@ -2103,53 +2103,53 @@ def test_consider_args_after_options_for_rootdir(
             args[i] = str(d2)
     with MonkeyPatch.context() as mp:
         mp.chdir(root)
-        result = pytester.runpytest(*args)
+        result = testrunnerer.runtestrunner(*args)
     result.stdout.fnmatch_lines(["*rootdir: *myroot"])
 
 
-def test_toolongargs_issue224(pytester: Pytester) -> None:
-    result = pytester.runpytest("-m", "hello" * 500)
+def test_toolongargs_issue224(testrunnerer: Testrunnerer) -> None:
+    result = testrunnerer.runtestrunner("-m", "hello" * 500)
     assert result.ret == ExitCode.NO_TESTS_COLLECTED
 
 
 def test_config_in_subdirectory_colon_command_line_issue2148(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
     conftest_source = """
-        def pytest_addoption(parser):
+        def testrunner_addoption(parser):
             parser.addini('foo', 'foo')
     """
 
-    pytester.makefile(
+    testrunnerer.makefile(
         ".ini",
-        **{"pytest": "[pytest]\nfoo = root", "subdir/pytest": "[pytest]\nfoo = subdir"},
+        **{"testrunner": "[testrunner]\nfoo = root", "subdir/testrunner": "[testrunner]\nfoo = subdir"},
     )
 
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         **{
             "conftest": conftest_source,
             "subdir/conftest": conftest_source,
             "subdir/test_foo": """\
-            def test_foo(pytestconfig):
-                assert pytestconfig.getini('foo') == 'subdir'
+            def test_foo(testrunnerconfig):
+                assert testrunnerconfig.getini('foo') == 'subdir'
             """,
         }
     )
 
-    result = pytester.runpytest("subdir/test_foo.py::test_foo")
+    result = testrunnerer.runtestrunner("subdir/test_foo.py::test_foo")
     assert result.ret == 0
 
 
-def test_notify_exception(pytester: Pytester, capfd) -> None:
-    config = pytester.parseconfig()
-    with pytest.raises(ValueError) as excinfo:
+def test_notify_exception(testrunnerer: Testrunnerer, capfd) -> None:
+    config = testrunnerer.parseconfig()
+    with testrunner.raises(ValueError) as excinfo:
         raise ValueError(1)
     config.notify_exception(excinfo, config.option)
     _, err = capfd.readouterr()
     assert "ValueError" in err
 
     class A:
-        def pytest_internalerror(self):
+        def testrunner_internalerror(self):
             return True
 
     config.pluginmanager.register(A())
@@ -2157,17 +2157,17 @@ def test_notify_exception(pytester: Pytester, capfd) -> None:
     _, err = capfd.readouterr()
     assert not err
 
-    config = pytester.parseconfig("-p", "no:terminal")
-    with pytest.raises(ValueError) as excinfo:
+    config = testrunnerer.parseconfig("-p", "no:terminal")
+    with testrunner.raises(ValueError) as excinfo:
         raise ValueError(1)
     config.notify_exception(excinfo, config.option)
     _, err = capfd.readouterr()
     assert "ValueError" in err
 
 
-def test_no_terminal_discovery_error(pytester: Pytester) -> None:
-    pytester.makepyfile("raise TypeError('oops!')")
-    result = pytester.runpytest("-p", "no:terminal", "--collect-only")
+def test_no_terminal_discovery_error(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile("raise TypeError('oops!')")
+    result = testrunnerer.runtestrunner("-p", "no:terminal", "--collect-only")
     assert result.ret == ExitCode.INTERRUPTED
 
 
@@ -2175,12 +2175,12 @@ def test_load_initial_conftest_last_ordering(_config_for_test):
     pm = _config_for_test.pluginmanager
 
     class My:
-        def pytest_load_initial_conftests(self):
+        def testrunner_load_initial_conftests(self):
             pass
 
     m = My()
     pm.register(m)
-    hc = pm.hook.pytest_load_initial_conftests
+    hc = pm.hook.testrunner_load_initial_conftests
     hookimpls = [
         (
             hookimpl.function.__module__,
@@ -2189,11 +2189,11 @@ def test_load_initial_conftest_last_ordering(_config_for_test):
         for hookimpl in hc.get_hookimpls()
     ]
     assert hookimpls == [
-        ("_pytest.config", "nonwrapper"),
+        ("_testrunner.config", "nonwrapper"),
         (m.__module__, "nonwrapper"),
-        ("_pytest.legacypath", "nonwrapper"),
-        ("_pytest.capture", "wrapper"),
-        ("_pytest.warnings", "wrapper"),
+        ("_testrunner.legacypath", "nonwrapper"),
+        ("_testrunner.capture", "wrapper"),
+        ("_testrunner.warnings", "wrapper"),
     ]
 
 
@@ -2204,9 +2204,9 @@ def test_get_plugin_specs_as_list() -> None:
             f"of plugin names. Got: {re.escape(repr(val))}"
         )
 
-    with pytest.raises(pytest.UsageError, match=exp_match({"foo"})):
+    with testrunner.raises(testrunner.UsageError, match=exp_match({"foo"})):
         _get_plugin_specs_as_list({"foo"})  # type: ignore[arg-type]
-    with pytest.raises(pytest.UsageError, match=exp_match({})):
+    with testrunner.raises(testrunner.UsageError, match=exp_match({})):
         _get_plugin_specs_as_list(dict())  # type: ignore[arg-type]
 
     assert _get_plugin_specs_as_list(None) == []
@@ -2217,22 +2217,22 @@ def test_get_plugin_specs_as_list() -> None:
     assert _get_plugin_specs_as_list(("foo", "bar")) == ["foo", "bar"]
 
 
-def test_collect_pytest_prefix_bug_integration(pytester: Pytester) -> None:
+def test_collect_testrunner_prefix_bug_integration(testrunnerer: Testrunnerer) -> None:
     """Integration test for issue #3775"""
-    p = pytester.copy_example("config/collect_pytest_prefix")
-    result = pytester.runpytest(p)
+    p = testrunnerer.copy_example("config/collect_testrunner_prefix")
+    result = testrunnerer.runtestrunner(p)
     result.stdout.fnmatch_lines(["* 1 passed *"])
 
 
-def test_collect_pytest_prefix_bug(pytestconfig):
+def test_collect_testrunner_prefix_bug(testrunnerconfig):
     """Ensure we collect only actual functions from conftest files (#3775)"""
 
     class Dummy:
-        class pytest_something:
+        class testrunner_something:
             pass
 
-    pm = pytestconfig.pluginmanager
-    assert pm.parse_hookimpl_opts(Dummy(), "pytest_something") is None
+    pm = testrunnerconfig.pluginmanager
+    assert pm.parse_hookimpl_opts(Dummy(), "testrunner_something") is None
 
 
 class TestRootdir:
@@ -2248,15 +2248,15 @@ class TestRootdir:
         assert get_common_ancestor(Path.cwd(), [no_path]) == tmp_path
         assert get_common_ancestor(Path.cwd(), [no_path / "a"]) == tmp_path
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "name, contents",
         [
-            pytest.param("pytest.ini", "[pytest]\nx=10", id="pytest.ini"),
-            pytest.param(
-                "pyproject.toml", "[tool.pytest.ini_options]\nx=10", id="pyproject.toml"
+            testrunner.param("testrunner.ini", "[testrunner]\nx=10", id="testrunner.ini"),
+            testrunner.param(
+                "pyproject.toml", "[tool.testrunner.ini_options]\nx=10", id="pyproject.toml"
             ),
-            pytest.param("tox.ini", "[pytest]\nx=10", id="tox.ini"),
-            pytest.param("setup.cfg", "[tool:pytest]\nx=10", id="setup.cfg"),
+            testrunner.param("tox.ini", "[testrunner]\nx=10", id="tox.ini"),
+            testrunner.param("setup.cfg", "[tool:testrunner]\nx=10", id="setup.cfg"),
         ],
     )
     def test_with_ini(self, tmp_path: Path, name: str, contents: str) -> None:
@@ -2288,12 +2288,12 @@ class TestRootdir:
         assert parsed_inipath == inipath
         assert ini_config["x"] == ConfigValue("10", origin="file", mode="ini")
 
-    @pytest.mark.parametrize("pytest_ini", ["pytest.ini", ".pytest.ini"])
-    @pytest.mark.parametrize("other", ["setup.cfg", "tox.ini"])
-    def test_pytestini_overrides_empty_other(
-        self, tmp_path: Path, pytest_ini: str, other: str
+    @testrunner.mark.parametrize("testrunner_ini", ["testrunner.ini", ".testrunner.ini"])
+    @testrunner.mark.parametrize("other", ["setup.cfg", "tox.ini"])
+    def test_testrunnerini_overrides_empty_other(
+        self, tmp_path: Path, testrunner_ini: str, other: str
     ) -> None:
-        inipath = tmp_path / pytest_ini
+        inipath = tmp_path / testrunner_ini
         inipath.touch()
         a = tmp_path / "a"
         a.mkdir()
@@ -2337,15 +2337,15 @@ class TestRootdir:
         assert inipath is None
         assert inicfg == {}
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "name, contents",
         [
-            # pytest.param("pytest.ini", "[pytest]\nx=10", id="pytest.ini"),
-            pytest.param(
-                "pyproject.toml", "[tool.pytest.ini_options]\nx=10", id="pyproject.toml"
+            # testrunner.param("testrunner.ini", "[testrunner]\nx=10", id="testrunner.ini"),
+            testrunner.param(
+                "pyproject.toml", "[tool.testrunner.ini_options]\nx=10", id="pyproject.toml"
             ),
-            # pytest.param("tox.ini", "[pytest]\nx=10", id="tox.ini"),
-            # pytest.param("setup.cfg", "[tool:pytest]\nx=10", id="setup.cfg"),
+            # testrunner.param("tox.ini", "[testrunner]\nx=10", id="tox.ini"),
+            # testrunner.param("setup.cfg", "[tool:testrunner]\nx=10", id="setup.cfg"),
         ],
     )
     def test_with_specific_inifile(
@@ -2366,7 +2366,7 @@ class TestRootdir:
         assert ini_config["x"] == ConfigValue("10", origin="file", mode="ini")
 
     def test_explicit_config_file_sets_rootdir(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+        self, tmp_path: Path, monkeypatch: testrunner.MonkeyPatch
     ) -> None:
         tests_dir = tmp_path / "tests"
         tests_dir.mkdir()
@@ -2385,7 +2385,7 @@ class TestRootdir:
         assert found_inipath is None
 
         # Config file is explicitly given: rootdir is determined to be inifile's directory.
-        inipath = tmp_path / "pytest.ini"
+        inipath = tmp_path / "testrunner.ini"
         inipath.touch()
         rootpath, found_inipath, *_ = determine_setup(
             inifile=str(inipath),
@@ -2397,7 +2397,7 @@ class TestRootdir:
         assert rootpath == tmp_path
         assert found_inipath == inipath
 
-    @pytest.mark.skipif(
+    @testrunner.mark.skipif(
         sys.platform.startswith("win32"), reason="requires a POSIX null device"
     )
     def test_non_regular_config_file_with_unrelated_args(self, tmp_path: Path) -> None:
@@ -2411,7 +2411,7 @@ class TestRootdir:
         )
         assert rootpath == tmp_path
 
-    @pytest.mark.skipif(
+    @testrunner.mark.skipif(
         sys.platform.startswith("win32"), reason="requires a POSIX null device"
     )
     def test_non_regular_config_file_honours_explicit_rootdir(
@@ -2453,7 +2453,7 @@ class TestRootdir:
         a.mkdir()
         b = tmp_path / "b"
         b.mkdir()
-        inipath = a / "pytest.ini"
+        inipath = a / "testrunner.ini"
         inipath.touch()
         rootpath, parsed_inipath, *_ = determine_setup(
             inifile=None,
@@ -2465,7 +2465,7 @@ class TestRootdir:
         assert rootpath == a
         assert inipath == parsed_inipath
 
-    @pytest.mark.parametrize("dirs", ([], ["does-not-exist"], ["a/does-not-exist"]))
+    @testrunner.mark.parametrize("dirs", ([], ["does-not-exist"], ["a/does-not-exist"]))
     def test_with_non_dir_arg(
         self, dirs: Sequence[str], tmp_path: Path, monkeypatch: MonkeyPatch
     ) -> None:
@@ -2501,9 +2501,9 @@ class TestRootdir:
         self, tmp_path: Path, monkeypatch: MonkeyPatch
     ) -> None:
         """Regression test for #7807."""
-        (tmp_path / "setup.cfg").write_text("[tool:pytest]\n", "utf-8")
+        (tmp_path / "setup.cfg").write_text("[tool:testrunner]\n", "utf-8")
         (tmp_path / "myproject").mkdir()
-        (tmp_path / "myproject" / "setup.cfg").write_text("[tool:pytest]\n", "utf-8")
+        (tmp_path / "myproject" / "setup.cfg").write_text("[tool:testrunner]\n", "utf-8")
         (tmp_path / "myproject" / "tests").mkdir()
         monkeypatch.chdir(tmp_path / "myproject")
 
@@ -2520,10 +2520,10 @@ class TestRootdir:
 
 
 class TestOverrideIniArgs:
-    @pytest.mark.parametrize("name", ["setup.cfg", "tox.ini", "pytest.ini"])
-    def test_override_ini_names(self, pytester: Pytester, name: str) -> None:
-        section = "[pytest]" if name != "setup.cfg" else "[tool:pytest]"
-        pytester.path.joinpath(name).write_text(
+    @testrunner.mark.parametrize("name", ["setup.cfg", "tox.ini", "testrunner.ini"])
+    def test_override_ini_names(self, testrunnerer: Testrunnerer, name: str) -> None:
+        section = "[testrunner]" if name != "setup.cfg" else "[tool:testrunner]"
+        testrunnerer.path.joinpath(name).write_text(
             textwrap.dedent(
                 f"""
             {section}
@@ -2531,80 +2531,80 @@ class TestOverrideIniArgs:
             ),
             encoding="utf-8",
         )
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("custom", "")"""
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
-            def test_pass(pytestconfig):
-                ini_val = pytestconfig.getini("custom")
+            def test_pass(testrunnerconfig):
+                ini_val = testrunnerconfig.getini("custom")
                 print('\\ncustom_option:%s\\n' % ini_val)"""
         )
 
-        result = pytester.runpytest("--override-ini", "custom=2.0", "-s")
+        result = testrunnerer.runtestrunner("--override-ini", "custom=2.0", "-s")
         assert result.ret == 0
         result.stdout.fnmatch_lines(["custom_option:2.0"])
 
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--override-ini", "custom=2.0", "--override-ini=custom=3.0", "-s"
         )
         assert result.ret == 0
         result.stdout.fnmatch_lines(["custom_option:3.0"])
 
-    def test_override_ini_paths(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_override_ini_paths(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("paths", "my new ini value", type="paths")"""
         )
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             paths=blah.py"""
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             r"""
-            def test_overridden(pytestconfig):
-                config_paths = pytestconfig.getini("paths")
+            def test_overridden(testrunnerconfig):
+                config_paths = testrunnerconfig.getini("paths")
                 print(config_paths)
                 for cpf in config_paths:
                     print('\nuser_path:%s' % cpf.name)
             """
         )
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--override-ini", "paths=foo/bar1.py foo/bar2.py", "-s"
         )
         result.stdout.fnmatch_lines(["user_path:bar1.py", "user_path:bar2.py"])
 
-    def test_override_multiple_and_default(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_override_multiple_and_default(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 addini = parser.addini
                 addini("custom_option_1", "", default="o1")
                 addini("custom_option_2", "", default="o2")
                 addini("custom_option_3", "", default=False, type="bool")
                 addini("custom_option_4", "", default=True, type="bool")"""
         )
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             custom_option_1=custom_option_1
             custom_option_2=custom_option_2
         """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
-            def test_multiple_options(pytestconfig):
+            def test_multiple_options(testrunnerconfig):
                 prefix = "custom_option"
                 for x in range(1, 5):
-                    ini_value=pytestconfig.getini("%s_%d" % (prefix, x))
+                    ini_value=testrunnerconfig.getini("%s_%d" % (prefix, x))
                     print('\\nini%d:%s' % (x, ini_value))
         """
         )
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--override-ini",
             "custom_option_1=fulldir=/tmp/user1",
             "-o",
@@ -2624,46 +2624,46 @@ class TestOverrideIniArgs:
             ]
         )
 
-    def test_override_ini_usage_error_bad_style(self, pytester: Pytester) -> None:
-        pytester.makeini(
+    def test_override_ini_usage_error_bad_style(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             xdist_strict=False
         """
         )
-        result = pytester.runpytest("--override-ini", "xdist_strict", "True")
+        result = testrunnerer.runtestrunner("--override-ini", "xdist_strict", "True")
         result.stderr.fnmatch_lines(
             [
                 "ERROR: -o/--override-ini expects option=value style (got: 'xdist_strict').",
             ]
         )
 
-    @pytest.mark.parametrize("with_ini", [True, False])
+    @testrunner.mark.parametrize("with_ini", [True, False])
     def test_override_ini_handled_asap(
-        self, pytester: Pytester, with_ini: bool
+        self, testrunnerer: Testrunnerer, with_ini: bool
     ) -> None:
         """-o should be handled as soon as possible and always override what's in config files (#2238)"""
         if with_ini:
-            pytester.makeini(
+            testrunnerer.makeini(
                 """
-                [pytest]
+                [testrunner]
                 python_files=test_*.py
             """
             )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             unittest_ini_handle="""
             def test():
                 pass
         """
         )
-        result = pytester.runpytest("--override-ini", "python_files=unittest_*.py")
+        result = testrunnerer.runtestrunner("--override-ini", "python_files=unittest_*.py")
         result.stdout.fnmatch_lines(["*1 passed in*"])
 
     def test_addopts_before_initini(
         self, monkeypatch: MonkeyPatch, _config_for_test, _sys_snapshot
     ) -> None:
         cache_dir = ".custom_cache"
-        monkeypatch.setenv("PYTEST_ADDOPTS", f"-o cache_dir={cache_dir}")
+        monkeypatch.setenv("TESTRUNNER_ADDOPTS", f"-o cache_dir={cache_dir}")
         config = _config_for_test
         config.parse([], addopts=True)
         assert config._inicfg.get("cache_dir") == ConfigValue(
@@ -2673,33 +2673,33 @@ class TestOverrideIniArgs:
     def test_addopts_from_env_not_concatenated(
         self, monkeypatch: MonkeyPatch, _config_for_test
     ) -> None:
-        """PYTEST_ADDOPTS should not take values from normal args (#4265)."""
-        monkeypatch.setenv("PYTEST_ADDOPTS", "-o")
+        """TESTRUNNER_ADDOPTS should not take values from normal args (#4265)."""
+        monkeypatch.setenv("TESTRUNNER_ADDOPTS", "-o")
         config = _config_for_test
-        with pytest.raises(UsageError) as excinfo:
+        with testrunner.raises(UsageError) as excinfo:
             config.parse(["cache_dir=ignored"], addopts=True)
         assert (
             "error: argument -o/--override-ini: expected one argument"
             in excinfo.value.args[0]
         )
-        assert "via PYTEST_ADDOPTS" in excinfo.value.args[0]
+        assert "via TESTRUNNER_ADDOPTS" in excinfo.value.args[0]
 
-    def test_addopts_from_ini_not_concatenated(self, pytester: Pytester) -> None:
+    def test_addopts_from_ini_not_concatenated(self, testrunnerer: Testrunnerer) -> None:
         """`addopts` from configuration should not take values from normal args (#4265)."""
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             addopts=-o
         """
         )
-        result = pytester.runpytest("cache_dir=ignored")
+        result = testrunnerer.runtestrunner("cache_dir=ignored")
         result.stderr.fnmatch_lines(
             [
                 "*: error: argument -o/--override-ini: expected one argument",
                 "  config source: via addopts config",
             ]
         )
-        assert result.ret == _pytest.config.ExitCode.USAGE_ERROR
+        assert result.ret == _testrunner.config.ExitCode.USAGE_ERROR
 
     def test_override_ini_does_not_contain_paths(
         self, _config_for_test, _sys_snapshot
@@ -2711,19 +2711,19 @@ class TestOverrideIniArgs:
             "/cache", origin="override", mode="ini"
         )
 
-    def test_multiple_override_ini_options(self, pytester: Pytester) -> None:
+    def test_multiple_override_ini_options(self, testrunnerer: Testrunnerer) -> None:
         """Ensure a file path following a '-o' option does not generate an error (#3103)"""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             **{
                 "conftest.py": """
-                def pytest_addoption(parser):
+                def testrunner_addoption(parser):
                     parser.addini('foo', default=None, help='some option')
                     parser.addini('bar', default=None, help='some option')
             """,
                 "test_foo.py": """
-                def test(pytestconfig):
-                    assert pytestconfig.getini('foo') == '1'
-                    assert pytestconfig.getini('bar') == '0'
+                def test(testrunnerconfig):
+                    assert testrunnerconfig.getini('foo') == '1'
+                    assert testrunnerconfig.getini('bar') == '0'
             """,
                 "test_bar.py": """
                 def test():
@@ -2731,58 +2731,58 @@ class TestOverrideIniArgs:
             """,
             }
         )
-        result = pytester.runpytest("-o", "foo=1", "-o", "bar=0", "test_foo.py")
+        result = testrunnerer.runtestrunner("-o", "foo=1", "-o", "bar=0", "test_foo.py")
         assert "ERROR:" not in result.stderr.str()
         result.stdout.fnmatch_lines(["collected 1 item", "*= 1 passed in *="])
 
-    def test_override_ini_without_config_file(self, pytester: Pytester) -> None:
-        pytester.makepyfile(**{"src/override_ini_without_config_file.py": ""})
-        pytester.makepyfile(
+    def test_override_ini_without_config_file(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(**{"src/override_ini_without_config_file.py": ""})
+        testrunnerer.makepyfile(
             **{
                 "tests/test_override_ini_without_config_file.py": (
                     "import override_ini_without_config_file\ndef test(): pass"
                 ),
             }
         )
-        result = pytester.runpytest("--override-ini", "pythonpath=src")
+        result = testrunnerer.runtestrunner("--override-ini", "pythonpath=src")
         result.assert_outcomes(passed=1)
 
-    def test_override_ini_invalid_option(self, pytester: Pytester) -> None:
-        result = pytester.runpytest("--override-ini", "doesnotexist=true")
+    def test_override_ini_invalid_option(self, testrunnerer: Testrunnerer) -> None:
+        result = testrunnerer.runtestrunner("--override-ini", "doesnotexist=true")
         result.stdout.fnmatch_lines(
             [
                 "=*= warnings summary =*=",
-                "*PytestConfigWarning:*Unknown config option: doesnotexist",
+                "*TestrunnerConfigWarning:*Unknown config option: doesnotexist",
             ]
         )
 
 
-def test_help_via_addopts(pytester: Pytester) -> None:
-    pytester.makeini(
+def test_help_via_addopts(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         addopts = --unknown-option-should-allow-for-help --help
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
     result.stdout.fnmatch_lines(
         [
             "usage: *",
             "positional arguments:",
             # Displays full/default help.
-            "to see available markers type: pytest --markers",
+            "to see available markers type: testrunner --markers",
         ]
     )
 
 
-def test_help_and_version_after_argument_error(pytester: Pytester) -> None:
-    pytester.makeconftest(
+def test_help_and_version_after_argument_error(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest(
         """
         def validate(arg):
             raise argparse.ArgumentTypeError("argerror")
 
-        def pytest_addoption(parser):
+        def testrunner_addoption(parser):
             group = parser.getgroup('cov')
             group.addoption(
                 "--invalid-option-should-allow-for-help",
@@ -2790,13 +2790,13 @@ def test_help_and_version_after_argument_error(pytester: Pytester) -> None:
             )
         """
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         addopts = --invalid-option-should-allow-for-help
     """
     )
-    result = pytester.runpytest("--help")
+    result = testrunnerer.runtestrunner("--help")
     result.stdout.fnmatch_lines(
         [
             "usage: *",
@@ -2811,22 +2811,22 @@ def test_help_and_version_after_argument_error(pytester: Pytester) -> None:
         ]
     )
     # Does not display full/default help.
-    assert "to see available markers type: pytest --markers" not in result.stdout.lines
+    assert "to see available markers type: testrunner --markers" not in result.stdout.lines
     assert result.ret == ExitCode.USAGE_ERROR
 
-    result = pytester.runpytest("--version")
-    result.stdout.fnmatch_lines([f"pytest {pytest.__version__}"])
+    result = testrunnerer.runtestrunner("--version")
+    result.stdout.fnmatch_lines([f"testrunner {testrunner.__version__}"])
     assert result.ret == ExitCode.OK
 
 
 def test_help_formatter_uses_py_get_terminal_width(monkeypatch: MonkeyPatch) -> None:
-    from _pytest.config.argparsing import DropShorterLongHelpFormatter
+    from _testrunner.config.argparsing import DropShorterLongHelpFormatter
 
     monkeypatch.setenv("COLUMNS", "90")
     formatter = DropShorterLongHelpFormatter("prog")
     assert formatter._width == 90
 
-    monkeypatch.setattr("_pytest._io.get_terminal_width", lambda: 160)
+    monkeypatch.setattr("_testrunner._io.get_terminal_width", lambda: 160)
     formatter = DropShorterLongHelpFormatter("prog")
     assert formatter._width == 160
 
@@ -2834,65 +2834,65 @@ def test_help_formatter_uses_py_get_terminal_width(monkeypatch: MonkeyPatch) -> 
     assert formatter._width == 42
 
 
-def test_config_does_not_load_blocked_plugin_from_args(pytester: Pytester) -> None:
-    """This tests that pytest's config setup handles "-p no:X"."""
-    p = pytester.makepyfile("def test(capfd): pass")
-    result = pytester.runpytest(str(p), "-pno:capture")
+def test_config_does_not_load_blocked_plugin_from_args(testrunnerer: Testrunnerer) -> None:
+    """This tests that testrunner's config setup handles "-p no:X"."""
+    p = testrunnerer.makepyfile("def test(capfd): pass")
+    result = testrunnerer.runtestrunner(str(p), "-pno:capture")
     result.stdout.fnmatch_lines(["E       fixture 'capfd' not found"])
     assert result.ret == ExitCode.TESTS_FAILED
 
-    result = pytester.runpytest(str(p), "-pno:capture", "-s")
+    result = testrunnerer.runtestrunner(str(p), "-pno:capture", "-s")
     result.stderr.fnmatch_lines(["*: error: unrecognized arguments: -s"])
     assert result.ret == ExitCode.USAGE_ERROR
 
-    result = pytester.runpytest(str(p), "-p no:capture", "-s")
+    result = testrunnerer.runtestrunner(str(p), "-p no:capture", "-s")
     result.stderr.fnmatch_lines(["*: error: unrecognized arguments: -s"])
     assert result.ret == ExitCode.USAGE_ERROR
 
-    result = pytester.runpytest(str(p), "-p no:/path/to/conftest.py", "-s")
+    result = testrunnerer.runtestrunner(str(p), "-p no:/path/to/conftest.py", "-s")
     result.stderr.fnmatch_lines(["ERROR:*Blocking conftest files*"])
     assert result.ret == ExitCode.USAGE_ERROR
 
 
-def test_invocation_args(pytester: Pytester) -> None:
+def test_invocation_args(testrunnerer: Testrunnerer) -> None:
     """Ensure that Config.invocation_* arguments are correctly defined"""
 
     class DummyPlugin:
         pass
 
-    p = pytester.makepyfile("def test(): pass")
+    p = testrunnerer.makepyfile("def test(): pass")
     plugin = DummyPlugin()
-    rec = pytester.inline_run(p, "-v", plugins=[plugin])
-    calls = rec.getcalls("pytest_runtest_protocol")
+    rec = testrunnerer.inline_run(p, "-v", plugins=[plugin])
+    calls = rec.getcalls("testrunner_runtest_protocol")
     assert len(calls) == 1
     call = calls[0]
     config = call.item.config
 
     assert config.invocation_params.args == (str(p), "-v")
-    assert config.invocation_params.dir == pytester.path
+    assert config.invocation_params.dir == testrunnerer.path
 
     plugins = config.invocation_params.plugins
     assert len(plugins) == 2
     assert plugins[0] is plugin
-    # Installed by pytester.inline_run().
-    assert type(plugins[1]).__name__ == "PytesterHelperPlugin"
+    # Installed by testrunnerer.inline_run().
+    assert type(plugins[1]).__name__ == "TestrunnererHelperPlugin"
 
     # args cannot be None
-    with pytest.raises(TypeError):
+    with testrunner.raises(TypeError):
         Config.InvocationParams(args=None, plugins=None, dir=Path())  # type: ignore[arg-type]
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "plugin",
     [
         x
-        for x in _pytest.config.default_plugins
-        if x not in _pytest.config.essential_plugins
+        for x in _testrunner.config.default_plugins
+        if x not in _testrunner.config.essential_plugins
     ],
 )
-def test_config_blocked_default_plugins(pytester: Pytester, plugin: str) -> None:
-    p = pytester.makepyfile("def test(): pass")
-    result = pytester.runpytest(str(p), f"-pno:{plugin}")
+def test_config_blocked_default_plugins(testrunnerer: Testrunnerer, plugin: str) -> None:
+    p = testrunnerer.makepyfile("def test(): pass")
+    result = testrunnerer.runtestrunner(str(p), f"-pno:{plugin}")
 
     if plugin == "python":
         assert result.ret == ExitCode.USAGE_ERROR
@@ -2908,8 +2908,8 @@ def test_config_blocked_default_plugins(pytester: Pytester, plugin: str) -> None
     if plugin != "terminal":
         result.stdout.fnmatch_lines(["* 1 passed in *"])
 
-    p = pytester.makepyfile("def test(): assert 0")
-    result = pytester.runpytest(str(p), f"-pno:{plugin}")
+    p = testrunnerer.makepyfile("def test(): assert 0")
+    result = testrunnerer.runtestrunner(str(p), f"-pno:{plugin}")
     assert result.ret == ExitCode.TESTS_FAILED
     if plugin != "terminal":
         result.stdout.fnmatch_lines(["* 1 failed in *"])
@@ -2918,57 +2918,57 @@ def test_config_blocked_default_plugins(pytester: Pytester, plugin: str) -> None
 
 
 class TestSetupCfg:
-    def test_pytest_setup_cfg_unsupported(self, pytester: Pytester) -> None:
-        pytester.makefile(
+    def test_testrunner_setup_cfg_unsupported(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makefile(
             ".cfg",
             setup="""
-            [pytest]
+            [testrunner]
             addopts = --verbose
         """,
         )
-        with pytest.raises(pytest.fail.Exception):
-            pytester.runpytest()
+        with testrunner.raises(testrunner.fail.Exception):
+            testrunnerer.runtestrunner()
 
-    def test_pytest_custom_cfg_unsupported(self, pytester: Pytester) -> None:
-        pytester.makefile(
+    def test_testrunner_custom_cfg_unsupported(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makefile(
             ".cfg",
             custom="""
-            [pytest]
+            [testrunner]
             addopts = --verbose
         """,
         )
-        with pytest.raises(pytest.fail.Exception):
-            pytester.runpytest("-c", "custom.cfg")
+        with testrunner.raises(testrunner.fail.Exception):
+            testrunnerer.runtestrunner("-c", "custom.cfg")
 
-        with pytest.raises(pytest.fail.Exception):
-            pytester.runpytest("--config-file", "custom.cfg")
+        with testrunner.raises(testrunner.fail.Exception):
+            testrunnerer.runtestrunner("--config-file", "custom.cfg")
 
 
-class TestPytestPluginsVariable:
-    def test_pytest_plugins_in_non_top_level_conftest_unsupported(
-        self, pytester: Pytester
+class TestTestrunnerPluginsVariable:
+    def test_testrunner_plugins_in_non_top_level_conftest_unsupported(
+        self, testrunnerer: Testrunnerer
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             **{
                 "subdirectory/conftest.py": """
-            pytest_plugins=['capture']
+            testrunner_plugins=['capture']
         """
             }
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_func():
                 pass
         """
         )
-        res = pytester.runpytest()
+        res = testrunnerer.runtestrunner()
         assert res.ret == 2
-        msg = "Defining 'pytest_plugins' in a non-top-level conftest is no longer supported"
+        msg = "Defining 'testrunner_plugins' in a non-top-level conftest is no longer supported"
         res.stdout.fnmatch_lines([f"*{msg}*", f"*subdirectory{os.sep}conftest.py*"])
 
-    @pytest.mark.parametrize("use_pyargs", [True, False])
-    def test_pytest_plugins_in_non_top_level_conftest_unsupported_pyargs(
-        self, pytester: Pytester, use_pyargs: bool
+    @testrunner.mark.parametrize("use_pyargs", [True, False])
+    def test_testrunner_plugins_in_non_top_level_conftest_unsupported_pyargs(
+        self, testrunnerer: Testrunnerer, use_pyargs: bool
     ) -> None:
         """When using --pyargs, do not emit the warning about non-top-level conftest warnings (#4039, #4044)"""
         files = {
@@ -2976,64 +2976,64 @@ class TestPytestPluginsVariable:
             "src/pkg/conftest.py": "",
             "src/pkg/test_root.py": "def test(): pass",
             "src/pkg/sub/__init__.py": "",
-            "src/pkg/sub/conftest.py": "pytest_plugins=['capture']",
+            "src/pkg/sub/conftest.py": "testrunner_plugins=['capture']",
             "src/pkg/sub/test_bar.py": "def test(): pass",
         }
-        pytester.makepyfile(**files)
-        pytester.syspathinsert(pytester.path.joinpath("src"))
+        testrunnerer.makepyfile(**files)
+        testrunnerer.syspathinsert(testrunnerer.path.joinpath("src"))
 
         args = ("--pyargs", "pkg") if use_pyargs else ()
-        res = pytester.runpytest(*args)
+        res = testrunnerer.runtestrunner(*args)
         assert res.ret == (0 if use_pyargs else 2)
-        msg = "Defining 'pytest_plugins' in a non-top-level conftest is no longer supported"
+        msg = "Defining 'testrunner_plugins' in a non-top-level conftest is no longer supported"
         if use_pyargs:
             assert msg not in res.stdout.str()
         else:
             res.stdout.fnmatch_lines([f"*{msg}*"])
 
-    def test_pytest_plugins_in_non_top_level_conftest_unsupported_no_top_level_conftest(
-        self, pytester: Pytester
+    def test_testrunner_plugins_in_non_top_level_conftest_unsupported_no_top_level_conftest(
+        self, testrunnerer: Testrunnerer
     ) -> None:
-        subdirectory = pytester.path.joinpath("subdirectory")
+        subdirectory = testrunnerer.path.joinpath("subdirectory")
         subdirectory.mkdir()
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            pytest_plugins=['capture']
+            testrunner_plugins=['capture']
         """
         )
-        pytester.path.joinpath("conftest.py").rename(
+        testrunnerer.path.joinpath("conftest.py").rename(
             subdirectory.joinpath("conftest.py")
         )
 
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_func():
                 pass
         """
         )
 
-        res = pytester.runpytest_subprocess()
+        res = testrunnerer.runtestrunner_subprocess()
         assert res.ret == 2
-        msg = "Defining 'pytest_plugins' in a non-top-level conftest is no longer supported"
+        msg = "Defining 'testrunner_plugins' in a non-top-level conftest is no longer supported"
         res.stdout.fnmatch_lines([f"*{msg}*", f"*subdirectory{os.sep}conftest.py*"])
 
-    def test_pytest_plugins_in_non_top_level_conftest_unsupported_no_false_positives(
-        self, pytester: Pytester
+    def test_testrunner_plugins_in_non_top_level_conftest_unsupported_no_false_positives(
+        self, testrunnerer: Testrunnerer
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             "def test_func(): pass",
             **{
                 "subdirectory/conftest": "pass",
                 "conftest": """
                     import warnings
                     warnings.filterwarnings('always', category=DeprecationWarning)
-                    pytest_plugins=['capture']
+                    testrunner_plugins=['capture']
                     """,
             },
         )
-        res = pytester.runpytest_subprocess()
+        res = testrunnerer.runtestrunner_subprocess()
         assert res.ret == 0
-        msg = "Defining 'pytest_plugins' in a non-top-level conftest is no longer supported"
+        msg = "Defining 'testrunner_plugins' in a non-top-level conftest is no longer supported"
         assert msg not in res.stdout.str()
 
 
@@ -3041,7 +3041,7 @@ def test_conftest_import_error_repr(tmp_path: Path) -> None:
     """`ConftestImportFailure` should use a short error message and readable
     path to the failed conftest.py file."""
     path = tmp_path.joinpath("foo/conftest.py")
-    with pytest.raises(
+    with testrunner.raises(
         ConftestImportFailure,
         match=re.escape(f"RuntimeError: some error (from {path})"),
     ):
@@ -3054,11 +3054,11 @@ def test_conftest_import_error_repr(tmp_path: Path) -> None:
 def test_strtobool() -> None:
     assert _strtobool("YES")
     assert not _strtobool("NO")
-    with pytest.raises(ValueError):
+    with testrunner.raises(ValueError):
         _strtobool("unknown")
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "arg, escape, expected",
     [
         ("ignore", False, ("ignore", "", Warning, "", 0)),
@@ -3092,7 +3092,7 @@ def test_parse_warning_filter(
     assert parse_warning_filter(arg, escape=escape) == expected
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "arg",
     [
         # Too much parts.
@@ -3108,58 +3108,58 @@ def test_parse_warning_filter(
     ],
 )
 def test_parse_warning_filter_failure(arg: str) -> None:
-    with pytest.raises(pytest.UsageError):
+    with testrunner.raises(testrunner.UsageError):
         parse_warning_filter(arg, escape=True)
 
 
 class TestDebugOptions:
-    def test_without_debug_does_not_write_log(self, pytester: Pytester) -> None:
-        result = pytester.runpytest()
+    def test_without_debug_does_not_write_log(self, testrunnerer: Testrunnerer) -> None:
+        result = testrunnerer.runtestrunner()
         result.stderr.no_fnmatch_line(
-            "*writing pytest debug information to*pytestdebug.log"
+            "*writing testrunner debug information to*testrunnerdebug.log"
         )
         result.stderr.no_fnmatch_line(
-            "*wrote pytest debug information to*pytestdebug.log"
+            "*wrote testrunner debug information to*testrunnerdebug.log"
         )
-        assert not [f.name for f in pytester.path.glob("**/*.log")]
+        assert not [f.name for f in testrunnerer.path.glob("**/*.log")]
 
-    def test_with_only_debug_writes_pytestdebug_log(self, pytester: Pytester) -> None:
-        result = pytester.runpytest("--debug")
+    def test_with_only_debug_writes_testrunnerdebug_log(self, testrunnerer: Testrunnerer) -> None:
+        result = testrunnerer.runtestrunner("--debug")
         result.stderr.fnmatch_lines(
             [
-                "*writing pytest debug information to*pytestdebug.log",
-                "*wrote pytest debug information to*pytestdebug.log",
+                "*writing testrunner debug information to*testrunnerdebug.log",
+                "*wrote testrunner debug information to*testrunnerdebug.log",
             ]
         )
-        assert "pytestdebug.log" in [f.name for f in pytester.path.glob("**/*.log")]
+        assert "testrunnerdebug.log" in [f.name for f in testrunnerer.path.glob("**/*.log")]
 
-    def test_multiple_custom_debug_logs(self, pytester: Pytester) -> None:
-        result = pytester.runpytest("--debug", "bar.log")
+    def test_multiple_custom_debug_logs(self, testrunnerer: Testrunnerer) -> None:
+        result = testrunnerer.runtestrunner("--debug", "bar.log")
         result.stderr.fnmatch_lines(
             [
-                "*writing pytest debug information to*bar.log",
-                "*wrote pytest debug information to*bar.log",
+                "*writing testrunner debug information to*bar.log",
+                "*wrote testrunner debug information to*bar.log",
             ]
         )
-        result = pytester.runpytest("--debug", "foo.log")
+        result = testrunnerer.runtestrunner("--debug", "foo.log")
         result.stderr.fnmatch_lines(
             [
-                "*writing pytest debug information to*foo.log",
-                "*wrote pytest debug information to*foo.log",
+                "*writing testrunner debug information to*foo.log",
+                "*wrote testrunner debug information to*foo.log",
             ]
         )
 
         assert {"bar.log", "foo.log"} == {
-            f.name for f in pytester.path.glob("**/*.log")
+            f.name for f in testrunnerer.path.glob("**/*.log")
         }
 
-    def test_debug_help(self, pytester: Pytester) -> None:
-        result = pytester.runpytest("-h")
+    def test_debug_help(self, testrunnerer: Testrunnerer) -> None:
+        result = testrunnerer.runtestrunner("-h")
         result.stdout.fnmatch_lines(
             [
                 "*Store internal tracing debug information in this log*",
                 "*file. This file is opened with 'w' and truncated as a*",
-                "*Default: pytestdebug.log.",
+                "*Default: testrunnerdebug.log.",
             ]
         )
 
@@ -3169,26 +3169,26 @@ class TestVerbosity:
     SOME_OUTPUT_VERBOSITY_LEVEL = 5
 
     class VerbosityIni:
-        def pytest_addoption(self, parser: Parser) -> None:
+        def testrunner_addoption(self, parser: Parser) -> None:
             Config._add_verbosity_ini(
                 parser, TestVerbosity.SOME_OUTPUT_TYPE, help="some help text"
             )
 
     def test_level_matches_verbose_when_not_specified(
-        self, pytester: Pytester, tmp_path: Path
+        self, testrunnerer: Testrunnerer, tmp_path: Path
     ) -> None:
-        tmp_path.joinpath("pytest.ini").write_text(
+        tmp_path.joinpath("testrunner.ini").write_text(
             textwrap.dedent(
                 """\
-                [pytest]
+                [testrunner]
                 addopts = --verbose
                 """
             ),
             encoding="utf-8",
         )
-        pytester.plugins = [TestVerbosity.VerbosityIni()]
+        testrunnerer.plugins = [TestVerbosity.VerbosityIni()]
 
-        config = pytester.parseconfig(tmp_path)
+        config = testrunnerer.parseconfig(tmp_path)
 
         assert (
             config.get_verbosity(TestVerbosity.SOME_OUTPUT_TYPE)
@@ -3196,40 +3196,40 @@ class TestVerbosity:
         )
 
     def test_level_matches_verbose_when_not_known_type(
-        self, pytester: Pytester, tmp_path: Path
+        self, testrunnerer: Testrunnerer, tmp_path: Path
     ) -> None:
-        tmp_path.joinpath("pytest.ini").write_text(
+        tmp_path.joinpath("testrunner.ini").write_text(
             textwrap.dedent(
                 """\
-                [pytest]
+                [testrunner]
                 addopts = --verbose
                 """
             ),
             encoding="utf-8",
         )
-        pytester.plugins = [TestVerbosity.VerbosityIni()]
+        testrunnerer.plugins = [TestVerbosity.VerbosityIni()]
 
-        config = pytester.parseconfig(tmp_path)
+        config = testrunnerer.parseconfig(tmp_path)
 
         assert config.get_verbosity("some fake verbosity type") == config.option.verbose
 
     def test_level_matches_specified_override(
-        self, pytester: Pytester, tmp_path: Path
+        self, testrunnerer: Testrunnerer, tmp_path: Path
     ) -> None:
         setting_name = f"verbosity_{TestVerbosity.SOME_OUTPUT_TYPE}"
-        tmp_path.joinpath("pytest.ini").write_text(
+        tmp_path.joinpath("testrunner.ini").write_text(
             textwrap.dedent(
                 f"""\
-                [pytest]
+                [testrunner]
                 addopts = --verbose
                 {setting_name} = {TestVerbosity.SOME_OUTPUT_VERBOSITY_LEVEL}
                 """
             ),
             encoding="utf-8",
         )
-        pytester.plugins = [TestVerbosity.VerbosityIni()]
+        testrunnerer.plugins = [TestVerbosity.VerbosityIni()]
 
-        config = pytester.parseconfig(tmp_path)
+        config = testrunnerer.parseconfig(tmp_path)
 
         assert (
             config.get_verbosity(TestVerbosity.SOME_OUTPUT_TYPE)
@@ -3240,11 +3240,11 @@ class TestVerbosity:
 class TestNativeTomlConfig:
     """Test native TOML configuration parsing."""
 
-    def test_values(self, pytester: Pytester) -> None:
+    def test_values(self, testrunnerer: Testrunnerer) -> None:
         """Test that values are parsed as expected in TOML mode."""
-        pytester.makepyprojecttoml(
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest]
+            [tool.testrunner]
             test_bool = true
             test_int = 5
             test_float = 30.5
@@ -3252,9 +3252,9 @@ class TestNativeTomlConfig:
             test_paths = ["src", "lib"]
             """
         )
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("test_bool", "Test boolean config", type="bool", default=False)
                 parser.addini("test_int", "Test integer config", type="int", default=0)
                 parser.addini("test_float", "Test float config", type="float", default=0.0)
@@ -3262,7 +3262,7 @@ class TestNativeTomlConfig:
                 parser.addini("test_paths", "Test paths config", type="paths")
             """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         assert config.getini("test_bool") is True
         assert config.getini("test_int") == 5
         assert config.getini("test_float") == 30.5
@@ -3272,51 +3272,51 @@ class TestNativeTomlConfig:
         # Paths should be resolved relative to pyproject.toml location.
         assert all(isinstance(p, Path) for p in paths)
 
-    def test_override_with_list(self, pytester: Pytester) -> None:
+    def test_override_with_list(self, testrunnerer: Testrunnerer) -> None:
         """Test that -o overrides work with INI-style list syntax even when
         config uses TOML mode."""
-        pytester.makepyprojecttoml(
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest]
+            [tool.testrunner]
             test_override_list = ["tests"]
             """
         )
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("test_override_list", "Test override list", type="args")
             """
         )
         # -o uses INI mode, so uses space-separated syntax.
-        config = pytester.parseconfig("-o", "test_override_list=tests integration")
+        config = testrunnerer.parseconfig("-o", "test_override_list=tests integration")
         assert config.getini("test_override_list") == ["tests", "integration"]
 
-    def test_conflict_between_native_and_ini_options(self, pytester: Pytester) -> None:
-        """Test that using both [tool.pytest] and [tool.pytest.ini_options] fails."""
-        pytester.makepyprojecttoml(
+    def test_conflict_between_native_and_ini_options(self, testrunnerer: Testrunnerer) -> None:
+        """Test that using both [tool.testrunner] and [tool.testrunner.ini_options] fails."""
+        testrunnerer.makepyprojecttoml(
             """
-            [tool.pytest]
+            [tool.testrunner]
             test_conflict_1 = true
 
-            [tool.pytest.ini_options]
+            [tool.testrunner.ini_options]
             test_conflict_2 = true
             """,
         )
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("test_conflict_1", "Test conflict config 1", type="bool")
                 parser.addini("test_conflict_2", "Test conflict config 2", type="bool")
             """
         )
-        with pytest.raises(UsageError, match="Cannot use both"):
-            pytester.parseconfig()
+        with testrunner.raises(UsageError, match="Cannot use both"):
+            testrunnerer.parseconfig()
 
-    def test_type_errors(self, pytester: Pytester) -> None:
+    def test_type_errors(self, testrunnerer: Testrunnerer) -> None:
         """Test all invalid-type cases in getini, reported as UsageError."""
-        pytester.maketoml(
+        testrunnerer.maketoml(
             """
-            [pytest]
+            [testrunner]
             paths_not_list = "should_be_list"
             paths_list_with_int = [1, 2]
 
@@ -3337,9 +3337,9 @@ class TestNativeTomlConfig:
             string_not_string = 123
             """
         )
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addini("paths_not_list", "test", type="paths")
                 parser.addini("paths_list_with_int", "test", type="paths")
                 parser.addini("args_not_list", "test", type="args")
@@ -3354,72 +3354,72 @@ class TestNativeTomlConfig:
                 parser.addini("string_not_string", "test", type="string")
             """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
 
-        with pytest.raises(
+        with testrunner.raises(
             UsageError, match=r"expects a list for type 'paths'.*got str"
         ):
             config.getini("paths_not_list")
 
-        with pytest.raises(
+        with testrunner.raises(
             UsageError, match=r"expects a list of strings.*item at index 0 is int"
         ):
             config.getini("paths_list_with_int")
 
-        with pytest.raises(
+        with testrunner.raises(
             UsageError, match=r"expects a list for type 'args'.*got int"
         ):
             config.getini("args_not_list")
 
-        with pytest.raises(
+        with testrunner.raises(
             UsageError, match=r"expects a list of strings.*item at index 1 is int"
         ):
             config.getini("args_list_with_int")
 
-        with pytest.raises(
+        with testrunner.raises(
             UsageError, match=r"expects a list for type 'linelist'.*got bool"
         ):
             config.getini("linelist_not_list")
 
-        with pytest.raises(
+        with testrunner.raises(
             UsageError, match=r"expects a list of strings.*item at index 1 is bool"
         ):
             config.getini("linelist_list_with_bool")
 
-        with pytest.raises(UsageError, match=r"expects a bool.*got str"):
+        with testrunner.raises(UsageError, match=r"expects a bool.*got str"):
             config.getini("bool_not_bool")
 
-        with pytest.raises(UsageError, match=r"expects an int.*got str"):
+        with testrunner.raises(UsageError, match=r"expects an int.*got str"):
             config.getini("int_not_int")
 
-        with pytest.raises(UsageError, match=r"expects an int.*got bool"):
+        with testrunner.raises(UsageError, match=r"expects an int.*got bool"):
             config.getini("int_is_bool")
 
-        with pytest.raises(UsageError, match=r"expects a float.*got str"):
+        with testrunner.raises(UsageError, match=r"expects a float.*got str"):
             config.getini("float_not_float")
 
-        with pytest.raises(UsageError, match=r"expects a float.*got bool"):
+        with testrunner.raises(UsageError, match=r"expects a float.*got bool"):
             config.getini("float_is_bool")
 
-        with pytest.raises(UsageError, match=r"expects a string.*got int"):
+        with testrunner.raises(UsageError, match=r"expects a string.*got int"):
             config.getini("string_not_string")
 
 
 class TestInicfgDeprecation:
     """Tests for the deprecation of config.inicfg."""
 
-    def test_inicfg_deprecated(self, pytester: Pytester) -> None:
+    def test_inicfg_deprecated(self, testrunnerer: Testrunnerer) -> None:
         """Test that accessing config.inicfg issues a deprecation warning."""
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             minversion = 3.0
             """
         )
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
 
-        with pytest.warns(
-            PytestDeprecationWarning, match=r"config\.inicfg is deprecated"
+        with testrunner.warns(
+            TestrunnerDeprecationWarning, match=r"config\.inicfg is deprecated"
         ):
             inicfg = config.inicfg  # type: ignore[deprecated]
 
@@ -3433,12 +3433,12 @@ class TestInicfgDeprecation:
         assert len(inicfg) == 1
 
     def test_issue_13946_setting_bool_no_longer_crashes(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """Regression test for #13946 - setting inicfg doesn't cause a crash."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
-            def pytest_configure(config):
+            def testrunner_configure(config):
                 config.inicfg["xfail_strict"] = True
 
             def test():
@@ -3446,63 +3446,63 @@ class TestInicfgDeprecation:
             """
         )
 
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.ret == 0
 
 
 class TestProgName:
     """Test program name display in help and error messages (issue #1764)."""
 
-    def test_get_prog_name_direct_pytest(self) -> None:
-        """When argv[0] is a pytest entry point, prog should be 'pytest'."""
-        assert _get_prog_name(["/usr/bin/pytest", "--help"]) == "pytest"
-        assert _get_prog_name(["pytest", "-v"]) == "pytest"
+    def test_get_prog_name_direct_testrunner(self) -> None:
+        """When argv[0] is a testrunner entry point, prog should be 'testrunner'."""
+        assert _get_prog_name(["/usr/bin/testrunner", "--help"]) == "testrunner"
+        assert _get_prog_name(["testrunner", "-v"]) == "testrunner"
 
-    def test_get_prog_name_python_m_pytest(self) -> None:
-        """When argv[0] is __main__.py, prog should be 'python -m pytest'."""
+    def test_get_prog_name_python_m_testrunner(self) -> None:
+        """When argv[0] is __main__.py, prog should be 'python -m testrunner'."""
         assert (
-            _get_prog_name(["/path/to/site-packages/pytest/__main__.py", "--help"])
-            == "python -m pytest"
+            _get_prog_name(["/path/to/site-packages/testrunner/__main__.py", "--help"])
+            == "python -m testrunner"
         )
-        assert _get_prog_name(["__main__.py", "-v"]) == "python -m pytest"
+        assert _get_prog_name(["__main__.py", "-v"]) == "python -m testrunner"
 
     def test_get_prog_name_empty_argv(self) -> None:
-        """When argv is empty, should default to 'pytest'."""
-        assert _get_prog_name([]) == "pytest"
+        """When argv is empty, should default to 'testrunner'."""
+        assert _get_prog_name([]) == "testrunner"
 
-    def test_prog_in_error_message_programmatic(self, pytester: Pytester) -> None:
-        """Error messages should show 'pytest.main()' when called programmatically.
+    def test_prog_in_error_message_programmatic(self, testrunnerer: Testrunnerer) -> None:
+        """Error messages should show 'testrunner.main()' when called programmatically.
 
-        runpytest_inprocess calls pytest.main() directly, so it should show
-        pytest.main() as the program name.
+        runtestrunner_inprocess calls testrunner.main() directly, so it should show
+        testrunner.main() as the program name.
         """
-        result = pytester.runpytest_inprocess("--invalid-option-xyz")
-        result.stderr.fnmatch_lines(["*pytest.main(): error:*invalid-option-xyz*"])
+        result = testrunnerer.runtestrunner_inprocess("--invalid-option-xyz")
+        result.stderr.fnmatch_lines(["*testrunner.main(): error:*invalid-option-xyz*"])
 
-    def test_prog_in_error_message_cli(self, pytester: Pytester) -> None:
-        """Error messages should show 'python -m pytest' when called from CLI subprocess.
+    def test_prog_in_error_message_cli(self, testrunnerer: Testrunnerer) -> None:
+        """Error messages should show 'python -m testrunner' when called from CLI subprocess.
 
-        runpytest_subprocess runs pytest via 'python -m pytest', so it should
-        show 'python -m pytest' as the program name.
+        runtestrunner_subprocess runs testrunner via 'python -m testrunner', so it should
+        show 'python -m testrunner' as the program name.
         """
-        result = pytester.runpytest_subprocess("--invalid-option-xyz")
-        result.stderr.fnmatch_lines(["*python -m pytest: error:*invalid-option-xyz*"])
+        result = testrunnerer.runtestrunner_subprocess("--invalid-option-xyz")
+        result.stderr.fnmatch_lines(["*python -m testrunner: error:*invalid-option-xyz*"])
 
-    def test_prog_in_usage_programmatic(self, pytester: Pytester) -> None:
-        """Usage line should show 'pytest.main()' when called programmatically."""
-        result = pytester.runpytest_inprocess("--help")
-        result.stdout.fnmatch_lines(["usage: pytest.main() *"])
+    def test_prog_in_usage_programmatic(self, testrunnerer: Testrunnerer) -> None:
+        """Usage line should show 'testrunner.main()' when called programmatically."""
+        result = testrunnerer.runtestrunner_inprocess("--help")
+        result.stdout.fnmatch_lines(["usage: testrunner.main() *"])
 
-    def test_prog_in_usage_cli(self, pytester: Pytester) -> None:
-        """Usage line should show 'python -m pytest' when called from CLI subprocess."""
-        result = pytester.runpytest_subprocess("--help")
-        result.stdout.fnmatch_lines(["usage: python -m pytest *"])
+    def test_prog_in_usage_cli(self, testrunnerer: Testrunnerer) -> None:
+        """Usage line should show 'python -m testrunner' when called from CLI subprocess."""
+        result = testrunnerer.runtestrunner_subprocess("--help")
+        result.stdout.fnmatch_lines(["usage: python -m testrunner *"])
 
-    def test_console_main_deprecated(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        """Calling pytest.console_main() should emit a deprecation warning."""
-        monkeypatch.setattr("_pytest.config._console_main", lambda: 0)
-        with pytest.warns(
-            pytest.PytestRemovedIn10Warning,
-            match="pytest.console_main.*is deprecated",
+    def test_console_main_deprecated(self, monkeypatch: testrunner.MonkeyPatch) -> None:
+        """Calling testrunner.console_main() should emit a deprecation warning."""
+        monkeypatch.setattr("_testrunner.config._console_main", lambda: 0)
+        with testrunner.warns(
+            testrunner.TestrunnerRemovedIn10Warning,
+            match="testrunner.console_main.*is deprecated",
         ):
             console_main()

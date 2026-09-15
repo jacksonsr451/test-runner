@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-@pytest.fixture
+@testrunner.fixture
 def order():
     return []
 
 
-@pytest.fixture
+@testrunner.fixture
 def outer(order, inner):
     order.append("outer")
 
 
 class TestOne:
-    @pytest.fixture
+    @testrunner.fixture
     def inner(self, order):
         order.append("one")
 
@@ -23,7 +23,7 @@ class TestOne:
 
 
 class TestTwo:
-    @pytest.fixture
+    @testrunner.fixture
     def inner(self, order):
         order.append("two")
 

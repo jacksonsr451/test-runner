@@ -2,5 +2,5 @@
 from __future__ import annotations
 
 
-def pytest_ignore_collect(collection_path):
+def testrunner_ignore_collect(collection_path):
     return False

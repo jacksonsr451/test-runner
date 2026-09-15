@@ -8,14 +8,14 @@ import sys
 
 from packaging.version import Version
 
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
 if sys.gettrace():
 
-    @pytest.fixture(autouse=True)
+    @testrunner.fixture(autouse=True)
     def restore_tracing():
         """Restore tracing function (when run with Coverage.py).
 
@@ -27,8 +27,8 @@ if sys.gettrace():
             sys.settrace(orig_trace)
 
 
-@pytest.fixture(autouse=True)
-def set_column_width(monkeypatch: pytest.MonkeyPatch) -> None:
+@testrunner.fixture(autouse=True)
+def set_column_width(monkeypatch: testrunner.MonkeyPatch) -> None:
     """
     Force terminal width to 80: some tests check the formatting of --help, which is sensible
     to terminal width.
@@ -36,10 +36,10 @@ def set_column_width(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("COLUMNS", "80")
 
 
-@pytest.fixture(autouse=True)
-def reset_colors(monkeypatch: pytest.MonkeyPatch) -> None:
+@testrunner.fixture(autouse=True)
+def reset_colors(monkeypatch: testrunner.MonkeyPatch) -> None:
     """
-    Reset all color-related variables to prevent them from affecting internal pytest output
+    Reset all color-related variables to prevent them from affecting internal testrunner output
     in tests that depend on it.
     """
     monkeypatch.delenv("PY_COLORS", raising=False)
@@ -47,8 +47,8 @@ def reset_colors(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.delenv("FORCE_COLOR", raising=False)
 
 
-@pytest.hookimpl(wrapper=True, tryfirst=True)
-def pytest_collection_modifyitems(items) -> Generator[None]:
+@testrunner.hookimpl(wrapper=True, tryfirst=True)
+def testrunner_collection_modifyitems(items) -> Generator[None]:
     """Prefer faster tests.
 
     Use a hook wrapper to do this in the beginning, so e.g. --ff still works
@@ -59,26 +59,26 @@ def pytest_collection_modifyitems(items) -> Generator[None]:
     slowest_items = []
     neutral_items = []
 
-    spawn_names = {"spawn_pytest", "spawn"}
+    spawn_names = {"spawn_testrunner", "spawn"}
 
     for item in items:
         try:
             fixtures = item.fixturenames
         except AttributeError:
             # doctest at least
-            # (https://github.com/pytest-dev/pytest/issues/5070)
+            # (https://github.com/jacksonsr451/test-runner/issues/5070)
             neutral_items.append(item)
         else:
-            if "pytester" in fixtures:
+            if "testrunnerer" in fixtures:
                 co_names = item.function.__code__.co_names
                 if spawn_names.intersection(co_names):
-                    item.add_marker(pytest.mark.uses_pexpect)
+                    item.add_marker(testrunner.mark.uses_pexpect)
                     slowest_items.append(item)
-                elif "runpytest_subprocess" in co_names:
+                elif "runtestrunner_subprocess" in co_names:
                     slowest_items.append(item)
                 else:
                     slow_items.append(item)
-                item.add_marker(pytest.mark.slow)
+                item.add_marker(testrunner.mark.slow)
             else:
                 marker = item.get_closest_marker("slow")
                 if marker:
@@ -91,7 +91,7 @@ def pytest_collection_modifyitems(items) -> Generator[None]:
     return (yield)
 
 
-@pytest.fixture
+@testrunner.fixture
 def tw_mock():
     """Returns a mock terminal writer"""
 
@@ -130,45 +130,45 @@ def tw_mock():
     return TWMock()
 
 
-@pytest.fixture
-def dummy_yaml_custom_test(pytester: Pytester) -> None:
+@testrunner.fixture
+def dummy_yaml_custom_test(testrunnerer: Testrunnerer) -> None:
     """Writes a conftest file that collects and executes a dummy yaml test.
 
     Taken from the docs, but stripped down to the bare minimum, useful for
     tests which needs custom items collected.
     """
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-        import pytest
+        import testrunner
 
-        def pytest_collect_file(parent, file_path):
+        def testrunner_collect_file(parent, file_path):
             if file_path.suffix == ".yaml" and file_path.name.startswith("test"):
                 return YamlFile.from_parent(path=file_path, parent=parent)
 
-        class YamlFile(pytest.File):
+        class YamlFile(testrunner.File):
             def collect(self):
                 yield YamlItem.from_parent(name=self.path.name, parent=self)
 
-        class YamlItem(pytest.Item):
+        class YamlItem(testrunner.Item):
             def runtest(self):
                 pass
     """
     )
-    pytester.makefile(".yaml", test1="")
+    testrunnerer.makefile(".yaml", test1="")
 
 
-@pytest.fixture
-def pytester(pytester: Pytester, monkeypatch: MonkeyPatch) -> Pytester:
-    monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
-    return pytester
+@testrunner.fixture
+def testrunnerer(testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> Testrunnerer:
+    monkeypatch.setenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", "1")
+    return testrunnerer
 
 
-@pytest.fixture(scope="session")
+@testrunner.fixture(scope="session")
 def color_mapping():
     """Returns a utility class which can replace keys in strings in the form "{NAME}"
     by their equivalent ASCII codes in the terminal.
 
-    Used by tests which check the actual colors output by pytest.
+    Used by tests which check the actual colors output by testrunner.
     """
     # https://github.com/pygments/pygments/commit/d24e272894a56a98b1b718d9ac5fabc20124882a
     pygments_version = Version(importlib.metadata.version("pygments"))
@@ -219,31 +219,31 @@ def color_mapping():
     return ColorMapping
 
 
-@pytest.fixture
+@testrunner.fixture
 def mock_timing(monkeypatch: MonkeyPatch):
-    """Mocks _pytest.timing with a known object that can be used to control timing in tests
+    """Mocks _testrunner.timing with a known object that can be used to control timing in tests
     deterministically.
 
-    pytest itself should always use functions from `_pytest.timing` instead of `time` directly.
+    testrunner itself should always use functions from `_testrunner.timing` instead of `time` directly.
 
     This then allows us more control over time during testing, if testing code also
-    uses `_pytest.timing` functions.
+    uses `_testrunner.timing` functions.
 
     Time is static, and only advances through `sleep` calls, thus tests might sleep over large
     numbers and obtain accurate time() calls at the end, making tests reliable and instant.
     """
-    from _pytest.timing import MockTiming
+    from _testrunner.timing import MockTiming
 
     result = MockTiming()
     result.patch(monkeypatch)
     return result
 
 
-@pytest.fixture(autouse=True)
-def remove_ci_env_var(monkeypatch: MonkeyPatch, request: pytest.FixtureRequest) -> None:
+@testrunner.fixture(autouse=True)
+def remove_ci_env_var(monkeypatch: MonkeyPatch, request: testrunner.FixtureRequest) -> None:
     """Make the test insensitive if it is running in CI or not.
 
-    Use `@pytest.mark.keep_ci_var` in a test to avoid applying this fixture, letting the test
+    Use `@testrunner.mark.keep_ci_var` in a test to avoid applying this fixture, letting the test
     see the real `CI` variable (if present).
     """
     has_keep_ci_mark = request.node.get_closest_marker("keep_ci_var") is not None

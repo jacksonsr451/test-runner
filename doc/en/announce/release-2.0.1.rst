@@ -1,16 +1,16 @@
-py.test 2.0.1: bug fixes
+testrunner 2.0.1: bug fixes
 ===========================================================================
 
-Welcome to pytest-2.0.1, a maintenance and bug fix release of pytest,
+Welcome to testrunner-2.0.1, a maintenance and bug fix release of testrunner,
 a mature testing tool for Python, supporting CPython 2.4-3.2, Jython
 and latest PyPy interpreters.  See extensive docs with tested examples here:
 
-    http://pytest.org/
+    http://testrunner.org/
 
-If you want to install or upgrade pytest, just type one of::
+If you want to install or upgrade testrunner, just type one of::
 
-    pip install -U pytest # or
-    easy_install -U pytest
+    pip install -U testrunner # or
+    easy_install -U testrunner
 
 Many thanks to all issue reporters and people asking questions or
 complaining.  Particular thanks to Floris Bruynooghe and Ronny Pfannschmidt
@@ -40,11 +40,11 @@ Changes between 2.0.0 and 2.0.1
 - improve behaviour/warnings when running on top of "python -OO"
   (assertions and docstrings are turned off, leading to potential
   false positives)
-- introduce a pytest_cmdline_processargs(args) hook
+- introduce a testrunner_cmdline_processargs(args) hook
   to allow dynamic computation of command line arguments.
-  This fixes a regression because py.test prior to 2.0
+  This fixes a regression because testrunner prior to 2.0
   allowed to set command line options from conftest.py
-  files which so far pytest-2.0 only allowed from ini-files now.
+  files which so far testrunner-2.0 only allowed from ini-files now.
 - fix issue7: assert failures in doctest modules.
   unexpected failures in doctests will not generally
   show nicer, i.e. within the doctest failing context.
@@ -57,11 +57,11 @@ Changes between 2.0.0 and 2.0.1
 - refinements to "collecting" output on non-ttys
 - refine internal plugin registration and --traceconfig output
 - introduce a mechanism to prevent/unregister plugins from the
-  command line, see http://pytest.org/en/stable/how-to/plugins.html#cmdunregister
+  command line, see http://testrunner.org/en/stable/how-to/plugins.html#cmdunregister
 - activate resultlog plugin by default
 - fix regression wrt yielded tests which due to the
   collection-before-running semantics were not
-  setup as with pytest 1.3.4.  Note, however, that
+  setup as with testrunner 1.3.4.  Note, however, that
   the recommended and much cleaner way to do test
-  parametrization remains the "pytest_generate_tests"
+  parametrization remains the "testrunner_generate_tests"
   mechanism, see the docs.

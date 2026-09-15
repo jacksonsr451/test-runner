@@ -1,7 +1,7 @@
-pytest-2.6.0: shorter tracebacks, new warning system, test runner compat
+testrunner-2.6.0: shorter tracebacks, new warning system, test runner compat
 ===========================================================================
 
-pytest is a mature Python testing tool with more than 1000 tests
+testrunner is a mature Python testing tool with more than 1000 tests
 against itself, passing on many different interpreters and platforms.
 
 The 2.6.0 release should be drop-in backward compatible to 2.5.2 and
@@ -21,16 +21,16 @@ fixes a number of bugs and brings some new features, mainly:
 Note also that 2.6.0 departs with the "zero reported bugs" policy
 because it has been too hard to keep up with it, unfortunately.
 Instead we are for now rather bound to work on "upvoted" issues in
-the https://bitbucket.org/pytest-dev/pytest/issues?status=new&status=open&sort=-votes
+the https://bitbucket.org/jacksonsr451/test-runner/issues?status=new&status=open&sort=-votes
 issue tracker.
 
 See docs at:
 
-    http://pytest.org
+    http://testrunner.org
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed, among them:
 
@@ -66,7 +66,7 @@ holger krekel
   positional argument in order to run only a single test.
 
 - fix issue 475: fail early and comprehensible if calling
-  pytest.raises with wrong exception type.
+  testrunner.raises with wrong exception type.
 
 - fix issue516: tell in getting-started about current dependencies.
 
@@ -82,12 +82,12 @@ holger krekel
 - fix issue498: if a fixture finalizer fails, make sure that
   the fixture is still invalidated.
 
-- fix issue453: the result of the pytest_assertrepr_compare hook now gets
+- fix issue453: the result of the testrunner_assertrepr_compare hook now gets
   it's newlines escaped so that format_exception does not blow up.
 
-- internal new warning system: pytest will now produce warnings when
+- internal new warning system: testrunner will now produce warnings when
   it detects oddities in your test collection or execution.
-  Warnings are ultimately sent to a new pytest_logwarning hook which is
+  Warnings are ultimately sent to a new testrunner_logwarning hook which is
   currently only implemented by the terminal plugin which displays
   warnings in the summary line and shows more details when -rw (report on
   warnings) is specified.
@@ -104,10 +104,10 @@ holger krekel
   during collection/loading of test modules.  Thanks to Marc Schlaich
   for the complete PR.
 
-- fix issue490: include pytest_load_initial_conftests in documentation
+- fix issue490: include testrunner_load_initial_conftests in documentation
   and improve docstring.
 
-- fix issue472: clarify that ``pytest.config.getvalue()`` cannot work
+- fix issue472: clarify that ``testrunner.config.getvalue()`` cannot work
   if it's triggered ahead of command line parsing.
 
 - merge PR123: improved integration with mock.patch decorator on tests.
@@ -117,15 +117,15 @@ holger krekel
 
 - fix issue483: trial/py33 works now properly.  Thanks Daniel Grana for PR.
 
-- improve example for pytest integration with "python setup.py test"
-  which now has a generic "-a" or "--pytest-args" option where you
+- improve example for testrunner integration with "python setup.py test"
+  which now has a generic "-a" or "--testrunner-args" option where you
   can pass additional options as a quoted string.  Thanks Trevor Bekolay.
 
 - simplified internal capturing mechanism and made it more robust
   against tests or setups changing FD1/FD2, also better integrated
-  now with pytest.pdb() in single tests.
+  now with testrunner.pdb() in single tests.
 
-- improvements to pytest's own test-suite leakage detection, courtesy of PRs
+- improvements to testrunner's own test-suite leakage detection, courtesy of PRs
   from Marc Abramowitz
 
 - fix issue492: avoid leak in test_writeorg.  Thanks Marc Abramowitz.
@@ -150,4 +150,4 @@ holger krekel
 - fix issue512: show "<notset>" for arguments which might not be set
   in monkeypatch plugin.  Improves output in documentation.
 
-- avoid importing "py.test" (an old alias module for "pytest")
+- avoid importing "testrunner" (an old alias module for "testrunner")

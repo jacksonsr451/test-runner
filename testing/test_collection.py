@@ -11,17 +11,17 @@ import sys
 import tempfile
 import textwrap
 
-from _pytest.compat import running_on_ci
-from _pytest.config import ExitCode
-from _pytest.fixtures import FixtureRequest
-from _pytest.main import _in_venv
-from _pytest.main import Session
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.nodes import Item
-from _pytest.pathlib import symlink_or_skip
-from _pytest.pytester import HookRecorder
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.compat import running_on_ci
+from _testrunner.config import ExitCode
+from _testrunner.fixtures import FixtureRequest
+from _testrunner.main import _in_venv
+from _testrunner.main import Session
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.nodes import Item
+from _testrunner.pathlib import symlink_or_skip
+from _testrunner.testrunnerer import HookRecorder
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
 def ensure_file(file_path: Path) -> Path:
@@ -33,96 +33,96 @@ def ensure_file(file_path: Path) -> Path:
 
 class TestCollector:
     def test_collect_versus_item(self) -> None:
-        from pytest import Collector
-        from pytest import Item
+        from testrunner import Collector
+        from testrunner import Item
 
         assert not issubclass(Collector, Item)
         assert not issubclass(Item, Collector)
 
-    def test_check_equality(self, pytester: Pytester) -> None:
-        modcol = pytester.getmodulecol(
+    def test_check_equality(self, testrunnerer: Testrunnerer) -> None:
+        modcol = testrunnerer.getmodulecol(
             """
             def test_pass(): pass
             def test_fail(): assert 0
         """
         )
-        fn1 = pytester.collect_by_name(modcol, "test_pass")
-        assert isinstance(fn1, pytest.Function)
-        fn2 = pytester.collect_by_name(modcol, "test_pass")
-        assert isinstance(fn2, pytest.Function)
+        fn1 = testrunnerer.collect_by_name(modcol, "test_pass")
+        assert isinstance(fn1, testrunner.Function)
+        fn2 = testrunnerer.collect_by_name(modcol, "test_pass")
+        assert isinstance(fn2, testrunner.Function)
 
         assert fn1 == fn2
         assert fn1 != modcol
         assert hash(fn1) == hash(fn2)
 
-        fn3 = pytester.collect_by_name(modcol, "test_fail")
-        assert isinstance(fn3, pytest.Function)
+        fn3 = testrunnerer.collect_by_name(modcol, "test_fail")
+        assert isinstance(fn3, testrunner.Function)
         assert not (fn1 == fn3)
         assert fn1 != fn3
 
         for fn in fn1, fn2, fn3:
-            assert isinstance(fn, pytest.Function)
+            assert isinstance(fn, testrunner.Function)
             assert fn != 3  # type: ignore[comparison-overlap]
             assert fn != modcol
             assert fn != [1, 2, 3]  # type: ignore[comparison-overlap]
             assert [1, 2, 3] != fn  # type: ignore[comparison-overlap]
             assert modcol != fn
 
-        assert pytester.collect_by_name(modcol, "doesnotexist") is None
+        assert testrunnerer.collect_by_name(modcol, "doesnotexist") is None
 
-    def test_getparent_and_accessors(self, pytester: Pytester) -> None:
-        modcol = pytester.getmodulecol(
+    def test_getparent_and_accessors(self, testrunnerer: Testrunnerer) -> None:
+        modcol = testrunnerer.getmodulecol(
             """
             class TestClass:
                  def test_foo(self):
                      pass
         """
         )
-        cls = pytester.collect_by_name(modcol, "TestClass")
-        assert isinstance(cls, pytest.Class)
-        fn = pytester.collect_by_name(cls, "test_foo")
-        assert isinstance(fn, pytest.Function)
+        cls = testrunnerer.collect_by_name(modcol, "TestClass")
+        assert isinstance(cls, testrunner.Class)
+        fn = testrunnerer.collect_by_name(cls, "test_foo")
+        assert isinstance(fn, testrunner.Function)
 
-        assert fn.getparent(pytest.Module) is modcol
+        assert fn.getparent(testrunner.Module) is modcol
         assert modcol is not None
         assert modcol.module is not None
         assert modcol.cls is None
         assert modcol.instance is None
 
-        assert fn.getparent(pytest.Class) is cls
+        assert fn.getparent(testrunner.Class) is cls
         assert cls.module is not None
         assert cls.cls is not None
         assert cls.instance is None
 
-        assert fn.getparent(pytest.Function) is fn
+        assert fn.getparent(testrunner.Function) is fn
         assert fn.module is not None
         assert fn.cls is not None
         assert fn.instance is not None
         assert fn.function is not None
 
-    def test_getcustomfile_roundtrip(self, pytester: Pytester) -> None:
-        hello = pytester.makefile(".xxx", hello="world")
-        pytester.makepyfile(
+    def test_getcustomfile_roundtrip(self, testrunnerer: Testrunnerer) -> None:
+        hello = testrunnerer.makefile(".xxx", hello="world")
+        testrunnerer.makepyfile(
             conftest="""
-            import pytest
-            class CustomFile(pytest.File):
+            import testrunner
+            class CustomFile(testrunner.File):
                 def collect(self):
                     return []
-            def pytest_collect_file(file_path, parent):
+            def testrunner_collect_file(file_path, parent):
                 if file_path.suffix == ".xxx":
                     return CustomFile.from_parent(path=file_path, parent=parent)
         """
         )
-        node = pytester.getpathnode(hello)
-        assert isinstance(node, pytest.File)
+        node = testrunnerer.getpathnode(hello)
+        assert isinstance(node, testrunner.File)
         assert node.name == "hello.xxx"
         nodes = node.session.perform_collect([node.nodeid], genitems=False)
         assert len(nodes) == 1
-        assert isinstance(nodes[0], pytest.File)
+        assert isinstance(nodes[0], testrunner.File)
 
-    def test_can_skip_class_with_test_attr(self, pytester: Pytester) -> None:
+    def test_can_skip_class_with_test_attr(self, testrunnerer: Testrunnerer) -> None:
         """Assure test class is skipped when using `__test__=False` (See #2007)."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             class TestFoo(object):
                 __test__ = False
@@ -132,13 +132,13 @@ class TestCollector:
                     assert True
         """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["collected 0 items", "*no tests ran in*"])
 
 
 class TestCollectFS:
-    def test_ignored_certain_directories(self, pytester: Pytester) -> None:
-        tmp_path = pytester.path
+    def test_ignored_certain_directories(self, testrunnerer: Testrunnerer) -> None:
+        tmp_path = testrunnerer.path
         ensure_file(tmp_path / "build" / "test_notfound.py")
         ensure_file(tmp_path / "dist" / "test_notfound.py")
         ensure_file(tmp_path / "_darcs" / "test_notfound.py")
@@ -150,67 +150,67 @@ class TestCollectFS:
         for x in tmp_path.rglob("test_*.py"):
             x.write_text("def test_hello(): pass", encoding="utf-8")
 
-        result = pytester.runpytest("--collect-only")
+        result = testrunnerer.runtestrunner("--collect-only")
         s = result.stdout.str()
         assert "test_notfound" not in s
         assert "test_found" in s
 
-    known_environment_types = pytest.mark.parametrize(
+    known_environment_types = testrunner.mark.parametrize(
         "env_path",
         [
-            pytest.param(PurePath("pyvenv.cfg"), id="venv"),
-            pytest.param(PurePath("conda-meta", "history"), id="conda"),
+            testrunner.param(PurePath("pyvenv.cfg"), id="venv"),
+            testrunner.param(PurePath("conda-meta", "history"), id="conda"),
         ],
     )
 
     @known_environment_types
-    def test_ignored_virtualenvs(self, pytester: Pytester, env_path: PurePath) -> None:
-        ensure_file(pytester.path / "virtual" / env_path)
-        testfile = ensure_file(pytester.path / "virtual" / "test_invenv.py")
+    def test_ignored_virtualenvs(self, testrunnerer: Testrunnerer, env_path: PurePath) -> None:
+        ensure_file(testrunnerer.path / "virtual" / env_path)
+        testfile = ensure_file(testrunnerer.path / "virtual" / "test_invenv.py")
         testfile.write_text("def test_hello(): pass", encoding="utf-8")
 
         # by default, ignore tests inside a virtualenv
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.no_fnmatch_line("*test_invenv*")
         # allow test collection if user insists
-        result = pytester.runpytest("--collect-in-virtualenv")
+        result = testrunnerer.runtestrunner("--collect-in-virtualenv")
         assert "test_invenv" in result.stdout.str()
         # allow test collection if user directly passes in the directory
-        result = pytester.runpytest("virtual")
+        result = testrunnerer.runtestrunner("virtual")
         assert "test_invenv" in result.stdout.str()
 
     @known_environment_types
     def test_ignored_virtualenvs_norecursedirs_precedence(
-        self, pytester: Pytester, env_path
+        self, testrunnerer: Testrunnerer, env_path
     ) -> None:
         # norecursedirs takes priority
-        ensure_file(pytester.path / ".virtual" / env_path)
-        testfile = ensure_file(pytester.path / ".virtual" / "test_invenv.py")
+        ensure_file(testrunnerer.path / ".virtual" / env_path)
+        testfile = ensure_file(testrunnerer.path / ".virtual" / "test_invenv.py")
         testfile.write_text("def test_hello(): pass", encoding="utf-8")
-        result = pytester.runpytest("--collect-in-virtualenv")
+        result = testrunnerer.runtestrunner("--collect-in-virtualenv")
         result.stdout.no_fnmatch_line("*test_invenv*")
         # ...unless the virtualenv is explicitly given on the CLI
-        result = pytester.runpytest("--collect-in-virtualenv", ".virtual")
+        result = testrunnerer.runtestrunner("--collect-in-virtualenv", ".virtual")
         assert "test_invenv" in result.stdout.str()
 
     @known_environment_types
-    def test__in_venv(self, pytester: Pytester, env_path: PurePath) -> None:
+    def test__in_venv(self, testrunnerer: Testrunnerer, env_path: PurePath) -> None:
         """Directly test the virtual env detection function"""
         # no env path, not a env
-        base_path = pytester.mkdir("venv")
+        base_path = testrunnerer.mkdir("venv")
         assert _in_venv(base_path) is False
         # with env path, totally a env
         ensure_file(base_path.joinpath(env_path))
         assert _in_venv(base_path) is True
 
-    def test_custom_norecursedirs(self, pytester: Pytester) -> None:
-        pytester.makeini(
+    def test_custom_norecursedirs(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             norecursedirs = mydir xyz*
         """
         )
-        tmp_path = pytester.path
+        tmp_path = testrunnerer.path
         ensure_file(tmp_path / "mydir" / "test_hello.py").write_text(
             "def test_1(): pass", encoding="utf-8"
         )
@@ -220,19 +220,19 @@ class TestCollectFS:
         ensure_file(tmp_path / "xy" / "test_ok.py").write_text(
             "def test_3(): pass", encoding="utf-8"
         )
-        rec = pytester.inline_run()
+        rec = testrunnerer.inline_run()
         rec.assertoutcome(passed=1)
-        rec = pytester.inline_run("xyz123/test_2.py")
+        rec = testrunnerer.inline_run("xyz123/test_2.py")
         rec.assertoutcome(failed=1)
 
-    def test_testpaths_ini(self, pytester: Pytester, monkeypatch: MonkeyPatch) -> None:
-        pytester.makeini(
+    def test_testpaths_ini(self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             testpaths = */tests
         """
         )
-        tmp_path = pytester.path
+        tmp_path = testrunnerer.path
         ensure_file(tmp_path / "a" / "test_1.py").write_text(
             "def test_a(): pass", encoding="utf-8"
         )
@@ -245,32 +245,32 @@ class TestCollectFS:
 
         # executing from rootdir only tests from `testpaths` directories
         # are collected
-        items, _reprec = pytester.inline_genitems("-v")
+        items, _reprec = testrunnerer.inline_genitems("-v")
         assert [x.name for x in items] == ["test_b", "test_c"]
 
         # check that explicitly passing directories in the command-line
         # collects the tests
         for dirname in ("a", "b", "c"):
-            items, _reprec = pytester.inline_genitems(tmp_path.joinpath(dirname))
+            items, _reprec = testrunnerer.inline_genitems(tmp_path.joinpath(dirname))
             assert [x.name for x in items] == [f"test_{dirname}"]
 
-        # changing cwd to each subdirectory and running pytest without
+        # changing cwd to each subdirectory and running testrunner without
         # arguments collects the tests in that directory normally
         for dirname in ("a", "b", "c"):
-            monkeypatch.chdir(pytester.path.joinpath(dirname))
-            items, _reprec = pytester.inline_genitems()
+            monkeypatch.chdir(testrunnerer.path.joinpath(dirname))
+            items, _reprec = testrunnerer.inline_genitems()
             assert [x.name for x in items] == [f"test_{dirname}"]
 
     def test_missing_permissions_on_unselected_directory_doesnt_crash(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """Regression test for #12120."""
-        test = pytester.makepyfile(test="def test(): pass")
-        bad = pytester.mkdir("bad")
+        test = testrunnerer.makepyfile(test="def test(): pass")
+        bad = testrunnerer.mkdir("bad")
         try:
             bad.chmod(0)
 
-            result = pytester.runpytest(test)
+            result = testrunnerer.runtestrunner(test)
         finally:
             bad.chmod(750)
             bad.rmdir()
@@ -280,80 +280,80 @@ class TestCollectFS:
 
 
 class TestCollectPluginHookRelay:
-    def test_pytest_collect_file(self, pytester: Pytester) -> None:
+    def test_testrunner_collect_file(self, testrunnerer: Testrunnerer) -> None:
         wascalled = []
 
         class Plugin:
-            def pytest_collect_file(self, file_path: Path) -> None:
+            def testrunner_collect_file(self, file_path: Path) -> None:
                 if not file_path.name.startswith("."):
                     # Ignore hidden files, e.g. .testmondata.
                     wascalled.append(file_path)
 
-        pytester.makefile(".abc", "xyz")
-        pytest.main(pytester.path, plugins=[Plugin()])
+        testrunnerer.makefile(".abc", "xyz")
+        testrunner.main(testrunnerer.path, plugins=[Plugin()])
         assert len(wascalled) == 1
         assert wascalled[0].suffix == ".abc"
 
 
 class TestPrunetraceback:
-    def test_custom_repr_failure(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_custom_repr_failure(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
             import not_exists
         """
         )
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            import pytest
-            def pytest_collect_file(file_path, parent):
+            import testrunner
+            def testrunner_collect_file(file_path, parent):
                 return MyFile.from_parent(path=file_path, parent=parent)
             class MyError(Exception):
                 pass
-            class MyFile(pytest.File):
+            class MyFile(testrunner.File):
                 def collect(self):
                     raise MyError()
                 def repr_failure(self, excinfo):
                     if isinstance(excinfo.value, MyError):
                         return "hello world"
-                    return pytest.File.repr_failure(self, excinfo)
+                    return testrunner.File.repr_failure(self, excinfo)
         """
         )
 
-        result = pytester.runpytest(p)
+        result = testrunnerer.runtestrunner(p)
         result.stdout.fnmatch_lines(["*ERROR collecting*", "*hello world*"])
 
-    @pytest.mark.xfail(reason="other mechanism for adding to reporting needed")
-    def test_collect_report_postprocessing(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    @testrunner.mark.xfail(reason="other mechanism for adding to reporting needed")
+    def test_collect_report_postprocessing(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
             import not_exists
         """
         )
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            import pytest
-            @pytest.hookimpl(wrapper=True)
-            def pytest_make_collect_report():
+            import testrunner
+            @testrunner.hookimpl(wrapper=True)
+            def testrunner_make_collect_report():
                 rep = yield
                 rep.headerlines += ["header1"]
                 return rep
         """
         )
-        result = pytester.runpytest(p)
+        result = testrunnerer.runtestrunner(p)
         result.stdout.fnmatch_lines(["*ERROR collecting*", "*header1*"])
 
-    def test_collection_error_traceback_is_clean(self, pytester: Pytester) -> None:
+    def test_collection_error_traceback_is_clean(self, testrunnerer: Testrunnerer) -> None:
         """When a collection error occurs, the report traceback doesn't contain
-        internal pytest stack entries.
+        internal testrunner stack entries.
 
         Issue #11710.
         """
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             raise Exception("LOUSY")
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [
                 "*ERROR collecting*",
@@ -367,39 +367,39 @@ class TestPrunetraceback:
 
 
 class TestCustomConftests:
-    def test_ignore_collect_path(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_ignore_collect_path(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_ignore_collect(collection_path, config):
+            def testrunner_ignore_collect(collection_path, config):
                 return collection_path.name.startswith("x") or collection_path.name == "test_one.py"
         """
         )
-        sub = pytester.mkdir("xy123")
+        sub = testrunnerer.mkdir("xy123")
         ensure_file(sub / "test_hello.py").write_text("syntax error", encoding="utf-8")
         sub.joinpath("conftest.py").write_text("syntax error", encoding="utf-8")
-        pytester.makepyfile("def test_hello(): pass")
-        pytester.makepyfile(test_one="syntax error")
-        result = pytester.runpytest("--fulltrace")
+        testrunnerer.makepyfile("def test_hello(): pass")
+        testrunnerer.makepyfile(test_one="syntax error")
+        result = testrunnerer.runtestrunner("--fulltrace")
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*1 passed*"])
 
-    def test_ignore_collect_not_called_on_argument(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_ignore_collect_not_called_on_argument(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_ignore_collect(collection_path, config):
+            def testrunner_ignore_collect(collection_path, config):
                 return True
         """
         )
-        p = pytester.makepyfile("def test_hello(): pass")
-        result = pytester.runpytest(p)
+        p = testrunnerer.makepyfile("def test_hello(): pass")
+        result = testrunnerer.runtestrunner(p)
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*1 passed*"])
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
         result.stdout.fnmatch_lines(["*collected 0 items*"])
 
-    def test_collectignore_exclude_on_option(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_collectignore_exclude_on_option(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
             from pathlib import Path
 
@@ -411,98 +411,98 @@ class TestCustomConftests:
 
             collect_ignore = [MyPathLike('hello'), 'test_world.py', Path('bye')]
 
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addoption("--XX", action="store_true", default=False)
 
-            def pytest_configure(config):
+            def testrunner_configure(config):
                 if config.getvalue("XX"):
                     collect_ignore[:] = []
         """
         )
-        pytester.mkdir("hello")
-        pytester.makepyfile(test_world="def test_hello(): pass")
-        result = pytester.runpytest()
+        testrunnerer.mkdir("hello")
+        testrunnerer.makepyfile(test_world="def test_hello(): pass")
+        result = testrunnerer.runtestrunner()
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
         result.stdout.no_fnmatch_line("*passed*")
-        result = pytester.runpytest("--XX")
+        result = testrunnerer.runtestrunner("--XX")
         assert result.ret == 0
         assert "passed" in result.stdout.str()
 
-    def test_collectignoreglob_exclude_on_option(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_collectignoreglob_exclude_on_option(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
             collect_ignore_glob = ['*w*l[dt]*']
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addoption("--XX", action="store_true", default=False)
-            def pytest_configure(config):
+            def testrunner_configure(config):
                 if config.getvalue("XX"):
                     collect_ignore_glob[:] = []
         """
         )
-        pytester.makepyfile(test_world="def test_hello(): pass")
-        pytester.makepyfile(test_welt="def test_hallo(): pass")
-        result = pytester.runpytest()
+        testrunnerer.makepyfile(test_world="def test_hello(): pass")
+        testrunnerer.makepyfile(test_welt="def test_hallo(): pass")
+        result = testrunnerer.runtestrunner()
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
         result.stdout.fnmatch_lines(["*collected 0 items*"])
-        result = pytester.runpytest("--XX")
+        result = testrunnerer.runtestrunner("--XX")
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*2 passed*"])
 
-    def test_pytest_fs_collect_hooks_are_seen(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_testrunner_fs_collect_hooks_are_seen(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            import pytest
-            class MyModule(pytest.Module):
+            import testrunner
+            class MyModule(testrunner.Module):
                 pass
-            def pytest_collect_file(file_path, parent):
+            def testrunner_collect_file(file_path, parent):
                 if file_path.suffix == ".py":
                     return MyModule.from_parent(path=file_path, parent=parent)
         """
         )
-        pytester.mkdir("sub")
-        pytester.makepyfile("def test_x(): pass")
-        result = pytester.runpytest("--co")
+        testrunnerer.mkdir("sub")
+        testrunnerer.makepyfile("def test_x(): pass")
+        result = testrunnerer.runtestrunner("--co")
         result.stdout.fnmatch_lines(["*MyModule*", "*test_x*"])
 
-    def test_pytest_collect_file_from_sister_dir(self, pytester: Pytester) -> None:
-        sub1 = pytester.mkpydir("sub1")
-        sub2 = pytester.mkpydir("sub2")
-        conf1 = pytester.makeconftest(
+    def test_testrunner_collect_file_from_sister_dir(self, testrunnerer: Testrunnerer) -> None:
+        sub1 = testrunnerer.mkpydir("sub1")
+        sub2 = testrunnerer.mkpydir("sub2")
+        conf1 = testrunnerer.makeconftest(
             """
-            import pytest
-            class MyModule1(pytest.Module):
+            import testrunner
+            class MyModule1(testrunner.Module):
                 pass
-            def pytest_collect_file(file_path, parent):
+            def testrunner_collect_file(file_path, parent):
                 if file_path.suffix == ".py":
                     return MyModule1.from_parent(path=file_path, parent=parent)
         """
         )
         conf1.replace(sub1.joinpath(conf1.name))
-        conf2 = pytester.makeconftest(
+        conf2 = testrunnerer.makeconftest(
             """
-            import pytest
-            class MyModule2(pytest.Module):
+            import testrunner
+            class MyModule2(testrunner.Module):
                 pass
-            def pytest_collect_file(file_path, parent):
+            def testrunner_collect_file(file_path, parent):
                 if file_path.suffix == ".py":
                     return MyModule2.from_parent(path=file_path, parent=parent)
         """
         )
         conf2.replace(sub2.joinpath(conf2.name))
-        p = pytester.makepyfile("def test_x(): pass")
+        p = testrunnerer.makepyfile("def test_x(): pass")
         shutil.copy(p, sub1.joinpath(p.name))
         shutil.copy(p, sub2.joinpath(p.name))
-        result = pytester.runpytest("--co")
+        result = testrunnerer.runtestrunner("--co")
         result.stdout.fnmatch_lines(["*MyModule1*", "*MyModule2*", "*test_x*"])
 
 
 class TestSession:
-    def test_collect_topdir(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile("def test_func(): pass")
+    def test_collect_topdir(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile("def test_func(): pass")
         id = "::".join([p.name, "test_func"])
         # XXX migrate to collectonly? (see below)
-        config = pytester.parseconfig(id)
-        topdir = pytester.path
+        config = testrunnerer.parseconfig(id)
+        topdir = testrunnerer.path
         rcol = Session.from_config(config)
         assert topdir == rcol.path
         # rootid = rcol.nodeid
@@ -513,40 +513,40 @@ class TestSession:
         assert colitems[0].path == topdir
 
     def get_reported_items(self, hookrec: HookRecorder) -> list[Item]:
-        """Return pytest.Item instances reported by the pytest_collectreport hook"""
-        calls = hookrec.getcalls("pytest_collectreport")
+        """Return testrunner.Item instances reported by the testrunner_collectreport hook"""
+        calls = hookrec.getcalls("testrunner_collectreport")
         return [
             x
             for call in calls
             for x in call.report.result
-            if isinstance(x, pytest.Item)
+            if isinstance(x, testrunner.Item)
         ]
 
-    def test_collect_protocol_single_function(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile("def test_func(): pass")
+    def test_collect_protocol_single_function(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile("def test_func(): pass")
         id = "::".join([p.name, "test_func"])
-        items, hookrec = pytester.inline_genitems(id)
+        items, hookrec = testrunnerer.inline_genitems(id)
         (item,) = items
         assert item.name == "test_func"
         newid = item.nodeid
         assert newid == id
         pprint.pprint(hookrec.calls)
-        topdir = pytester.path  # noqa: F841
+        topdir = testrunnerer.path  # noqa: F841
         hookrec.assert_contains(
             [
-                ("pytest_collectstart", "collector.path == topdir"),
-                ("pytest_make_collect_report", "collector.path == topdir"),
-                ("pytest_collectstart", "collector.path == p"),
-                ("pytest_make_collect_report", "collector.path == p"),
-                ("pytest_pycollect_makeitem", "name == 'test_func'"),
-                ("pytest_collectreport", "report.result[0].name == 'test_func'"),
+                ("testrunner_collectstart", "collector.path == topdir"),
+                ("testrunner_make_collect_report", "collector.path == topdir"),
+                ("testrunner_collectstart", "collector.path == p"),
+                ("testrunner_make_collect_report", "collector.path == p"),
+                ("testrunner_pycollect_makeitem", "name == 'test_func'"),
+                ("testrunner_collectreport", "report.result[0].name == 'test_func'"),
             ]
         )
         # ensure we are reporting the collection of the single test item (#2464)
         assert [x.name for x in self.get_reported_items(hookrec)] == ["test_func"]
 
-    def test_collect_protocol_method(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_collect_protocol_method(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
             class TestClass(object):
                 def test_method(self):
@@ -555,7 +555,7 @@ class TestSession:
         )
         normid = p.name + "::TestClass::test_method"
         for id in [p.name, p.name + "::TestClass", normid]:
-            items, hookrec = pytester.inline_genitems(id)
+            items, hookrec = testrunnerer.inline_genitems(id)
             assert len(items) == 1
             assert items[0].name == "test_method"
             newid = items[0].nodeid
@@ -563,62 +563,62 @@ class TestSession:
             # ensure we are reporting the collection of the single test item (#2464)
             assert [x.name for x in self.get_reported_items(hookrec)] == ["test_method"]
 
-    def test_collect_custom_nodes_multi_id(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile("def test_func(): pass")
-        pytester.makeconftest(
+    def test_collect_custom_nodes_multi_id(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile("def test_func(): pass")
+        testrunnerer.makeconftest(
             f"""
-            import pytest
-            class SpecialItem(pytest.Item):
+            import testrunner
+            class SpecialItem(testrunner.Item):
                 def runtest(self):
                     return # ok
-            class SpecialFile(pytest.File):
+            class SpecialFile(testrunner.File):
                 def collect(self):
                     return [SpecialItem.from_parent(name="check", parent=self)]
-            def pytest_collect_file(file_path, parent):
+            def testrunner_collect_file(file_path, parent):
                 if file_path.name == {p.name!r}:
                     return SpecialFile.from_parent(path=file_path, parent=parent)
         """
         )
         id = p.name
 
-        items, hookrec = pytester.inline_genitems(id)
+        items, hookrec = testrunnerer.inline_genitems(id)
         pprint.pprint(hookrec.calls)
         assert len(items) == 2
         hookrec.assert_contains(
             [
-                ("pytest_collectstart", "collector.path == collector.session.path"),
+                ("testrunner_collectstart", "collector.path == collector.session.path"),
                 (
-                    "pytest_collectstart",
+                    "testrunner_collectstart",
                     "collector.__class__.__name__ == 'SpecialFile'",
                 ),
-                ("pytest_collectstart", "collector.__class__.__name__ == 'Module'"),
-                ("pytest_pycollect_makeitem", "name == 'test_func'"),
-                ("pytest_collectreport", "report.nodeid.startswith(p.name)"),
+                ("testrunner_collectstart", "collector.__class__.__name__ == 'Module'"),
+                ("testrunner_pycollect_makeitem", "name == 'test_func'"),
+                ("testrunner_collectreport", "report.nodeid.startswith(p.name)"),
             ]
         )
         assert len(self.get_reported_items(hookrec)) == 2
 
-    def test_collect_subdir_event_ordering(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile("def test_func(): pass")
-        aaa = pytester.mkpydir("aaa")
+    def test_collect_subdir_event_ordering(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile("def test_func(): pass")
+        aaa = testrunnerer.mkpydir("aaa")
         test_aaa = aaa.joinpath("test_aaa.py")
         p.replace(test_aaa)
 
-        items, hookrec = pytester.inline_genitems()
+        items, hookrec = testrunnerer.inline_genitems()
         assert len(items) == 1
         pprint.pprint(hookrec.calls)
         hookrec.assert_contains(
             [
-                ("pytest_collectstart", "collector.path == test_aaa"),
-                ("pytest_pycollect_makeitem", "name == 'test_func'"),
-                ("pytest_collectreport", "report.nodeid.startswith('aaa/test_aaa.py')"),
+                ("testrunner_collectstart", "collector.path == test_aaa"),
+                ("testrunner_pycollect_makeitem", "name == 'test_func'"),
+                ("testrunner_collectreport", "report.nodeid.startswith('aaa/test_aaa.py')"),
             ]
         )
 
-    def test_collect_two_commandline_args(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile("def test_func(): pass")
-        aaa = pytester.mkpydir("aaa")
-        bbb = pytester.mkpydir("bbb")
+    def test_collect_two_commandline_args(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile("def test_func(): pass")
+        aaa = testrunnerer.mkpydir("aaa")
+        bbb = testrunnerer.mkpydir("bbb")
         test_aaa = aaa.joinpath("test_aaa.py")
         shutil.copy(p, test_aaa)
         test_bbb = bbb.joinpath("test_bbb.py")
@@ -626,32 +626,32 @@ class TestSession:
 
         id = "."
 
-        items, hookrec = pytester.inline_genitems(id)
+        items, hookrec = testrunnerer.inline_genitems(id)
         assert len(items) == 2
         pprint.pprint(hookrec.calls)
         hookrec.assert_contains(
             [
-                ("pytest_collectstart", "collector.path == test_aaa"),
-                ("pytest_pycollect_makeitem", "name == 'test_func'"),
-                ("pytest_collectreport", "report.nodeid == 'aaa/test_aaa.py'"),
-                ("pytest_collectstart", "collector.path == test_bbb"),
-                ("pytest_pycollect_makeitem", "name == 'test_func'"),
-                ("pytest_collectreport", "report.nodeid == 'bbb/test_bbb.py'"),
+                ("testrunner_collectstart", "collector.path == test_aaa"),
+                ("testrunner_pycollect_makeitem", "name == 'test_func'"),
+                ("testrunner_collectreport", "report.nodeid == 'aaa/test_aaa.py'"),
+                ("testrunner_collectstart", "collector.path == test_bbb"),
+                ("testrunner_pycollect_makeitem", "name == 'test_func'"),
+                ("testrunner_collectreport", "report.nodeid == 'bbb/test_bbb.py'"),
             ]
         )
 
-    def test_serialization_byid(self, pytester: Pytester) -> None:
-        pytester.makepyfile("def test_func(): pass")
-        items, _hookrec = pytester.inline_genitems()
+    def test_serialization_byid(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile("def test_func(): pass")
+        items, _hookrec = testrunnerer.inline_genitems()
         assert len(items) == 1
         (item,) = items
-        items2, _hookrec = pytester.inline_genitems(item.nodeid)
+        items2, _hookrec = testrunnerer.inline_genitems(item.nodeid)
         (item2,) = items2
         assert item2.name == item.name
         assert item2.path == item.path
 
-    def test_find_byid_without_instance_parents(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_find_byid_without_instance_parents(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
             class TestClass(object):
                 def test_method(self):
@@ -659,23 +659,23 @@ class TestSession:
         """
         )
         arg = p.name + "::TestClass::test_method"
-        items, hookrec = pytester.inline_genitems(arg)
+        items, hookrec = testrunnerer.inline_genitems(arg)
         assert len(items) == 1
         (item,) = items
         assert item.nodeid.endswith("TestClass::test_method")
         # ensure we are reporting the collection of the single test item (#2464)
         assert [x.name for x in self.get_reported_items(hookrec)] == ["test_method"]
 
-    def test_collect_parametrized_order(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_collect_parametrized_order(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
-            @pytest.mark.parametrize('i', [0, 1, 2])
+            @testrunner.mark.parametrize('i', [0, 1, 2])
             def test_param(i): ...
             """
         )
-        items, _hookrec = pytester.inline_genitems(f"{p}::test_param")
+        items, _hookrec = testrunnerer.inline_genitems(f"{p}::test_param")
         assert len(items) == 3
         assert [item.nodeid for item in items] == [
             "test_collect_parametrized_order.py::test_param[0]",
@@ -685,12 +685,12 @@ class TestSession:
 
 
 class Test_getinitialnodes:
-    def test_global_file(self, pytester: Pytester) -> None:
-        tmp_path = pytester.path
+    def test_global_file(self, testrunnerer: Testrunnerer) -> None:
+        tmp_path = testrunnerer.path
         x = ensure_file(tmp_path / "x.py")
-        config = pytester.parseconfigure(x)
-        col = pytester.getnode(config, x)
-        assert isinstance(col, pytest.Module)
+        config = testrunnerer.parseconfigure(x)
+        col = testrunnerer.getnode(config, x)
+        assert isinstance(col, testrunner.Module)
         assert col.name == "x.py"
         assert col.parent is not None
         assert col.parent.parent is not None
@@ -698,24 +698,24 @@ class Test_getinitialnodes:
         for parent in col.listchain():
             assert parent.config is config
 
-    def test_pkgfile(self, pytester: Pytester, monkeypatch: MonkeyPatch) -> None:
+    def test_pkgfile(self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
         """Verify nesting when a module is within a package.
         The parent chain should match: Module<x.py> -> Package<subdir> -> Session.
             Session's parent should always be None.
         """
-        tmp_path = pytester.path
+        tmp_path = testrunnerer.path
         subdir = tmp_path.joinpath("subdir")
         x = ensure_file(subdir / "x.py")
         ensure_file(subdir / "__init__.py")
         with monkeypatch.context() as mp:
             mp.chdir(subdir)
-            config = pytester.parseconfigure(x)
-        col = pytester.getnode(config, x)
+            config = testrunnerer.parseconfigure(x)
+        col = testrunnerer.getnode(config, x)
         assert col is not None
         assert col.name == "x.py"
-        assert isinstance(col, pytest.Module)
-        assert isinstance(col.parent, pytest.Package)
-        assert isinstance(col.parent.parent, pytest.Session)
+        assert isinstance(col, testrunner.Module)
+        assert isinstance(col.parent, testrunner.Package)
+        assert isinstance(col.parent.parent, testrunner.Session)
         # session is batman (has no parents)
         assert col.parent.parent.parent is None
         for parent in col.listchain():
@@ -723,8 +723,8 @@ class Test_getinitialnodes:
 
 
 class Test_genitems:
-    def test_check_collect_hashes(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_check_collect_hashes(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
             def test_1():
                 pass
@@ -734,7 +734,7 @@ class Test_genitems:
         """
         )
         shutil.copy(p, p.parent / (p.stem + "2" + ".py"))
-        items, _reprec = pytester.inline_genitems(p.parent)
+        items, _reprec = testrunnerer.inline_genitems(p.parent)
         assert len(items) == 4
         for numi, i in enumerate(items):
             for numj, j in enumerate(items):
@@ -742,10 +742,10 @@ class Test_genitems:
                     assert hash(i) != hash(j)
                     assert i != j
 
-    def test_example_items1(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_example_items1(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
             def testone():
                 pass
@@ -755,12 +755,12 @@ class Test_genitems:
                     pass
 
             class TestY(TestX):
-                @pytest.mark.parametrize("arg0", [".["])
+                @testrunner.mark.parametrize("arg0", [".["])
                 def testmethod_two(self, arg0):
                     pass
         """
         )
-        items, _reprec = pytester.inline_genitems(p)
+        items, _reprec = testrunnerer.inline_genitems(p)
         assert len(items) == 4
         assert items[0].name == "testone"
         assert items[1].name == "testmethod_one"
@@ -778,9 +778,9 @@ class Test_genitems:
         assert s.endswith("test_example_items1.testone")
         print(s)
 
-    def test_classmethod_is_discovered(self, pytester: Pytester) -> None:
+    def test_classmethod_is_discovered(self, testrunnerer: Testrunnerer) -> None:
         """Test that classmethods are discovered"""
-        p = pytester.makepyfile(
+        p = testrunnerer.makepyfile(
             """
             class TestCase:
                 @classmethod
@@ -788,21 +788,21 @@ class Test_genitems:
                     pass
             """
         )
-        items, _reprec = pytester.inline_genitems(p)
+        items, _reprec = testrunnerer.inline_genitems(p)
         ids = [x.getmodpath() for x in items]  # type: ignore[attr-defined]
         assert ids == ["TestCase.test_classmethod"]
 
-    def test_class_and_functions_discovery_using_glob(self, pytester: Pytester) -> None:
+    def test_class_and_functions_discovery_using_glob(self, testrunnerer: Testrunnerer) -> None:
         """Test that Python_classes and Python_functions config options work
         as prefixes and glob-like patterns (#600)."""
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             python_classes = *Suite Test
             python_functions = *_test test
         """
         )
-        p = pytester.makepyfile(
+        p = testrunnerer.makepyfile(
             """
             class MyTestSuite(object):
                 def x_test(self):
@@ -813,55 +813,55 @@ class Test_genitems:
                     pass
         """
         )
-        items, _reprec = pytester.inline_genitems(p)
+        items, _reprec = testrunnerer.inline_genitems(p)
         ids = [x.getmodpath() for x in items]  # type: ignore[attr-defined]
         assert ids == ["MyTestSuite.x_test", "TestCase.test_y"]
 
 
-def test_matchnodes_two_collections_same_file(pytester: Pytester) -> None:
-    pytester.makeconftest(
+def test_matchnodes_two_collections_same_file(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest(
         """
-        import pytest
-        def pytest_configure(config):
+        import testrunner
+        def testrunner_configure(config):
             config.pluginmanager.register(Plugin2())
 
         class Plugin2(object):
-            def pytest_collect_file(self, file_path, parent):
+            def testrunner_collect_file(self, file_path, parent):
                 if file_path.suffix == ".abc":
                     return MyFile2.from_parent(path=file_path, parent=parent)
 
-        def pytest_collect_file(file_path, parent):
+        def testrunner_collect_file(file_path, parent):
             if file_path.suffix == ".abc":
                 return MyFile1.from_parent(path=file_path, parent=parent)
 
-        class MyFile1(pytest.File):
+        class MyFile1(testrunner.File):
             def collect(self):
                 yield Item1.from_parent(name="item1", parent=self)
 
-        class MyFile2(pytest.File):
+        class MyFile2(testrunner.File):
             def collect(self):
                 yield Item2.from_parent(name="item2", parent=self)
 
-        class Item1(pytest.Item):
+        class Item1(testrunner.Item):
             def runtest(self):
                 pass
 
-        class Item2(pytest.Item):
+        class Item2(testrunner.Item):
             def runtest(self):
                 pass
     """
     )
-    p = pytester.makefile(".abc", "")
-    result = pytester.runpytest()
+    p = testrunnerer.makefile(".abc", "")
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
     result.stdout.fnmatch_lines(["*2 passed*"])
-    res = pytester.runpytest(f"{p.name}::item2")
+    res = testrunnerer.runtestrunner(f"{p.name}::item2")
     res.stdout.fnmatch_lines(["*1 passed*"])
 
 
 class TestNodeKeywords:
-    def test_no_under(self, pytester: Pytester) -> None:
-        modcol = pytester.getmodulecol(
+    def test_no_under(self, testrunnerer: Testrunnerer) -> None:
+        modcol = testrunnerer.getmodulecol(
             """
             def test_pass(): pass
             def test_fail(): assert 0
@@ -873,8 +873,8 @@ class TestNodeKeywords:
             assert not x.startswith("_")
         assert modcol.name in repr(modcol.keywords)
 
-    def test_issue345(self, pytester: Pytester) -> None:
-        pytester.makepyfile(
+    def test_issue345(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(
             """
             def test_should_not_be_selected():
                 assert False, 'I should not have been selected to run'
@@ -883,11 +883,11 @@ class TestNodeKeywords:
                 pass
         """
         )
-        reprec = pytester.inline_run("-k repr")
+        reprec = testrunnerer.inline_run("-k repr")
         reprec.assertoutcome(passed=1, failed=0)
 
     def test_keyword_matching_is_case_insensitive_by_default(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """Check that selection via -k EXPRESSION is case-insensitive.
 
@@ -895,9 +895,9 @@ class TestNodeKeywords:
         be matched without having to think about case sensitivity.
 
         """
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
             def test_sPeCiFiCToPiC_1():
                 assert True
@@ -906,11 +906,11 @@ class TestNodeKeywords:
                 def test(self):
                     assert True
 
-            @pytest.mark.sPeCiFiCToPic_3
+            @testrunner.mark.sPeCiFiCToPic_3
             def test():
                 assert True
 
-            @pytest.mark.sPeCiFiCToPic_4
+            @testrunner.mark.sPeCiFiCToPic_4
             class Test:
                 def test(self):
                     assert True
@@ -922,16 +922,16 @@ class TestNodeKeywords:
         )
         num_matching_tests = 4
         for expression in ("specifictopic", "SPECIFICTOPIC", "SpecificTopic"):
-            reprec = pytester.inline_run("-k " + expression)
+            reprec = testrunnerer.inline_run("-k " + expression)
             reprec.assertoutcome(passed=num_matching_tests, failed=0)
 
-    def test_duplicates_handled_correctly(self, pytester: Pytester) -> None:
-        item = pytester.getitem(
+    def test_duplicates_handled_correctly(self, testrunnerer: Testrunnerer) -> None:
+        item = testrunnerer.getitem(
             """
-            import pytest
-            pytestmark = pytest.mark.kw
+            import testrunner
+            _testrunner_mark = testrunner.mark.kw
             class TestClass:
-                pytestmark = pytest.mark.kw
+                _testrunner_mark = testrunner.mark.kw
                 def test_method(self): pass
                 test_method.kw = 'method'
         """,
@@ -943,74 +943,74 @@ class TestNodeKeywords:
         assert item.keywords["kw"] == "method"
         assert len(item.keywords) == len(set(item.keywords))
 
-    def test_unpacked_marks_added_to_keywords(self, pytester: Pytester) -> None:
-        item = pytester.getitem(
+    def test_unpacked_marks_added_to_keywords(self, testrunnerer: Testrunnerer) -> None:
+        item = testrunnerer.getitem(
             """
-            import pytest
-            pytestmark = pytest.mark.foo
+            import testrunner
+            _testrunner_mark = testrunner.mark.foo
             class TestClass:
-                pytestmark = pytest.mark.bar
+                _testrunner_mark = testrunner.mark.bar
                 def test_method(self): pass
-                test_method.pytestmark = pytest.mark.baz
+                test_method._testrunner_mark = testrunner.mark.baz
         """,
             "test_method",
         )
-        assert isinstance(item, pytest.Function)
-        cls = item.getparent(pytest.Class)
+        assert isinstance(item, testrunner.Function)
+        cls = item.getparent(testrunner.Class)
         assert cls is not None
-        mod = item.getparent(pytest.Module)
+        mod = item.getparent(testrunner.Module)
         assert mod is not None
 
-        assert item.keywords["foo"] == pytest.mark.foo.mark
-        assert item.keywords["bar"] == pytest.mark.bar.mark
-        assert item.keywords["baz"] == pytest.mark.baz.mark
+        assert item.keywords["foo"] == testrunner.mark.foo.mark
+        assert item.keywords["bar"] == testrunner.mark.bar.mark
+        assert item.keywords["baz"] == testrunner.mark.baz.mark
 
-        assert cls.keywords["foo"] == pytest.mark.foo.mark
-        assert cls.keywords["bar"] == pytest.mark.bar.mark
+        assert cls.keywords["foo"] == testrunner.mark.foo.mark
+        assert cls.keywords["bar"] == testrunner.mark.bar.mark
         assert "baz" not in cls.keywords
 
-        assert mod.keywords["foo"] == pytest.mark.foo.mark
+        assert mod.keywords["foo"] == testrunner.mark.foo.mark
         assert "bar" not in mod.keywords
         assert "baz" not in mod.keywords
 
 
 class TestCollectDirectoryHook:
-    def test_custom_directory_example(self, pytester: Pytester) -> None:
+    def test_custom_directory_example(self, testrunnerer: Testrunnerer) -> None:
         """Verify the example from the customdirectory.rst doc."""
-        pytester.copy_example("customdirectory")
+        testrunnerer.copy_example("customdirectory")
 
-        reprec = pytester.inline_run()
+        reprec = testrunnerer.inline_run()
 
         reprec.assertoutcome(passed=2, failed=0)
-        calls = reprec.getcalls("pytest_collect_directory")
+        calls = reprec.getcalls("testrunner_collect_directory")
         assert len(calls) == 2
-        assert calls[0].path == pytester.path
-        assert isinstance(calls[0].parent, pytest.Session)
-        assert calls[1].path == pytester.path / "tests"
-        assert isinstance(calls[1].parent, pytest.Dir)
+        assert calls[0].path == testrunnerer.path
+        assert isinstance(calls[0].parent, testrunner.Session)
+        assert calls[1].path == testrunnerer.path / "tests"
+        assert isinstance(calls[1].parent, testrunner.Dir)
 
-    def test_directory_ignored_if_none(self, pytester: Pytester) -> None:
+    def test_directory_ignored_if_none(self, testrunnerer: Testrunnerer) -> None:
         """If the (entire) hook returns None, it's OK, the directory is ignored."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            import pytest
+            import testrunner
 
-            @pytest.hookimpl(wrapper=True)
-            def pytest_collect_directory():
+            @testrunner.hookimpl(wrapper=True)
+            def testrunner_collect_directory():
                 yield
                 return None
             """,
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             **{
                 "tests/test_it.py": """
-                    import pytest
+                    import testrunner
 
                     def test_it(): pass
                 """,
             },
         )
-        reprec = pytester.inline_run()
+        reprec = testrunnerer.inline_run()
         reprec.assertoutcome(passed=0, failed=0)
 
 
@@ -1036,11 +1036,11 @@ COLLECTION_ERROR_PY_FILES = dict(
 )
 
 
-def test_exit_on_collection_error(pytester: Pytester) -> None:
+def test_exit_on_collection_error(testrunnerer: Testrunnerer) -> None:
     """Verify that all collection errors are collected and no tests executed"""
-    pytester.makepyfile(**COLLECTION_ERROR_PY_FILES)
+    testrunnerer.makepyfile(**COLLECTION_ERROR_PY_FILES)
 
-    res = pytester.runpytest()
+    res = testrunnerer.runtestrunner()
     assert res.ret == 2
 
     res.stdout.fnmatch_lines(
@@ -1055,15 +1055,15 @@ def test_exit_on_collection_error(pytester: Pytester) -> None:
 
 
 def test_exit_on_collection_with_maxfail_smaller_than_n_errors(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
     """
     Verify collection is aborted once maxfail errors are encountered ignoring
     further modules which would cause more collection errors.
     """
-    pytester.makepyfile(**COLLECTION_ERROR_PY_FILES)
+    testrunnerer.makepyfile(**COLLECTION_ERROR_PY_FILES)
 
-    res = pytester.runpytest("--maxfail=1")
+    res = testrunnerer.runtestrunner("--maxfail=1")
     assert res.ret == 1
     res.stdout.fnmatch_lines(
         [
@@ -1078,15 +1078,15 @@ def test_exit_on_collection_with_maxfail_smaller_than_n_errors(
 
 
 def test_exit_on_collection_with_maxfail_bigger_than_n_errors(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
     """
     Verify the test run aborts due to collection errors even if maxfail count of
     errors was not reached.
     """
-    pytester.makepyfile(**COLLECTION_ERROR_PY_FILES)
+    testrunnerer.makepyfile(**COLLECTION_ERROR_PY_FILES)
 
-    res = pytester.runpytest("--maxfail=4")
+    res = testrunnerer.runtestrunner("--maxfail=4")
     assert res.ret == 2
     res.stdout.fnmatch_lines(
         [
@@ -1101,14 +1101,14 @@ def test_exit_on_collection_with_maxfail_bigger_than_n_errors(
     )
 
 
-def test_continue_on_collection_errors(pytester: Pytester) -> None:
+def test_continue_on_collection_errors(testrunnerer: Testrunnerer) -> None:
     """
     Verify tests are executed even when collection errors occur when the
     --continue-on-collection-errors flag is set
     """
-    pytester.makepyfile(**COLLECTION_ERROR_PY_FILES)
+    testrunnerer.makepyfile(**COLLECTION_ERROR_PY_FILES)
 
-    res = pytester.runpytest("--continue-on-collection-errors")
+    res = testrunnerer.runtestrunner("--continue-on-collection-errors")
     assert res.ret == 1
 
     res.stdout.fnmatch_lines(
@@ -1116,7 +1116,7 @@ def test_continue_on_collection_errors(pytester: Pytester) -> None:
     )
 
 
-def test_continue_on_collection_errors_maxfail(pytester: Pytester) -> None:
+def test_continue_on_collection_errors_maxfail(testrunnerer: Testrunnerer) -> None:
     """
     Verify tests are executed even when collection errors occur and that maxfail
     is honoured (including the collection error count).
@@ -1124,22 +1124,22 @@ def test_continue_on_collection_errors_maxfail(pytester: Pytester) -> None:
     test_4 is never executed because the test run is with --maxfail=3 which
     means it is interrupted after the 2 collection errors + 1 failure.
     """
-    pytester.makepyfile(**COLLECTION_ERROR_PY_FILES)
+    testrunnerer.makepyfile(**COLLECTION_ERROR_PY_FILES)
 
-    res = pytester.runpytest("--continue-on-collection-errors", "--maxfail=3")
+    res = testrunnerer.runtestrunner("--continue-on-collection-errors", "--maxfail=3")
     assert res.ret == 1
 
     res.stdout.fnmatch_lines(["collected 2 items / 2 errors", "*1 failed, 2 errors*"])
 
 
-def test_fixture_scope_sibling_conftests(pytester: Pytester) -> None:
-    """Regression test case for https://github.com/pytest-dev/pytest/issues/2836"""
-    foo_path = pytester.mkdir("foo")
+def test_fixture_scope_sibling_conftests(testrunnerer: Testrunnerer) -> None:
+    """Regression test case for https://github.com/jacksonsr451/test-runner/issues/2836"""
+    foo_path = testrunnerer.mkdir("foo")
     foo_path.joinpath("conftest.py").write_text(
         textwrap.dedent(
             """\
-            import pytest
-            @pytest.fixture
+            import testrunner
+            @testrunner.fixture
             def fix():
                 return 1
             """
@@ -1151,12 +1151,12 @@ def test_fixture_scope_sibling_conftests(pytester: Pytester) -> None:
     )
 
     # Tests in `food/` should not see the conftest fixture from `foo/`
-    food_path = pytester.mkpydir("food")
+    food_path = testrunnerer.mkpydir("food")
     food_path.joinpath("test_food.py").write_text(
         "def test_food(fix): assert fix == 1", encoding="utf-8"
     )
 
-    res = pytester.runpytest()
+    res = testrunnerer.runtestrunner()
     assert res.ret == 1
 
     res.stdout.fnmatch_lines(
@@ -1168,10 +1168,10 @@ def test_fixture_scope_sibling_conftests(pytester: Pytester) -> None:
     )
 
 
-def test_collect_init_tests(pytester: Pytester) -> None:
+def test_collect_init_tests(testrunnerer: Testrunnerer) -> None:
     """Check that we collect files from __init__.py files when they patch the 'python_files' (#3773)"""
-    p = pytester.copy_example("collect/collect_init_tests")
-    result = pytester.runpytest(p, "--collect-only")
+    p = testrunnerer.copy_example("collect/collect_init_tests")
+    result = testrunnerer.runtestrunner(p, "--collect-only")
     result.stdout.fnmatch_lines(
         [
             "collected 2 items",
@@ -1183,7 +1183,7 @@ def test_collect_init_tests(pytester: Pytester) -> None:
             "      <Function test_foo>",
         ]
     )
-    result = pytester.runpytest("./tests", "--collect-only")
+    result = testrunnerer.runtestrunner("./tests", "--collect-only")
     result.stdout.fnmatch_lines(
         [
             "collected 2 items",
@@ -1196,7 +1196,7 @@ def test_collect_init_tests(pytester: Pytester) -> None:
         ]
     )
     # Ignores duplicates with "." and pkginit (#4310).
-    result = pytester.runpytest("./tests", ".", "--collect-only")
+    result = testrunnerer.runtestrunner("./tests", ".", "--collect-only")
     result.stdout.fnmatch_lines(
         [
             "collected 2 items",
@@ -1209,7 +1209,7 @@ def test_collect_init_tests(pytester: Pytester) -> None:
         ]
     )
     # Same as before, but different order.
-    result = pytester.runpytest(".", "tests", "--collect-only")
+    result = testrunnerer.runtestrunner(".", "tests", "--collect-only")
     result.stdout.fnmatch_lines(
         [
             "collected 2 items",
@@ -1221,7 +1221,7 @@ def test_collect_init_tests(pytester: Pytester) -> None:
             "      <Function test_foo>",
         ]
     )
-    result = pytester.runpytest("./tests/test_foo.py", "--collect-only")
+    result = testrunnerer.runtestrunner("./tests/test_foo.py", "--collect-only")
     result.stdout.fnmatch_lines(
         [
             "<Dir *>",
@@ -1231,7 +1231,7 @@ def test_collect_init_tests(pytester: Pytester) -> None:
         ]
     )
     result.stdout.no_fnmatch_line("*test_init*")
-    result = pytester.runpytest("./tests/__init__.py", "--collect-only")
+    result = testrunnerer.runtestrunner("./tests/__init__.py", "--collect-only")
     result.stdout.fnmatch_lines(
         [
             "<Dir *>",
@@ -1243,31 +1243,31 @@ def test_collect_init_tests(pytester: Pytester) -> None:
     result.stdout.no_fnmatch_line("*test_foo*")
 
 
-def test_collect_invalid_signature_message(pytester: Pytester) -> None:
+def test_collect_invalid_signature_message(testrunnerer: Testrunnerer) -> None:
     """Check that we issue a proper message when we can't determine the signature of a test
     function (#4026).
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
         class TestCase:
-            @pytest.fixture
+            @testrunner.fixture
             def fix():
                 pass
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         ["Could not determine arguments of *.fix *: invalid method signature"]
     )
 
 
-def test_collect_handles_raising_on_dunder_class(pytester: Pytester) -> None:
+def test_collect_handles_raising_on_dunder_class(testrunnerer: Testrunnerer) -> None:
     """Handle proxy classes like Django's LazySettings that might raise on
     ``isinstance`` (#4266).
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         class ImproperlyConfigured(Exception):
             pass
@@ -1285,14 +1285,14 @@ def test_collect_handles_raising_on_dunder_class(pytester: Pytester) -> None:
             pass
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.assert_outcomes(passed=1)
     assert result.ret == 0
 
 
-def test_collect_with_chdir_during_import(pytester: Pytester) -> None:
-    subdir = pytester.mkdir("sub")
-    pytester.path.joinpath("conftest.py").write_text(
+def test_collect_with_chdir_during_import(testrunnerer: Testrunnerer) -> None:
+    subdir = testrunnerer.mkdir("sub")
+    testrunnerer.path.joinpath("conftest.py").write_text(
         textwrap.dedent(
             f"""
             import os
@@ -1301,32 +1301,32 @@ def test_collect_with_chdir_during_import(pytester: Pytester) -> None:
         ),
         encoding="utf-8",
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         f"""
         def test_1():
             import os
             assert os.getcwd() == {str(subdir)!r}
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["*1 passed in*"])
     assert result.ret == 0
 
     # Handles relative testpaths.
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         testpaths = .
     """
     )
-    result = pytester.runpytest("--collect-only")
+    result = testrunnerer.runtestrunner("--collect-only")
     result.stdout.fnmatch_lines(["collected 1 item"])
 
 
 def test_collect_pyargs_with_testpaths(
-    pytester: Pytester, monkeypatch: MonkeyPatch
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
 ) -> None:
-    testmod = pytester.mkdir("testmod")
+    testmod = testrunnerer.mkdir("testmod")
     # NOTE: __init__.py is not collected since it does not match python_files.
     testmod.joinpath("__init__.py").write_text(
         "def test_func(): pass", encoding="utf-8"
@@ -1335,92 +1335,92 @@ def test_collect_pyargs_with_testpaths(
         "def test_func(): pass", encoding="utf-8"
     )
 
-    root = pytester.mkdir("root")
-    root.joinpath("pytest.ini").write_text(
+    root = testrunnerer.mkdir("root")
+    root.joinpath("testrunner.ini").write_text(
         textwrap.dedent(
             """
-        [pytest]
+        [testrunner]
         addopts = --pyargs
         testpaths = testmod
     """
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("PYTHONPATH", str(pytester.path), prepend=os.pathsep)
+    monkeypatch.setenv("PYTHONPATH", str(testrunnerer.path), prepend=os.pathsep)
     with monkeypatch.context() as mp:
         mp.chdir(root)
-        result = pytester.runpytest_subprocess()
+        result = testrunnerer.runtestrunner_subprocess()
     result.assert_outcomes(passed=1)
 
 
-def test_initial_conftests_with_testpaths(pytester: Pytester) -> None:
+def test_initial_conftests_with_testpaths(testrunnerer: Testrunnerer) -> None:
     """The testpaths config option should load conftests in those paths as 'initial' (#10987)."""
-    p = pytester.mkdir("some_path")
+    p = testrunnerer.mkdir("some_path")
     p.joinpath("conftest.py").write_text(
         textwrap.dedent(
             """
-            def pytest_sessionstart(session):
-                raise Exception("pytest_sessionstart hook successfully run")
+            def testrunner_sessionstart(session):
+                raise Exception("testrunner_sessionstart hook successfully run")
             """
         ),
         encoding="utf-8",
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         testpaths = some_path
         """
     )
 
     # No command line args - falls back to testpaths.
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == ExitCode.INTERNAL_ERROR
     result.stdout.fnmatch_lines(
-        "INTERNALERROR* Exception: pytest_sessionstart hook successfully run"
+        "INTERNALERROR* Exception: testrunner_sessionstart hook successfully run"
     )
 
     # No fallback.
-    result = pytester.runpytest(".")
+    result = testrunnerer.runtestrunner(".")
     assert result.ret == ExitCode.NO_TESTS_COLLECTED
 
 
-def test_large_option_breaks_initial_conftests(pytester: Pytester) -> None:
+def test_large_option_breaks_initial_conftests(testrunnerer: Testrunnerer) -> None:
     """Long option values do not break initial conftests handling (#10169)."""
     option_value = "x" * 1024 * 1000
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-        def pytest_addoption(parser):
+        def testrunner_addoption(parser):
             parser.addoption("--xx", default=None)
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         f"""
         def test_foo(request):
             assert request.config.getoption("xx") == {option_value!r}
         """
     )
-    result = pytester.runpytest(f"--xx={option_value}")
+    result = testrunnerer.runtestrunner(f"--xx={option_value}")
     assert result.ret == 0
 
 
-def test_collect_symlink_file_arg(pytester: Pytester) -> None:
+def test_collect_symlink_file_arg(testrunnerer: Testrunnerer) -> None:
     """Collect a direct symlink works even if it does not match python_files (#4325)."""
-    real = pytester.makepyfile(
+    real = testrunnerer.makepyfile(
         real="""
         def test_nodeid(request):
             assert request.node.nodeid == "symlink.py::test_nodeid"
         """
     )
-    symlink = pytester.path.joinpath("symlink.py")
+    symlink = testrunnerer.path.joinpath("symlink.py")
     symlink_or_skip(real, symlink)
-    result = pytester.runpytest("-v", symlink)
+    result = testrunnerer.runtestrunner("-v", symlink)
     result.stdout.fnmatch_lines(["symlink.py::test_nodeid PASSED*", "*1 passed in*"])
     assert result.ret == 0
 
 
-def test_collect_symlink_out_of_tree(pytester: Pytester) -> None:
+def test_collect_symlink_out_of_tree(testrunnerer: Testrunnerer) -> None:
     """Test collection of symlink via out-of-tree rootdir."""
-    sub = pytester.mkdir("sub")
+    sub = testrunnerer.mkdir("sub")
     real = sub.joinpath("test_real.py")
     real.write_text(
         textwrap.dedent(
@@ -1433,11 +1433,11 @@ def test_collect_symlink_out_of_tree(pytester: Pytester) -> None:
         encoding="utf-8",
     )
 
-    out_of_tree = pytester.mkdir("out_of_tree")
+    out_of_tree = testrunnerer.mkdir("out_of_tree")
     symlink_to_sub = out_of_tree.joinpath("symlink_to_sub")
     symlink_or_skip(sub, symlink_to_sub)
     os.chdir(sub)
-    result = pytester.runpytest("-vs", f"--rootdir={sub}", symlink_to_sub)
+    result = testrunnerer.runtestrunner("-vs", f"--rootdir={sub}", symlink_to_sub)
     result.stdout.fnmatch_lines(
         [
             # Should not contain "sub/"!
@@ -1447,18 +1447,18 @@ def test_collect_symlink_out_of_tree(pytester: Pytester) -> None:
     assert result.ret == 0
 
 
-def test_collect_symlink_dir(pytester: Pytester) -> None:
+def test_collect_symlink_dir(testrunnerer: Testrunnerer) -> None:
     """A symlinked directory is collected."""
-    dir = pytester.mkdir("dir")
+    dir = testrunnerer.mkdir("dir")
     dir.joinpath("test_it.py").write_text("def test_it(): pass", "utf-8")
-    symlink_or_skip(pytester.path.joinpath("symlink_dir"), dir)
-    result = pytester.runpytest()
+    symlink_or_skip(testrunnerer.path.joinpath("symlink_dir"), dir)
+    result = testrunnerer.runtestrunner()
     result.assert_outcomes(passed=2)
 
 
-def test_collectignore_via_conftest(pytester: Pytester) -> None:
+def test_collectignore_via_conftest(testrunnerer: Testrunnerer) -> None:
     """collect_ignore in parent conftest skips importing child (issue #4592)."""
-    tests = pytester.mkpydir("tests")
+    tests = testrunnerer.mkpydir("tests")
     tests.joinpath("conftest.py").write_text(
         "collect_ignore = ['ignore_me']", encoding="utf-8"
     )
@@ -1470,19 +1470,19 @@ def test_collectignore_via_conftest(pytester: Pytester) -> None:
         "assert 0, 'should_not_be_called'", encoding="utf-8"
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == ExitCode.NO_TESTS_COLLECTED
 
 
-def test_collect_pkg_init_and_file_in_args(pytester: Pytester) -> None:
-    subdir = pytester.mkdir("sub")
+def test_collect_pkg_init_and_file_in_args(testrunnerer: Testrunnerer) -> None:
+    subdir = testrunnerer.mkdir("sub")
     init = subdir.joinpath("__init__.py")
     init.write_text("def test_init(): pass", encoding="utf-8")
     p = subdir.joinpath("test_file.py")
     p.write_text("def test_file(): pass", encoding="utf-8")
 
     # Just the package directory, the __init__.py module is filtered out.
-    result = pytester.runpytest("-v", subdir)
+    result = testrunnerer.runtestrunner("-v", subdir)
     result.stdout.fnmatch_lines(
         [
             "sub/test_file.py::test_file PASSED*",
@@ -1491,7 +1491,7 @@ def test_collect_pkg_init_and_file_in_args(pytester: Pytester) -> None:
     )
 
     # But it's included if specified directly.
-    result = pytester.runpytest("-v", init, p)
+    result = testrunnerer.runtestrunner("-v", init, p)
     result.stdout.fnmatch_lines(
         [
             "sub/__init__.py::test_init PASSED*",
@@ -1501,7 +1501,7 @@ def test_collect_pkg_init_and_file_in_args(pytester: Pytester) -> None:
     )
 
     # Or if the pattern allows it.
-    result = pytester.runpytest("-v", "-o", "python_files=*.py", subdir)
+    result = testrunnerer.runtestrunner("-v", "-o", "python_files=*.py", subdir)
     result.stdout.fnmatch_lines(
         [
             "sub/__init__.py::test_init PASSED*",
@@ -1511,25 +1511,25 @@ def test_collect_pkg_init_and_file_in_args(pytester: Pytester) -> None:
     )
 
 
-def test_collect_pkg_init_only(pytester: Pytester) -> None:
-    subdir = pytester.mkdir("sub")
+def test_collect_pkg_init_only(testrunnerer: Testrunnerer) -> None:
+    subdir = testrunnerer.mkdir("sub")
     init = subdir.joinpath("__init__.py")
     init.write_text("def test_init(): pass", encoding="utf-8")
 
-    result = pytester.runpytest(subdir)
+    result = testrunnerer.runtestrunner(subdir)
     result.stdout.fnmatch_lines(["*no tests ran in*"])
 
-    result = pytester.runpytest("-v", init)
+    result = testrunnerer.runtestrunner("-v", init)
     result.stdout.fnmatch_lines(["sub/__init__.py::test_init PASSED*", "*1 passed in*"])
 
-    result = pytester.runpytest("-v", "-o", "python_files=*.py", subdir)
+    result = testrunnerer.runtestrunner("-v", "-o", "python_files=*.py", subdir)
     result.stdout.fnmatch_lines(["sub/__init__.py::test_init PASSED*", "*1 passed in*"])
 
 
-@pytest.mark.parametrize("use_pkg", (True, False))
-def test_collect_sub_with_symlinks(use_pkg: bool, pytester: Pytester) -> None:
+@testrunner.mark.parametrize("use_pkg", (True, False))
+def test_collect_sub_with_symlinks(use_pkg: bool, testrunnerer: Testrunnerer) -> None:
     """Collection works with symlinked files and broken symlinks"""
-    sub = pytester.mkdir("sub")
+    sub = testrunnerer.mkdir("sub")
     if use_pkg:
         sub.joinpath("__init__.py").touch()
     sub.joinpath("test_file.py").write_text("def test_file(): pass", encoding="utf-8")
@@ -1540,7 +1540,7 @@ def test_collect_sub_with_symlinks(use_pkg: bool, pytester: Pytester) -> None:
     # Symlink that gets collected.
     symlink_or_skip("test_file.py", sub.joinpath("test_symlink.py"))
 
-    result = pytester.runpytest("-v", str(sub))
+    result = testrunnerer.runtestrunner("-v", str(sub))
     result.stdout.fnmatch_lines(
         [
             "sub/test_file.py::test_file PASSED*",
@@ -1550,9 +1550,9 @@ def test_collect_sub_with_symlinks(use_pkg: bool, pytester: Pytester) -> None:
     )
 
 
-def test_collector_respects_tbstyle(pytester: Pytester) -> None:
-    p1 = pytester.makepyfile("assert 0")
-    result = pytester.runpytest(p1, "--tb=native")
+def test_collector_respects_tbstyle(testrunnerer: Testrunnerer) -> None:
+    p1 = testrunnerer.makepyfile("assert 0")
+    result = testrunnerer.runtestrunner(p1, "--tb=native")
     assert result.ret == ExitCode.INTERRUPTED
     result.stdout.fnmatch_lines(
         [
@@ -1567,34 +1567,34 @@ def test_collector_respects_tbstyle(pytester: Pytester) -> None:
     )
 
 
-def test_does_not_eagerly_collect_packages(pytester: Pytester) -> None:
-    pytester.makepyfile("def test(): pass")
-    pydir = pytester.mkpydir("foopkg")
+def test_does_not_eagerly_collect_packages(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile("def test(): pass")
+    pydir = testrunnerer.mkpydir("foopkg")
     pydir.joinpath("__init__.py").write_text("assert False", encoding="utf-8")
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == ExitCode.OK
 
 
-def test_does_not_put_src_on_path(pytester: Pytester) -> None:
+def test_does_not_put_src_on_path(testrunnerer: Testrunnerer) -> None:
     # `src` is not on sys.path so it should not be importable
-    ensure_file(pytester.path / "src/nope/__init__.py")
-    pytester.makepyfile(
-        "import pytest\n"
+    ensure_file(testrunnerer.path / "src/nope/__init__.py")
+    testrunnerer.makepyfile(
+        "import testrunner\n"
         "def test():\n"
-        "    with pytest.raises(ImportError):\n"
+        "    with testrunner.raises(ImportError):\n"
         "        import nope\n"
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == ExitCode.OK
 
 
-def test_fscollector_from_parent(pytester: Pytester, request: FixtureRequest) -> None:
+def test_fscollector_from_parent(testrunnerer: Testrunnerer, request: FixtureRequest) -> None:
     """Ensure File.from_parent can forward custom arguments to the constructor.
 
-    Context: https://github.com/pytest-dev/pytest-cpp/pull/47
+    Context: https://github.com/jacksonsr451/test-runner-cpp/pull/47
     """
 
-    class MyCollector(pytest.File):
+    class MyCollector(testrunner.File):
         def __init__(self, *k, x, **kw):
             super().__init__(*k, **kw)
             self.x = x
@@ -1603,7 +1603,7 @@ def test_fscollector_from_parent(pytester: Pytester, request: FixtureRequest) ->
             raise NotImplementedError()
 
     collector = MyCollector.from_parent(
-        parent=request.session, path=pytester.path / "foo", x=10
+        parent=request.session, path=testrunnerer.path / "foo", x=10
     )
     assert collector.x == 10
 
@@ -1611,7 +1611,7 @@ def test_fscollector_from_parent(pytester: Pytester, request: FixtureRequest) ->
 def test_class_from_parent(request: FixtureRequest) -> None:
     """Ensure Class.from_parent can forward custom arguments to the constructor."""
 
-    class MyCollector(pytest.Class):
+    class MyCollector(testrunner.Class):
         def __init__(self, name, parent, x):
             super().__init__(name, parent)
             self.x = x
@@ -1625,15 +1625,15 @@ def test_class_from_parent(request: FixtureRequest) -> None:
 
 
 class TestImportModeImportlib:
-    def test_collect_duplicate_names(self, pytester: Pytester) -> None:
+    def test_collect_duplicate_names(self, testrunnerer: Testrunnerer) -> None:
         """--import-mode=importlib can import modules with same names that are not in packages."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             **{
                 "tests_a/test_foo.py": "def test_foo1(): pass",
                 "tests_b/test_foo.py": "def test_foo2(): pass",
             }
         )
-        result = pytester.runpytest("-v", "--import-mode=importlib")
+        result = testrunnerer.runtestrunner("-v", "--import-mode=importlib")
         result.stdout.fnmatch_lines(
             [
                 "tests_a/test_foo.py::test_foo1 *",
@@ -1642,11 +1642,11 @@ class TestImportModeImportlib:
             ]
         )
 
-    def test_conftest(self, pytester: Pytester) -> None:
+    def test_conftest(self, testrunnerer: Testrunnerer) -> None:
         """Directory containing conftest modules are not put in sys.path as a side-effect of
         importing them."""
-        tests_dir = pytester.path.joinpath("tests")
-        pytester.makepyfile(
+        tests_dir = testrunnerer.path.joinpath("tests")
+        testrunnerer.makepyfile(
             **{
                 "tests/conftest.py": "",
                 "tests/test_foo.py": f"""
@@ -1656,13 +1656,13 @@ class TestImportModeImportlib:
                 """,
             }
         )
-        result = pytester.runpytest("-v", "--import-mode=importlib")
+        result = testrunnerer.runtestrunner("-v", "--import-mode=importlib")
         result.stdout.fnmatch_lines(["* 1 passed in *"])
 
-    def setup_conftest_and_foo(self, pytester: Pytester) -> None:
+    def setup_conftest_and_foo(self, testrunnerer: Testrunnerer) -> None:
         """Setup a tests directory to be used to test if modules in that directory can be imported
         due to side-effects of --import-mode or not."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             **{
                 "tests/conftest.py": "",
                 "tests/foo.py": """
@@ -1676,20 +1676,20 @@ class TestImportModeImportlib:
             }
         )
 
-    def test_modules_importable_as_side_effect(self, pytester: Pytester) -> None:
+    def test_modules_importable_as_side_effect(self, testrunnerer: Testrunnerer) -> None:
         """In import-modes `prepend` and `append`, we are able to import modules from directories
         containing conftest.py files due to the side effect of changing sys.path."""
-        self.setup_conftest_and_foo(pytester)
-        result = pytester.runpytest("-v", "--import-mode=prepend")
+        self.setup_conftest_and_foo(testrunnerer)
+        result = testrunnerer.runtestrunner("-v", "--import-mode=prepend")
         result.stdout.fnmatch_lines(["* 1 passed in *"])
 
-    def test_modules_not_importable_as_side_effect(self, pytester: Pytester) -> None:
+    def test_modules_not_importable_as_side_effect(self, testrunnerer: Testrunnerer) -> None:
         """In import-mode `importlib`, modules in directories containing conftest.py are not
         importable, as don't change sys.path or sys.modules as side effect of importing
         the conftest.py file.
         """
-        self.setup_conftest_and_foo(pytester)
-        result = pytester.runpytest("-v", "--import-mode=importlib")
+        self.setup_conftest_and_foo(testrunnerer)
+        result = testrunnerer.runtestrunner("-v", "--import-mode=importlib")
         result.stdout.fnmatch_lines(
             [
                 "*ModuleNotFoundError: No module named 'foo'",
@@ -1698,19 +1698,19 @@ class TestImportModeImportlib:
             ]
         )
 
-    def test_using_python_path(self, pytester: Pytester) -> None:
+    def test_using_python_path(self, testrunnerer: Testrunnerer) -> None:
         """
         Dummy modules created by insert_missing_modules should not get in
         the way of modules that could be imported via python path (#9645).
         """
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             pythonpath = .
             addopts = --import-mode importlib
             """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             **{
                 "tests/__init__.py": "",
                 "tests/conftest.py": "",
@@ -1724,40 +1724,40 @@ class TestImportModeImportlib:
                 """,
             }
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines("*1 passed in*")
 
 
-def test_does_not_crash_on_error_from_decorated_function(pytester: Pytester) -> None:
+def test_does_not_crash_on_error_from_decorated_function(testrunnerer: Testrunnerer) -> None:
     """Regression test for an issue around bad exception formatting due to
     assertion rewriting mangling lineno's (#4984)."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        @pytest.fixture
+        @testrunner.fixture
         def a(): return 4
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     # Not INTERNAL_ERROR
     assert result.ret == ExitCode.INTERRUPTED
 
 
-def test_does_not_crash_on_recursive_symlink(pytester: Pytester) -> None:
+def test_does_not_crash_on_recursive_symlink(testrunnerer: Testrunnerer) -> None:
     """Regression test for an issue around recursive symlinks (#7951)."""
-    symlink_or_skip("recursive", pytester.path.joinpath("recursive"))
-    pytester.makepyfile(
+    symlink_or_skip("recursive", testrunnerer.path.joinpath("recursive"))
+    testrunnerer.makepyfile(
         """
         def test_foo(): assert True
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
 
     assert result.ret == ExitCode.OK
     assert result.parseoutcomes() == {"passed": 1}
 
 
-@pytest.mark.skipif(not sys.platform.startswith("win"), reason="Windows only")
-def test_collect_short_file_windows(pytester: Pytester) -> None:
+@testrunner.mark.skipif(not sys.platform.startswith("win"), reason="Windows only")
+def test_collect_short_file_windows(testrunnerer: Testrunnerer) -> None:
     """Reproducer for #11895: short paths not collected on Windows."""
     short_path = tempfile.mkdtemp()
     if "~" not in short_path:  # pragma: no cover
@@ -1765,25 +1765,25 @@ def test_collect_short_file_windows(pytester: Pytester) -> None:
             # On CI, we are expecting that under the current GitHub actions configuration,
             # tempfile.mkdtemp() is producing short paths, so we want to fail to prevent
             # this from silently changing without us noticing.
-            pytest.fail(
+            testrunner.fail(
                 f"tempfile.mkdtemp() failed to produce a short path on CI: {short_path}"
             )
         else:
             # We want to skip failing this test locally in this situation because
             # depending on the local configuration tempfile.mkdtemp() might not produce a short path:
             # For example, user might have configured %TEMP% exactly to avoid generating short paths.
-            pytest.skip(
+            testrunner.skip(
                 f"tempfile.mkdtemp() failed to produce a short path: {short_path}, skipping"
             )
 
     test_file = Path(short_path).joinpath("test_collect_short_file_windows.py")
     test_file.write_text("def test(): pass", encoding="UTF-8")
-    result = pytester.runpytest(short_path)
+    result = testrunnerer.runtestrunner(short_path)
     assert result.parseoutcomes() == {"passed": 1}
 
 
 def test_collect_short_file_windows_multi_level_symlink(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
     request: FixtureRequest,
 ) -> None:
     """Regression test for multi-level Windows short-path comparison with
@@ -1809,24 +1809,24 @@ def test_collect_short_file_windows_multi_level_symlink(
     symlink_or_skip(b, a, target_is_directory=True)
 
     # Collect via the first symlink; should find exactly one test.
-    result = pytester.runpytest(a)
+    result = testrunnerer.runtestrunner(a)
     result.assert_outcomes(passed=1)
 
     # Collect via the intermediate symlink; also exactly one test.
-    result = pytester.runpytest(b)
+    result = testrunnerer.runtestrunner(b)
     result.assert_outcomes(passed=1)
 
 
-def test_pyargs_collection_tree(pytester: Pytester, monkeypatch: MonkeyPatch) -> None:
+def test_pyargs_collection_tree(testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
     """When using `--pyargs`, the collection tree of a pyargs collection
     argument should only include parents in the import path, not up to confcutdir.
 
     Regression test for #11904.
     """
-    site_packages = pytester.path / "venv/lib/site-packages"
+    site_packages = testrunnerer.path / "venv/lib/site-packages"
     site_packages.mkdir(parents=True)
     monkeypatch.syspath_prepend(site_packages)
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         **{
             "venv/lib/site-packages/pkg/__init__.py": "",
             "venv/lib/site-packages/pkg/sub/__init__.py": "",
@@ -1834,7 +1834,7 @@ def test_pyargs_collection_tree(pytester: Pytester, monkeypatch: MonkeyPatch) ->
         }
     )
 
-    result = pytester.runpytest("--pyargs", "--collect-only", "pkg.sub.test_it")
+    result = testrunnerer.runtestrunner("--pyargs", "--collect-only", "pkg.sub.test_it")
     assert result.ret == ExitCode.OK
     result.stdout.fnmatch_lines(
         [
@@ -1849,7 +1849,7 @@ def test_pyargs_collection_tree(pytester: Pytester, monkeypatch: MonkeyPatch) ->
     # Now with an unrelated rootdir with unrelated files.
     monkeypatch.chdir(tempfile.gettempdir())
 
-    result = pytester.runpytest("--pyargs", "--collect-only", "pkg.sub.test_it")
+    result = testrunnerer.runtestrunner("--pyargs", "--collect-only", "pkg.sub.test_it")
     assert result.ret == ExitCode.OK
     result.stdout.fnmatch_lines(
         [
@@ -1863,7 +1863,7 @@ def test_pyargs_collection_tree(pytester: Pytester, monkeypatch: MonkeyPatch) ->
 
 
 def test_do_not_collect_symlink_siblings(
-    pytester: Pytester, tmp_path: Path, request: pytest.FixtureRequest
+    testrunnerer: Testrunnerer, tmp_path: Path, request: testrunner.FixtureRequest
 ) -> None:
     """
     Regression test for #12039: Do not collect from directories that are symlinks to other directories in the same path.
@@ -1874,21 +1874,21 @@ def test_do_not_collect_symlink_siblings(
     # Use tmp_path because it creates a symlink with the name "current" next to the directory it creates.
     symlink_path = tmp_path.parent / (tmp_path.name[:-1] + "current")
     if not symlink_path.is_symlink():  # pragma: no cover
-        pytest.skip("Symlinks not supported in this environment")
+        testrunner.skip("Symlinks not supported in this environment")
 
     # Create test file.
     tmp_path.joinpath("test_foo.py").write_text("def test(): pass", encoding="UTF-8")
 
     # Ensure we collect it only once if we pass the tmp_path.
-    result = pytester.runpytest(tmp_path, "-sv")
+    result = testrunnerer.runtestrunner(tmp_path, "-sv")
     result.assert_outcomes(passed=1)
 
     # Ensure we collect it only once if we pass the symlinked directory.
-    result = pytester.runpytest(symlink_path, "-sv")
+    result = testrunnerer.runtestrunner(symlink_path, "-sv")
     result.assert_outcomes(passed=1)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "exception_class, msg",
     [
         (KeyboardInterrupt, "*!!! KeyboardInterrupt !!!*"),
@@ -1896,37 +1896,37 @@ def test_do_not_collect_symlink_siblings(
     ],
 )
 def test_respect_system_exceptions(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
     exception_class: type[BaseException],
     msg: str,
 ):
     head = "Before exception"
     tail = "After exception"
-    ensure_file(pytester.path / "test_eggs.py").write_text(
+    ensure_file(testrunnerer.path / "test_eggs.py").write_text(
         f"print('{head}')", encoding="UTF-8"
     )
-    ensure_file(pytester.path / "test_ham.py").write_text(
+    ensure_file(testrunnerer.path / "test_ham.py").write_text(
         f"raise {exception_class.__name__}()", encoding="UTF-8"
     )
-    ensure_file(pytester.path / "test_spam.py").write_text(
+    ensure_file(testrunnerer.path / "test_spam.py").write_text(
         f"print('{tail}')", encoding="UTF-8"
     )
 
-    result = pytester.runpytest_subprocess("-s")
+    result = testrunnerer.runtestrunner_subprocess("-s")
     result.stdout.fnmatch_lines([f"*{head}*"])
     result.stdout.fnmatch_lines([msg])
     result.stdout.no_fnmatch_line(f"*{tail}*")
 
 
-def test_yield_disallowed_in_tests(pytester: Pytester):
+def test_yield_disallowed_in_tests(testrunnerer: Testrunnerer):
     """Ensure generator test functions with 'yield' fail collection (#12960)."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_with_yield():
             yield 1
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 2
     result.stdout.fnmatch_lines(
         ["*'yield' keyword is allowed in fixtures, but not in tests (test_with_yield)*"]
@@ -1935,58 +1935,58 @@ def test_yield_disallowed_in_tests(pytester: Pytester):
     result.stdout.fnmatch_lines(["*collected 0 items*"])
 
 
-def test_annotations_deferred_future(pytester: Pytester):
+def test_annotations_deferred_future(testrunnerer: Testrunnerer):
     """Ensure stringified annotations don't raise any errors."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         from __future__ import annotations
-        import pytest
+        import testrunner
 
-        @pytest.fixture
+        @testrunner.fixture
         def func() -> X: ...  # X is undefined
 
         def test_func():
             assert True
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
     result.stdout.fnmatch_lines(["*1 passed*"])
 
 
-@pytest.mark.skipif(
+@testrunner.mark.skipif(
     sys.version_info < (3, 14), reason="Annotations are only skipped on 3.14+"
 )
-def test_annotations_deferred_314(pytester: Pytester):
+def test_annotations_deferred_314(testrunnerer: Testrunnerer):
     """Ensure annotation eval is deferred."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.fixture
+        @testrunner.fixture
         def func() -> X: ...  # X is undefined
 
         def test_func():
             assert True
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
     result.stdout.fnmatch_lines(["*1 passed*"])
 
 
-@pytest.mark.parametrize("import_mode", ["prepend", "importlib", "append"])
-def test_namespace_packages(pytester: Pytester, import_mode: str):
-    pytester.makeini(
+@testrunner.mark.parametrize("import_mode", ["prepend", "importlib", "append"])
+def test_namespace_packages(testrunnerer: Testrunnerer, import_mode: str):
+    testrunnerer.makeini(
         f"""
-        [pytest]
+        [testrunner]
         consider_namespace_packages = true
         pythonpath = .
         python_files = *.py
         addopts = --import-mode {import_mode}
     """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         **{
             "pkg/module1.py": "def test_module1(): pass",
             "pkg/subpkg_namespace/module2.py": "def test_module1(): pass",
@@ -1996,7 +1996,7 @@ def test_namespace_packages(pytester: Pytester, import_mode: str):
     )
 
     # should collect when called with top-level package correctly
-    result = pytester.runpytest("--collect-only", "--pyargs", "pkg")
+    result = testrunnerer.runtestrunner("--collect-only", "--pyargs", "pkg")
     result.stdout.fnmatch_lines(
         [
             "collected 3 items",
@@ -2013,7 +2013,7 @@ def test_namespace_packages(pytester: Pytester, import_mode: str):
     )
 
     # should also work when called against a more specific subpackage/module
-    result = pytester.runpytest("--collect-only", "--pyargs", "pkg.subpkg_namespace")
+    result = testrunnerer.runtestrunner("--collect-only", "--pyargs", "pkg.subpkg_namespace")
     result.stdout.fnmatch_lines(
         [
             "collected 1 item",
@@ -2024,7 +2024,7 @@ def test_namespace_packages(pytester: Pytester, import_mode: str):
         ]
     )
 
-    result = pytester.runpytest("--collect-only", "--pyargs", "pkg.subpkg_regular")
+    result = testrunnerer.runtestrunner("--collect-only", "--pyargs", "pkg.subpkg_regular")
     result.stdout.fnmatch_lines(
         [
             "collected 1 item",
@@ -2037,13 +2037,13 @@ def test_namespace_packages(pytester: Pytester, import_mode: str):
 
 
 class TestOverlappingCollectionArguments:
-    """Test that overlapping collection arguments (e.g. `pytest a/b a
+    """Test that overlapping collection arguments (e.g. `testrunner a/b a
     a/c::TestIt) are handled correctly (#12083)."""
 
-    @pytest.mark.parametrize("args", [("a", "a/b"), ("a/b", "a")])
-    def test_parent_child(self, pytester: Pytester, args: tuple[str, ...]) -> None:
-        """Test that 'pytest a a/b' and `pytest a/b a` collects all tests from 'a'."""
-        pytester.makepyfile(
+    @testrunner.mark.parametrize("args", [("a", "a/b"), ("a/b", "a")])
+    def test_parent_child(self, testrunnerer: Testrunnerer, args: tuple[str, ...]) -> None:
+        """Test that 'testrunner a a/b' and `testrunner a/b a` collects all tests from 'a'."""
+        testrunnerer.makepyfile(
             **{
                 "a/test_a.py": """
                     def test_a1(): pass
@@ -2056,7 +2056,7 @@ class TestOverlappingCollectionArguments:
             }
         )
 
-        result = pytester.runpytest("--collect-only", *args)
+        result = testrunnerer.runtestrunner("--collect-only", *args)
 
         result.stdout.fnmatch_lines(
             [
@@ -2074,9 +2074,9 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    def test_multiple_nested_paths(self, pytester: Pytester) -> None:
-        """Test that 'pytest a/b a a/b/c' collects all tests from 'a'."""
-        pytester.makepyfile(
+    def test_multiple_nested_paths(self, testrunnerer: Testrunnerer) -> None:
+        """Test that 'testrunner a/b a a/b/c' collects all tests from 'a'."""
+        testrunnerer.makepyfile(
             **{
                 "a/test_a.py": """
                     def test_a(): pass
@@ -2090,7 +2090,7 @@ class TestOverlappingCollectionArguments:
             }
         )
 
-        result = pytester.runpytest("--collect-only", "a/b", "a", "a/b/c")
+        result = testrunnerer.runtestrunner("--collect-only", "a/b", "a", "a/b/c")
 
         result.stdout.fnmatch_lines(
             [
@@ -2109,9 +2109,9 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    def test_same_path_twice(self, pytester: Pytester) -> None:
-        """Test that 'pytest a a' doesn't duplicate tests."""
-        pytester.makepyfile(
+    def test_same_path_twice(self, testrunnerer: Testrunnerer) -> None:
+        """Test that 'testrunner a a' doesn't duplicate tests."""
+        testrunnerer.makepyfile(
             **{
                 "a/test_a.py": """
                     def test_a(): pass
@@ -2119,7 +2119,7 @@ class TestOverlappingCollectionArguments:
             }
         )
 
-        result = pytester.runpytest("--collect-only", "a", "a")
+        result = testrunnerer.runtestrunner("--collect-only", "a", "a")
 
         result.stdout.fnmatch_lines(
             [
@@ -2132,9 +2132,9 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    def test_keep_duplicates_flag(self, pytester: Pytester) -> None:
+    def test_keep_duplicates_flag(self, testrunnerer: Testrunnerer) -> None:
         """Test that --keep-duplicates allows duplication."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             **{
                 "a/test_a.py": """
                     def test_a(): pass
@@ -2145,7 +2145,7 @@ class TestOverlappingCollectionArguments:
             }
         )
 
-        result = pytester.runpytest("--collect-only", "--keep-duplicates", "a", "a/b")
+        result = testrunnerer.runtestrunner("--collect-only", "--keep-duplicates", "a", "a/b")
 
         result.stdout.fnmatch_lines(
             [
@@ -2164,9 +2164,9 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    def test_specific_file_then_parent_dir(self, pytester: Pytester) -> None:
-        """Test that 'pytest a/test_a.py a' collects all tests from 'a'."""
-        pytester.makepyfile(
+    def test_specific_file_then_parent_dir(self, testrunnerer: Testrunnerer) -> None:
+        """Test that 'testrunner a/test_a.py a' collects all tests from 'a'."""
+        testrunnerer.makepyfile(
             **{
                 "a/test_a.py": """
                     def test_a(): pass
@@ -2177,7 +2177,7 @@ class TestOverlappingCollectionArguments:
             }
         )
 
-        result = pytester.runpytest("--collect-only", "a/test_a.py", "a")
+        result = testrunnerer.runtestrunner("--collect-only", "a/test_a.py", "a")
 
         result.stdout.fnmatch_lines(
             [
@@ -2193,18 +2193,18 @@ class TestOverlappingCollectionArguments:
         )
 
     def test_package_scope_fixture_with_overlapping_paths(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """Test that package-scoped fixtures work correctly with overlapping paths."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             **{
                 "pkg/__init__.py": "",
                 "pkg/test_pkg.py": """
-                    import pytest
+                    import testrunner
 
                     counter = {"value": 0}
 
-                    @pytest.fixture(scope="package")
+                    @testrunner.fixture(scope="package")
                     def pkg_fixture():
                         counter["value"] += 1
                         return counter["value"]
@@ -2223,12 +2223,12 @@ class TestOverlappingCollectionArguments:
         )
 
         # Package fixture should run only once even with overlapping paths.
-        result = pytester.runpytest("pkg", "pkg/sub", "pkg", "-v")
+        result = testrunnerer.runtestrunner("pkg", "pkg/sub", "pkg", "-v")
         result.assert_outcomes(passed=3)
 
-    def test_execution_order_preserved(self, pytester: Pytester) -> None:
+    def test_execution_order_preserved(self, testrunnerer: Testrunnerer) -> None:
         """Test that test execution order follows argument order."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             **{
                 "a/test_a.py": """
                     def test_a(): pass
@@ -2239,7 +2239,7 @@ class TestOverlappingCollectionArguments:
             }
         )
 
-        result = pytester.runpytest("--collect-only", "b", "a", "b/test_b.py::test_b")
+        result = testrunnerer.runtestrunner("--collect-only", "b", "a", "b/test_b.py::test_b")
 
         result.stdout.fnmatch_lines(
             [
@@ -2255,9 +2255,9 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    def test_overlapping_node_ids_class_and_method(self, pytester: Pytester) -> None:
+    def test_overlapping_node_ids_class_and_method(self, testrunnerer: Testrunnerer) -> None:
         """Test that overlapping node IDs are handled correctly."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             test_nodeids="""
                 class TestClass:
                     def test_method1(self): pass
@@ -2269,7 +2269,7 @@ class TestOverlappingCollectionArguments:
         )
 
         # Class then specific method.
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--collect-only",
             "test_nodeids.py::TestClass",
             "test_nodeids.py::TestClass::test_method2",
@@ -2288,7 +2288,7 @@ class TestOverlappingCollectionArguments:
         )
 
         # Specific method then class.
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--collect-only",
             "test_nodeids.py::TestClass::test_method3",
             "test_nodeids.py::TestClass",
@@ -2306,9 +2306,9 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    def test_overlapping_node_ids_file_and_class(self, pytester: Pytester) -> None:
+    def test_overlapping_node_ids_file_and_class(self, testrunnerer: Testrunnerer) -> None:
         """Test that file-level and class-level selections work correctly."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             test_file="""
                 class TestClass:
                     def test_method(self): pass
@@ -2321,7 +2321,7 @@ class TestOverlappingCollectionArguments:
         )
 
         # File then class.
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--collect-only", "test_file.py", "test_file.py::TestClass"
         )
         result.stdout.fnmatch_lines(
@@ -2339,7 +2339,7 @@ class TestOverlappingCollectionArguments:
         )
 
         # Class then file.
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--collect-only", "test_file.py::TestClass", "test_file.py"
         )
         result.stdout.fnmatch_lines(
@@ -2356,16 +2356,16 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    def test_same_node_id_twice(self, pytester: Pytester) -> None:
+    def test_same_node_id_twice(self, testrunnerer: Testrunnerer) -> None:
         """Test that the same node ID specified twice is collected only once."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             test_dup="""
                 def test_one(): pass
                 def test_two(): pass
             """
         )
 
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--collect-only",
             "test_dup.py::test_one",
             "test_dup.py::test_one",
@@ -2380,22 +2380,22 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    def test_overlapping_with_parametrization(self, pytester: Pytester) -> None:
+    def test_overlapping_with_parametrization(self, testrunnerer: Testrunnerer) -> None:
         """Test overlapping with parametrized tests."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             test_param="""
-                import pytest
+                import testrunner
 
-                @pytest.mark.parametrize("n", [1, 2])
+                @testrunner.mark.parametrize("n", [1, 2])
                 def test_param(n): pass
 
                 class TestClass:
-                    @pytest.mark.parametrize("x", ["a", "b"])
+                    @testrunner.mark.parametrize("x", ["a", "b"])
                     def test_method(self, x): pass
             """
         )
 
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--collect-only",
             "test_param.py::test_param[2]",
             "test_param.py::TestClass::test_method[a]",
@@ -2415,7 +2415,7 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--collect-only",
             "test_param.py::test_param[2]",
             "test_param.py::test_param",
@@ -2431,10 +2431,10 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    @pytest.mark.parametrize("order", [(".", "a"), ("a", ".")])
-    def test_root_and_subdir(self, pytester: Pytester, order: tuple[str, ...]) -> None:
+    @testrunner.mark.parametrize("order", [(".", "a"), ("a", ".")])
+    def test_root_and_subdir(self, testrunnerer: Testrunnerer, order: tuple[str, ...]) -> None:
         """Test that '. a' and 'a .' both collect all tests."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             test_root="""
                 def test_root(): pass
             """,
@@ -2445,7 +2445,7 @@ class TestOverlappingCollectionArguments:
             },
         )
 
-        result = pytester.runpytest("--collect-only", *order)
+        result = testrunnerer.runtestrunner("--collect-only", *order)
 
         result.stdout.fnmatch_lines(
             [
@@ -2460,9 +2460,9 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    def test_complex_combined_handling(self, pytester: Pytester) -> None:
+    def test_complex_combined_handling(self, testrunnerer: Testrunnerer) -> None:
         """Test some scenarios in a complex hierarchy."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             **{
                 "top1/__init__.py": "",
                 "top1/test_1.py": (
@@ -2489,7 +2489,7 @@ class TestOverlappingCollectionArguments:
             },
         )
 
-        result = pytester.runpytest_inprocess("--collect-only", ".")
+        result = testrunnerer.runtestrunner_inprocess("--collect-only", ".")
         result.stdout.fnmatch_lines(
             [
                 "<Dir *>",
@@ -2509,7 +2509,7 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = pytester.runpytest_inprocess("--collect-only", "top2", "top1")
+        result = testrunnerer.runtestrunner_inprocess("--collect-only", "top2", "top1")
         result.stdout.fnmatch_lines(
             [
                 "<Dir *>",
@@ -2529,7 +2529,7 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = pytester.runpytest_inprocess(
+        result = testrunnerer.runtestrunner_inprocess(
             "--collect-only", "top1", "top1/test_2.py"
         )
         result.stdout.fnmatch_lines(
@@ -2551,7 +2551,7 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = pytester.runpytest_inprocess(
+        result = testrunnerer.runtestrunner_inprocess(
             "--collect-only", "top1/test_2.py", "top1"
         )
         result.stdout.fnmatch_lines(
@@ -2571,7 +2571,7 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = pytester.runpytest_inprocess(
+        result = testrunnerer.runtestrunner_inprocess(
             "--collect-only", "--keep-duplicates", "top1/test_2.py", "top1"
         )
         result.stdout.fnmatch_lines(
@@ -2592,7 +2592,7 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = pytester.runpytest_inprocess(
+        result = testrunnerer.runtestrunner_inprocess(
             "--collect-only", "top1/test_2.py", "top1/test_2.py"
         )
         result.stdout.fnmatch_lines(
@@ -2609,7 +2609,7 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = pytester.runpytest_inprocess("--collect-only", "top2/", "top2/")
+        result = testrunnerer.runtestrunner_inprocess("--collect-only", "top2/", "top2/")
         result.stdout.fnmatch_lines(
             [
                 "<Dir *>",
@@ -2625,7 +2625,7 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = pytester.runpytest_inprocess(
+        result = testrunnerer.runtestrunner_inprocess(
             "--collect-only", "top2/", "top2/", "top2/test_1.py"
         )
         result.stdout.fnmatch_lines(
@@ -2645,7 +2645,7 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = pytester.runpytest_inprocess(
+        result = testrunnerer.runtestrunner_inprocess(
             "--collect-only", "top1/test_1.py", "top1/test_1.py::test_3"
         )
         result.stdout.fnmatch_lines(
@@ -2664,7 +2664,7 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = pytester.runpytest_inprocess(
+        result = testrunnerer.runtestrunner_inprocess(
             "--collect-only", "top1/test_1.py::test_3", "top1/test_1.py"
         )
         result.stdout.fnmatch_lines(
@@ -2682,7 +2682,7 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = pytester.runpytest_inprocess(
+        result = testrunnerer.runtestrunner_inprocess(
             "--collect-only",
             "--keep-duplicates",
             "top1/test_1.py::test_3",
@@ -2706,7 +2706,7 @@ class TestOverlappingCollectionArguments:
         )
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ["x_y", "expected_duplicates"],
     [
         (
@@ -2727,30 +2727,30 @@ class TestOverlappingCollectionArguments:
         ),
     ],
 )
-@pytest.mark.parametrize("option_name", ["strict_parametrization_ids", "strict"])
+@testrunner.mark.parametrize("option_name", ["strict_parametrization_ids", "strict"])
 def test_strict_parametrization_ids(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
     x_y: Sequence[tuple[int, int]],
     expected_duplicates: Sequence[str],
     option_name: str,
 ) -> None:
-    pytester.makeini(
+    testrunnerer.makeini(
         f"""
-        [pytest]
+        [testrunner]
         {option_name} = true
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         f"""
-        import pytest
+        import testrunner
 
-        @pytest.mark.parametrize(["x", "y"], {x_y})
+        @testrunner.mark.parametrize(["x", "y"], {x_y})
         def test1(x, y):
             pass
         """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
 
     assert result.ret == ExitCode.INTERRUPTED
     expected_parametersets = ", ".join(str(list(p)) for p in x_y)
@@ -2770,24 +2770,24 @@ def test_strict_parametrization_ids(
     )
 
 
-def test_strict_parametrization_ids_with_hidden_param(pytester: Pytester) -> None:
-    pytester.makeini(
+def test_strict_parametrization_ids_with_hidden_param(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         strict_parametrization_ids = true
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.mark.parametrize(["x"], ["a", pytest.param("a", id=pytest.HIDDEN_PARAM), "a"])
+        @testrunner.mark.parametrize(["x"], ["a", testrunner.param("a", id=testrunner.HIDDEN_PARAM), "a"])
         def test1(x):
             pass
         """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
 
     assert result.ret == ExitCode.INTERRUPTED
     result.stdout.fnmatch_lines(

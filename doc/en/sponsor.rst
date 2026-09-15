@@ -1,8 +1,8 @@
 Sponsor
 =======
 
-pytest is maintained by a team of volunteers from all around the world in their free time. While
-we work on pytest because we love the project and use it daily in our jobs, monetary
+testrunner is maintained by a team of volunteers from all around the world in their free time. While
+we work on testrunner because we love the project and use it daily in our jobs, monetary
 compensation when possible is welcome to justify time away from friends, family and personal time.
 
 Money is also used to fund local sprints, merchandising (stickers to distribute in conferences for example)
@@ -17,10 +17,10 @@ It provides tools to raise money and share your finances in full transparency.
 It is the platform of choice for individuals and companies that want to make one-time or
 monthly donations directly to the project.
 
-See more details in the `pytest collective`_.
+See more details in the `testrunner collective`_.
 
 
 .. _Tidelift: https://tidelift.com
-.. _Tidelift subscription: https://tidelift.com/subscription/pkg/pypi-pytest
+.. _Tidelift subscription: https://tidelift.com/subscription/pkg/pypi-testrunner
 .. _Open Collective: https://opencollective.com
-.. _pytest collective: https://opencollective.com/pytest
+.. _testrunner collective: https://opencollective.com/testrunner

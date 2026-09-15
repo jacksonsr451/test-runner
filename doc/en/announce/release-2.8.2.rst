@@ -1,17 +1,17 @@
-pytest-2.8.2: bug fixes
+testrunner-2.8.2: bug fixes
 =======================
 
-pytest is a mature Python testing tool with more than 1100 tests
+testrunner is a mature Python testing tool with more than 1100 tests
 against itself, passing on many different interpreters and platforms.
 This release is supposed to be drop-in compatible to 2.8.1.
 
 See below for the changes and see docs at:
 
-    http://pytest.org
+    http://testrunner.org
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed to this release, among them:
 
@@ -24,18 +24,18 @@ Thanks to all who contributed to this release, among them:
     holger krekel
 
 Happy testing,
-The py.test Development Team
+The testrunner Development Team
 
 
 2.8.2 (compared to 2.7.2)
 -----------------------------
 
 - fix #1085: proper handling of encoding errors when passing encoded byte
-  strings to pytest.parametrize in Python 2.
+  strings to testrunner.parametrize in Python 2.
   Thanks Themanwithoutaplan for the report and Bruno Oliveira for the PR.
 
 - fix #1087: handling SystemError when passing empty byte strings to
-  pytest.parametrize in Python 3.
+  testrunner.parametrize in Python 3.
   Thanks Paul Kehrer for the report and Bruno Oliveira for the PR.
 
 - fix #995: fixed internal error when filtering tracebacks where one entry

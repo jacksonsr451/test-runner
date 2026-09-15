@@ -1,16 +1,16 @@
-pytest-2.6.3: fixes and little improvements
+testrunner-2.6.3: fixes and little improvements
 ===========================================================================
 
-pytest is a mature Python testing tool with more than 1100 tests
+testrunner is a mature Python testing tool with more than 1100 tests
 against itself, passing on many different interpreters and platforms.
 This release is drop-in compatible to 2.5.2 and 2.6.X.
 See below for the changes and see docs at:
 
-    http://pytest.org
+    http://testrunner.org
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed, among them:
 
@@ -41,10 +41,10 @@ Changes 2.6.3
   dep).  Thanks Charles Cloud for analysing the issue.
 
 - fix conftest related fixture visibility issue: when running with a
-  CWD outside of a test package pytest would get fixture discovery wrong.
+  CWD outside of a test package testrunner would get fixture discovery wrong.
   Thanks to Wolfgang Schnerring for figuring out a reproducible example.
 
-- Introduce pytest_enter_pdb hook (needed e.g. by pytest_timeout to cancel the
+- Introduce testrunner_enter_pdb hook (needed e.g. by testrunner_timeout to cancel the
   timeout when interactively entering pdb).  Thanks Wolfgang Schnerring.
 
 - check xfail/skip also with non-python function test items. Thanks

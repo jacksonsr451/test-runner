@@ -3,7 +3,7 @@
 License
 -------
 
-Distributed under the terms of the `MIT`_ license, pytest is free and open source software.
+Distributed under the terms of the `MIT`_ license, testrunner is free and open source software.
 
 .. code-block:: text
 
@@ -29,4 +29,4 @@ Distributed under the terms of the `MIT`_ license, pytest is free and open sourc
     OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 
-.. _`MIT`: https://github.com/pytest-dev/pytest/blob/main/LICENSE
+.. _`MIT`: https://github.com/jacksonsr451/test-runner/blob/main/LICENSE

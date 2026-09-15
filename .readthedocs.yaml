@@ -2,9 +2,9 @@ version: 2
 
 python:
    install:
-     # Install pytest first, then doc/en/requirements.txt.
+     # Install testrunner first, then doc/en/requirements.txt.
      # This order is important to honor any pins in doc/en/requirements.txt
-     # when the pinned library is also a dependency of pytest.
+     # when the pinned library is also a dependency of testrunner.
      - method: pip
        path: .
      - requirements: doc/en/requirements.txt

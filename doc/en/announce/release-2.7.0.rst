@@ -1,17 +1,17 @@
-pytest-2.7.0: fixes, features, speed improvements
+testrunner-2.7.0: fixes, features, speed improvements
 ===========================================================================
 
-pytest is a mature Python testing tool with more than 1100 tests
+testrunner is a mature Python testing tool with more than 1100 tests
 against itself, passing on many different interpreters and platforms.
 This release is supposed to be drop-in compatible to 2.6.X.
 
 See below for the changes and see docs at:
 
-    http://pytest.org
+    http://testrunner.org
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed, among them:
 
@@ -41,7 +41,7 @@ holger krekel
   Many thanks to Eric Siegerman and his PR235 which contains
   systematic tests for conftest visibility and now passes.
   This change also introduces the concept of a ``rootdir`` which
-  is printed as a new pytest header and documented in the pytest
+  is printed as a new testrunner header and documented in the testrunner
   customize web page.
 
 - change reporting of "diverted" tests, i.e. tests that are collected
@@ -49,10 +49,10 @@ holger krekel
   come from a base class in a different file).  We now show the nodeid
   and indicate via a postfix the other file.
 
-- add ability to set command line options by environment variable PYTEST_ADDOPTS.
+- add ability to set command line options by environment variable TESTRUNNER_ADDOPTS.
 
-- added documentation on the new pytest-dev teams on bitbucket and
-  github.  See https://pytest.org/en/stable/contributing.html .
+- added documentation on the new testrunner-dev teams on bitbucket and
+  github.  See https://testrunner.org/en/stable/contributing.html .
   Thanks to Anatoly for pushing and initial work on this.
 
 - fix issue650: new option ``--doctest-ignore-import-errors`` which
@@ -74,13 +74,13 @@ holger krekel
 - introduce and document new hookwrapper mechanism useful for plugins
   which want to wrap the execution of certain hooks for their purposes.
   This supersedes the undocumented ``__multicall__`` protocol which
-  pytest itself and some external plugins use.  Note that pytest-2.8
+  testrunner itself and some external plugins use.  Note that testrunner-2.8
   is scheduled to drop supporting the old ``__multicall__``
   and only support the hookwrapper protocol.
 
 - majorly speed up invocation of plugin hooks
 
-- use hookwrapper mechanism in builtin pytest plugins.
+- use hookwrapper mechanism in builtin testrunner plugins.
 
 - add a doctest ini option for doctest flags, thanks Holger Peters.
 

@@ -1,28 +1,28 @@
 NOTE: Change "x.y" by the version you use. If you are unsure about which version
-you are using run: `pip show pytest`. Do not include the patch number (i.e., z in x.y.z)
+you are using run: `pip show testrunner`. Do not include the patch number (i.e., z in x.y.z)
 
 Text:
 
-[pytest] pytest x.y, 2004
-Krekel et al., https://github.com/pytest-dev/pytest
+[testrunner] testrunner x.y, 2004
+Krekel et al., https://github.com/jacksonsr451/test-runner
 
 BibLaTeX:
 
-@software{pytest,
-  title        = {pytest x.y},
+@software{testrunner,
+  title        = {testrunner x.y},
   author       = {Holger Krekel and Bruno Oliveira and Ronny Pfannschmidt and Floris Bruynooghe and Brianna Laugher and Freya Bruhin},
   year         = {2004},
   version      = {x.y},
-  url          = {https://github.com/pytest-dev/pytest},
+  url          = {https://github.com/jacksonsr451/test-runner},
   note         = {Contributors: Holger Krekel and Bruno Oliveira and Ronny Pfannschmidt and Floris Bruynooghe and Brianna Laugher and Freya Bruhin and others}
 }
 
 BibTeX:
 
-@misc{pytest,
+@misc{testrunner,
   author       = {Holger Krekel and Bruno Oliveira and Ronny Pfannschmidt and Floris Bruynooghe and Brianna Laugher and Freya Bruhin},
-  title        = {pytest x.y},
+  title        = {testrunner x.y},
   year         = {2004},
-  howpublished = {\url{https://github.com/pytest-dev/pytest}},
+  howpublished = {\url{https://github.com/jacksonsr451/test-runner}},
   note         = {Version x.y. Contributors include Holger Krekel, Bruno Oliveira, Ronny Pfannschmidt, Floris Bruynooghe, Brianna Laugher, Freya Bruhin, and others.}
 }

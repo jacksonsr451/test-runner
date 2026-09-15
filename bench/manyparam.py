@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-@pytest.fixture(scope="module", params=range(966))
+@testrunner.fixture(scope="module", params=range(966))
 def foo(request):
     return request.param
 

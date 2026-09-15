@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import pytest
-from pytest import raises
+import testrunner
+from testrunner import raises
 
 
 def otherfunc(a, b):
@@ -16,7 +16,7 @@ def otherfunc_multi(a, b):
     assert a == b
 
 
-@pytest.mark.parametrize("param1, param2", [(3, 6)])
+@testrunner.mark.parametrize("param1, param2", [(3, 6)])
 def test_generative(param1, param2):
     assert param1 * 2 < param2
 

@@ -5,16 +5,16 @@ from __future__ import annotations
 from collections.abc import Iterator
 import logging
 
-from _pytest.logging import caplog_records_key
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.logging import caplog_records_key
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
 logger = logging.getLogger(__name__)
 sublogger = logging.getLogger(__name__ + ".baz")
 
 
-@pytest.fixture(autouse=True)
+@testrunner.fixture(autouse=True)
 def cleanup_disabled_logging() -> Iterator[None]:
     """Simple fixture that ensures that a test doesn't disable logging.
 
@@ -27,12 +27,12 @@ def cleanup_disabled_logging() -> Iterator[None]:
     logging.disable(logging.NOTSET)
 
 
-def test_fixture_help(pytester: Pytester) -> None:
-    result = pytester.runpytest("--fixtures")
+def test_fixture_help(testrunnerer: Testrunnerer) -> None:
+    result = testrunnerer.runtestrunner("--fixtures")
     result.stdout.fnmatch_lines(["*caplog*"])
 
 
-def test_change_level(caplog: pytest.LogCaptureFixture) -> None:
+def test_change_level(caplog: testrunner.LogCaptureFixture) -> None:
     caplog.set_level(logging.INFO)
     logger.debug("handler DEBUG level")
     logger.info("handler INFO level")
@@ -47,7 +47,7 @@ def test_change_level(caplog: pytest.LogCaptureFixture) -> None:
     assert "CRITICAL" in caplog.text
 
 
-def test_change_level_logging_disabled(caplog: pytest.LogCaptureFixture) -> None:
+def test_change_level_logging_disabled(caplog: testrunner.LogCaptureFixture) -> None:
     logging.disable(logging.CRITICAL)
     assert logging.root.manager.disable == logging.CRITICAL
     caplog.set_level(logging.WARNING)
@@ -64,12 +64,12 @@ def test_change_level_logging_disabled(caplog: pytest.LogCaptureFixture) -> None
     assert "SUB_CRITICAL" in caplog.text
 
 
-def test_change_level_undo(pytester: Pytester) -> None:
+def test_change_level_undo(testrunnerer: Testrunnerer) -> None:
     """Ensure that 'set_level' is undone after the end of the test.
 
     Tests the logging output themselves (affected both by logger and handler levels).
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         import logging
 
@@ -85,17 +85,17 @@ def test_change_level_undo(pytester: Pytester) -> None:
             assert 0
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["*log from test1*", "*2 failed in *"])
     result.stdout.no_fnmatch_line("*log from test2*")
 
 
-def test_change_disabled_level_undo(pytester: Pytester) -> None:
+def test_change_disabled_level_undo(testrunnerer: Testrunnerer) -> None:
     """Ensure that '_force_enable_logging' in 'set_level' is undone after the end of the test.
 
     Tests the logging output themselves (affected by disabled logging level).
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         import logging
 
@@ -114,17 +114,17 @@ def test_change_disabled_level_undo(pytester: Pytester) -> None:
             assert 0
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["*log from test1*", "*2 failed in *"])
     result.stdout.no_fnmatch_line("*log from test2*")
 
 
-def test_change_level_undoes_handler_level(pytester: Pytester) -> None:
+def test_change_level_undoes_handler_level(testrunnerer: Testrunnerer) -> None:
     """Ensure that 'set_level' is undone after the end of the test (handler).
 
     Issue #7569. Tests the handler level specifically.
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         import logging
 
@@ -143,11 +143,11 @@ def test_change_level_undoes_handler_level(pytester: Pytester) -> None:
             assert caplog.handler.level == 43
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.assert_outcomes(passed=3)
 
 
-def test_with_statement_at_level(caplog: pytest.LogCaptureFixture) -> None:
+def test_with_statement_at_level(caplog: testrunner.LogCaptureFixture) -> None:
     with caplog.at_level(logging.INFO):
         logger.debug("handler DEBUG level")
         logger.info("handler INFO level")
@@ -163,7 +163,7 @@ def test_with_statement_at_level(caplog: pytest.LogCaptureFixture) -> None:
 
 
 def test_with_statement_at_level_logging_disabled(
-    caplog: pytest.LogCaptureFixture,
+    caplog: testrunner.LogCaptureFixture,
 ) -> None:
     logging.disable(logging.CRITICAL)
     assert logging.root.manager.disable == logging.CRITICAL
@@ -190,7 +190,7 @@ def test_with_statement_at_level_logging_disabled(
     assert logging.root.manager.disable == logging.CRITICAL
 
 
-def test_with_statement_filtering(caplog: pytest.LogCaptureFixture) -> None:
+def test_with_statement_filtering(caplog: testrunner.LogCaptureFixture) -> None:
     class TestFilter(logging.Filter):
         def filter(self, record: logging.LogRecord) -> bool:
             record.msg = "filtered handler call"
@@ -211,7 +211,7 @@ class DropAllFilter(logging.Filter):
         return False
 
 
-def test_with_statement_nested_filtering(caplog: pytest.LogCaptureFixture) -> None:
+def test_with_statement_nested_filtering(caplog: testrunner.LogCaptureFixture) -> None:
     drop_all = DropAllFilter()
 
     with caplog.filtering(drop_all):
@@ -224,7 +224,7 @@ def test_with_statement_nested_filtering(caplog: pytest.LogCaptureFixture) -> No
 
 
 def test_with_statement_filtering_already_present(
-    caplog: pytest.LogCaptureFixture,
+    caplog: testrunner.LogCaptureFixture,
 ) -> None:
     drop_all = DropAllFilter()
 
@@ -240,7 +240,7 @@ def test_with_statement_filtering_already_present(
         caplog.handler.removeFilter(drop_all)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "level_str,expected_disable_level",
     [
         ("CRITICAL", logging.ERROR),
@@ -253,7 +253,7 @@ def test_with_statement_filtering_already_present(
     ],
 )
 def test_force_enable_logging_level_string(
-    caplog: pytest.LogCaptureFixture, level_str: str, expected_disable_level: int
+    caplog: testrunner.LogCaptureFixture, level_str: str, expected_disable_level: int
 ) -> None:
     """Test _force_enable_logging using a level string.
 
@@ -273,7 +273,7 @@ def test_force_enable_logging_level_string(
     assert test_logger.manager.disable == expected_disable_level
 
 
-def test_log_access(caplog: pytest.LogCaptureFixture) -> None:
+def test_log_access(caplog: testrunner.LogCaptureFixture) -> None:
     caplog.set_level(logging.INFO)
     logger.info("boo %s", "arg")
     assert caplog.records[0].levelname == "INFO"
@@ -281,7 +281,7 @@ def test_log_access(caplog: pytest.LogCaptureFixture) -> None:
     assert "boo arg" in caplog.text
 
 
-def test_messages(caplog: pytest.LogCaptureFixture) -> None:
+def test_messages(caplog: testrunner.LogCaptureFixture) -> None:
     caplog.set_level(logging.INFO)
     logger.info("boo %s", "arg")
     logger.info("bar %s\nbaz %s", "arg1", "arg2")
@@ -302,14 +302,14 @@ def test_messages(caplog: pytest.LogCaptureFixture) -> None:
     assert "Exception" not in caplog.messages[-1]
 
 
-def test_record_tuples(caplog: pytest.LogCaptureFixture) -> None:
+def test_record_tuples(caplog: testrunner.LogCaptureFixture) -> None:
     caplog.set_level(logging.INFO)
     logger.info("boo %s", "arg")
 
     assert caplog.record_tuples == [(__name__, logging.INFO, "boo arg")]
 
 
-def test_unicode(caplog: pytest.LogCaptureFixture) -> None:
+def test_unicode(caplog: testrunner.LogCaptureFixture) -> None:
     caplog.set_level(logging.INFO)
     logger.info("bū")
     assert caplog.records[0].levelname == "INFO"
@@ -317,7 +317,7 @@ def test_unicode(caplog: pytest.LogCaptureFixture) -> None:
     assert "bū" in caplog.text
 
 
-def test_clear(caplog: pytest.LogCaptureFixture) -> None:
+def test_clear(caplog: testrunner.LogCaptureFixture) -> None:
     caplog.set_level(logging.INFO)
     logger.info("bū")
     assert len(caplog.records)
@@ -327,9 +327,9 @@ def test_clear(caplog: pytest.LogCaptureFixture) -> None:
     assert not caplog.text
 
 
-@pytest.fixture
+@testrunner.fixture
 def logging_during_setup_and_teardown(
-    caplog: pytest.LogCaptureFixture,
+    caplog: testrunner.LogCaptureFixture,
 ) -> Iterator[None]:
     caplog.set_level("INFO")
     logger.info("a_setup_log")
@@ -339,7 +339,7 @@ def logging_during_setup_and_teardown(
 
 
 def private_assert_caplog_records_is_setup_call(
-    caplog: pytest.LogCaptureFixture,
+    caplog: testrunner.LogCaptureFixture,
 ) -> None:
     # This reaches into private API, don't use this type of thing in real tests!
     caplog_records = caplog._item.stash[caplog_records_key]
@@ -347,7 +347,7 @@ def private_assert_caplog_records_is_setup_call(
 
 
 def test_captures_for_all_stages(
-    caplog: pytest.LogCaptureFixture, logging_during_setup_and_teardown: None
+    caplog: testrunner.LogCaptureFixture, logging_during_setup_and_teardown: None
 ) -> None:
     assert not caplog.records
     assert not caplog.get_records("call")
@@ -360,7 +360,7 @@ def test_captures_for_all_stages(
 
 
 def test_clear_for_call_stage(
-    caplog: pytest.LogCaptureFixture, logging_during_setup_and_teardown: None
+    caplog: testrunner.LogCaptureFixture, logging_during_setup_and_teardown: None
 ) -> None:
     logger.info("a_call_log")
     assert [x.message for x in caplog.get_records("call")] == ["a_call_log"]
@@ -379,10 +379,10 @@ def test_clear_for_call_stage(
     private_assert_caplog_records_is_setup_call(caplog)
 
 
-def test_ini_controls_global_log_level(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_ini_controls_global_log_level(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         import logging
         def test_log_level_override(request, caplog):
             plugin = request.config.pluginmanager.getplugin('logging-plugin')
@@ -394,22 +394,22 @@ def test_ini_controls_global_log_level(pytester: Pytester) -> None:
             assert 'ERROR' in caplog.text
     """
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         log_level=ERROR
     """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     # make sure that we get a '0' exit code for the testsuite
     assert result.ret == 0
 
 
-def test_can_override_global_log_level(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_can_override_global_log_level(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         import logging
         def test_log_level_override(request, caplog):
             logger = logging.getLogger('catchlog')
@@ -434,20 +434,20 @@ def test_can_override_global_log_level(pytester: Pytester) -> None:
             assert "message won't be shown" not in caplog.text
     """
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         log_level=WARNING
     """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
 
 
-def test_can_capture_non_propagating_logger(pytester: Pytester) -> None:
+def test_can_capture_non_propagating_logger(testrunnerer: Testrunnerer) -> None:
     """Logs emitted by non-propagating loggers are still captured (#3697)."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         import logging
 
@@ -468,14 +468,14 @@ def test_can_capture_non_propagating_logger(pytester: Pytester) -> None:
         """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.assert_outcomes(passed=1)
 
 
-def test_captures_despite_exception(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_captures_despite_exception(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         import logging
         def test_log_level_override(request, caplog):
             logger = logging.getLogger('catchlog')
@@ -489,30 +489,30 @@ def test_captures_despite_exception(pytester: Pytester) -> None:
                 raise Exception()
     """
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         log_level=WARNING
     """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["*ERROR message will be shown*"])
     result.stdout.no_fnmatch_line("*DEBUG message won't be shown*")
     assert result.ret == 1
 
 
 def test_log_report_captures_according_to_config_option_upon_failure(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
     """Test that upon failure:
     (1) `caplog` succeeded to capture the DEBUG message and assert on it => No `Exception` is raised.
     (2) The `DEBUG` message does NOT appear in the `Captured log call` report.
     (3) The stdout, `INFO`, and `WARNING` messages DO appear in the test reports due to `--log-level=INFO`.
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         import logging
 
         def function_that_logs():
@@ -535,7 +535,7 @@ def test_log_report_captures_according_to_config_option_upon_failure(
     """
     )
 
-    result = pytester.runpytest("--log-level=INFO")
+    result = testrunnerer.runtestrunner("--log-level=INFO")
     result.stdout.no_fnmatch_line("*Exception: caplog failed to capture DEBUG*")
     result.stdout.no_fnmatch_line("*DEBUG log message*")
     result.stdout.fnmatch_lines(

@@ -1,6 +1,6 @@
 .. _pythonpath:
 
-pytest import mechanisms and ``sys.path``/``PYTHONPATH``
+testrunner import mechanisms and ``sys.path``/``PYTHONPATH``
 ========================================================
 
 .. _`import-modes`:
@@ -8,7 +8,7 @@ pytest import mechanisms and ``sys.path``/``PYTHONPATH``
 Import modes
 ------------
 
-pytest as a testing framework needs to import test modules and ``conftest.py`` files for execution.
+testrunner as a testing framework needs to import test modules and ``conftest.py`` files for execution.
 
 Importing files in Python is a non-trivial process, so aspects of the
 import process can be controlled through the :option:`--import-mode` command-line flag, which can assume
@@ -21,11 +21,11 @@ these values:
   the :func:`importlib.import_module <importlib.import_module>` function.
 
   It is highly recommended to arrange your test modules as packages by adding ``__init__.py`` files to your directories
-  containing tests. This will make the tests part of a proper Python package, allowing pytest to resolve their full
+  containing tests. This will make the tests part of a proper Python package, allowing testrunner to resolve their full
   name (for example ``tests.core.test_core`` for ``test_core.py`` inside the ``tests.core`` package).
 
   If the test directory tree is not arranged as packages, then each test file needs to have a unique name
-  compared to the other test files, otherwise pytest will raise an error if it finds two tests with the same name.
+  compared to the other test files, otherwise testrunner will raise an error if it finds two tests with the same name.
 
   This is the classic mechanism, dating back from the time Python 2 was still supported.
 
@@ -57,8 +57,8 @@ these values:
 
   Advantages of this mode:
 
-  * pytest will not change :py:data:`sys.path` at all.
-  * Test module names do not need to be unique -- pytest will generate a unique name automatically based on the ``rootdir``.
+  * testrunner will not change :py:data:`sys.path` at all.
+  * Test module names do not need to be unique -- testrunner will generate a unique name automatically based on the ``rootdir``.
 
   Disadvantages:
 
@@ -69,7 +69,7 @@ these values:
 
     Important: by "test utility modules", we mean functions/classes which are imported by
     other tests directly; this does not include fixtures, which should be placed in ``conftest.py`` files, along
-    with the test modules, and are discovered automatically by pytest.
+    with the test modules, and are discovered automatically by testrunner.
 
   It works like this:
 
@@ -87,7 +87,7 @@ these values:
   2. If the previous step fails, we import the module directly using ``importlib`` facilities, which lets us import it without
      changing :py:data:`sys.path`.
 
-     Because Python requires the module to also be available in :py:data:`sys.modules`, pytest derives a unique name for it based
+     Because Python requires the module to also be available in :py:data:`sys.modules`, testrunner derives a unique name for it based
      on its relative location from the ``rootdir``, and adds the module to :py:data:`sys.modules`.
 
      For example, ``tests/core/test_models.py`` will end up being imported as the module ``tests.core.test_models``.
@@ -101,7 +101,7 @@ these values:
 
 .. note::
 
-    By default, pytest will not attempt to resolve namespace packages automatically, but that can
+    By default, testrunner will not attempt to resolve namespace packages automatically, but that can
     be changed via the :confval:`consider_namespace_packages` configuration variable.
 
 .. seealso::
@@ -116,7 +116,7 @@ these values:
 ``prepend`` and ``append`` import modes scenarios
 -------------------------------------------------
 
-Here's a list of scenarios when using ``prepend`` or ``append`` import modes where pytest needs to
+Here's a list of scenarios when using ``prepend`` or ``append`` import modes where testrunner needs to
 change :py:data:`sys.path` in order to import test modules or ``conftest.py`` files, and the issues users
 might encounter because of that.
 
@@ -140,9 +140,9 @@ When executing:
 
 .. code-block:: bash
 
-    pytest root/
+    testrunner root/
 
-pytest will find ``foo/bar/tests/test_foo.py`` and realize it is part of a package given that
+testrunner will find ``foo/bar/tests/test_foo.py`` and realize it is part of a package given that
 there's an ``__init__.py`` file in the same directory. It will then search upwards until it can find the
 last directory which still contains an ``__init__.py`` file in order to find the package *root* (in
 this case ``foo/``). To load the module, it will insert ``root/``  to the front of
@@ -172,9 +172,9 @@ When executing:
 
 .. code-block:: bash
 
-    pytest root/
+    testrunner root/
 
-pytest will find ``foo/bar/tests/test_foo.py`` and realize it is NOT part of a package given that
+testrunner will find ``foo/bar/tests/test_foo.py`` and realize it is NOT part of a package given that
 there's no ``__init__.py`` file in the same directory. It will then add ``root/foo/bar/tests`` to
 :py:data:`sys.path` in order to import ``test_foo.py`` as the *module* ``test_foo``. The same is done
 with the ``conftest.py`` file by adding ``root/foo`` to :py:data:`sys.path` to import it as ``conftest``.
@@ -184,12 +184,12 @@ imported in the global import namespace.
 
 This is also discussed in detail in :ref:`test discovery`.
 
-.. _`pytest vs python -m pytest`:
+.. _`testrunner vs python -m testrunner`:
 
-Invoking ``pytest`` versus ``python -m pytest``
+Invoking ``testrunner`` versus ``python -m testrunner``
 -----------------------------------------------
 
-Running pytest with ``pytest [...]`` instead of ``python -m pytest [...]`` yields nearly
+Running testrunner with ``testrunner [...]`` instead of ``python -m testrunner [...]`` yields nearly
 equivalent behaviour, except that the latter will add the current directory to :py:data:`sys.path`, which
 is standard ``python`` behavior.
 

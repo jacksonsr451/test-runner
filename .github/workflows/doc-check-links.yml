@@ -12,7 +12,7 @@ permissions: {}
 
 jobs:
   doc-check-links:
-    if: github.repository_owner == 'pytest-dev'
+    if: github.repository_owner == 'testrunner-dev'
     runs-on: ubuntu-latest
 
     steps:

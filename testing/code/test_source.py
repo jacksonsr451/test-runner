@@ -10,12 +10,12 @@ import textwrap
 from typing import Any
 from unittest.mock import patch
 
-from _pytest._code import Code
-from _pytest._code import Frame
-from _pytest._code import getfslineno
-from _pytest._code import Source
-from _pytest.pathlib import import_path
-import pytest
+from _testrunner._code import Code
+from _testrunner._code import Frame
+from _testrunner._code import getfslineno
+from _testrunner._code import Source
+from _testrunner.pathlib import import_path
+import testrunner
 
 
 def test_source_str_function() -> None:
@@ -92,7 +92,7 @@ class TestAccesses:
         assert str(x) == "def f(x):\n    pass"
 
     def test_getrange_step_not_supported(self) -> None:
-        with pytest.raises(IndexError, match=r"step"):
+        with testrunner.raises(IndexError, match=r"step"):
             self.source[::2]
 
     def test_getline(self) -> None:
@@ -212,7 +212,7 @@ class TestSourceParsing:
 
     def test_getstatementrange_with_syntaxerror_issue7(self) -> None:
         source = Source(":")
-        with pytest.raises(SyntaxError):
+        with testrunner.raises(SyntaxError):
             source.getstatementrange(0)
 
 
@@ -232,7 +232,7 @@ def test_getline_finally() -> None:
     def c() -> None:
         pass
 
-    with pytest.raises(TypeError) as excinfo:
+    with testrunner.raises(TypeError) as excinfo:
         teardown = None
         try:
             c(1)  # type: ignore
@@ -272,7 +272,7 @@ def test_getfuncsource_with_multiline_string() -> None:
 
 
 def test_deindent() -> None:
-    from _pytest._code.source import deindent as deindent
+    from _testrunner._code.source import deindent as deindent
 
     assert deindent(["\tfoo", "\tbar"]) == ["foo", "bar"]
 
@@ -316,7 +316,7 @@ def test_source_fallback() -> None:
 
 
 def test_findsource_fallback() -> None:
-    from _pytest._code.source import findsource
+    from _testrunner._code.source import findsource
 
     src, lineno = findsource(x)
     assert src is not None
@@ -325,9 +325,9 @@ def test_findsource_fallback() -> None:
 
 
 def test_findsource(monkeypatch) -> None:
-    from _pytest._code.source import findsource
+    from _testrunner._code.source import findsource
 
-    filename = "<pytest-test_findsource>"
+    filename = "<testrunner-test_findsource>"
     lines = ["if 1:\n", "    def x():\n", "          pass\n"]
     co = compile("".join(lines), filename, "exec")
 
@@ -346,17 +346,17 @@ def test_findsource(monkeypatch) -> None:
 
 
 def test_findsource_filename_relative_to_syspath_entry(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: testrunner.MonkeyPatch, tmp_path: Path
 ) -> None:
     """findsource() falls back to searching sys.path for code objects whose
     co_filename is relative to a directory other than the cwd, like the
     standard traceback module does (#1139).
 
     This happens e.g. with compiled Cython modules, whose code objects
-    carry paths relative to the project root, when pytest is run from a
+    carry paths relative to the project root, when testrunner is run from a
     subdirectory.
     """
-    from _pytest._code.source import findsource
+    from _testrunner._code.source import findsource
 
     filename = "findsource_syspath_demo.py"
     lines = ["def f():\n", "    return 1\n"]
@@ -413,7 +413,7 @@ def test_code_of_object_instance_with_call() -> None:
     class A:
         pass
 
-    with pytest.raises(TypeError):
+    with testrunner.raises(TypeError):
         Source(A())
 
     class WithCall:
@@ -427,12 +427,12 @@ def test_code_of_object_instance_with_call() -> None:
         def __call__(self) -> None:
             pass
 
-    with pytest.raises(TypeError):
+    with testrunner.raises(TypeError):
         Code.from_function(Hello)
 
 
 def getstatement(lineno: int, source) -> Source:
-    from _pytest._code.source import getstatementrange_ast
+    from _testrunner._code.source import getstatementrange_ast
 
     src = Source(source)
     _ast, start, end = getstatementrange_ast(lineno, src)
@@ -445,7 +445,7 @@ def test_oneline() -> None:
 
 
 def test_comment_and_no_newline_at_end() -> None:
-    from _pytest._code.source import getstatementrange_ast
+    from _testrunner._code.source import getstatementrange_ast
 
     source = Source(
         [
@@ -499,20 +499,20 @@ def test_comment_in_statement() -> None:
 def test_source_with_decorator() -> None:
     """Test behavior with Source / Code().source with regard to decorators."""
 
-    @pytest.mark.foo
+    @testrunner.mark.foo
     def deco_mark():
         assert False
 
     src = inspect.getsource(deco_mark)
     assert textwrap.indent(str(Source(deco_mark)), "    ") + "\n" == src
-    assert src.startswith("    @pytest.mark.foo")
+    assert src.startswith("    @testrunner.mark.foo")
 
-    @pytest.fixture
+    @testrunner.fixture
     def deco_fixture():
         assert False
 
     src = inspect.getsource(deco_fixture._get_wrapped_function())
-    assert src == "    @pytest.fixture\n    def deco_fixture():\n        assert False\n"
+    assert src == "    @testrunner.fixture\n    def deco_fixture():\n        assert False\n"
     # Make sure the decorator is not a wrapped function
     assert not str(Source(deco_fixture)).startswith("@functools.wraps(function)")
     assert (
@@ -630,7 +630,7 @@ else:
 
 def test_semicolon() -> None:
     s = """\
-hello ; pytest.skip()
+hello ; testrunner.skip()
 """
     source = getstatement(0, s)
     assert str(source) == s.strip()
@@ -711,8 +711,8 @@ def test_patched_compile() -> None:
 
 def test_statement_linenos_are_memoized_per_node() -> None:
     """The statement index of a module is reused across traceback entries (#10745)."""
-    from _pytest._code.source import _statement_linenos
-    from _pytest._code.source import get_statement_startend2
+    from _testrunner._code.source import _statement_linenos
+    from _testrunner._code.source import get_statement_startend2
 
     node = ast.parse("x = 1\nif x:\n    y = 2\n")
     values = _statement_linenos(node)

@@ -5,7 +5,7 @@
 How-to guides
 ================
 
-Core pytest functionality
+Core testrunner functionality
 -------------------------
 
 .. toctree::
@@ -45,7 +45,7 @@ Plugins
    writing_plugins
    writing_hook_functions
 
-pytest and other test systems
+testrunner and other test systems
 -----------------------------
 
 .. toctree::
@@ -55,7 +55,7 @@ pytest and other test systems
    unittest
    xunit_setup
 
-pytest development environment
+testrunner development environment
 ------------------------------
 
 .. toctree::

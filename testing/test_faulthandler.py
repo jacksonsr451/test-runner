@@ -5,26 +5,26 @@ import io
 import os
 import sys
 
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
-def test_enabled(pytester: Pytester) -> None:
+def test_enabled(testrunnerer: Testrunnerer) -> None:
     """Test single crashing test displays a traceback."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
     import faulthandler
     def test_crash():
         faulthandler._sigabrt()
     """
     )
-    result = pytester.runpytest_subprocess()
+    result = testrunnerer.runtestrunner_subprocess()
     result.stderr.fnmatch_lines(["*Fatal Python error*"])
     assert result.ret != 0
 
 
-def setup_crashing_test(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def setup_crashing_test(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         import faulthandler
         import atexit
@@ -34,51 +34,51 @@ def setup_crashing_test(pytester: Pytester) -> None:
     )
 
 
-def test_crash_during_shutdown_captured(pytester: Pytester) -> None:
+def test_crash_during_shutdown_captured(testrunnerer: Testrunnerer) -> None:
     """
-    Re-enable faulthandler if pytest encountered it enabled during configure.
+    Re-enable faulthandler if testrunner encountered it enabled during configure.
     We should be able to then see crashes during interpreter shutdown.
     """
-    setup_crashing_test(pytester)
-    args = (sys.executable, "-Xfaulthandler", "-mpytest")
-    result = pytester.run(*args)
+    setup_crashing_test(testrunnerer)
+    args = (sys.executable, "-Xfaulthandler", "-mtestrunner")
+    result = testrunnerer.run(*args)
     result.stderr.fnmatch_lines(["*Fatal Python error*"])
     assert result.ret != 0
 
 
-def test_crash_during_shutdown_not_captured(pytester: Pytester) -> None:
+def test_crash_during_shutdown_not_captured(testrunnerer: Testrunnerer) -> None:
     """
-    Check that pytest leaves faulthandler disabled if it was not enabled during configure.
+    Check that testrunner leaves faulthandler disabled if it was not enabled during configure.
     This prevents us from seeing crashes during interpreter shutdown (see #8260).
     """
-    setup_crashing_test(pytester)
-    args = (sys.executable, "-mpytest")
-    result = pytester.run(*args)
+    setup_crashing_test(testrunnerer)
+    args = (sys.executable, "-mtestrunner")
+    result = testrunnerer.run(*args)
     result.stderr.no_fnmatch_line("*Fatal Python error*")
     assert result.ret != 0
 
 
-def test_disabled(pytester: Pytester) -> None:
+def test_disabled(testrunnerer: Testrunnerer) -> None:
     """Test option to disable fault handler in the command line."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
     import faulthandler
     def test_disabled():
         assert not faulthandler.is_enabled()
     """
     )
-    result = pytester.runpytest_subprocess("-p", "no:faulthandler")
+    result = testrunnerer.runtestrunner_subprocess("-p", "no:faulthandler")
     result.stdout.fnmatch_lines(["*1 passed*"])
     assert result.ret == 0
 
 
-@pytest.mark.keep_ci_var
-@pytest.mark.parametrize(
+@testrunner.mark.keep_ci_var
+@testrunner.mark.parametrize(
     "enabled",
     [
-        pytest.param(
+        testrunner.param(
             True,
-            marks=pytest.mark.skipif(
+            marks=testrunner.mark.skipif(
                 bool(os.environ.get("CI"))
                 and sys.platform == "linux"
                 and sys.version_info >= (3, 14),
@@ -88,27 +88,27 @@ def test_disabled(pytester: Pytester) -> None:
         False,
     ],
 )
-def test_timeout(pytester: Pytester, enabled: bool) -> None:
+def test_timeout(testrunnerer: Testrunnerer, enabled: bool) -> None:
     """Test option to dump tracebacks after a certain timeout.
 
     If faulthandler is disabled, no traceback will be dumped.
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
     import os, time
     def test_timeout():
         time.sleep(1 if "CI" in os.environ else 0.1)
     """
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         faulthandler_timeout = 0.01
         """
     )
     args = ["-p", "no:faulthandler"] if not enabled else []
 
-    result = pytester.runpytest_subprocess(*args)
+    result = testrunnerer.runtestrunner_subprocess(*args)
     tb_output = "most recent call first"
     if enabled:
         result.stderr.fnmatch_lines([f"*{tb_output}*"])
@@ -118,15 +118,15 @@ def test_timeout(pytester: Pytester, enabled: bool) -> None:
     assert result.ret == 0
 
 
-@pytest.mark.keep_ci_var
-@pytest.mark.skipif(
+@testrunner.mark.keep_ci_var
+@testrunner.mark.skipif(
     "CI" in os.environ and sys.platform == "linux" and sys.version_info >= (3, 14),
     reason="sometimes crashes on CI because of truncated outputs (#7022)",
 )
-@pytest.mark.parametrize("exit_on_timeout", [True, False])
-def test_timeout_and_exit(pytester: Pytester, exit_on_timeout: bool) -> None:
-    """Test option to force exit pytest process after a certain timeout."""
-    pytester.makepyfile(
+@testrunner.mark.parametrize("exit_on_timeout", [True, False])
+def test_timeout_and_exit(testrunnerer: Testrunnerer, exit_on_timeout: bool) -> None:
+    """Test option to force exit testrunner process after a certain timeout."""
+    testrunnerer.makepyfile(
         """
     import os, time
     def test_long_sleep_and_raise():
@@ -136,14 +136,14 @@ def test_timeout_and_exit(pytester: Pytester, exit_on_timeout: bool) -> None:
         )
     """
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         f"""
-        [pytest]
+        [testrunner]
         faulthandler_timeout = 0.01
         faulthandler_exit_on_timeout = {"true" if exit_on_timeout else "false"}
         """
     )
-    result = pytester.runpytest_subprocess()
+    result = testrunnerer.runtestrunner_subprocess()
     tb_output = "most recent call first"
     result.stderr.fnmatch_lines([f"*{tb_output}*"])
     if exit_on_timeout:
@@ -155,14 +155,14 @@ def test_timeout_and_exit(pytester: Pytester, exit_on_timeout: bool) -> None:
     assert result.ret == 1
 
 
-@pytest.mark.parametrize("hook_name", ["pytest_enter_pdb", "pytest_exception_interact"])
+@testrunner.mark.parametrize("hook_name", ["testrunner_enter_pdb", "testrunner_exception_interact"])
 def test_cancel_timeout_on_hook(monkeypatch, hook_name) -> None:
     """Make sure that we are cancelling any scheduled traceback dumping due
-    to timeout before entering pdb (pytest-dev/pytest-faulthandler#12) or any
-    other interactive exception (pytest-dev/pytest-faulthandler#14)."""
+    to timeout before entering pdb (jacksonsr451/test-runner-faulthandler#12) or any
+    other interactive exception (jacksonsr451/test-runner-faulthandler#14)."""
     import faulthandler
 
-    from _pytest import faulthandler as faulthandler_plugin
+    from _testrunner import faulthandler as faulthandler_plugin
 
     called = []
 
@@ -170,28 +170,28 @@ def test_cancel_timeout_on_hook(monkeypatch, hook_name) -> None:
         faulthandler, "cancel_dump_traceback_later", lambda: called.append(1)
     )
 
-    # call our hook explicitly, we can trust that pytest will call the hook
+    # call our hook explicitly, we can trust that testrunner will call the hook
     # for us at the appropriate moment
     hook_func = getattr(faulthandler_plugin, hook_name)
     hook_func()
     assert called == [1]
 
 
-def test_already_initialized_crash(pytester: Pytester) -> None:
+def test_already_initialized_crash(testrunnerer: Testrunnerer) -> None:
     """Even if faulthandler is already initialized, we still dump tracebacks on crashes (#8258)."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test():
             import faulthandler
             faulthandler._sigabrt()
     """
     )
-    result = pytester.run(
+    result = testrunnerer.run(
         sys.executable,
         "-X",
         "faulthandler",
-        "-mpytest",
-        pytester.path,
+        "-mtestrunner",
+        testrunnerer.path,
     )
     result.stderr.fnmatch_lines(["*Fatal Python error*"])
     assert result.ret != 0
@@ -199,7 +199,7 @@ def test_already_initialized_crash(pytester: Pytester) -> None:
 
 def test_get_stderr_fileno_invalid_fd() -> None:
     """Test for faulthandler being able to handle invalid file descriptors for stderr (#8249)."""
-    from _pytest.faulthandler import get_stderr_fileno
+    from _testrunner.faulthandler import get_stderr_fileno
 
     class StdErrWrapper(io.StringIO):
         """
@@ -213,7 +213,7 @@ def test_get_stderr_fileno_invalid_fd() -> None:
 
     wrapper = StdErrWrapper()
 
-    with pytest.MonkeyPatch.context() as mp:
+    with testrunner.MonkeyPatch.context() as mp:
         mp.setattr("sys.stderr", wrapper)
 
         # Even when the stderr wrapper signals an invalid file descriptor,

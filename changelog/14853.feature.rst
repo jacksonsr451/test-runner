@@ -1,1 +1,1 @@
-Exposed ``FixtureFunctionDefinition`` as ``pytest.FixtureFunctionDefinition``.
+Exposed ``FixtureFunctionDefinition`` as ``testrunner.FixtureFunctionDefinition``.

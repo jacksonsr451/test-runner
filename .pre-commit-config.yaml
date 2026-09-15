@@ -67,7 +67,7 @@ repos:
           - exceptiongroup>=1.0.0rc8
         # Manual because passing pyright is a work in progress.
         stages: [manual]
-- repo: https://github.com/pytest-dev/pyproject-fmt
+- repo: https://github.com/testrunner-dev/pyproject-fmt
   rev: "v2.12.1"
   hooks:
     - id: pyproject-fmt
@@ -163,7 +163,7 @@ repos:
         types: [python]
     -   id: py-path-deprecated
         name: py.path usage is deprecated
-        exclude: docs|src/_pytest/deprecated.py|testing/deprecated_test.py|src/_pytest/legacypath.py
+        exclude: docs|src/_testrunner/deprecated.py|testing/deprecated_test.py|src/_testrunner/legacypath.py
         language: pygrep
         entry: \bpy\.path\.local
         types: [python]

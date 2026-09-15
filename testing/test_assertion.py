@@ -13,21 +13,21 @@ from typing import NamedTuple
 
 import attr
 
-from _pytest import outcomes
-import _pytest.assertion as plugin
-from _pytest.assertion import truncate
-from _pytest.assertion import util
-from _pytest.assertion._compare_any import _compare_eq_cls
-from _pytest.assertion._compare_mapping import _compare_eq_mapping
-from _pytest.assertion._typing import _AssertionTextDiffStyle
-from _pytest.assertion._typing import NO_TRUNCATION_BUDGET
-from _pytest.assertion._typing import TruncationBudget
-from _pytest.assertion.compare_text import _compare_eq_text
-from _pytest.assertion.compare_text import _notin_text
-from _pytest.config import Config as _Config
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner import outcomes
+import _testrunner.assertion as plugin
+from _testrunner.assertion import truncate
+from _testrunner.assertion import util
+from _testrunner.assertion._compare_any import _compare_eq_cls
+from _testrunner.assertion._compare_mapping import _compare_eq_mapping
+from _testrunner.assertion._typing import _AssertionTextDiffStyle
+from _testrunner.assertion._typing import NO_TRUNCATION_BUDGET
+from _testrunner.assertion._typing import TruncationBudget
+from _testrunner.assertion.compare_text import _compare_eq_text
+from _testrunner.assertion.compare_text import _notin_text
+from _testrunner.config import Config as _Config
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
 def mock_config(
@@ -114,30 +114,30 @@ class TestMockConfig:
     def test_get_unsupported_type_error(self):
         config = mock_config(verbose=TestMockConfig.SOME_VERBOSITY_LEVEL)
 
-        with pytest.raises(KeyError):
+        with testrunner.raises(KeyError):
             config.get_verbosity("--- NOT A VERBOSITY LEVEL ---")
 
     def test_getini_unsupported_error(self):
         config = mock_config()
 
-        with pytest.raises(KeyError, match="Not mocked out: --- NOT AN INI ---"):
+        with testrunner.raises(KeyError, match="Not mocked out: --- NOT AN INI ---"):
             config.getini("--- NOT AN INI ---")
 
 
 class TestImportHookInstallation:
-    @pytest.mark.parametrize("initial_conftest", [True, False])
-    @pytest.mark.parametrize("mode", ["plain", "rewrite"])
+    @testrunner.mark.parametrize("initial_conftest", [True, False])
+    @testrunner.mark.parametrize("mode", ["plain", "rewrite"])
     def test_conftest_assertion_rewrite(
-        self, pytester: Pytester, initial_conftest, mode
+        self, testrunnerer: Testrunnerer, initial_conftest, mode
     ) -> None:
         """Test that conftest files are using assertion rewrite on import (#1619)."""
-        pytester.mkdir("foo")
-        pytester.mkdir("foo/tests")
+        testrunnerer.mkdir("foo")
+        testrunnerer.mkdir("foo/tests")
         conftest_path = "conftest.py" if initial_conftest else "foo/conftest.py"
         contents = {
             conftest_path: """
-                import pytest
-                @pytest.fixture
+                import testrunner
+                @testrunner.fixture
                 def check_first():
                     def check(values, value):
                         assert values.pop(0) == value
@@ -148,8 +148,8 @@ class TestImportHookInstallation:
                     check_first([10, 30], 30)
             """,
         }
-        pytester.makepyfile(**contents)
-        result = pytester.runpytest_subprocess(f"--assert={mode}")
+        testrunnerer.makepyfile(**contents)
+        result = testrunnerer.runtestrunner_subprocess(f"--assert={mode}")
         if mode == "plain":
             expected = "E       AssertionError"
         elif mode == "rewrite":
@@ -158,21 +158,21 @@ class TestImportHookInstallation:
             assert 0
         result.stdout.fnmatch_lines([expected])
 
-    def test_rewrite_assertions_pytester_plugin(self, pytester: Pytester) -> None:
+    def test_rewrite_assertions_testrunnerer_plugin(self, testrunnerer: Testrunnerer) -> None:
         """
-        Assertions in the pytester plugin must also benefit from assertion
+        Assertions in the testrunnerer plugin must also benefit from assertion
         rewriting (#1920).
         """
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
-            pytest_plugins = ['pytester']
-            def test_dummy_failure(pytester):  # how meta!
-                pytester.makepyfile('def test(): assert 0')
-                r = pytester.inline_run()
+            testrunner_plugins = ['testrunnerer']
+            def test_dummy_failure(testrunnerer):  # how meta!
+                testrunnerer.makepyfile('def test(): assert 0')
+                r = testrunnerer.inline_run()
                 r.assertoutcome(passed=1)
         """
         )
-        result = pytester.runpytest_subprocess()
+        result = testrunnerer.runtestrunner_subprocess()
         result.stdout.fnmatch_lines(
             [
                 ">       r.assertoutcome(passed=1)",
@@ -191,15 +191,15 @@ class TestImportHookInstallation:
             ]
         )
 
-    @pytest.mark.parametrize("mode", ["plain", "rewrite"])
-    def test_pytest_plugins_rewrite(self, pytester: Pytester, mode) -> None:
+    @testrunner.mark.parametrize("mode", ["plain", "rewrite"])
+    def test_testrunner_plugins_rewrite(self, testrunnerer: Testrunnerer, mode) -> None:
         contents = {
             "conftest.py": """
-                pytest_plugins = ['ham']
+                testrunner_plugins = ['ham']
             """,
             "ham.py": """
-                import pytest
-                @pytest.fixture
+                import testrunner
+                @testrunner.fixture
                 def check_first():
                     def check(values, value):
                         assert values.pop(0) == value
@@ -210,8 +210,8 @@ class TestImportHookInstallation:
                     check_first([10, 30], 30)
             """,
         }
-        pytester.makepyfile(**contents)
-        result = pytester.runpytest_subprocess(f"--assert={mode}")
+        testrunnerer.makepyfile(**contents)
+        result = testrunnerer.runtestrunner_subprocess(f"--assert={mode}")
         if mode == "plain":
             expected = "E       AssertionError"
         elif mode == "rewrite":
@@ -220,76 +220,76 @@ class TestImportHookInstallation:
             assert 0
         result.stdout.fnmatch_lines([expected])
 
-    @pytest.mark.parametrize("mode", ["str", "list"])
-    def test_pytest_plugins_rewrite_module_names(
-        self, pytester: Pytester, mode
+    @testrunner.mark.parametrize("mode", ["str", "list"])
+    def test_testrunner_plugins_rewrite_module_names(
+        self, testrunnerer: Testrunnerer, mode
     ) -> None:
-        """Test that pluginmanager correct marks pytest_plugins variables
+        """Test that pluginmanager correct marks testrunner_plugins variables
         for assertion rewriting if they are defined as plain strings or
         list of strings (#1888).
         """
         plugins = '"ham"' if mode == "str" else '["ham"]'
         contents = {
             "conftest.py": f"""
-                pytest_plugins = {plugins}
+                testrunner_plugins = {plugins}
             """,
             "ham.py": """
-                import pytest
+                import testrunner
             """,
             "test_foo.py": """
-                def test_foo(pytestconfig):
-                    assert 'ham' in pytestconfig.pluginmanager.rewrite_hook._must_rewrite
+                def test_foo(testrunnerconfig):
+                    assert 'ham' in testrunnerconfig.pluginmanager.rewrite_hook._must_rewrite
             """,
         }
-        pytester.makepyfile(**contents)
-        result = pytester.runpytest_subprocess("--assert=rewrite")
+        testrunnerer.makepyfile(**contents)
+        result = testrunnerer.runtestrunner_subprocess("--assert=rewrite")
         assert result.ret == 0
 
-    def test_pytest_plugins_rewrite_module_names_correctly(
-        self, pytester: Pytester
+    def test_testrunner_plugins_rewrite_module_names_correctly(
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """Test that we match files correctly when they are marked for rewriting (#2939)."""
         contents = {
             "conftest.py": """\
-                pytest_plugins = "ham"
+                testrunner_plugins = "ham"
             """,
             "ham.py": "",
             "hamster.py": "",
             "test_foo.py": """\
-                def test_foo(pytestconfig):
-                    assert pytestconfig.pluginmanager.rewrite_hook.find_spec('ham') is not None
-                    assert pytestconfig.pluginmanager.rewrite_hook.find_spec('hamster') is None
+                def test_foo(testrunnerconfig):
+                    assert testrunnerconfig.pluginmanager.rewrite_hook.find_spec('ham') is not None
+                    assert testrunnerconfig.pluginmanager.rewrite_hook.find_spec('hamster') is None
             """,
         }
-        pytester.makepyfile(**contents)
-        result = pytester.runpytest_subprocess("--assert=rewrite")
+        testrunnerer.makepyfile(**contents)
+        result = testrunnerer.runtestrunner_subprocess("--assert=rewrite")
         assert result.ret == 0
 
-    @pytest.mark.parametrize("mode", ["plain", "rewrite"])
-    @pytest.mark.parametrize("disable_plugin_autoload", ["env_var", "cli", ""])
-    @pytest.mark.parametrize("explicit_specify", ["env_var", "cli", ""])
+    @testrunner.mark.parametrize("mode", ["plain", "rewrite"])
+    @testrunner.mark.parametrize("disable_plugin_autoload", ["env_var", "cli", ""])
+    @testrunner.mark.parametrize("explicit_specify", ["env_var", "cli", ""])
     def test_installed_plugin_rewrite(
         self,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
         mode: str,
-        monkeypatch: pytest.MonkeyPatch,
+        monkeypatch: testrunner.MonkeyPatch,
         disable_plugin_autoload: str,
         explicit_specify: str,
     ) -> None:
         args = ["mainwrapper.py", "-s", f"--assert={mode}"]
         if disable_plugin_autoload == "env_var":
-            monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
+            monkeypatch.setenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", "1")
         elif disable_plugin_autoload == "cli":
-            monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+            monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", raising=False)
             args.append("--disable-plugin-autoload")
         else:
             assert disable_plugin_autoload == ""
-            monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+            monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", raising=False)
 
         name = "spamplugin"
 
         if explicit_specify == "env_var":
-            monkeypatch.setenv("PYTEST_PLUGINS", name)
+            monkeypatch.setenv("TESTRUNNER_PLUGINS", name)
         elif explicit_specify == "cli":
             args.append("-p")
             args.append(name)
@@ -298,22 +298,22 @@ class TestImportHookInstallation:
 
         # Make sure the hook is installed early enough so that plugins
         # installed via distribution package are rewritten.
-        pytester.mkdir("hampkg")
+        testrunnerer.mkdir("hampkg")
         contents = {
             "hampkg/__init__.py": """\
-                import pytest
+                import testrunner
 
-                @pytest.fixture
+                @testrunner.fixture
                 def check_first2():
                     def check(values, value):
                         assert values.pop(0) == value
                     return check
             """,
             "spamplugin.py": """\
-            import pytest
+            import testrunner
             from hampkg import check_first2
 
-            @pytest.fixture
+            @testrunner.fixture
             def check_first():
                 def check(values, value):
                     assert values.pop(0) == value
@@ -321,12 +321,12 @@ class TestImportHookInstallation:
             """,
             "mainwrapper.py": """\
             import importlib.metadata
-            import pytest
+            import testrunner
 
             class DummyEntryPoint(object):
                 name = 'spamplugin'
                 module_name = 'spam.py'
-                group = 'pytest11'
+                group = 'testrunner11'
 
                 def load(self):
                     import spamplugin
@@ -342,7 +342,7 @@ class TestImportHookInstallation:
                 return (DummyDistInfo(),)
 
             importlib.metadata.distributions = distributions
-            pytest.main()
+            testrunner.main()
             """,
             "test_foo.py": """\
             def test(check_first):
@@ -352,8 +352,8 @@ class TestImportHookInstallation:
                 check_first2([10, 30], 30)
             """,
         }
-        pytester.makepyfile(**contents)
-        result = pytester.run(sys.executable, *args)
+        testrunnerer.makepyfile(**contents)
+        result = testrunnerer.run(sys.executable, *args)
         if mode == "plain":
             expected = "E       AssertionError"
         elif mode == "rewrite":
@@ -373,12 +373,12 @@ class TestImportHookInstallation:
                 ]
             )
 
-    def test_rewrite_ast(self, pytester: Pytester) -> None:
-        pytester.mkdir("pkg")
+    def test_rewrite_ast(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.mkdir("pkg")
         contents = {
             "pkg/__init__.py": """
-                import pytest
-                pytest.register_assert_rewrite('pkg.helper')
+                import testrunner
+                testrunner.register_assert_rewrite('pkg.helper')
             """,
             "pkg/helper.py": """
                 def tool():
@@ -386,8 +386,8 @@ class TestImportHookInstallation:
                     assert a == b
             """,
             "pkg/plugin.py": """
-                import pytest, pkg.helper
-                @pytest.fixture
+                import testrunner, pkg.helper
+                @testrunner.fixture
                 def tool():
                     return pkg.helper.tool
             """,
@@ -397,7 +397,7 @@ class TestImportHookInstallation:
                     assert values.pop() == 3
             """,
             "conftest.py": """
-                pytest_plugins = ['pkg.plugin']
+                testrunner_plugins = ['pkg.plugin']
             """,
             "test_pkg.py": """
                 import pkg.other
@@ -407,8 +407,8 @@ class TestImportHookInstallation:
                     pkg.other.tool()
             """,
         }
-        pytester.makepyfile(**contents)
-        result = pytester.runpytest_subprocess("--assert=rewrite")
+        testrunnerer.makepyfile(**contents)
+        result = testrunnerer.runtestrunner_subprocess("--assert=rewrite")
         result.stdout.fnmatch_lines(
             [
                 ">*assert a == b*",
@@ -419,28 +419,28 @@ class TestImportHookInstallation:
         )
 
     def test_register_assert_rewrite_checks_types(self) -> None:
-        with pytest.raises(TypeError):
-            pytest.register_assert_rewrite(["pytest_tests_internal_non_existing"])  # type: ignore
-        pytest.register_assert_rewrite(
-            "pytest_tests_internal_non_existing", "pytest_tests_internal_non_existing2"
+        with testrunner.raises(TypeError):
+            testrunner.register_assert_rewrite(["testrunner_tests_internal_non_existing"])  # type: ignore
+        testrunner.register_assert_rewrite(
+            "testrunner_tests_internal_non_existing", "testrunner_tests_internal_non_existing2"
         )
 
 
 class TestBinReprIntegration:
-    def test_pytest_assertrepr_compare_called(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_testrunner_assertrepr_compare_called(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            import pytest
+            import testrunner
             values = []
-            def pytest_assertrepr_compare(op, left, right):
+            def testrunner_assertrepr_compare(op, left, right):
                 values.append((op, left, right))
 
-            @pytest.fixture
+            @testrunner.fixture
             def list(request):
                 return values
         """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_hello():
                 assert 0 == 1
@@ -448,7 +448,7 @@ class TestBinReprIntegration:
                 assert list == [("==", 0, 1)]
         """
         )
-        result = pytester.runpytest("-v")
+        result = testrunnerer.runtestrunner("-v")
         result.stdout.fnmatch_lines(["*test_hello*FAIL*", "*test_check*PASS*"])
 
 
@@ -463,7 +463,7 @@ def callop(
         verbose=verbose,
         assertion_text_diff_style=assertion_text_diff_style,
     )
-    return plugin.pytest_assertrepr_compare(config, op, left, right)
+    return plugin.testrunner_assertrepr_compare(config, op, left, right)
 
 
 def callequal(
@@ -688,10 +688,10 @@ class TestAssert_reprcompare:
         assert expl is not None
         assert len(expl) > 1
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         ["left", "right", "expected"],
         [
-            pytest.param(
+            testrunner.param(
                 [0, 1],
                 [0, 2],
                 """
@@ -706,7 +706,7 @@ class TestAssert_reprcompare:
                 """,
                 id="lists",
             ),
-            pytest.param(
+            testrunner.param(
                 {0: 1},
                 {0: 2},
                 """
@@ -720,7 +720,7 @@ class TestAssert_reprcompare:
             """,
                 id="dicts",
             ),
-            pytest.param(
+            testrunner.param(
                 {0, 1},
                 {0, 2},
                 """
@@ -760,9 +760,9 @@ class TestAssert_reprcompare:
         ]
 
     def test_iterable_full_diff_ci(
-        self, monkeypatch: MonkeyPatch, pytester: Pytester
+        self, monkeypatch: MonkeyPatch, testrunnerer: Testrunnerer
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             r"""
             def test_full_diff():
                 left = [0, 1]
@@ -771,18 +771,18 @@ class TestAssert_reprcompare:
         """
         )
         monkeypatch.setenv("CI", "true")
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             ["E         Full diff: (-: missing in left side, +: extra in left side)"]
         )
 
         # Setting CI to empty string is same as having it undefined
         monkeypatch.setenv("CI", "")
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["E         Use -v to get more diff"])
 
         monkeypatch.delenv("CI", raising=False)
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["E         Use -v to get more diff"])
 
     def test_list_different_lengths(self) -> None:
@@ -1163,7 +1163,7 @@ class TestAssert_reprcompare:
         # Streaming explanation: any per-line output produced before the
         # bad repr is preserved, then the failure notice is appended.
         assert expl[-2:] == [
-            "(pytest_assertion plugin: representation of details failed:"
+            "(testrunner_assertion plugin: representation of details failed:"
             f" {__file__}:{A.__repr__.__code__.co_firstlineno + 1}: ValueError: 42.",
             " Probably an object has a faulty __repr__.)",
         ]
@@ -1240,9 +1240,9 @@ class TestAssert_reprcompare:
 
 
 class TestAssert_reprcompare_dataclass:
-    def test_dataclasses(self, pytester: Pytester) -> None:
-        p = pytester.copy_example("dataclasses/test_compare_dataclasses.py")
-        result = pytester.runpytest(p)
+    def test_dataclasses(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.copy_example("dataclasses/test_compare_dataclasses.py")
+        result = testrunnerer.runtestrunner(p)
         result.assert_outcomes(failed=1, passed=0)
         result.stdout.fnmatch_lines(
             [
@@ -1258,9 +1258,9 @@ class TestAssert_reprcompare_dataclass:
             consecutive=True,
         )
 
-    def test_recursive_dataclasses(self, pytester: Pytester) -> None:
-        p = pytester.copy_example("dataclasses/test_compare_recursive_dataclasses.py")
-        result = pytester.runpytest(p)
+    def test_recursive_dataclasses(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.copy_example("dataclasses/test_compare_recursive_dataclasses.py")
+        result = testrunnerer.runtestrunner(p)
         result.assert_outcomes(failed=1, passed=0)
         result.stdout.fnmatch_lines(
             [
@@ -1276,9 +1276,9 @@ class TestAssert_reprcompare_dataclass:
             consecutive=True,
         )
 
-    def test_recursive_dataclasses_verbose(self, pytester: Pytester) -> None:
-        p = pytester.copy_example("dataclasses/test_compare_recursive_dataclasses.py")
-        result = pytester.runpytest(p, "-vv")
+    def test_recursive_dataclasses_verbose(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.copy_example("dataclasses/test_compare_recursive_dataclasses.py")
+        result = testrunnerer.runtestrunner(p, "-vv")
         result.assert_outcomes(failed=1, passed=0)
         result.stdout.fnmatch_lines(
             [
@@ -1306,9 +1306,9 @@ class TestAssert_reprcompare_dataclass:
             consecutive=True,
         )
 
-    def test_dataclasses_verbose(self, pytester: Pytester) -> None:
-        p = pytester.copy_example("dataclasses/test_compare_dataclasses_verbose.py")
-        result = pytester.runpytest(p, "-vv")
+    def test_dataclasses_verbose(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.copy_example("dataclasses/test_compare_dataclasses_verbose.py")
+        result = testrunnerer.runtestrunner(p, "-vv")
         result.assert_outcomes(failed=1, passed=0)
         result.stdout.fnmatch_lines(
             [
@@ -1320,34 +1320,34 @@ class TestAssert_reprcompare_dataclass:
         )
 
     def test_dataclasses_with_attribute_comparison_off(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
-        p = pytester.copy_example(
+        p = testrunnerer.copy_example(
             "dataclasses/test_compare_dataclasses_field_comparison_off.py"
         )
-        result = pytester.runpytest(p, "-vv")
+        result = testrunnerer.runtestrunner(p, "-vv")
         result.assert_outcomes(failed=0, passed=1)
 
-    def test_comparing_two_different_data_classes(self, pytester: Pytester) -> None:
-        p = pytester.copy_example(
+    def test_comparing_two_different_data_classes(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.copy_example(
             "dataclasses/test_compare_two_different_dataclasses.py"
         )
-        result = pytester.runpytest(p, "-vv")
+        result = testrunnerer.runtestrunner(p, "-vv")
         result.assert_outcomes(failed=0, passed=1)
 
-    def test_data_classes_with_custom_eq(self, pytester: Pytester) -> None:
-        p = pytester.copy_example(
+    def test_data_classes_with_custom_eq(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.copy_example(
             "dataclasses/test_compare_dataclasses_with_custom_eq.py"
         )
         # issue 9362
-        result = pytester.runpytest(p, "-vv")
+        result = testrunnerer.runtestrunner(p, "-vv")
         result.assert_outcomes(failed=1, passed=0)
         result.stdout.no_re_match_line(".*Differing attributes.*")
 
-    def test_data_classes_with_initvar(self, pytester: Pytester) -> None:
-        p = pytester.copy_example("dataclasses/test_compare_initvar.py")
+    def test_data_classes_with_initvar(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.copy_example("dataclasses/test_compare_initvar.py")
         # issue 9820
-        result = pytester.runpytest(p, "-vv")
+        result = testrunnerer.runtestrunner(p, "-vv")
         result.assert_outcomes(failed=1, passed=0)
         result.stdout.no_re_match_line(".*AttributeError.*")
 
@@ -1536,15 +1536,15 @@ class TestAssert_reprcompare_namedtuple:
 
 
 class TestFormatExplanation:
-    def test_special_chars_full(self, pytester: Pytester) -> None:
+    def test_special_chars_full(self, testrunnerer: Testrunnerer) -> None:
         # Issue 453, for the bug this would raise IndexError
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_foo():
                 assert '\\n}' == ''
         """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.ret == 1
         result.stdout.fnmatch_lines(["*AssertionError*"])
 
@@ -1740,11 +1740,11 @@ class TestTruncateExplanation:
         last_line_before_trunc_msg = result[-self.LINES_IN_TRUNCATION_MSG - 1]
         assert last_line_before_trunc_msg.endswith("...")
 
-    def test_full_output_truncated(self, monkeypatch, pytester: Pytester) -> None:
-        """Test against full runpytest() output."""
+    def test_full_output_truncated(self, monkeypatch, testrunnerer: Testrunnerer) -> None:
+        """Test against full runtestrunner() output."""
         line_count = 7
         line_len = 100
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             rf"""
             def test_many_lines():
                 a = list([str(i)[0] * {line_len} for i in range({line_count})])
@@ -1756,7 +1756,7 @@ class TestTruncateExplanation:
         )
         monkeypatch.delenv("CI", raising=False)
 
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         # without -vv, truncate the message showing a few diff lines only
         result.stdout.fnmatch_lines(
             [
@@ -1766,12 +1766,12 @@ class TestTruncateExplanation:
             ]
         )
 
-        result = pytester.runpytest("-vv")
+        result = testrunnerer.runtestrunner("-vv")
         result.stdout.fnmatch_lines(["* 6*"])
 
         # Setting CI to empty string is same as having it undefined
         monkeypatch.setenv("CI", "")
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [
                 "*+ 1*",
@@ -1781,10 +1781,10 @@ class TestTruncateExplanation:
         )
 
         monkeypatch.setenv("CI", "1")
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["* 6*"])
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         ["truncation_lines", "truncation_chars", "expected_lines_hidden"],
         (
             (3, None, 3),
@@ -1801,12 +1801,12 @@ class TestTruncateExplanation:
     def test_truncation_with_ini(
         self,
         monkeypatch,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
         truncation_lines: int | None,
         truncation_chars: int | None,
         expected_lines_hidden: int,
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """\
             string_a = "123456789\\n23456789\\n3"
             string_b = "123456789\\n23456789\\n4"
@@ -1822,14 +1822,14 @@ class TestTruncateExplanation:
 
         monkeypatch.delenv("CI", raising=False)
 
-        ini = "[pytest]\n"
+        ini = "[testrunner]\n"
         if truncation_lines is not None:
             ini += f"truncation_limit_lines = {truncation_lines}\n"
         if truncation_chars is not None:
             ini += f"truncation_limit_chars = {truncation_chars}\n"
-        pytester.makeini(ini)
+        testrunnerer.makeini(ini)
 
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
 
         if expected_lines_hidden != 0:
             result.stdout.fnmatch_lines(["*Full output truncated*"])
@@ -1842,40 +1842,40 @@ class TestTruncateExplanation:
                 ]
             )
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "config",
         [
-            # Native [tool.pytest] uses TOML types, so an int is accepted (#14675).
-            pytest.param(
+            # Native [tool.testrunner] uses TOML types, so an int is accepted (#14675).
+            testrunner.param(
                 """
-                [tool.pytest]
+                [tool.testrunner]
                 truncation_limit_lines = 3
                 truncation_limit_chars = 0
                 """,
                 id="native-toml-int",
             ),
-            # A string in native [tool.pytest] must keep working (backward compat).
-            pytest.param(
+            # A string in native [tool.testrunner] must keep working (backward compat).
+            testrunner.param(
                 """
-                [tool.pytest]
+                [tool.testrunner]
                 truncation_limit_lines = "3"
                 truncation_limit_chars = "0"
                 """,
                 id="native-toml-string",
             ),
-            # [tool.pytest.ini_options] keeps the string-based INI behaviour.
-            pytest.param(
+            # [tool.testrunner.ini_options] keeps the string-based INI behaviour.
+            testrunner.param(
                 """
-                [tool.pytest.ini_options]
+                [tool.testrunner.ini_options]
                 truncation_limit_lines = "3"
                 truncation_limit_chars = "0"
                 """,
                 id="ini-options-string",
             ),
             # ... and also accepts a bare int, coerced like the INI format does.
-            pytest.param(
+            testrunner.param(
                 """
-                [tool.pytest.ini_options]
+                [tool.testrunner.ini_options]
                 truncation_limit_lines = 3
                 truncation_limit_chars = 0
                 """,
@@ -1884,10 +1884,10 @@ class TestTruncateExplanation:
         ],
     )
     def test_truncation_limits_accept_int_and_string(
-        self, monkeypatch, pytester: Pytester, config: str
+        self, monkeypatch, testrunnerer: Testrunnerer, config: str
     ) -> None:
         """Truncation limits accept both int and string values in TOML (#14675)."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """\
             string_a = "123456789\\n23456789\\n3"
             string_b = "123456789\\n23456789\\n4"
@@ -1897,9 +1897,9 @@ class TestTruncateExplanation:
             """
         )
         monkeypatch.delenv("CI", raising=False)
-        pytester.makepyprojecttoml(config)
+        testrunnerer.makepyprojecttoml(config)
 
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
 
         result.stdout.no_fnmatch_line("*TypeError*")
         result.stdout.fnmatch_lines(["*Full output truncated, use '-vv' to show*"])
@@ -2015,7 +2015,7 @@ class TestMaterializeWithTruncation:
         )
         return truncate.materialize_with_truncation(src, config)
 
-    @pytest.mark.parametrize("shape", ["list", "tuple", "dict", "set"])
+    @testrunner.mark.parametrize("shape", ["list", "tuple", "dict", "set"])
     def test_formatting_work_is_bounded_for_a_10_line_display(self, shape: str) -> None:
         """A huge comparison whose display is truncated to ~10 lines must
         not format the whole input to get there.
@@ -2077,7 +2077,7 @@ class TestMaterializeWithTruncation:
 
 
 class TestAssertReprCompareDispatcher:
-    """Tests for the budget wiring in ``plugin.pytest_assertrepr_compare``.
+    """Tests for the budget wiring in ``plugin.testrunner_assertrepr_compare``.
 
     Unlike ``callequal``/``callop``, these tests pass explicit truncation
     limits, covering the branch that derives a :class:`TruncationBudget`
@@ -2110,7 +2110,7 @@ class TestAssertReprCompareDispatcher:
         right = [Tracked(i) for i in range(50_000)]
         right[0] = Tracked(-1)
         Tracked.reprs = 0  # count only the formatting, not the construction
-        result = plugin.pytest_assertrepr_compare(config, "==", left, right)
+        result = plugin.testrunner_assertrepr_compare(config, "==", left, right)
         assert result is not None
         assert len(result) < 20
         assert any("truncated" in line for line in result)
@@ -2126,7 +2126,7 @@ class TestAssertReprCompareDispatcher:
         )
         left = list(range(1000))
         right = list(range(1, 1001))
-        result = plugin.pytest_assertrepr_compare(config, "==", left, right)
+        result = plugin.testrunner_assertrepr_compare(config, "==", left, right)
         assert result is not None
         assert any("truncated" in line for line in result)
         assert sum(len(line) for line in result) < 1000
@@ -2141,7 +2141,7 @@ class TestAssertReprCompareDispatcher:
         )
         left = list(range(1000))
         right = list(range(1, 1001))
-        result = plugin.pytest_assertrepr_compare(config, "==", left, right)
+        result = plugin.testrunner_assertrepr_compare(config, "==", left, right)
         assert result is not None
         assert len(result) < 20
         assert any("truncated" in line for line in result)
@@ -2150,21 +2150,21 @@ class TestAssertReprCompareDispatcher:
         """Without the terminalreporter plugin the dispatcher uses the
         plaintext highlighter and never touches a terminal writer (#14377)."""
         config = mock_config(has_terminalreporter=False)
-        result = plugin.pytest_assertrepr_compare(config, "==", {1, 2}, {1, 3})
+        result = plugin.testrunner_assertrepr_compare(config, "==", {1, 2}, {1, 3})
         assert result is not None
         assert any("Extra items" in line for line in result)
         assert not any("\x1b[" in line for line in result)
 
 
-def test_python25_compile_issue257(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_python25_compile_issue257(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_rewritten():
             assert 1 == 2
         # some comment
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 1
     result.stdout.fnmatch_lines(
         """
@@ -2174,14 +2174,14 @@ def test_python25_compile_issue257(pytester: Pytester) -> None:
     )
 
 
-def test_rewritten(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_rewritten(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_rewritten():
             assert "@py_builtins" in globals()
     """
     )
-    assert pytester.runpytest().ret == 0
+    assert testrunnerer.runtestrunner().ret == 0
 
 
 def test_reprcompare_notin() -> None:
@@ -2242,9 +2242,9 @@ def test_reprcompare_whitespaces() -> None:
 
 
 class TestSetAssertions:
-    @pytest.mark.parametrize("op", [">=", ">", "<=", "<", "=="])
-    def test_set_extra_item(self, op, pytester: Pytester) -> None:
-        pytester.makepyfile(
+    @testrunner.mark.parametrize("op", [">=", ">", "<=", "<", "=="])
+    def test_set_extra_item(self, op, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(
             f"""
             def test_hello():
                 x = set("hello x")
@@ -2253,7 +2253,7 @@ class TestSetAssertions:
         """
         )
 
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [
                 "*def test_hello():*",
@@ -2275,9 +2275,9 @@ class TestSetAssertions:
                 ]
             )
 
-    @pytest.mark.parametrize("op", [">", "<", "!="])
-    def test_set_proper_superset_equal(self, pytester: Pytester, op) -> None:
-        pytester.makepyfile(
+    @testrunner.mark.parametrize("op", [">", "<", "!="])
+    def test_set_proper_superset_equal(self, testrunnerer: Testrunnerer, op) -> None:
+        testrunnerer.makepyfile(
             f"""
             def test_hello():
                 x = set([1, 2, 3])
@@ -2286,7 +2286,7 @@ class TestSetAssertions:
         """
         )
 
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [
                 "*def test_hello():*",
@@ -2295,8 +2295,8 @@ class TestSetAssertions:
             ]
         )
 
-    def test_pytest_assertrepr_compare_integration(self, pytester: Pytester) -> None:
-        pytester.makepyfile(
+    def test_testrunner_assertrepr_compare_integration(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(
             """
             def test_hello():
                 x = set(range(100))
@@ -2305,7 +2305,7 @@ class TestSetAssertions:
                 assert x == y
         """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [
                 "*def test_hello():*",
@@ -2316,11 +2316,11 @@ class TestSetAssertions:
             ]
         )
 
-    @pytest.mark.parametrize("op", [">=", "<="])
-    def test_dict_items_view_subset(self, op, pytester: Pytester) -> None:
+    @testrunner.mark.parametrize("op", [">=", "<="])
+    def test_dict_items_view_subset(self, op, testrunnerer: Testrunnerer) -> None:
         """dict.items() supports set-like comparisons; assert diff should show the missing items."""
         if op == ">=":
-            pytester.makepyfile(
+            testrunnerer.makepyfile(
                 """
                 def test_hello():
                     x = {"a": 1, "b": 2}
@@ -2329,7 +2329,7 @@ class TestSetAssertions:
             """
             )
         else:
-            pytester.makepyfile(
+            testrunnerer.makepyfile(
                 """
                 def test_hello():
                     x = {"a": 1, "b": 2, "c": 3}
@@ -2337,7 +2337,7 @@ class TestSetAssertions:
                     assert x.items() <= y.items()
             """
             )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         side = "right" if op == ">=" else "left"
         result.stdout.fnmatch_lines(
             [
@@ -2349,20 +2349,20 @@ class TestSetAssertions:
         )
 
 
-def test_assertrepr_loaded_per_dir(pytester: Pytester) -> None:
-    pytester.makepyfile(test_base=["def test_base(): assert 1 == 2"])
-    a = pytester.mkdir("a")
+def test_assertrepr_loaded_per_dir(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(test_base=["def test_base(): assert 1 == 2"])
+    a = testrunnerer.mkdir("a")
     a.joinpath("test_a.py").write_text("def test_a(): assert 1 == 2", encoding="utf-8")
     a.joinpath("conftest.py").write_text(
-        'def pytest_assertrepr_compare(): return ["summary a"]', encoding="utf-8"
+        'def testrunner_assertrepr_compare(): return ["summary a"]', encoding="utf-8"
     )
-    b = pytester.mkdir("b")
+    b = testrunnerer.mkdir("b")
     b.joinpath("test_b.py").write_text("def test_b(): assert 1 == 2", encoding="utf-8")
     b.joinpath("conftest.py").write_text(
-        'def pytest_assertrepr_compare(): return ["summary b"]', encoding="utf-8"
+        'def testrunner_assertrepr_compare(): return ["summary b"]', encoding="utf-8"
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [
             "*def test_a():*",
@@ -2375,34 +2375,34 @@ def test_assertrepr_loaded_per_dir(pytester: Pytester) -> None:
     )
 
 
-def test_assertion_options(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_assertion_options(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_hello():
             x = 3
             assert x == 4
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert "3 == 4" in result.stdout.str()
-    result = pytester.runpytest_subprocess("--assert=plain")
+    result = testrunnerer.runtestrunner_subprocess("--assert=plain")
     result.stdout.no_fnmatch_line("*3 == 4*")
 
 
-def test_triple_quoted_string_issue113(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_triple_quoted_string_issue113(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_hello():
             assert "" == '''
     '''"""
     )
-    result = pytester.runpytest("--fulltrace")
+    result = testrunnerer.runtestrunner("--fulltrace")
     result.stdout.fnmatch_lines(["*1 failed*"])
     result.stdout.no_fnmatch_line("*SyntaxError*")
 
 
-def test_traceback_failure(pytester: Pytester) -> None:
-    p1 = pytester.makepyfile(
+def test_traceback_failure(testrunnerer: Testrunnerer) -> None:
+    p1 = testrunnerer.makepyfile(
         """
         def g():
             return 2
@@ -2412,7 +2412,7 @@ def test_traceback_failure(pytester: Pytester) -> None:
             f(3)
     """
     )
-    result = pytester.runpytest(p1, "--tb=long")
+    result = testrunnerer.runtestrunner(p1, "--tb=long")
     result.stdout.fnmatch_lines(
         [
             "*test_traceback_failure.py F*",
@@ -2434,7 +2434,7 @@ def test_traceback_failure(pytester: Pytester) -> None:
         ]
     )
 
-    result = pytester.runpytest(p1)  # "auto"
+    result = testrunnerer.runtestrunner(p1)  # "auto"
     result.stdout.fnmatch_lines(
         [
             "*test_traceback_failure.py F*",
@@ -2456,9 +2456,9 @@ def test_traceback_failure(pytester: Pytester) -> None:
     )
 
 
-def test_exception_handling_no_traceback(pytester: Pytester) -> None:
+def test_exception_handling_no_traceback(testrunnerer: Testrunnerer) -> None:
     """Handle chain exceptions in tasks submitted by the multiprocess module (#1984)."""
-    p1 = pytester.makepyfile(
+    p1 = testrunnerer.makepyfile(
         """
         from multiprocessing import Pool
 
@@ -2474,8 +2474,8 @@ def test_exception_handling_no_traceback(pytester: Pytester) -> None:
             multitask_job()
     """
     )
-    pytester.syspathinsert()
-    result = pytester.runpytest(p1, "--tb=long")
+    testrunnerer.syspathinsert()
+    result = testrunnerer.runtestrunner(p1, "--tb=long")
     result.stdout.fnmatch_lines(
         [
             "====* FAILURES *====",
@@ -2488,52 +2488,52 @@ def test_exception_handling_no_traceback(pytester: Pytester) -> None:
     )
 
 
-@pytest.mark.skipif("'__pypy__' in sys.builtin_module_names")
-@pytest.mark.parametrize(
+@testrunner.mark.skipif("'__pypy__' in sys.builtin_module_names")
+@testrunner.mark.parametrize(
     "cmdline_args, warning_output",
     [
         (
-            ["-OO", "-m", "pytest", "-h"],
-            ["warning :*PytestConfigWarning:*assert statements are not executed*"],
+            ["-OO", "-m", "testrunner", "-h"],
+            ["warning :*TestrunnerConfigWarning:*assert statements are not executed*"],
         ),
         (
-            ["-OO", "-m", "pytest"],
+            ["-OO", "-m", "testrunner"],
             [
                 "=*= warnings summary =*=",
-                "*PytestConfigWarning:*assert statements are not executed*",
+                "*TestrunnerConfigWarning:*assert statements are not executed*",
             ],
         ),
         (
-            ["-OO", "-m", "pytest", "--assert=plain"],
+            ["-OO", "-m", "testrunner", "--assert=plain"],
             [
                 "=*= warnings summary =*=",
-                "*PytestConfigWarning: ASSERTIONS ARE NOT EXECUTED and FAILING TESTS WILL PASS.  "
+                "*TestrunnerConfigWarning: ASSERTIONS ARE NOT EXECUTED and FAILING TESTS WILL PASS.  "
                 "Are you using python -O?",
             ],
         ),
     ],
 )
-def test_warn_missing(pytester: Pytester, cmdline_args, warning_output) -> None:
-    pytester.makepyfile("")
+def test_warn_missing(testrunnerer: Testrunnerer, cmdline_args, warning_output) -> None:
+    testrunnerer.makepyfile("")
 
-    result = pytester.run(sys.executable, *cmdline_args)
+    result = testrunnerer.run(sys.executable, *cmdline_args)
     result.stdout.fnmatch_lines(warning_output)
 
 
-def test_recursion_source_decode(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_recursion_source_decode(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_something():
             pass
     """
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         python_files = *.py
     """
     )
-    result = pytester.runpytest("--collect-only")
+    result = testrunnerer.runtestrunner("--collect-only")
     result.stdout.fnmatch_lines(
         [
             "  <Module*>",
@@ -2541,15 +2541,15 @@ def test_recursion_source_decode(pytester: Pytester) -> None:
     )
 
 
-def test_AssertionError_message(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_AssertionError_message(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_hello():
             x,y = 1,2
             assert 0, (x,y)
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         """
         *def test_hello*
@@ -2559,15 +2559,15 @@ def test_AssertionError_message(pytester: Pytester) -> None:
     )
 
 
-def test_diff_newline_at_end(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_diff_newline_at_end(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         r"""
         def test_diff():
             assert 'asdf' == 'asdf\n'
     """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         r"""
         *assert 'asdf' == 'asdf\n'
@@ -2578,68 +2578,68 @@ def test_diff_newline_at_end(pytester: Pytester) -> None:
     )
 
 
-@pytest.mark.filterwarnings("default")
-def test_assert_tuple_warning(pytester: Pytester) -> None:
+@testrunner.mark.filterwarnings("default")
+def test_assert_tuple_warning(testrunnerer: Testrunnerer) -> None:
     msg = "assertion is always true"
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_tuple():
             assert(False, 'you shall not pass')
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines([f"*test_assert_tuple_warning.py:2:*{msg}*"])
 
     # tuples with size != 2 should not trigger the warning
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_tuple():
             assert ()
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert msg not in result.stdout.str()
 
 
-def test_assert_indirect_tuple_no_warning(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_assert_indirect_tuple_no_warning(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_tuple():
             tpl = ('foo', 'bar')
             assert tpl
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     output = "\n".join(result.stdout.lines)
     assert "WR1" not in output
 
 
-def test_assert_with_unicode(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_assert_with_unicode(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """\
         def test_unicode():
             assert '유니코드' == 'Unicode'
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["*AssertionError*"])
 
 
-def test_raise_unprintable_assertion_error(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_raise_unprintable_assertion_error(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         r"""
         def test_raise_assertion_error():
             raise AssertionError('\xff')
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [r">       raise AssertionError('\xff')", "E       AssertionError: *"]
     )
 
 
-def test_raise_assertion_error_raising_repr(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_raise_assertion_error_raising_repr(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         class RaisingRepr(object):
             def __repr__(self):
@@ -2648,12 +2648,12 @@ def test_raise_assertion_error_raising_repr(pytester: Pytester) -> None:
             raise AssertionError(RaisingRepr())
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["E       AssertionError: <exception str() failed>"])
 
 
-def test_issue_1944(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_issue_1944(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def f():
             return
@@ -2661,7 +2661,7 @@ def test_issue_1944(pytester: Pytester) -> None:
         assert f() == 10
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["*1 error*"])
     assert (
         "AttributeError: 'Module' object has no attribute '_obj'"
@@ -2670,85 +2670,85 @@ def test_issue_1944(pytester: Pytester) -> None:
 
 
 def test_exit_from_assertrepr_compare(monkeypatch) -> None:
-    from _pytest.assertion import _compare_any
+    from _testrunner.assertion import _compare_any
 
     def raise_exit(obj):
         outcomes.exit("Quitting debugger")
 
     monkeypatch.setattr(_compare_any, "istext", raise_exit)
 
-    with pytest.raises(outcomes.Exit, match="Quitting debugger"):
+    with testrunner.raises(outcomes.Exit, match="Quitting debugger"):
         callequal(1, 1)
 
 
-def test_plugin_hook_returning_none_is_skipped(pytester: Pytester) -> None:
-    """A ``pytest_assertrepr_compare`` impl returning ``None`` is skipped
+def test_plugin_hook_returning_none_is_skipped(testrunnerer: Testrunnerer) -> None:
+    """A ``testrunner_assertrepr_compare`` impl returning ``None`` is skipped
     so the next impl (or the built-in) can produce the explanation."""
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-        def pytest_assertrepr_compare(op, left, right):
+        def testrunner_assertrepr_compare(op, left, right):
             # Always defer to the next plugin / the built-in.
             return None
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_diff():
             assert {1, 2} == {1, 3}
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         ["*Extra items in the left set:*", "*Extra items in the right set:*"]
     )
 
 
-def test_plugin_hook_returning_empty_iterator_is_skipped(pytester: Pytester) -> None:
+def test_plugin_hook_returning_empty_iterator_is_skipped(testrunnerer: Testrunnerer) -> None:
     """A plugin returning a truthy but ultimately empty iterable is
     skipped after materialisation."""
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-        def pytest_assertrepr_compare(op, left, right):
+        def testrunner_assertrepr_compare(op, left, right):
             return iter([])
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_diff():
             assert {1, 2} == {1, 3}
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         ["*Extra items in the left set:*", "*Extra items in the right set:*"]
     )
 
 
 def test_callbinrepr_falls_through_when_all_hooks_return_none(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
-    """When no ``pytest_assertrepr_compare`` impl produces an explanation,
+    """When no ``testrunner_assertrepr_compare`` impl produces an explanation,
     the plain assert rewrite is shown."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_trivial():
             assert 1 == 2
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["*assert 1 == 2*"])
     result.assert_outcomes(failed=1)
 
 
-def test_callbinrepr_plain_assert_mode(pytester: Pytester) -> None:
+def test_callbinrepr_plain_assert_mode(testrunnerer: Testrunnerer) -> None:
     """In ``--assert=plain`` mode the comparison explanation is still produced."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_diff():
             assert {1, 2} == {1, 3}
         """
     )
-    result = pytester.runpytest("--assert=plain")
+    result = testrunnerer.runtestrunner("--assert=plain")
     result.stdout.fnmatch_lines(
         ["*Extra items in the left set:*", "*Extra items in the right set:*"]
     )
@@ -2757,7 +2757,7 @@ def test_callbinrepr_plain_assert_mode(pytester: Pytester) -> None:
 def test_exception_before_first_yield_emits_summary_and_notice(monkeypatch) -> None:
     """A comparator raising before any explanation line is yielded still
     produces the summary, followed by the failure notice."""
-    from _pytest.assertion import _compare_any
+    from _testrunner.assertion import _compare_any
 
     def raise_value_error(obj):
         raise ValueError("synthetic repr failure")
@@ -2773,16 +2773,16 @@ def test_exception_before_first_yield_emits_summary_and_notice(monkeypatch) -> N
     assert any("ValueError" in line or "synthetic" in line for line in expl)
 
 
-def test_assertion_location_with_coverage(pytester: Pytester) -> None:
+def test_assertion_location_with_coverage(testrunnerer: Testrunnerer) -> None:
     """This used to report the wrong location when run with coverage (#5754)."""
-    p = pytester.makepyfile(
+    p = testrunnerer.makepyfile(
         """
         def test():
             assert False, 1
             assert False, 2
         """
     )
-    result = pytester.runpytest(str(p))
+    result = testrunnerer.runtestrunner(str(p))
     result.stdout.fnmatch_lines(
         [
             ">       assert False, 1",
@@ -2808,8 +2808,8 @@ def test_reprcompare_verbose_long() -> None:
     )
 
 
-@pytest.mark.parametrize("enable_colors", [True, False])
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize("enable_colors", [True, False])
+@testrunner.mark.parametrize(
     ("test_code", "expected_lines"),
     (
         (
@@ -2855,10 +2855,10 @@ def test_reprcompare_verbose_long() -> None:
     ),
 )
 def test_comparisons_handle_colors(
-    pytester: Pytester, color_mapping, enable_colors, test_code, expected_lines
+    testrunnerer: Testrunnerer, color_mapping, enable_colors, test_code, expected_lines
 ) -> None:
-    p = pytester.makepyfile(test_code)
-    result = pytester.runpytest(
+    p = testrunnerer.makepyfile(test_code)
+    result = testrunnerer.runtestrunner(
         f"--color={'yes' if enable_colors else 'no'}", "-vv", str(p)
     )
     formatter = (
@@ -2870,9 +2870,9 @@ def test_comparisons_handle_colors(
     result.stdout.fnmatch_lines(formatter(expected_lines), consecutive=False)
 
 
-def test_fine_grained_assertion_verbosity(pytester: Pytester):
+def test_fine_grained_assertion_verbosity(testrunnerer: Testrunnerer):
     long_text = "Lorem ipsum dolor sit amet " * 10
-    p = pytester.makepyfile(
+    p = testrunnerer.makepyfile(
         f"""
         def test_ok():
             pass
@@ -2895,13 +2895,13 @@ def test_fine_grained_assertion_verbosity(pytester: Pytester):
             assert "hello world" in long_text
         """
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         verbosity_assertions = 2
         """
     )
-    result = pytester.runpytest(p)
+    result = testrunnerer.runtestrunner(p)
 
     result.stdout.fnmatch_lines(
         [
@@ -2940,9 +2940,9 @@ def test_fine_grained_assertion_verbosity(pytester: Pytester):
 
 
 def test_assertion_text_diff_style_block_for_multiline_strings(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         r"""
         actual = "alpha\n  beta\n"
         expected = "alpha\n    beta"
@@ -2951,14 +2951,14 @@ def test_assertion_text_diff_style_block_for_multiline_strings(
             assert actual == expected
         """
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         assertion_text_diff_style = block
         """
     )
 
-    result = pytester.runpytest("-vv")
+    result = testrunnerer.runtestrunner("-vv")
 
     result.stdout.fnmatch_lines(
         [
@@ -2975,22 +2975,22 @@ def test_assertion_text_diff_style_block_for_multiline_strings(
 
 
 def test_assertion_text_diff_style_block_for_single_line_strings(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_text_diff():
             assert "spam" == "eggs"
         """
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         assertion_text_diff_style = block
         """
     )
 
-    result = pytester.runpytest("-vv")
+    result = testrunnerer.runtestrunner("-vv")
 
     result.stdout.fnmatch_lines(
         [
@@ -3003,23 +3003,23 @@ def test_assertion_text_diff_style_block_for_single_line_strings(
     result.stdout.no_fnmatch_line("*- eggs*")
 
 
-def test_assertion_text_diff_style_invalid(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_assertion_text_diff_style_invalid(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_ok():
             pass
         """
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         assertion_text_diff_style = side-by-side
         """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
 
-    assert result.ret == pytest.ExitCode.USAGE_ERROR
+    assert result.ret == testrunner.ExitCode.USAGE_ERROR
     result.stderr.fnmatch_lines(
         [
             "*ERROR: *: config option 'assertion_text_diff_style' expects one of "
@@ -3028,8 +3028,8 @@ def test_assertion_text_diff_style_invalid(pytester: Pytester) -> None:
     )
 
 
-def test_full_output_vvv(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_full_output_vvv(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         r"""
         def crash_helper(m):
             assert 1 == 2
@@ -3037,7 +3037,7 @@ def test_full_output_vvv(pytester: Pytester) -> None:
             crash_helper(500 * "a")
     """
     )
-    result = pytester.runpytest("")
+    result = testrunnerer.runtestrunner("")
     # without -vvv, the passed args are truncated
     expected_non_vvv_arg_line = "m = 'aaaaaaaaaaaaaaa*..aaaaaaaaaaaa*"
     result.stdout.fnmatch_lines(
@@ -3051,7 +3051,7 @@ def test_full_output_vvv(pytester: Pytester) -> None:
     result.stdout.no_fnmatch_line(expected_vvv_arg_line)
 
     # but with "-vvv" the args are not truncated
-    result = pytester.runpytest("-vvv")
+    result = testrunnerer.runtestrunner("-vvv")
     result.stdout.fnmatch_lines(
         [
             expected_vvv_arg_line,
@@ -3061,9 +3061,9 @@ def test_full_output_vvv(pytester: Pytester) -> None:
     result.stdout.no_fnmatch_line(expected_non_vvv_arg_line)
 
 
-def test_dict_extra_items_preserve_insertion_order(pytester: Pytester) -> None:
+def test_dict_extra_items_preserve_insertion_order(testrunnerer: Testrunnerer) -> None:
     """Assertion output of dict diff shows keys in insertion order (#13503)."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         test_order="""
         def test_order():
             a = {
@@ -3077,7 +3077,7 @@ def test_dict_extra_items_preserve_insertion_order(pytester: Pytester) -> None:
         """
     )
 
-    result = pytester.runpytest("-vv")
+    result = testrunnerer.runtestrunner("-vv")
     result.stdout.fnmatch_lines(
         [
             "*Left contains 5 more items:*",

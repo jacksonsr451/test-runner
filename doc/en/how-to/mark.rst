@@ -3,10 +3,10 @@
 How to mark test functions with attributes
 ===========================================
 
-By using the ``pytest.mark`` helper you can easily set
+By using the ``testrunner.mark`` helper you can easily set
 metadata on your test functions. You can find the full list of builtin markers
 in the :ref:`API Reference<marks ref>`. Or you can list all the markers, including
-builtin and custom, using the CLI - :code:`pytest --markers`.
+builtin and custom, using the CLI - :code:`testrunner --markers`.
 
 Here are some of the builtin markers:
 
@@ -40,7 +40,7 @@ You can register custom marks in your configuration file like this:
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         markers = [
             "slow: marks tests as slow (deselect with '-m \"not slow\"')",
             "serial",
@@ -50,7 +50,7 @@ You can register custom marks in your configuration file like this:
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         markers =
             slow: marks tests as slow (deselect with '-m "not slow"')
             serial
@@ -58,17 +58,17 @@ You can register custom marks in your configuration file like this:
 Note that everything past the ``:`` after the mark name is an optional description.
 
 Alternatively, you can register new markers programmatically in a
-:ref:`pytest_configure <initialization-hooks>` hook:
+:ref:`testrunner_configure <initialization-hooks>` hook:
 
 .. code-block:: python
 
-    def pytest_configure(config):
+    def testrunner_configure(config):
         config.addinivalue_line(
             "markers", "env(name): mark test to run only on named environment"
         )
 
 
-Registered marks appear in pytest's help text and do not emit warnings (see the next section). It
+Registered marks appear in testrunner's help text and do not emit warnings (see the next section). It
 is recommended that third-party plugins always :ref:`register their markers <registering-markers>`.
 
 .. _unknown-marks:
@@ -76,21 +76,21 @@ is recommended that third-party plugins always :ref:`register their markers <reg
 Raising errors on unknown marks
 -------------------------------
 
-Unregistered marks applied with the ``@pytest.mark.name_of_the_mark`` decorator
+Unregistered marks applied with the ``@testrunner.mark.name_of_the_mark`` decorator
 will always emit a warning in order to avoid silently doing something
 surprising due to mistyped names. As described in the previous section, you can disable
 the warning for custom marks by registering them in your configuration file or
-using a custom ``pytest_configure`` hook.
+using a custom ``testrunner_configure`` hook.
 
 When the :confval:`strict_markers` configuration option is set, any unknown marks applied
-with the ``@pytest.mark.name_of_the_mark`` decorator will trigger an error. You can
+with the ``@testrunner.mark.name_of_the_mark`` decorator will trigger an error. You can
 enforce this validation in your project by setting :confval:`strict_markers` in your configuration:
 
 .. tab:: toml
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         addopts = ["--strict-markers"]
         markers = [
             "slow: marks tests as slow (deselect with '-m \"not slow\"')",
@@ -101,7 +101,7 @@ enforce this validation in your project by setting :confval:`strict_markers` in 
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         strict_markers = true
         markers =
             slow: marks tests as slow (deselect with '-m "not slow"')

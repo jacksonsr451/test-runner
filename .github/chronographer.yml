@@ -4,10 +4,10 @@ branch-protection-check-name: Changelog entry
 action-hints:
   check-title-prefix: "Chronographer: "
   external-docs-url: >-
-    https://docs.pytest.org/en/latest/contributing.html#preparing-pull-requests
+    https://github.com/jacksonsr451/test-runner/tree/main/doc/en/contributing.html#preparing-pull-requests
   inline-markdown: >-
     See
-    https://docs.pytest.org/en/latest/contributing.html#preparing-pull-requests
+    https://github.com/jacksonsr451/test-runner/tree/main/doc/en/contributing.html#preparing-pull-requests
     for details.
 enforce-name:
   suffix: .rst

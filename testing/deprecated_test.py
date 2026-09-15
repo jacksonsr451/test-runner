@@ -1,114 +1,114 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-from _pytest import deprecated
-from _pytest.pytester import Pytester
-from _pytest.scope import Scope
-import pytest
-from pytest import PytestDeprecationWarning
-from pytest import PytestRemovedIn10Warning
+from _testrunner import deprecated
+from _testrunner.testrunnerer import Testrunnerer
+from _testrunner.scope import Scope
+import testrunner
+from testrunner import TestrunnerDeprecationWarning
+from testrunner import TestrunnerRemovedIn10Warning
 
 
-@pytest.mark.parametrize("plugin", sorted(deprecated.DEPRECATED_EXTERNAL_PLUGINS))
-@pytest.mark.filterwarnings("default")
-def test_external_plugins_integrated(pytester: Pytester, plugin) -> None:
-    pytester.syspathinsert()
-    pytester.makepyfile(**{plugin: ""})
+@testrunner.mark.parametrize("plugin", sorted(deprecated.DEPRECATED_EXTERNAL_PLUGINS))
+@testrunner.mark.filterwarnings("default")
+def test_external_plugins_integrated(testrunnerer: Testrunnerer, plugin) -> None:
+    testrunnerer.syspathinsert()
+    testrunnerer.makepyfile(**{plugin: ""})
     recorded = []
 
     class Recorder:
-        def pytest_warning_recorded(self, warning_message):
+        def testrunner_warning_recorded(self, warning_message):
             recorded.append(warning_message)
 
-    pytester.plugins = [Recorder()]
-    pytester.parseconfig("-p", plugin)
+    testrunnerer.plugins = [Recorder()]
+    testrunnerer.parseconfig("-p", plugin)
 
     assert len(recorded) == 1
-    assert recorded[0].category is pytest.PytestConfigWarning
+    assert recorded[0].category is testrunner.TestrunnerConfigWarning
 
 
 def test_hookspec_via_function_attributes_are_deprecated():
-    from _pytest.config import PytestPluginManager
+    from _testrunner.config import TestrunnerPluginManager
 
-    pm = PytestPluginManager()
+    pm = TestrunnerPluginManager()
 
     class DeprecatedHookMarkerSpec:
-        def pytest_bad_hook(self):
+        def testrunner_bad_hook(self):
             pass
 
-        pytest_bad_hook.historic = False  # type: ignore[attr-defined]
+        testrunner_bad_hook.historic = False  # type: ignore[attr-defined]
 
-    with pytest.warns(
-        PytestDeprecationWarning,
-        match=r"Please use the pytest\.hookspec\(historic=False\) decorator",
+    with testrunner.warns(
+        TestrunnerDeprecationWarning,
+        match=r"Please use the testrunner\.hookspec\(historic=False\) decorator",
     ) as recorder:
         pm.add_hookspecs(DeprecatedHookMarkerSpec)
     (record,) = recorder
     assert (
         record.lineno
-        == DeprecatedHookMarkerSpec.pytest_bad_hook.__code__.co_firstlineno
+        == DeprecatedHookMarkerSpec.testrunner_bad_hook.__code__.co_firstlineno
     )
     assert record.filename == __file__
 
 
 def test_hookimpl_via_function_attributes_are_deprecated():
-    from _pytest.config import PytestPluginManager
+    from _testrunner.config import TestrunnerPluginManager
 
-    pm = PytestPluginManager()
+    pm = TestrunnerPluginManager()
 
     class DeprecatedMarkImplPlugin:
-        def pytest_runtest_call(self):
+        def testrunner_runtest_call(self):
             pass
 
-        pytest_runtest_call.tryfirst = True  # type: ignore[attr-defined]
+        testrunner_runtest_call.tryfirst = True  # type: ignore[attr-defined]
 
-    with pytest.warns(
-        PytestDeprecationWarning,
-        match=r"Please use the pytest.hookimpl\(tryfirst=True\)",
+    with testrunner.warns(
+        TestrunnerDeprecationWarning,
+        match=r"Please use the testrunner.hookimpl\(tryfirst=True\)",
     ) as recorder:
         pm.register(DeprecatedMarkImplPlugin())
     (record,) = recorder
     assert (
         record.lineno
-        == DeprecatedMarkImplPlugin.pytest_runtest_call.__code__.co_firstlineno
+        == DeprecatedMarkImplPlugin.testrunner_runtest_call.__code__.co_firstlineno
     )
     assert record.filename == __file__
 
 
 def test_yield_fixture_is_deprecated() -> None:
-    with pytest.warns(PytestRemovedIn10Warning, match=r"yield_fixture is deprecated"):
+    with testrunner.warns(TestrunnerRemovedIn10Warning, match=r"yield_fixture is deprecated"):
 
-        @pytest.yield_fixture  # type: ignore[deprecated]
+        @testrunner.yield_fixture  # type: ignore[deprecated]
         def fix():
             assert False
 
 
 def test_private_is_deprecated() -> None:
     class PrivateInit:
-        def __init__(self, foo: int, *, _ispytest: bool = False) -> None:
-            deprecated.check_ispytest(_ispytest)
+        def __init__(self, foo: int, *, _istestrunner: bool = False) -> None:
+            deprecated.check_istestrunner(_istestrunner)
 
-    with pytest.warns(
-        pytest.PytestDeprecationWarning, match="private pytest class or function"
+    with testrunner.warns(
+        testrunner.TestrunnerDeprecationWarning, match="private testrunner class or function"
     ):
         PrivateInit(10)
 
     # Doesn't warn.
-    PrivateInit(10, _ispytest=True)
+    PrivateInit(10, _istestrunner=True)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "scope", [Scope.Class, Scope.Module, Scope.Package, Scope.Session]
 )
 def test_higher_scope_instance_method_is_deprecated(
-    pytester: Pytester, scope: Scope
+    testrunnerer: Testrunnerer, scope: Scope
 ) -> None:
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         f"""
-        import pytest
+        import testrunner
 
         class TestClass:
-            @pytest.fixture(scope="{scope.value}")
+            @testrunner.fixture(scope="{scope.value}")
             def fix(self):
                 self.attr = True
 
@@ -116,26 +116,26 @@ def test_higher_scope_instance_method_is_deprecated(
                 pass
         """
     )
-    result = pytester.runpytest("-Werror::pytest.PytestRemovedIn10Warning")
+    result = testrunnerer.runtestrunner("-Werror::testrunner.TestrunnerRemovedIn10Warning")
     result.assert_outcomes(errors=1)
     result.stdout.fnmatch_lines(
-        ["*PytestRemovedIn10Warning: *-scoped fixtures defined as instance methods*"]
+        ["*TestrunnerRemovedIn10Warning: *-scoped fixtures defined as instance methods*"]
     )
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "scope", [Scope.Class, Scope.Module, Scope.Package, Scope.Session]
 )
 def test_higher_scope_classmethod_fixture_not_deprecated(
-    pytester: Pytester, scope: Scope
+    testrunnerer: Testrunnerer, scope: Scope
 ) -> None:
     """A higher-scoped fixture defined as @classmethod does NOT warn."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         f"""
-        import pytest
+        import testrunner
 
         class TestClass:
-            @pytest.fixture(scope="{scope.value}")
+            @testrunner.fixture(scope="{scope.value}")
             @classmethod
             def fix(cls):
                 cls.attr = True
@@ -144,19 +144,19 @@ def test_higher_scope_classmethod_fixture_not_deprecated(
                 assert type(self).attr is True
         """
     )
-    result = pytester.runpytest("-Werror::pytest.PytestRemovedIn10Warning")
+    result = testrunnerer.runtestrunner("-Werror::testrunner.TestrunnerRemovedIn10Warning")
     result.assert_outcomes(passed=1)
 
 
-@pytest.mark.parametrize("scope", list(Scope))
-def test_staticmethod_fixture_not_deprecated(pytester: Pytester, scope: Scope) -> None:
+@testrunner.mark.parametrize("scope", list(Scope))
+def test_staticmethod_fixture_not_deprecated(testrunnerer: Testrunnerer, scope: Scope) -> None:
     """A fixture at any scope defined as @staticmethod does NOT warn."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         f"""
-        import pytest
+        import testrunner
 
         class TestClass:
-            @pytest.fixture(scope="{scope.value}")
+            @testrunner.fixture(scope="{scope.value}")
             @staticmethod
             def fix():
                 pass
@@ -165,7 +165,7 @@ def test_staticmethod_fixture_not_deprecated(pytester: Pytester, scope: Scope) -
                 pass
         """
     )
-    result = pytester.runpytest("-Werror::pytest.PytestRemovedIn10Warning")
+    result = testrunnerer.runtestrunner("-Werror::testrunner.TestrunnerRemovedIn10Warning")
     result.assert_outcomes(passed=1)
 
 
@@ -173,7 +173,7 @@ class TestFixtureNodeidDeprecations:
     """Tests for deprecated baseid/nodeid string APIs in fixture registration.
 
     AI-generated coverage tests for legacy paths that will be removed in
-    pytest 10. These exist solely to maintain patch coverage until the
+    testrunner 10. These exist solely to maintain patch coverage until the
     deprecated code is deleted.
 
     Legacy paths covered:
@@ -185,22 +185,22 @@ class TestFixtureNodeidDeprecations:
     - _matchfactories string-based fallback (match + non-match branches)
     """
 
-    def test_parsefactories_nodeid_deprecation(self, pytester: Pytester) -> None:
+    def test_parsefactories_nodeid_deprecation(self, testrunnerer: Testrunnerer) -> None:
         """parsefactories(obj, "path") warns; parsefactories(obj, None) does not."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            import pytest
+            import testrunner
             import types
             import warnings
 
-            def pytest_collection_modifyitems(session, items):
+            def testrunner_collection_modifyitems(session, items):
                 fm = session._fixturemanager
 
-                @pytest.fixture
+                @testrunner.fixture
                 def fix_a():
                     return "a"
 
-                @pytest.fixture
+                @testrunner.fixture
                 def fix_b():
                     return "b"
 
@@ -218,33 +218,33 @@ class TestFixtureNodeidDeprecations:
                 assert len(nodeid_warns) == 2, f"Expected 2 warning, got: {w}"
             """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_global_fix(fix_b):
                 assert fix_b == "b"
             """
         )
-        result = pytester.runpytest("-W", "default::pytest.PytestRemovedIn10Warning")
+        result = testrunnerer.runtestrunner("-W", "default::testrunner.TestrunnerRemovedIn10Warning")
         result.assert_outcomes(passed=1)
 
-    def test_parsefactories_no_args_raises_typeerror(self, pytester: Pytester) -> None:
+    def test_parsefactories_no_args_raises_typeerror(self, testrunnerer: Testrunnerer) -> None:
         """parsefactories() with no holder and no node_or_obj raises TypeError."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            import pytest
+            import testrunner
 
-            def pytest_collection_modifyitems(session, items):
+            def testrunner_collection_modifyitems(session, items):
                 fm = session._fixturemanager
-                with pytest.raises(TypeError, match="requires holder or node_or_obj"):
+                with testrunner.raises(TypeError, match="requires holder or node_or_obj"):
                     fm.parsefactories()
             """
         )
-        pytester.makepyfile("def test_pass(): pass")
-        result = pytester.runpytest()
+        testrunnerer.makepyfile("def test_pass(): pass")
+        result = testrunnerer.runtestrunner()
         result.assert_outcomes(passed=1)
 
     def test_register_fixture_nodeid_and_autouse_legacy(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """_register_fixture(nodeid=string) warns and autouse populates/yields.
 
@@ -253,14 +253,14 @@ class TestFixtureNodeidDeprecations:
         - _nodeid_autousenames populated for autouse + non-empty nodeid
         - _getautousenames yields from nodeid_basenames at lookup time
         """
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            import pytest
+            import testrunner
             import warnings
 
             _done = False
 
-            def pytest_collectstart(collector):
+            def testrunner_collectstart(collector):
                 global _done
                 if _done or not hasattr(collector.session, "_fixturemanager"):
                     return
@@ -280,28 +280,28 @@ class TestFixtureNodeidDeprecations:
                 assert "legacy_autouse" in fm._nodeid_autousenames[collector.nodeid]
             """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_autouse_yielded(request):
                 assert "legacy_autouse" in request.fixturenames
             """
         )
-        result = pytester.runpytest("-W", "default::pytest.PytestRemovedIn10Warning")
+        result = testrunnerer.runtestrunner("-W", "default::testrunner.TestrunnerRemovedIn10Warning")
         result.assert_outcomes(passed=1)
 
-    def test_matchfactories_string_fallback(self, pytester: Pytester) -> None:
+    def test_matchfactories_string_fallback(self, testrunnerer: Testrunnerer) -> None:
         """_matchfactories uses baseid string matching for legacy fixtures.
 
         Exercises both branches:
         - baseid="" matches all nodes (global fixture)
         - baseid="nonexistent/path" matches nothing (scoped fixture invisible)
         """
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            import pytest
+            import testrunner
             import warnings
 
-            def pytest_collection_modifyitems(session, items):
+            def testrunner_collection_modifyitems(session, items):
                 fm = session._fixturemanager
                 with warnings.catch_warnings():
                     warnings.simplefilter("ignore")
@@ -314,7 +314,7 @@ class TestFixtureNodeidDeprecations:
                     )
             """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_global_visible(global_legacy):
                 assert global_legacy == "ok"
@@ -326,16 +326,16 @@ class TestFixtureNodeidDeprecations:
                 assert defs == []
             """
         )
-        result = pytester.runpytest("-W", "ignore::pytest.PytestRemovedIn10Warning")
+        result = testrunnerer.runtestrunner("-W", "ignore::testrunner.TestrunnerRemovedIn10Warning")
         result.assert_outcomes(passed=2)
 
-    def test_fixturedef_has_location_deprecated(self, pytester: Pytester) -> None:
+    def test_fixturedef_has_location_deprecated(self, testrunnerer: Testrunnerer) -> None:
         """Accessing FixtureDef.has_location warns."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def fix():
                 return 1
 
@@ -343,25 +343,25 @@ class TestFixtureNodeidDeprecations:
                 fixturedef = request._fixturemanager.getfixturedefs(
                     "fix", request._pyfuncitem
                 )[0]
-                with pytest.warns(
-                    pytest.PytestRemovedIn10Warning, match="has_location"
+                with testrunner.warns(
+                    testrunner.TestrunnerRemovedIn10Warning, match="has_location"
                 ):
                     assert fixturedef.has_location is True
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.assert_outcomes(passed=1)
 
 
 def test_callspec2_renamed() -> None:
     """Importing/accessing CallSpec2 warns and returns CallSpec."""
-    import _pytest.python as python_mod
-    from _pytest.python import CallSpec
+    import _testrunner.python as python_mod
+    from _testrunner.python import CallSpec
 
-    with pytest.warns(pytest.PytestRemovedIn10Warning, match="CallSpec2"):
-        from _pytest.python import CallSpec2
+    with testrunner.warns(testrunner.TestrunnerRemovedIn10Warning, match="CallSpec2"):
+        from _testrunner.python import CallSpec2
 
     assert CallSpec2 is CallSpec
 
-    with pytest.warns(pytest.PytestRemovedIn10Warning, match="CallSpec2"):
+    with testrunner.warns(testrunner.TestrunnerRemovedIn10Warning, match="CallSpec2"):
         assert python_mod.CallSpec2 is CallSpec

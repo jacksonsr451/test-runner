@@ -1,15 +1,15 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-@pytest.fixture
+@testrunner.fixture
 def some(request):
     return request.function.__name__
 
 
-@pytest.fixture
+@testrunner.fixture
 def other(request):
     return 42
 

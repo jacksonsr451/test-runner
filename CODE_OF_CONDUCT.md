@@ -55,7 +55,7 @@ further defined and clarified by project maintainers.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported by contacting the project team at coc@pytest.org. All
+reported by contacting the project team at coc@testrunner.org. All
 complaints will be reviewed and investigated and will result in a response that
 is deemed necessary and appropriate to the circumstances. The project team is
 obligated to maintain confidentiality with regard to the reporter of an incident.
@@ -65,12 +65,12 @@ Project maintainers who do not follow or enforce the Code of Conduct in good
 faith may face temporary or permanent repercussions as determined by other
 members of the project's leadership.
 
-The coc@pytest.org address is routed to the following people who can also be
+The coc@testrunner.org address is routed to the following people who can also be
 contacted individually:
 
 - Brianna Laugher ([@pfctdayelise](https://github.com/pfctdayelise)): brianna@laugher.id.au
 - Bruno Oliveira ([@nicoddemus](https://github.com/nicoddemus)): nicoddemus@gmail.com
-- Freya Bruhin ([@the-compiler](https://github.com/the-compiler)): pytest@the-compiler.org
+- Freya Bruhin ([@the-compiler](https://github.com/the-compiler)): testrunner@the-compiler.org
 
 ## Attribution
 

@@ -1,7 +1,7 @@
-pytest-7.0.0rc1
+testrunner-7.0.0rc1
 =======================================
 
-The pytest team is proud to announce the 7.0.0rc1 prerelease!
+The testrunner team is proud to announce the 7.0.0rc1 prerelease!
 
 This is a prerelease, not intended for production use, but to test the upcoming features and improvements
 in order to catch any major problems before the final version is released to the major public.
@@ -9,17 +9,17 @@ in order to catch any major problems before the final version is released to the
 We appreciate your help testing this out before the final release, making sure to report any
 regressions to our issue tracker:
 
-https://github.com/pytest-dev/pytest/issues
+https://github.com/jacksonsr451/test-runner/issues
 
 When doing so, please include the string ``[prerelease]`` in the title.
 
 You can upgrade from PyPI via:
 
-    pip install pytest==7.0.0rc1
+    pip install testrunner==7.0.0rc1
 
 Users are encouraged to take a look at the CHANGELOG carefully:
 
-    https://docs.pytest.org/en/7.0.x/changelog.html
+    https://github.com/jacksonsr451/test-runner/en/7.0.x/changelog.html
 
 Thanks to all the contributors to this release:
 
@@ -71,4 +71,4 @@ Thanks to all the contributors to this release:
 
 
 Happy testing,
-The pytest Development Team
+The testrunner Development Team

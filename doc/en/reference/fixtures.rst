@@ -1,8 +1,8 @@
 .. _reference-fixtures:
 .. _fixture:
 .. _fixtures:
-.. _`@pytest.fixture`:
-.. _`pytest.fixture`:
+.. _`@testrunner.fixture`:
+.. _`testrunner.fixture`:
 
 
 Fixtures reference
@@ -17,8 +17,8 @@ Fixtures reference
 Built-in fixtures
 -----------------
 
-:ref:`Fixtures <fixtures-api>` are defined using the :ref:`@pytest.fixture
-<pytest.fixture-api>` decorator. Pytest has several useful built-in fixtures:
+:ref:`Fixtures <fixtures-api>` are defined using the :ref:`@testrunner.fixture
+<testrunner.fixture-api>` decorator. Testrunner has several useful built-in fixtures:
 
    :fixture:`capfd`
         Capture, as text, output to file descriptors ``1`` and ``2``.
@@ -40,7 +40,7 @@ Built-in fixtures
         Capture, as bytes, output to ``sys.stdout`` and ``sys.stderr``.
 
    :fixture:`cache`
-        Store and retrieve values across pytest runs.
+        Store and retrieve values across testrunner runs.
 
    :fixture:`doctest_namespace`
         Provide a dict injected into the doctests namespace.
@@ -49,7 +49,7 @@ Built-in fixtures
        Temporarily modify classes, functions, dictionaries,
        ``os.environ``, and other objects.
 
-   :fixture:`pytestconfig`
+   :fixture:`testrunnerconfig`
         Access to configuration values, pluginmanager and plugin hooks.
 
    :fixture:`subtests`
@@ -69,7 +69,7 @@ Built-in fixtures
 
    :fixture:`testdir`
         Provide a temporary test directory to aid in running, and
-        testing, pytest plugins.
+        testing, testrunner plugins.
 
    :fixture:`tmp_path`
        Provide a :class:`pathlib.Path` object to a temporary directory
@@ -122,7 +122,7 @@ they're dependent on:
     :align: center
 
 So when they run, ``outer`` will have no problem finding ``inner``, because
-pytest searched from the tests' perspectives.
+testrunner searched from the tests' perspectives.
 
 .. note::
     The scope a fixture is defined in has no bearing on the order it will be
@@ -134,7 +134,7 @@ pytest searched from the tests' perspectives.
 
 The ``conftest.py`` file serves as a means of providing fixtures for an entire
 directory. Fixtures defined in a ``conftest.py`` can be used by any test
-in that package without needing to import them (pytest will automatically
+in that package without needing to import them (testrunner will automatically
 discover them).
 
 You can have multiple nested directories/packages containing your tests, and
@@ -150,21 +150,21 @@ For example, given a test file structure like this:
 
         conftest.py
             # content of tests/conftest.py
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def order():
                 return []
 
-            @pytest.fixture
+            @testrunner.fixture
             def top(order, innermost):
                 order.append("top")
 
         test_top.py
             # content of tests/test_top.py
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def innermost(order):
                 order.append("innermost top")
 
@@ -176,17 +176,17 @@ For example, given a test file structure like this:
 
             conftest.py
                 # content of tests/subpackage/conftest.py
-                import pytest
+                import testrunner
 
-                @pytest.fixture
+                @testrunner.fixture
                 def mid(order):
                     order.append("mid subpackage")
 
             test_subpackage.py
                 # content of tests/subpackage/test_subpackage.py
-                import pytest
+                import testrunner
 
-                @pytest.fixture
+                @testrunner.fixture
                 def innermost(order, mid):
                     order.append("innermost subpackage")
 
@@ -221,12 +221,12 @@ Fixtures from third-party plugins
 
 Fixtures don't have to be defined in this structure to be available for tests,
 though. They can also be provided by third-party plugins that are installed, and
-this is how many pytest plugins operate. As long as those plugins are installed,
+this is how many testrunner plugins operate. As long as those plugins are installed,
 the fixtures they provide can be requested from anywhere in your test suite.
 
 Because they're provided from outside the structure of your test suite,
 third-party plugins don't really provide a scope like `conftest.py` files and
-the directories in your test suite do. As a result, pytest will search for
+the directories in your test suite do. As a result, testrunner will search for
 fixtures stepping out through scopes as explained previously, only reaching
 fixtures defined in plugins *last*.
 
@@ -239,9 +239,9 @@ For example, given the following file structure:
 
         conftest.py
             # content of tests/conftest.py
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def order():
                 return []
 
@@ -250,17 +250,17 @@ For example, given the following file structure:
 
             conftest.py
                 # content of tests/subpackage/conftest.py
-                import pytest
+                import testrunner
 
-                @pytest.fixture(autouse=True)
+                @testrunner.fixture(autouse=True)
                 def mid(order, b_fix):
                     order.append("mid subpackage")
 
             test_subpackage.py
                 # content of tests/subpackage/test_subpackage.py
-                import pytest
+                import testrunner
 
-                @pytest.fixture
+                @testrunner.fixture
                 def inner(order, mid, a_fix):
                     order.append("inner subpackage")
 
@@ -274,14 +274,14 @@ the test's search for fixtures would look like:
 .. image:: /example/fixtures/fixture_availability_plugins.svg
     :align: center
 
-pytest will only search for ``a_fix`` and ``b_fix`` in the plugins after
+testrunner will only search for ``a_fix`` and ``b_fix`` in the plugins after
 searching for them first in the scopes inside ``tests/``.
 
 .. note::
 
-    pytest can tell you what fixtures are available for a given test if you call
-    ``pytest`` along with the test's name (or the scope it's in), and provide
-    the :option:`--fixtures` flag, e.g. ``pytest --fixtures test_something.py``
+    testrunner can tell you what fixtures are available for a given test if you call
+    ``testrunner`` along with the test's name (or the scope it's in), and provide
+    the :option:`--fixtures` flag, e.g. ``testrunner --fixtures test_something.py``
     (fixtures with names that start with ``_`` will only be shown if you also
     provide the :option:`-v` flag).
 
@@ -291,7 +291,7 @@ searching for them first in the scopes inside ``tests/``.
 Fixture instantiation order
 ---------------------------
 
-When pytest wants to execute a test, once it knows what fixtures will be
+When testrunner wants to execute a test, once it knows what fixtures will be
 executed, it has to figure out the order they'll be executed in. To do this, it
 considers 3 factors:
 
@@ -301,7 +301,7 @@ considers 3 factors:
 
 Names of fixtures or tests, where they're defined, the order they're defined in,
 and the order fixtures are requested in have no bearing on execution order
-beyond coincidence. While pytest will try to make sure coincidences like these
+beyond coincidence. While testrunner will try to make sure coincidences like these
 stay consistent from run to run, it's not something that should be depended on.
 If you want to control the order, it's safest to rely on these 3 things and make
 sure dependencies are clearly established.
@@ -348,10 +348,10 @@ after) are comprehensive enough that it can be flattened to this:
 .. image:: /example/fixtures/test_fixtures_order_dependencies_flat.*
     :align: center
 
-Enough information has to be provided through these requests in order for pytest
+Enough information has to be provided through these requests in order for testrunner
 to be able to figure out a clear, linear chain of dependencies, and as a result,
 an order of operations for a given test. If there's any ambiguity, and the order
-of operations can be interpreted more than one way, you should assume pytest
+of operations can be interpreted more than one way, you should assume testrunner
 could go with any one of those interpretations at any point.
 
 For example, if ``d`` didn't request ``c``, i.e. the graph would look like this:
@@ -364,13 +364,13 @@ it's now unclear if ``c`` should go before/after ``f``, ``e``, or ``d``. The
 only rules that were set for ``c`` is that it must execute after ``b`` and
 before ``g``.
 
-pytest doesn't know where ``c`` should go in the case, so it should be assumed
+testrunner doesn't know where ``c`` should go in the case, so it should be assumed
 that it could go anywhere between ``g`` and ``b``.
 
 This isn't necessarily bad, but it's something to keep in mind. If the order
 they execute in could affect the behavior a test is targeting, or could
 otherwise influence the result of a test, then the order should be defined
-explicitly in a way that allows pytest to linearize/"flatten" that order.
+explicitly in a way that allows testrunner to linearize/"flatten" that order.
 
 .. _`autouse order`:
 
@@ -400,7 +400,7 @@ the graph would look like this:
 .. image:: /example/fixtures/test_fixtures_order_autouse.*
     :align: center
 
-Because ``c`` can now be put above ``d`` in the graph, pytest can once again
+Because ``c`` can now be put above ``d`` in the graph, testrunner can once again
 linearize the graph to this:
 
 .. image:: /example/fixtures/test_fixtures_order_autouse_flat.*
@@ -450,8 +450,8 @@ can't see ``c3``.
 
 .. note::
 
-    pytest can tell you what order the fixtures will execute in for a given test
-    if you call ``pytest`` along with the test's name (or the scope it's in),
+    testrunner can tell you what order the fixtures will execute in for a given test
+    if you call ``testrunner`` along with the test's name (or the scope it's in),
     and provide the :option:`--setup-plan` flag, e.g.
-    ``pytest --setup-plan test_something.py`` (fixtures with names that start
+    ``testrunner --setup-plan test_something.py`` (fixtures with names that start
     with ``_`` will only be shown if you also provide the :option:`-v` flag).

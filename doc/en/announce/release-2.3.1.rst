@@ -1,25 +1,25 @@
-pytest-2.3.1: fix regression with factory functions
+testrunner-2.3.1: fix regression with factory functions
 ===========================================================================
 
-pytest-2.3.1 is a quick follow-up release:
+testrunner-2.3.1 is a quick follow-up release:
 
 - fix issue202 - regression with fixture functions/funcarg factories:
   using "self" is now safe again and works as in 2.2.4.  Thanks
   to Eduard Schettino for the quick bug report.
 
-- disable pexpect pytest self tests on Freebsd - thanks Koob for the
+- disable pexpect testrunner self tests on Freebsd - thanks Koob for the
   quick reporting
 
 - fix/improve interactive docs with --markers
 
 See
 
-     http://pytest.org/
+     http://testrunner.org/
 
-for general information.  To install or upgrade pytest:
+for general information.  To install or upgrade testrunner:
 
-    pip install -U pytest # or
-    easy_install -U pytest
+    pip install -U testrunner # or
+    easy_install -U testrunner
 
 best,
 holger krekel
@@ -36,4 +36,4 @@ Changes between 2.3.0 and 2.3.1
   due to pexpect not supporting it properly (hanging)
 
 - link to web pages from --markers output which provides help for
-  pytest.mark.* usage.
+  testrunner.mark.* usage.

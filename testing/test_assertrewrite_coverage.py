@@ -17,8 +17,8 @@ from collections.abc import Sequence
 import textwrap
 from typing import cast
 
-from _pytest.assertion.rewrite import rewrite_asserts
-import pytest
+from _testrunner.assertion.rewrite import rewrite_asserts
+import testrunner
 
 
 # ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ def get_failure_message(src: str) -> str:
     The source should contain a function named ``check`` with a failing assert.
     Returns the AssertionError message string.
 
-    Raises AssertionError via pytest.fail if the code does not raise.
+    Raises AssertionError via testrunner.fail if the code does not raise.
     """
     func = _exec_check(src)
     try:
@@ -65,7 +65,7 @@ def get_failure_message(src: str) -> str:
             return "AssertionError: " + s
         return s
     else:
-        pytest.fail("check() did not raise AssertionError")
+        testrunner.fail("check() did not raise AssertionError")
 
 
 def assert_introspects(
@@ -205,7 +205,7 @@ class TestHelpersSmokeTest:
         assert "assert 1 == 2" in msg
 
     def test_get_failure_message_fails_on_passing_assert(self) -> None:
-        with pytest.raises(pytest.fail.Exception, match="did not raise"):
+        with testrunner.raises(testrunner.fail.Exception, match="did not raise"):
             get_failure_message("""
                 def check():
                     assert 1 == 1
@@ -222,7 +222,7 @@ class TestHelpersSmokeTest:
         )
 
     def test_assert_introspects_fails_on_missing(self) -> None:
-        with pytest.raises(AssertionError, match=r"Expected.*in failure"):
+        with testrunner.raises(AssertionError, match=r"Expected.*in failure"):
             assert_introspects(
                 """
                 def check():
@@ -243,7 +243,7 @@ class TestHelpersSmokeTest:
         )
 
     def test_assert_introspects_fails_on_unexpected(self) -> None:
-        with pytest.raises(AssertionError, match=r"Did NOT expect.*in failure"):
+        with testrunner.raises(AssertionError, match=r"Did NOT expect.*in failure"):
             assert_introspects(
                 """
                 def check():
@@ -304,7 +304,7 @@ class TestHelpersSmokeTest:
         The rewritten function keeps its ``@py_assert`` temporaries in locals,
         so this diverges in the return value while both runs pass.
         """
-        with pytest.raises(AssertionError, match="Evaluation order mismatch"):
+        with testrunner.raises(AssertionError, match="Evaluation order mismatch"):
             assert_evaluation_order("""
                 def check():
                     assert 1 == 1

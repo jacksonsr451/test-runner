@@ -1,7 +1,7 @@
 This directory contains "newsfragments" which are short files that contain a small **ReST**-formatted
 text that will be added to the next ``CHANGELOG``.
 
-The ``CHANGELOG`` will be read by **users**, so this description should be aimed to pytest users
+The ``CHANGELOG`` will be read by **users**, so this description should be aimed to testrunner users
 instead of describing internal changes which are only relevant to the developers.
 
 Make sure to use full sentences in the **past or present tense** and use punctuation, examples::
@@ -19,7 +19,7 @@ Each file should be named like ``<ISSUE>.<TYPE>.rst``, where
 * ``doc``: documentation improvement, like rewording an entire section or adding missing docs.
 * ``deprecation``: feature deprecation.
 * ``breaking``: a change which may break existing suites, such as feature removal or behavior change.
-* ``vendor``: changes in packages vendored in pytest.
+* ``vendor``: changes in packages vendored in testrunner.
 * ``packaging``: notes for downstreams about unobvious side effects
   and tooling. Changes in the test invocation considerations and
   runtime assumptions.

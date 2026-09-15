@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from _pytest._io.wcwidth import wcswidth
-from _pytest._io.wcwidth import wcwidth
-import pytest
+from _testrunner._io.wcwidth import wcswidth
+from _testrunner._io.wcwidth import wcwidth
+import testrunner
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("c", "expected"),
     [
         ("\0", 0),
@@ -24,7 +24,7 @@ def test_wcwidth(c: str, expected: int) -> None:
     assert wcwidth(c) == expected
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("s", "expected"),
     [
         ("", 0),

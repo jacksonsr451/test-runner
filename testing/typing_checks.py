@@ -12,26 +12,26 @@ from typing import Literal
 
 from typing_extensions import assert_type
 
-import pytest
-from pytest import MonkeyPatch
-from pytest import ScopeName
-from pytest import TestReport
+import testrunner
+from testrunner import MonkeyPatch
+from testrunner import ScopeName
+from testrunner import TestReport
 
 
 # Issue #7488.
-@pytest.mark.xfail(raises=RuntimeError)
+@testrunner.mark.xfail(raises=RuntimeError)
 def check_mark_xfail_raises() -> None:
     pass
 
 
 # Issue #7494.
-@pytest.fixture(params=[(0, 0), (1, 1)], ids=lambda x: str(x[0]))
+@testrunner.fixture(params=[(0, 0), (1, 1)], ids=lambda x: str(x[0]))
 def check_fixture_ids_callable() -> None:
     pass
 
 
 # Issue #7494.
-@pytest.mark.parametrize("func", [str, int], ids=lambda x: str(x.__name__))
+@testrunner.mark.parametrize("func", [str, int], ids=lambda x: str(x.__name__))
 def check_parametrize_ids_callable(func) -> None:
     pass
 
@@ -50,9 +50,9 @@ def check_monkeypatch_typeddict(monkeypatch: MonkeyPatch) -> None:
 
 
 def check_raises_is_a_context_manager(val: bool) -> None:
-    with pytest.raises(RuntimeError) if val else contextlib.nullcontext() as excinfo:
+    with testrunner.raises(RuntimeError) if val else contextlib.nullcontext() as excinfo:
         pass
-    assert_type(excinfo, pytest.ExceptionInfo[RuntimeError] | None)
+    assert_type(excinfo, testrunner.ExceptionInfo[RuntimeError] | None)
 
 
 # Issue #12941.
@@ -62,7 +62,7 @@ def check_testreport_attributes(report: TestReport) -> None:
 
 
 # Issue #14234.
-@pytest.mark.parametrize("x", [1, 2], ids=[pytest.HIDDEN_PARAM, "visible"])
+@testrunner.mark.parametrize("x", [1, 2], ids=[testrunner.HIDDEN_PARAM, "visible"])
 def test_hidden_param(x: int) -> None:
     pass
 
@@ -75,6 +75,6 @@ def check_scope_typing() -> None:
 
 
 # Issue #14606.
-@pytest.mark.parametrize("x", [ImportError, AttributeError])
+@testrunner.mark.parametrize("x", [ImportError, AttributeError])
 def check_mypy_bug_with_argvalues(x) -> None:
     pass

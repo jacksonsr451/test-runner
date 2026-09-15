@@ -1,44 +1,44 @@
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-@pytest.fixture
+@testrunner.fixture
 def order():
     return []
 
 
-@pytest.fixture
+@testrunner.fixture
 def a(order):
     order.append("a")
 
 
-@pytest.fixture
+@testrunner.fixture
 def b(a, order):
     order.append("b")
 
 
-@pytest.fixture
+@testrunner.fixture
 def c(b, order):
     order.append("c")
 
 
-@pytest.fixture
+@testrunner.fixture
 def d(c, b, order):
     order.append("d")
 
 
-@pytest.fixture
+@testrunner.fixture
 def e(d, b, order):
     order.append("e")
 
 
-@pytest.fixture
+@testrunner.fixture
 def f(e, order):
     order.append("f")
 
 
-@pytest.fixture
+@testrunner.fixture
 def g(f, c, order):
     order.append("g")
 

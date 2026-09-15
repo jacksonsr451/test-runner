@@ -5,18 +5,18 @@ import json
 import sys
 from typing import Literal
 
-from _pytest._io.saferepr import saferepr
-from _pytest.subtests import SubtestContext
-from _pytest.subtests import SubtestReport
-import pytest
+from _testrunner._io.saferepr import saferepr
+from _testrunner.subtests import SubtestContext
+from _testrunner.subtests import SubtestReport
+import testrunner
 
 
 IS_PY311 = sys.version_info[:2] >= (3, 11)
 
 
-def test_failures(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_failures(testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch) -> None:
     monkeypatch.setenv("COLUMNS", "120")
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_foo(subtests):
             with subtests.test("foo subtest"):
@@ -53,7 +53,7 @@ def test_failures(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) ->
         "SUBFAILED[[]bar subtest[]] test_*.py::test_bar - AssertionError*",
         "FAILED test_*.py::test_bar - AssertionError*",
     ]
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [
             "test_*.py uFuF.    *     [[]100%[]]",
@@ -62,7 +62,7 @@ def test_failures(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) ->
         ]
     )
 
-    result = pytester.runpytest("-v")
+    result = testrunnerer.runtestrunner("-v")
     result.stdout.fnmatch_lines(
         [
             "test_*.py::test_foo SUBFAILED[[]foo subtest[]]    *     [[] 33%[]]",
@@ -75,13 +75,13 @@ def test_failures(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) ->
             "* 4 failed, 1 passed, 1 subtests passed in *",
         ]
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         verbosity_subtests = 0
         """
     )
-    result = pytester.runpytest("-v")
+    result = testrunnerer.runtestrunner("-v")
     result.stdout.fnmatch_lines(
         [
             "test_*.py::test_foo SUBFAILED[[]foo subtest[]]    *     [[] 33%[]]",
@@ -96,9 +96,9 @@ def test_failures(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) ->
     result.stdout.no_fnmatch_line("test_*.py::test_zaz SUBPASSED[[]zaz subtest[]]*")
 
 
-def test_passes(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_passes(testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch) -> None:
     monkeypatch.setenv("COLUMNS", "120")
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_foo(subtests):
             with subtests.test("foo subtest"):
@@ -109,7 +109,7 @@ def test_passes(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> N
                 pass
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [
             "test_*.py ..    *     [[]100%[]]",
@@ -117,7 +117,7 @@ def test_passes(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> N
         ]
     )
 
-    result = pytester.runpytest("-v")
+    result = testrunnerer.runtestrunner("-v")
     result.stdout.fnmatch_lines(
         [
             "*.py::test_foo SUBPASSED[[]foo subtest[]]      * [[] 50%[]]",
@@ -128,13 +128,13 @@ def test_passes(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> N
         ]
     )
 
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         verbosity_subtests = 0
         """
     )
-    result = pytester.runpytest("-v")
+    result = testrunnerer.runtestrunner("-v")
     result.stdout.fnmatch_lines(
         [
             "*.py::test_foo PASSED                          * [[] 50%[]]",
@@ -146,22 +146,22 @@ def test_passes(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> N
     result.stdout.no_fnmatch_line("*.py::test_bar SUBPASSED[[]bar subtest[]]*")
 
 
-def test_skip(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_skip(testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch) -> None:
     monkeypatch.setenv("COLUMNS", "120")
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         def test_foo(subtests):
             with subtests.test("foo subtest"):
-                pytest.skip("skip foo subtest")
+                testrunner.skip("skip foo subtest")
 
         def test_bar(subtests):
             with subtests.test("bar subtest"):
-                pytest.skip("skip bar subtest")
-            pytest.skip("skip test_bar")
+                testrunner.skip("skip bar subtest")
+            testrunner.skip("skip test_bar")
         """
     )
-    result = pytester.runpytest("-ra")
+    result = testrunnerer.runtestrunner("-ra")
     result.stdout.fnmatch_lines(
         [
             "test_*.py .s    *     [[]100%[]]",
@@ -171,7 +171,7 @@ def test_skip(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> Non
         ]
     )
 
-    result = pytester.runpytest("-v", "-ra")
+    result = testrunnerer.runtestrunner("-v", "-ra")
     result.stdout.fnmatch_lines(
         [
             "*.py::test_foo SUBSKIPPED[[]foo subtest[]] (skip foo subtest)  * [[] 50%[]]",
@@ -186,13 +186,13 @@ def test_skip(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> Non
         ]
     )
 
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         verbosity_subtests = 0
         """
     )
-    result = pytester.runpytest("-v", "-ra")
+    result = testrunnerer.runtestrunner("-v", "-ra")
     result.stdout.fnmatch_lines(
         [
             "*.py::test_foo PASSED                          * [[] 50%[]]",
@@ -211,22 +211,22 @@ def test_skip(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> Non
     )
 
 
-def test_xfail(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_xfail(testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch) -> None:
     monkeypatch.setenv("COLUMNS", "120")
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         def test_foo(subtests):
             with subtests.test("foo subtest"):
-                pytest.xfail("xfail foo subtest")
+                testrunner.xfail("xfail foo subtest")
 
         def test_bar(subtests):
             with subtests.test("bar subtest"):
-                pytest.xfail("xfail bar subtest")
-            pytest.xfail("xfail test_bar")
+                testrunner.xfail("xfail bar subtest")
+            testrunner.xfail("xfail test_bar")
         """
     )
-    result = pytester.runpytest("-ra")
+    result = testrunnerer.runtestrunner("-ra")
     result.stdout.fnmatch_lines(
         [
             "test_*.py .x    *     [[]100%[]]",
@@ -235,7 +235,7 @@ def test_xfail(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> No
         ]
     )
 
-    result = pytester.runpytest("-v", "-ra")
+    result = testrunnerer.runtestrunner("-v", "-ra")
     result.stdout.fnmatch_lines(
         [
             "*.py::test_foo SUBXFAIL[[]foo subtest[]] (xfail foo subtest)    * [[] 50%[]]",
@@ -250,13 +250,13 @@ def test_xfail(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> No
         ]
     )
 
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         verbosity_subtests = 0
         """
     )
-    result = pytester.runpytest("-v", "-ra")
+    result = testrunnerer.runtestrunner("-v", "-ra")
     result.stdout.fnmatch_lines(
         [
             "*.py::test_foo PASSED                          * [[] 50%[]]",
@@ -273,28 +273,28 @@ def test_xfail(pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch) -> No
     )
 
 
-def test_typing_exported(pytester: pytest.Pytester) -> None:
-    pytester.makepyfile(
+def test_typing_exported(testrunnerer: testrunner.Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        from pytest import Subtests
+        from testrunner import Subtests
 
         def test_typing_exported(subtests: Subtests) -> None:
             assert isinstance(subtests, Subtests)
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["*1 passed*"])
 
 
 def test_subtests_and_parametrization(
-    pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch
+    testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
 ) -> None:
     monkeypatch.setenv("COLUMNS", "120")
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.mark.parametrize("x", [0, 1])
+        @testrunner.mark.parametrize("x", [0, 1])
         def test_foo(subtests, x):
             for i in range(3):
                 with subtests.test("custom", i=i):
@@ -302,7 +302,7 @@ def test_subtests_and_parametrization(
             assert x == 0
     """
     )
-    result = pytester.runpytest("-v")
+    result = testrunnerer.runtestrunner("-v")
     result.stdout.fnmatch_lines(
         [
             "*.py::test_foo[[]0[]] SUBFAILED[[]custom[]] (i=1) *[[] 50%[]]",
@@ -314,13 +314,13 @@ def test_subtests_and_parametrization(
         ]
     )
 
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         verbosity_subtests = 0
         """
     )
-    result = pytester.runpytest("-v")
+    result = testrunnerer.runtestrunner("-v")
     result.stdout.fnmatch_lines(
         [
             "*.py::test_foo[[]0[]] SUBFAILED[[]custom[]] (i=1) *[[] 50%[]]",
@@ -333,10 +333,10 @@ def test_subtests_and_parametrization(
     )
 
 
-def test_subtests_fail_top_level_test(pytester: pytest.Pytester) -> None:
-    pytester.makepyfile(
+def test_subtests_fail_top_level_test(testrunnerer: testrunner.Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
         def test_foo(subtests):
             for i in range(3):
@@ -344,7 +344,7 @@ def test_subtests_fail_top_level_test(pytester: pytest.Pytester) -> None:
                     assert i % 2 == 0
         """
     )
-    result = pytester.runpytest("-v")
+    result = testrunnerer.runtestrunner("-v")
     result.stdout.fnmatch_lines(
         [
             "* 2 failed, 2 subtests passed in *",
@@ -352,10 +352,10 @@ def test_subtests_fail_top_level_test(pytester: pytest.Pytester) -> None:
     )
 
 
-def test_subtests_do_not_overwrite_top_level_failure(pytester: pytest.Pytester) -> None:
-    pytester.makepyfile(
+def test_subtests_do_not_overwrite_top_level_failure(testrunnerer: testrunner.Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
         def test_foo(subtests):
             for i in range(3):
@@ -364,7 +364,7 @@ def test_subtests_do_not_overwrite_top_level_failure(pytester: pytest.Pytester) 
             assert False, "top-level failure"
         """
     )
-    result = pytester.runpytest("-v")
+    result = testrunnerer.runtestrunner("-v")
     result.stdout.fnmatch_lines(
         [
             "*AssertionError: top-level failure",
@@ -374,7 +374,7 @@ def test_subtests_do_not_overwrite_top_level_failure(pytester: pytest.Pytester) 
 
 
 def test_msg_not_a_string(
-    pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch
+    testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
 ) -> None:
     """
     Using a non-string in subtests.test() should still show it in the terminal (#14195).
@@ -383,7 +383,7 @@ def test_msg_not_a_string(
     was added for symmetry.
     """
     monkeypatch.setenv("COLUMNS", "120")
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_int_msg(subtests):
             with subtests.test(42):
@@ -394,7 +394,7 @@ def test_msg_not_a_string(
                 assert False, "subtest failure"
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [
             "SUBFAILED[[]42[]] test_msg_not_a_string.py::test_int_msg - AssertionError: subtest failure",
@@ -403,12 +403,12 @@ def test_msg_not_a_string(
     )
 
 
-@pytest.mark.parametrize("flag", ["--last-failed", "--stepwise"])
-def test_subtests_last_failed_step_wise(pytester: pytest.Pytester, flag: str) -> None:
+@testrunner.mark.parametrize("flag", ["--last-failed", "--stepwise"])
+def test_subtests_last_failed_step_wise(testrunnerer: testrunner.Testrunnerer, flag: str) -> None:
     """Check that --last-failed and --step-wise correctly rerun tests with failed subtests."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
         def test_foo(subtests):
             for i in range(3):
@@ -416,14 +416,14 @@ def test_subtests_last_failed_step_wise(pytester: pytest.Pytester, flag: str) ->
                     assert i % 2 == 0
         """
     )
-    result = pytester.runpytest("-v")
+    result = testrunnerer.runtestrunner("-v")
     result.stdout.fnmatch_lines(
         [
             "* 2 failed, 2 subtests passed in *",
         ]
     )
 
-    result = pytester.runpytest("-v", flag)
+    result = testrunnerer.runtestrunner("-v", flag)
     result.stdout.fnmatch_lines(
         [
             "* 2 failed, 2 subtests passed in *",
@@ -435,10 +435,10 @@ class TestUnittestSubTest:
     """Test unittest.TestCase.subTest functionality."""
 
     def test_failures(
-        self, pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch
+        self, testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("COLUMNS", "120")
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             from unittest import TestCase
 
@@ -457,7 +457,7 @@ class TestUnittestSubTest:
                         pass
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [
                 "* 3 failed, 2 passed in *",
@@ -465,10 +465,10 @@ class TestUnittestSubTest:
         )
 
     def test_passes(
-        self, pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch
+        self, testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("COLUMNS", "120")
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             from unittest import TestCase
 
@@ -486,7 +486,7 @@ class TestUnittestSubTest:
                         pass
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [
                 "* 3 passed in *",
@@ -495,9 +495,9 @@ class TestUnittestSubTest:
 
     def test_skip(
         self,
-        pytester: pytest.Pytester,
+        testrunnerer: testrunner.Testrunnerer,
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             from unittest import TestCase, main
 
@@ -511,14 +511,14 @@ class TestUnittestSubTest:
         """
         )
         # This output might change #13756.
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["* 1 passed in *"])
 
     def test_non_subtest_skip(
-        self, pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch
+        self, testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
     ) -> None:
         monkeypatch.setenv("COLUMNS", "120")
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             from unittest import TestCase, main
 
@@ -531,7 +531,7 @@ class TestUnittestSubTest:
         """
         )
         # This output might change #13756.
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [
                 "SUBFAILED[[]subtest[]] test_non_subtest_skip.py::T::test_foo*",
@@ -541,11 +541,11 @@ class TestUnittestSubTest:
 
     def test_xfail(
         self,
-        pytester: pytest.Pytester,
+        testrunnerer: testrunner.Testrunnerer,
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
             from unittest import expectedFailure, TestCase
 
             class T(TestCase):
@@ -554,24 +554,24 @@ class TestUnittestSubTest:
                     for i in range(5):
                         with self.subTest(msg="custom", i=i):
                             if i % 2 == 0:
-                                raise pytest.xfail('even number')
+                                raise testrunner.xfail('even number')
 
             if __name__ == '__main__':
                 main()
         """
         )
         # This output might change #13756.
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["* 1 xfailed in *"])
 
     def test_only_original_skip_is_called(
         self,
-        pytester: pytest.Pytester,
-        monkeypatch: pytest.MonkeyPatch,
+        testrunnerer: testrunner.Testrunnerer,
+        monkeypatch: testrunner.MonkeyPatch,
     ) -> None:
-        """Regression test for pytest-dev/pytest-subtests#173."""
+        """Regression test for jacksonsr451/test-runner-subtests#173."""
         monkeypatch.setenv("COLUMNS", "120")
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             import unittest
             from unittest import TestCase
@@ -582,20 +582,20 @@ class TestUnittestSubTest:
                     assert 1 == 2
         """
         )
-        result = pytester.runpytest("-v", "-rsf")
+        result = testrunnerer.runtestrunner("-v", "-rsf")
         result.stdout.fnmatch_lines(
             ["SKIPPED [1] test_only_original_skip_is_called.py:6: skip this test"]
         )
 
     def test_skip_with_failure(
         self,
-        pytester: pytest.Pytester,
-        monkeypatch: pytest.MonkeyPatch,
+        testrunnerer: testrunner.Testrunnerer,
+        monkeypatch: testrunner.MonkeyPatch,
     ) -> None:
         monkeypatch.setenv("COLUMNS", "120")
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
             from unittest import TestCase
 
             class T(TestCase):
@@ -607,7 +607,7 @@ class TestUnittestSubTest:
             """
         )
 
-        result = pytester.runpytest("-ra")
+        result = testrunnerer.runtestrunner("-ra")
         result.stdout.fnmatch_lines(
             [
                 "*.py u.                                                           *            [[]100%[]]",
@@ -617,7 +617,7 @@ class TestUnittestSubTest:
             ]
         )
 
-        result = pytester.runpytest("-v", "-ra")
+        result = testrunnerer.runtestrunner("-v", "-ra")
         result.stdout.fnmatch_lines(
             [
                 "*.py::T::test_foo SUBSKIPPED[[]subtest 1[]] (skip subtest 1)      *            [[]100%[]]",
@@ -629,13 +629,13 @@ class TestUnittestSubTest:
             ]
         )
 
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             verbosity_subtests = 0
             """
         )
-        result = pytester.runpytest("-v", "-ra")
+        result = testrunnerer.runtestrunner("-v", "-ra")
         result.stdout.fnmatch_lines(
             [
                 "*.py::T::test_foo SUBFAILED[[]subtest 2[]]                        *            [[]100%[]]",
@@ -653,11 +653,11 @@ class TestUnittestSubTest:
         )
 
     def test_msg_not_a_string(
-        self, pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch
+        self, testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
     ) -> None:
         """Using a non-string in TestCase.subTest should still show it in the terminal (#14195)."""
         monkeypatch.setenv("COLUMNS", "120")
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             from unittest import TestCase
 
@@ -671,7 +671,7 @@ class TestUnittestSubTest:
                         assert False, "subtest failure"
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [
                 "SUBFAILED[[]42[]] test_msg_not_a_string.py::T::test_int_msg - AssertionError: subtest failure",
@@ -681,8 +681,8 @@ class TestUnittestSubTest:
 
 
 class TestCapture:
-    def create_file(self, pytester: pytest.Pytester) -> None:
-        pytester.makepyfile(
+    def create_file(self, testrunnerer: testrunner.Testrunnerer) -> None:
+        testrunnerer.makepyfile(
             """
             import sys
             def test(subtests):
@@ -704,10 +704,10 @@ class TestCapture:
         """
         )
 
-    @pytest.mark.parametrize("mode", ["fd", "sys"])
-    def test_capturing(self, pytester: pytest.Pytester, mode: str) -> None:
-        self.create_file(pytester)
-        result = pytester.runpytest(f"--capture={mode}")
+    @testrunner.mark.parametrize("mode", ["fd", "sys"])
+    def test_capturing(self, testrunnerer: testrunner.Testrunnerer, mode: str) -> None:
+        self.create_file(testrunnerer)
+        result = testrunnerer.runtestrunner(f"--capture={mode}")
         result.stdout.fnmatch_lines(
             [
                 "*__ test (i='A') __*",
@@ -727,9 +727,9 @@ class TestCapture:
             ]
         )
 
-    def test_no_capture(self, pytester: pytest.Pytester) -> None:
-        self.create_file(pytester)
-        result = pytester.runpytest("-s")
+    def test_no_capture(self, testrunnerer: testrunner.Testrunnerer) -> None:
+        self.create_file(testrunnerer)
+        result = testrunnerer.runtestrunner("-s")
         result.stdout.fnmatch_lines(
             [
                 "start test",
@@ -743,11 +743,11 @@ class TestCapture:
         )
         result.stderr.fnmatch_lines(["hello stderr A", "hello stderr B"])
 
-    @pytest.mark.parametrize("fixture", ["capsys", "capfd"])
+    @testrunner.mark.parametrize("fixture", ["capsys", "capfd"])
     def test_capture_with_fixture(
-        self, pytester: pytest.Pytester, fixture: Literal["capsys", "capfd"]
+        self, testrunnerer: testrunner.Testrunnerer, fixture: Literal["capsys", "capfd"]
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             rf"""
             import sys
 
@@ -763,7 +763,7 @@ class TestCapture:
                 assert err == 'hello stderr A\n'
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [
                 "*1 passed*",
@@ -772,8 +772,8 @@ class TestCapture:
 
 
 class TestLogging:
-    def create_file(self, pytester: pytest.Pytester) -> None:
-        pytester.makepyfile(
+    def create_file(self, testrunnerer: testrunner.Testrunnerer) -> None:
+        testrunnerer.makepyfile(
             """
             import logging
 
@@ -793,9 +793,9 @@ class TestLogging:
             """
         )
 
-    def test_capturing_info(self, pytester: pytest.Pytester) -> None:
-        self.create_file(pytester)
-        result = pytester.runpytest("--log-level=INFO")
+    def test_capturing_info(self, testrunnerer: testrunner.Testrunnerer) -> None:
+        self.create_file(testrunnerer)
+        result = testrunnerer.runtestrunner("--log-level=INFO")
         result.stdout.fnmatch_lines(
             [
                 "*___ test_foo [[]sub2[]] __*",
@@ -811,9 +811,9 @@ class TestLogging:
         result.stdout.no_fnmatch_line("sub1 logging debug")
         result.stdout.no_fnmatch_line("sub2 logging debug")
 
-    def test_capturing_debug(self, pytester: pytest.Pytester) -> None:
-        self.create_file(pytester)
-        result = pytester.runpytest("--log-level=DEBUG")
+    def test_capturing_debug(self, testrunnerer: testrunner.Testrunnerer) -> None:
+        self.create_file(testrunnerer)
+        result = testrunnerer.runtestrunner("--log-level=DEBUG")
         result.stdout.fnmatch_lines(
             [
                 "*___ test_foo [[]sub2[]] __*",
@@ -829,8 +829,8 @@ class TestLogging:
             ]
         )
 
-    def test_caplog(self, pytester: pytest.Pytester) -> None:
-        pytester.makepyfile(
+    def test_caplog(self, testrunnerer: testrunner.Testrunnerer) -> None:
+        testrunnerer.makepyfile(
             """
             import logging
 
@@ -846,15 +846,15 @@ class TestLogging:
                 assert caplog.records[1].getMessage() == "inside subtest1"
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             [
                 "*1 passed*",
             ]
         )
 
-    def test_no_logging(self, pytester: pytest.Pytester) -> None:
-        pytester.makepyfile(
+    def test_no_logging(self, testrunnerer: testrunner.Testrunnerer) -> None:
+        testrunnerer.makepyfile(
             """
             import logging
 
@@ -871,7 +871,7 @@ class TestLogging:
                 logging.info("end log line")
             """
         )
-        result = pytester.runpytest("-p no:logging")
+        result = testrunnerer.runtestrunner("-p no:logging")
         result.stdout.fnmatch_lines(
             [
                 "*2 failed in*",
@@ -898,26 +898,26 @@ class TestDebugging:
         def interaction(self, *_: object) -> None:
             self.calls.append("interaction")
 
-    @pytest.fixture(autouse=True)
+    @testrunner.fixture(autouse=True)
     def cleanup_calls(self) -> None:
         self._FakePdb.calls.clear()
 
     def test_pdb_fixture(
-        self, pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch
+        self, testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test(subtests):
                 with subtests.test():
                     assert 0
             """
         )
-        self.runpytest_and_check_pdb(pytester, monkeypatch)
+        self.runtestrunner_and_check_pdb(testrunnerer, monkeypatch)
 
     def test_pdb_unittest(
-        self, pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch
+        self, testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             from unittest import TestCase
             class Test(TestCase):
@@ -926,29 +926,29 @@ class TestDebugging:
                         assert 0
             """
         )
-        self.runpytest_and_check_pdb(pytester, monkeypatch)
+        self.runtestrunner_and_check_pdb(testrunnerer, monkeypatch)
 
-    def runpytest_and_check_pdb(
-        self, pytester: pytest.Pytester, monkeypatch: pytest.MonkeyPatch
+    def runtestrunner_and_check_pdb(
+        self, testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
     ) -> None:
-        # Install the fake pdb implementation in _pytest.subtests so we can reference
+        # Install the fake pdb implementation in _testrunner.subtests so we can reference
         # it in the command line (any module would do).
-        import _pytest.subtests
+        import _testrunner.subtests
 
         monkeypatch.setattr(
-            _pytest.subtests, "_CustomPdb", self._FakePdb, raising=False
+            _testrunner.subtests, "_CustomPdb", self._FakePdb, raising=False
         )
-        result = pytester.runpytest("--pdb", "--pdbcls=_pytest.subtests:_CustomPdb")
+        result = testrunnerer.runtestrunner("--pdb", "--pdbcls=_testrunner.subtests:_CustomPdb")
 
-        # Ensure pytest entered in debugging mode when encountering the failing
+        # Ensure testrunner entered in debugging mode when encountering the failing
         # assert.
         result.stdout.fnmatch_lines("*entering PDB*")
         assert self._FakePdb.calls == ["init", "reset", "interaction"]
 
 
-def test_exitfirst(pytester: pytest.Pytester) -> None:
+def test_exitfirst(testrunnerer: testrunner.Testrunnerer) -> None:
     """Validate that when passing --exitfirst the test exits after the first failed subtest."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_foo(subtests):
             with subtests.test("sub1"):
@@ -958,7 +958,7 @@ def test_exitfirst(pytester: pytest.Pytester) -> None:
                 assert False
         """
     )
-    result = pytester.runpytest("--exitfirst")
+    result = testrunnerer.runtestrunner("--exitfirst")
     assert result.parseoutcomes()["failed"] == 2
     result.stdout.fnmatch_lines(
         [
@@ -971,35 +971,35 @@ def test_exitfirst(pytester: pytest.Pytester) -> None:
     result.stdout.no_fnmatch_line("*sub2*")  # sub2 not executed.
 
 
-def test_do_not_swallow_pytest_exit(pytester: pytest.Pytester) -> None:
-    pytester.makepyfile(
+def test_do_not_swallow_testrunner_exit(testrunnerer: testrunner.Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         def test(subtests):
             with subtests.test():
-                pytest.exit()
+                testrunner.exit()
 
         def test2(): pass
         """
     )
-    result = pytester.runpytest_subprocess()
+    result = testrunnerer.runtestrunner_subprocess()
     result.stdout.fnmatch_lines(
         [
-            "* _pytest.outcomes.Exit *",
+            "* _testrunner.outcomes.Exit *",
             "* 1 failed in *",
         ]
     )
 
 
-def test_nested(pytester: pytest.Pytester) -> None:
+def test_nested(testrunnerer: testrunner.Testrunnerer) -> None:
     """
     Currently we do nothing special with nested subtests.
 
     This test only sediments how they work now, we might reconsider adding some kind of nesting support in the future.
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         def test(subtests):
             with subtests.test("a"):
                 with subtests.test("b"):
@@ -1007,7 +1007,7 @@ def test_nested(pytester: pytest.Pytester) -> None:
                 assert False, "a failed"
         """
     )
-    result = pytester.runpytest_subprocess()
+    result = testrunnerer.runtestrunner_subprocess()
     result.stdout.fnmatch_lines(
         [
             "SUBFAILED[b] test_nested.py::test - AssertionError: b failed",
@@ -1024,9 +1024,9 @@ class MyEnum(Enum):
 
 
 def test_serialization() -> None:
-    """Ensure subtest's kwargs are serialized using `saferepr` (pytest-dev/pytest-xdist#1273)."""
-    from _pytest.subtests import pytest_report_from_serializable
-    from _pytest.subtests import pytest_report_to_serializable
+    """Ensure subtest's kwargs are serialized using `saferepr` (jacksonsr451/test-runner-xdist#1273)."""
+    from _testrunner.subtests import testrunner_report_from_serializable
+    from _testrunner.subtests import testrunner_report_to_serializable
 
     report = SubtestReport(
         "test_foo::test_foo",
@@ -1037,21 +1037,21 @@ def test_serialization() -> None:
         longrepr=None,
         context=SubtestContext(msg="custom message", kwargs=dict(i=10, a=MyEnum.A)),
     )
-    data = pytest_report_to_serializable(report)
+    data = testrunner_report_to_serializable(report)
     assert data is not None
     # Ensure the report is actually serializable to JSON.
     _ = json.dumps(data)
-    new_report = pytest_report_from_serializable(data)
+    new_report = testrunner_report_from_serializable(data)
     assert new_report is not None
     assert new_report.context == SubtestContext(
         msg="custom message", kwargs=dict(i=saferepr(10), a=saferepr(MyEnum.A))
     )
 
 
-def test_serialization_xdist(pytester: pytest.Pytester) -> None:  # pragma: no cover
-    """Regression test for pytest-dev/pytest-xdist#1273."""
-    pytest.importorskip("xdist")
-    pytester.makepyfile(
+def test_serialization_xdist(testrunnerer: testrunner.Testrunnerer) -> None:  # pragma: no cover
+    """Regression test for jacksonsr451/test-runner-xdist#1273."""
+    testrunner.importorskip("xdist")
+    testrunnerer.makepyfile(
         """
         from enum import Enum
         import unittest
@@ -1070,6 +1070,6 @@ def test_serialization_xdist(pytester: pytest.Pytester) -> None:  # pragma: no c
                     pass
         """
     )
-    pytester.syspathinsert()
-    result = pytester.runpytest("-n1", "-pxdist.plugin")
+    testrunnerer.syspathinsert()
+    result = testrunnerer.runtestrunner("-n1", "-pxdist.plugin")
     result.assert_outcomes(passed=2)

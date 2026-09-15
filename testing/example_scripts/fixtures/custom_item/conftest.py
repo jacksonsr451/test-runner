@@ -1,18 +1,18 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-class CustomItem(pytest.Item):
+class CustomItem(testrunner.Item):
     def runtest(self):
         pass
 
 
-class CustomFile(pytest.File):
+class CustomFile(testrunner.File):
     def collect(self):
         yield CustomItem.from_parent(name="foo", parent=self)
 
 
-def pytest_collect_file(file_path, parent):
+def testrunner_collect_file(file_path, parent):
     return CustomFile.from_parent(path=file_path, parent=parent)

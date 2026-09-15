@@ -5,20 +5,20 @@ from collections.abc import Sequence
 import json
 from pathlib import Path
 
-from _pytest.cacheprovider import Cache
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.pytester import Pytester
-from _pytest.stepwise import STEPWISE_CACHE_DIR
-import pytest
+from _testrunner.cacheprovider import Cache
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.testrunnerer import Testrunnerer
+from _testrunner.stepwise import STEPWISE_CACHE_DIR
+import testrunner
 
 
-@pytest.fixture
-def stepwise_pytester(pytester: Pytester) -> Pytester:
+@testrunner.fixture
+def stepwise_testrunnerer(testrunnerer: Testrunnerer) -> Testrunnerer:
     # Rather than having to modify our testfile between tests, we introduce
     # a flag for whether or not the second test should fail.
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-def pytest_addoption(parser):
+def testrunner_addoption(parser):
     group = parser.getgroup('general')
     group.addoption('--fail', action='store_true', dest='fail')
     group.addoption('--fail-last', action='store_true', dest='fail_last')
@@ -26,7 +26,7 @@ def pytest_addoption(parser):
     )
 
     # Create a simple test suite.
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         test_a="""
 def test_success_before_fail():
     assert 1
@@ -45,7 +45,7 @@ def test_success_after_last_fail():
 """
     )
 
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         test_b="""
 def test_success():
     assert 1
@@ -53,19 +53,19 @@ def test_success():
     )
 
     # customize cache directory so we don't use the tox's cache directory, which makes tests in this module flaky
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         cache_dir = .cache
     """
     )
 
-    return pytester
+    return testrunnerer
 
 
-@pytest.fixture
-def error_pytester(pytester: Pytester) -> Pytester:
-    pytester.makepyfile(
+@testrunner.fixture
+def error_testrunnerer(testrunnerer: Testrunnerer) -> Testrunnerer:
+    testrunnerer.makepyfile(
         test_a="""
 def test_error(nonexisting_fixture):
     assert 1
@@ -75,20 +75,20 @@ def test_success_after_fail():
 """
     )
 
-    return pytester
+    return testrunnerer
 
 
-@pytest.fixture
-def broken_pytester(pytester: Pytester) -> Pytester:
-    pytester.makepyfile(
+@testrunner.fixture
+def broken_testrunnerer(testrunnerer: Testrunnerer) -> Testrunnerer:
+    testrunnerer.makepyfile(
         working_testfile="def test_proper(): assert 1", broken_testfile="foobar"
     )
-    return pytester
+    return testrunnerer
 
 
 def _strip_resource_warnings(lines: Sequence[str]) -> Sequence[str]:
     # Strip unreliable ResourceWarnings, so no-output assertions on stderr can work.
-    # (https://github.com/pytest-dev/pytest/issues/5088)
+    # (https://github.com/jacksonsr451/test-runner/issues/5088)
     return [
         x
         for x in lines
@@ -96,25 +96,25 @@ def _strip_resource_warnings(lines: Sequence[str]) -> Sequence[str]:
     ]
 
 
-def test_run_without_stepwise(stepwise_pytester: Pytester) -> None:
-    result = stepwise_pytester.runpytest("-v", "--strict-markers", "--fail")
+def test_run_without_stepwise(stepwise_testrunnerer: Testrunnerer) -> None:
+    result = stepwise_testrunnerer.runtestrunner("-v", "--strict-markers", "--fail")
     result.stdout.fnmatch_lines(["*test_success_before_fail PASSED*"])
     result.stdout.fnmatch_lines(["*test_fail_on_flag FAILED*"])
     result.stdout.fnmatch_lines(["*test_success_after_fail PASSED*"])
 
 
-def test_stepwise_output_summary(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_stepwise_output_summary(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
-        @pytest.mark.parametrize("expected", [True, True, True, True, False])
+        import testrunner
+        @testrunner.mark.parametrize("expected", [True, True, True, True, False])
         def test_data(expected):
             assert expected
         """
     )
-    result = pytester.runpytest("-v", "--stepwise")
+    result = testrunnerer.runtestrunner("-v", "--stepwise")
     result.stdout.fnmatch_lines(["stepwise: no previously failed tests, not skipping."])
-    result = pytester.runpytest("-v", "--stepwise")
+    result = testrunnerer.runtestrunner("-v", "--stepwise")
     result.stdout.fnmatch_lines(
         [
             "stepwise: skipping 4 already passed items (cache from * ago, use --sw-reset to discard).",
@@ -123,9 +123,9 @@ def test_stepwise_output_summary(pytester: Pytester) -> None:
     )
 
 
-def test_fail_and_continue_with_stepwise(stepwise_pytester: Pytester) -> None:
+def test_fail_and_continue_with_stepwise(stepwise_testrunnerer: Testrunnerer) -> None:
     # Run the tests with a failing second test.
-    result = stepwise_pytester.runpytest(
+    result = stepwise_testrunnerer.runtestrunner(
         "-v", "--strict-markers", "--stepwise", "--fail"
     )
     assert _strip_resource_warnings(result.stderr.lines) == []
@@ -137,7 +137,7 @@ def test_fail_and_continue_with_stepwise(stepwise_pytester: Pytester) -> None:
     assert "test_success_after_fail" not in stdout
 
     # "Fix" the test that failed in the last run and run it again.
-    result = stepwise_pytester.runpytest("-v", "--strict-markers", "--stepwise")
+    result = stepwise_testrunnerer.runtestrunner("-v", "--strict-markers", "--stepwise")
     assert _strip_resource_warnings(result.stderr.lines) == []
 
     stdout = result.stdout.str()
@@ -147,9 +147,9 @@ def test_fail_and_continue_with_stepwise(stepwise_pytester: Pytester) -> None:
     assert "test_success_after_fail PASSED" in stdout
 
 
-@pytest.mark.parametrize("stepwise_skip", ["--stepwise-skip", "--sw-skip"])
-def test_run_with_skip_option(stepwise_pytester: Pytester, stepwise_skip: str) -> None:
-    result = stepwise_pytester.runpytest(
+@testrunner.mark.parametrize("stepwise_skip", ["--stepwise-skip", "--sw-skip"])
+def test_run_with_skip_option(stepwise_testrunnerer: Testrunnerer, stepwise_skip: str) -> None:
+    result = stepwise_testrunnerer.runtestrunner(
         "-v",
         "--strict-markers",
         "--stepwise",
@@ -167,8 +167,8 @@ def test_run_with_skip_option(stepwise_pytester: Pytester, stepwise_skip: str) -
     assert "test_success_after_last_fail" not in stdout
 
 
-def test_fail_on_errors(error_pytester: Pytester) -> None:
-    result = error_pytester.runpytest("-v", "--strict-markers", "--stepwise")
+def test_fail_on_errors(error_testrunnerer: Testrunnerer) -> None:
+    result = error_testrunnerer.runtestrunner("-v", "--strict-markers", "--stepwise")
 
     assert _strip_resource_warnings(result.stderr.lines) == []
     stdout = result.stdout.str()
@@ -177,8 +177,8 @@ def test_fail_on_errors(error_pytester: Pytester) -> None:
     assert "test_success_after_fail" not in stdout
 
 
-def test_change_testfile(stepwise_pytester: Pytester) -> None:
-    result = stepwise_pytester.runpytest(
+def test_change_testfile(stepwise_testrunnerer: Testrunnerer) -> None:
+    result = stepwise_testrunnerer.runtestrunner(
         "-v", "--strict-markers", "--stepwise", "--fail", "test_a.py"
     )
     assert _strip_resource_warnings(result.stderr.lines) == []
@@ -188,7 +188,7 @@ def test_change_testfile(stepwise_pytester: Pytester) -> None:
 
     # Make sure the second test run starts from the beginning, since the
     # test to continue from does not exist in testfile_b.
-    result = stepwise_pytester.runpytest(
+    result = stepwise_testrunnerer.runtestrunner(
         "-v", "--strict-markers", "--stepwise", "test_b.py"
     )
     assert _strip_resource_warnings(result.stderr.lines) == []
@@ -197,20 +197,20 @@ def test_change_testfile(stepwise_pytester: Pytester) -> None:
     assert "test_success PASSED" in stdout
 
 
-@pytest.mark.parametrize("broken_first", [True, False])
+@testrunner.mark.parametrize("broken_first", [True, False])
 def test_stop_on_collection_errors(
-    broken_pytester: Pytester, broken_first: bool
+    broken_testrunnerer: Testrunnerer, broken_first: bool
 ) -> None:
     """Stop during collection errors. Broken test first or broken test last
     actually surfaced a bug (#5444), so we test both situations."""
     files = ["working_testfile.py", "broken_testfile.py"]
     if broken_first:
         files.reverse()
-    result = broken_pytester.runpytest("-v", "--strict-markers", "--stepwise", *files)
+    result = broken_testrunnerer.runtestrunner("-v", "--strict-markers", "--stepwise", *files)
     result.stdout.fnmatch_lines("*error during collection*")
 
 
-def test_xfail_handling(pytester: Pytester, monkeypatch: MonkeyPatch) -> None:
+def test_xfail_handling(testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
     """Ensure normal xfail is ignored, and strict xfail interrupts the session in sw mode
 
     (#5547)
@@ -218,17 +218,17 @@ def test_xfail_handling(pytester: Pytester, monkeypatch: MonkeyPatch) -> None:
     monkeypatch.setattr("sys.dont_write_bytecode", True)
 
     contents = """
-        import pytest
+        import testrunner
         def test_a(): pass
 
-        @pytest.mark.xfail(strict={strict})
+        @testrunner.mark.xfail(strict={strict})
         def test_b(): assert {assert_value}
 
         def test_c(): pass
         def test_d(): pass
     """
-    pytester.makepyfile(contents.format(assert_value="0", strict="False"))
-    result = pytester.runpytest("--sw", "-v")
+    testrunnerer.makepyfile(contents.format(assert_value="0", strict="False"))
+    result = testrunnerer.runtestrunner("--sw", "-v")
     result.stdout.fnmatch_lines(
         [
             "*::test_a PASSED *",
@@ -239,8 +239,8 @@ def test_xfail_handling(pytester: Pytester, monkeypatch: MonkeyPatch) -> None:
         ]
     )
 
-    pytester.makepyfile(contents.format(assert_value="1", strict="True"))
-    result = pytester.runpytest("--sw", "-v")
+    testrunnerer.makepyfile(contents.format(assert_value="1", strict="True"))
+    result = testrunnerer.runtestrunner("--sw", "-v")
     result.stdout.fnmatch_lines(
         [
             "*::test_a PASSED *",
@@ -250,8 +250,8 @@ def test_xfail_handling(pytester: Pytester, monkeypatch: MonkeyPatch) -> None:
         ]
     )
 
-    pytester.makepyfile(contents.format(assert_value="0", strict="True"))
-    result = pytester.runpytest("--sw", "-v")
+    testrunnerer.makepyfile(contents.format(assert_value="0", strict="True"))
+    result = testrunnerer.runtestrunner("--sw", "-v")
     result.stdout.fnmatch_lines(
         [
             "*::test_b XFAIL *",
@@ -262,8 +262,8 @@ def test_xfail_handling(pytester: Pytester, monkeypatch: MonkeyPatch) -> None:
     )
 
 
-def test_stepwise_skip_is_independent(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_stepwise_skip_is_independent(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_one():
             assert False
@@ -276,7 +276,7 @@ def test_stepwise_skip_is_independent(pytester: Pytester) -> None:
 
         """
     )
-    result = pytester.runpytest("--tb", "no", "--stepwise-skip")
+    result = testrunnerer.runtestrunner("--tb", "no", "--stepwise-skip")
     result.assert_outcomes(failed=2)
     result.stdout.fnmatch_lines(
         [
@@ -287,49 +287,49 @@ def test_stepwise_skip_is_independent(pytester: Pytester) -> None:
     )
 
 
-def test_sw_skip_help(pytester: Pytester) -> None:
-    result = pytester.runpytest("-h")
+def test_sw_skip_help(testrunnerer: Testrunnerer) -> None:
+    result = testrunnerer.runtestrunner("-h")
     result.stdout.fnmatch_lines("*Implicitly enables --stepwise.")
 
 
-def test_stepwise_xdist_dont_store_lastfailed(pytester: Pytester) -> None:
-    pytester.makefile(
+def test_stepwise_xdist_dont_store_lastfailed(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makefile(
         ext=".ini",
-        pytest=f"[pytest]\ncache_dir = {pytester.path}\n",
+        testrunner=f"[testrunner]\ncache_dir = {testrunnerer.path}\n",
     )
 
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         conftest="""
-import pytest
+import testrunner
 
-@pytest.hookimpl(tryfirst=True)
-def pytest_configure(config) -> None:
+@testrunner.hookimpl(tryfirst=True)
+def testrunner_configure(config) -> None:
     config.workerinput = True
 """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         test_one="""
 def test_one():
     assert False
 """
     )
-    result = pytester.runpytest("--stepwise")
-    assert result.ret == pytest.ExitCode.INTERRUPTED
+    result = testrunnerer.runtestrunner("--stepwise")
+    assert result.ret == testrunner.ExitCode.INTERRUPTED
 
     stepwise_cache_file = (
-        pytester.path / Cache._CACHE_PREFIX_VALUES / STEPWISE_CACHE_DIR
+        testrunnerer.path / Cache._CACHE_PREFIX_VALUES / STEPWISE_CACHE_DIR
     )
     assert not Path(stepwise_cache_file).exists()
 
 
-def test_disabled_stepwise_xdist_dont_clear_cache(pytester: Pytester) -> None:
-    pytester.makefile(
+def test_disabled_stepwise_xdist_dont_clear_cache(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makefile(
         ext=".ini",
-        pytest=f"[pytest]\ncache_dir = {pytester.path}\n",
+        testrunner=f"[testrunner]\ncache_dir = {testrunnerer.path}\n",
     )
 
     stepwise_cache_file = (
-        pytester.path / Cache._CACHE_PREFIX_VALUES / STEPWISE_CACHE_DIR
+        testrunnerer.path / Cache._CACHE_PREFIX_VALUES / STEPWISE_CACHE_DIR
     )
     stepwise_cache_dir = stepwise_cache_file.parent
     stepwise_cache_dir.mkdir(exist_ok=True, parents=True)
@@ -339,24 +339,24 @@ def test_disabled_stepwise_xdist_dont_clear_cache(pytester: Pytester) -> None:
     expected_value = '"test_one.py::test_one"'
     content = {f"{stepwise_cache_file_relative}": expected_value}
 
-    pytester.makefile(ext="", **content)
+    testrunnerer.makefile(ext="", **content)
 
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         conftest="""
-import pytest
+import testrunner
 
-@pytest.hookimpl(tryfirst=True)
-def pytest_configure(config) -> None:
+@testrunner.hookimpl(tryfirst=True)
+def testrunner_configure(config) -> None:
     config.workerinput = True
 """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         test_one="""
 def test_one():
     assert True
 """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
 
     assert Path(stepwise_cache_file).exists()
@@ -365,9 +365,9 @@ def test_one():
     assert [expected_value] == observed_value
 
 
-def test_do_not_reset_cache_if_disabled(pytester: Pytester) -> None:
+def test_do_not_reset_cache_if_disabled(testrunnerer: Testrunnerer) -> None:
     """
-    If pytest is run without --stepwise, do not clear the stepwise cache.
+    If testrunner is run without --stepwise, do not clear the stepwise cache.
 
     Keeping the cache around is important for this workflow:
 
@@ -377,14 +377,14 @@ def test_do_not_reset_cache_if_disabled(pytester: Pytester) -> None:
     3. Run tests with --stepwise again - at this point we expect to start from the failing test, which should now pass,
        and continue with the next tests.
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_1(): pass
         def test_2(): assert False
         def test_3(): pass
         """
     )
-    result = pytester.runpytest("--stepwise")
+    result = testrunnerer.runtestrunner("--stepwise")
     result.stdout.fnmatch_lines(
         [
             "*::test_2 - assert False*",
@@ -394,11 +394,11 @@ def test_do_not_reset_cache_if_disabled(pytester: Pytester) -> None:
     )
 
     # Run a specific test without passing `--stepwise`.
-    result = pytester.runpytest("-k", "test_1")
+    result = testrunnerer.runtestrunner("-k", "test_1")
     result.stdout.fnmatch_lines(["*1 passed*"])
 
     # Running with `--stepwise` should continue from the last failing test.
-    result = pytester.runpytest("--stepwise")
+    result = testrunnerer.runtestrunner("--stepwise")
     result.stdout.fnmatch_lines(
         [
             "stepwise: skipping 1 already passed items (cache from *, use --sw-reset to discard).",
@@ -409,15 +409,15 @@ def test_do_not_reset_cache_if_disabled(pytester: Pytester) -> None:
     )
 
 
-def test_reset(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_reset(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_1(): pass
         def test_2(): assert False
         def test_3(): pass
         """
     )
-    result = pytester.runpytest("--stepwise", "-v")
+    result = testrunnerer.runtestrunner("--stepwise", "-v")
     result.stdout.fnmatch_lines(
         [
             "stepwise: no previously failed tests, not skipping.",
@@ -428,7 +428,7 @@ def test_reset(pytester: Pytester) -> None:
         ]
     )
 
-    result = pytester.runpytest("--stepwise", "-v")
+    result = testrunnerer.runtestrunner("--stepwise", "-v")
     result.stdout.fnmatch_lines(
         [
             "stepwise: skipping 1 already passed items (cache from *, use --sw-reset to discard).",
@@ -439,7 +439,7 @@ def test_reset(pytester: Pytester) -> None:
     )
 
     # Running with --stepwise-reset restarts the stepwise workflow.
-    result = pytester.runpytest("-v", "--stepwise-reset")
+    result = testrunnerer.runtestrunner("-v", "--stepwise-reset")
     result.stdout.fnmatch_lines(
         [
             "stepwise: resetting state, not skipping.",
@@ -451,16 +451,16 @@ def test_reset(pytester: Pytester) -> None:
     )
 
 
-def test_change_test_count(pytester: Pytester) -> None:
+def test_change_test_count(testrunnerer: Testrunnerer) -> None:
     # Run initially with 3 tests.
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_1(): pass
         def test_2(): assert False
         def test_3(): pass
         """
     )
-    result = pytester.runpytest("--stepwise", "-v")
+    result = testrunnerer.runtestrunner("--stepwise", "-v")
     result.stdout.fnmatch_lines(
         [
             "stepwise: no previously failed tests, not skipping.",
@@ -472,7 +472,7 @@ def test_change_test_count(pytester: Pytester) -> None:
     )
 
     # Change the number of tests, which invalidates the test cache.
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_1(): pass
         def test_2(): assert False
@@ -480,7 +480,7 @@ def test_change_test_count(pytester: Pytester) -> None:
         def test_4(): pass
         """
     )
-    result = pytester.runpytest("--stepwise", "-v")
+    result = testrunnerer.runtestrunner("--stepwise", "-v")
     result.stdout.fnmatch_lines(
         [
             "stepwise: test count changed, not skipping (now 4 tests, previously 3).",
@@ -492,7 +492,7 @@ def test_change_test_count(pytester: Pytester) -> None:
     )
 
     # Fix the failing test and run again.
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_1(): pass
         def test_2(): pass
@@ -500,7 +500,7 @@ def test_change_test_count(pytester: Pytester) -> None:
         def test_4(): pass
         """
     )
-    result = pytester.runpytest("--stepwise", "-v")
+    result = testrunnerer.runtestrunner("--stepwise", "-v")
     result.stdout.fnmatch_lines(
         [
             "stepwise: skipping 1 already passed items (cache from *, use --sw-reset to discard).",
@@ -512,14 +512,14 @@ def test_change_test_count(pytester: Pytester) -> None:
     )
 
 
-def test_cache_error(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_cache_error(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_1(): pass
         """
     )
     # Run stepwise normally to generate the cache information.
-    result = pytester.runpytest("--stepwise", "-v")
+    result = testrunnerer.runtestrunner("--stepwise", "-v")
     result.stdout.fnmatch_lines(
         [
             "stepwise: no previously failed tests, not skipping.",
@@ -529,12 +529,12 @@ def test_cache_error(pytester: Pytester) -> None:
     )
 
     # Corrupt the cache.
-    cache_file = pytester.path / f".pytest_cache/v/{STEPWISE_CACHE_DIR}"
+    cache_file = testrunnerer.path / f".testrunner_cache/v/{STEPWISE_CACHE_DIR}"
     assert cache_file.is_file()
     cache_file.write_text(json.dumps({"invalid": True}), encoding="UTF-8")
 
     # Check we run as if the cache did not exist, but also show an error message.
-    result = pytester.runpytest("--stepwise", "-v")
+    result = testrunnerer.runtestrunner("--stepwise", "-v")
     result.stdout.fnmatch_lines(
         [
             "stepwise: error reading cache, discarding (KeyError: *",

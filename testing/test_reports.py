@@ -3,30 +3,30 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from _pytest._code.code import ExceptionChainRepr
-from _pytest._code.code import ExceptionRepr
-from _pytest.approx import approx
-from _pytest.config import Config
-from _pytest.pytester import Pytester
-from _pytest.reports import CollectReport
-from _pytest.reports import TestReport
-import pytest
+from _testrunner._code.code import ExceptionChainRepr
+from _testrunner._code.code import ExceptionRepr
+from _testrunner.approx import approx
+from _testrunner.config import Config
+from _testrunner.testrunnerer import Testrunnerer
+from _testrunner.reports import CollectReport
+from _testrunner.reports import TestReport
+import testrunner
 
 
 class TestReportSerialization:
-    def test_xdist_longrepr_to_str_issue_241(self, pytester: Pytester) -> None:
-        """Regarding issue pytest-xdist#241.
+    def test_xdist_longrepr_to_str_issue_241(self, testrunnerer: Testrunnerer) -> None:
+        """Regarding issue testrunner-xdist#241.
 
         This test came originally from test_remote.py in xdist (ca03269).
         """
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_a(): assert False
             def test_b(): pass
         """
         )
-        reprec = pytester.inline_run()
-        reports = reprec.getreports("pytest_runtest_logreport")
+        reprec = testrunnerer.inline_run()
+        reports = reprec.getreports("testrunner_runtest_logreport")
         assert len(reports) == 6
         test_a_call = reports[1]
         assert test_a_call.when == "call"
@@ -37,18 +37,18 @@ class TestReportSerialization:
         assert test_b_call.outcome == "passed"
         assert test_b_call._to_json()["longrepr"] is None
 
-    def test_xdist_report_longrepr_reprcrash_130(self, pytester: Pytester) -> None:
-        """Regarding issue pytest-xdist#130
+    def test_xdist_report_longrepr_reprcrash_130(self, testrunnerer: Testrunnerer) -> None:
+        """Regarding issue testrunner-xdist#130
 
         This test came originally from test_remote.py in xdist (ca03269).
         """
-        reprec = pytester.inline_runsource(
+        reprec = testrunnerer.inline_runsource(
             """
                     def test_fail():
                         assert False, 'Expected Message'
                 """
         )
-        reports = reprec.getreports("pytest_runtest_logreport")
+        reports = reprec.getreports("testrunner_runtest_logreport")
         assert len(reports) == 3
         rep = reports[1]
         added_section = ("Failure Metadata", "metadata metadata", "*")
@@ -83,13 +83,13 @@ class TestReportSerialization:
         # Missing section attribute PR171
         assert added_section in a.longrepr.sections
 
-    def test_to_json_nodeid_wire_shape(self, pytester: Pytester) -> None:
+    def test_to_json_nodeid_wire_shape(self, testrunnerer: Testrunnerer) -> None:
         """The JSON wire payload must keep a plain top-level string "nodeid"
-        key (never an internal NodeId object / "_id" key) -- pytest-xdist
+        key (never an internal NodeId object / "_id" key) -- testrunner-xdist
         depends on this exact shape to serialize reports across processes.
         """
-        reprec = pytester.inline_runsource("def test_a(): pass")
-        reports = reprec.getreports("pytest_runtest_logreport")
+        reprec = testrunnerer.inline_runsource("def test_a(): pass")
+        reports = reprec.getreports("testrunner_runtest_logreport")
         rep = reports[1]
         assert rep.when == "call"
         d = rep._to_json()
@@ -97,14 +97,14 @@ class TestReportSerialization:
         assert d["nodeid"] == rep.nodeid
         assert "_id" not in d
 
-    def test_reprentries_serialization_170(self, pytester: Pytester) -> None:
-        """Regarding issue pytest-xdist#170
+    def test_reprentries_serialization_170(self, testrunnerer: Testrunnerer) -> None:
+        """Regarding issue testrunner-xdist#170
 
         This test came originally from test_remote.py in xdist (ca03269).
         """
-        from _pytest._code.code import ReprEntry
+        from _testrunner._code.code import ReprEntry
 
-        reprec = pytester.inline_runsource(
+        reprec = testrunnerer.inline_runsource(
             """
                             def test_repr_entry():
                                 x = 0
@@ -112,7 +112,7 @@ class TestReportSerialization:
                         """,
             "--showlocals",
         )
-        reports = reprec.getreports("pytest_runtest_logreport")
+        reports = reprec.getreports("testrunner_runtest_logreport")
         assert len(reports) == 3
         rep = reports[1]
         assert isinstance(rep.longrepr, ExceptionRepr)
@@ -141,14 +141,14 @@ class TestReportSerialization:
             assert rep_entry.reprlocals.lines == a_entry.reprlocals.lines
             assert rep_entry.style == a_entry.style
 
-    def test_reprentries_serialization_196(self, pytester: Pytester) -> None:
-        """Regarding issue pytest-xdist#196
+    def test_reprentries_serialization_196(self, testrunnerer: Testrunnerer) -> None:
+        """Regarding issue testrunner-xdist#196
 
         This test came originally from test_remote.py in xdist (ca03269).
         """
-        from _pytest._code.code import ReprEntryNative
+        from _testrunner._code.code import ReprEntryNative
 
-        reprec = pytester.inline_runsource(
+        reprec = testrunnerer.inline_runsource(
             """
                             def test_repr_entry_native():
                                 x = 0
@@ -156,7 +156,7 @@ class TestReportSerialization:
                         """,
             "--tb=native",
         )
-        reports = reprec.getreports("pytest_runtest_logreport")
+        reports = reprec.getreports("testrunner_runtest_logreport")
         assert len(reports) == 3
         rep = reports[1]
         assert isinstance(rep.longrepr, ExceptionRepr)
@@ -170,24 +170,24 @@ class TestReportSerialization:
             assert isinstance(rep_entry, ReprEntryNative)
             assert rep_entry.lines == a_entry.lines
 
-    def test_itemreport_outcomes(self, pytester: Pytester) -> None:
+    def test_itemreport_outcomes(self, testrunnerer: Testrunnerer) -> None:
         # This test came originally from test_remote.py in xdist (ca03269).
-        reprec = pytester.inline_runsource(
+        reprec = testrunnerer.inline_runsource(
             """
-            import pytest
+            import testrunner
             def test_pass(): pass
             def test_fail(): 0/0
-            @pytest.mark.skipif("True")
+            @testrunner.mark.skipif("True")
             def test_skip(): pass
             def test_skip_imperative():
-                pytest.skip("hello")
-            @pytest.mark.xfail("True")
+                testrunner.skip("hello")
+            @testrunner.mark.xfail("True")
             def test_xfail(): 0/0
             def test_xfail_imperative():
-                pytest.xfail("hello")
+                testrunner.xfail("hello")
         """
         )
-        reports = reprec.getreports("pytest_runtest_logreport")
+        reports = reprec.getreports("testrunner_runtest_logreport")
         assert len(reports) == 17  # with setup/teardown "passed" reports
         for rep in reports:
             d = rep._to_json()
@@ -204,10 +204,10 @@ class TestReportSerialization:
             if rep.failed:
                 assert newrep.longreprtext == rep.longreprtext
 
-    def test_collectreport_passed(self, pytester: Pytester) -> None:
+    def test_collectreport_passed(self, testrunnerer: Testrunnerer) -> None:
         """This test came originally from test_remote.py in xdist (ca03269)."""
-        reprec = pytester.inline_runsource("def test_func(): pass")
-        reports = reprec.getreports("pytest_collectreport")
+        reprec = testrunnerer.inline_runsource("def test_func(): pass")
+        reports = reprec.getreports("testrunner_collectreport")
         for rep in reports:
             d = rep._to_json()
             newrep = CollectReport._from_json(d)
@@ -215,10 +215,10 @@ class TestReportSerialization:
             assert newrep.failed == rep.failed
             assert newrep.skipped == rep.skipped
 
-    def test_collectreport_fail(self, pytester: Pytester) -> None:
+    def test_collectreport_fail(self, testrunnerer: Testrunnerer) -> None:
         """This test came originally from test_remote.py in xdist (ca03269)."""
-        reprec = pytester.inline_runsource("qwe abc")
-        reports = reprec.getreports("pytest_collectreport")
+        reprec = testrunnerer.inline_runsource("qwe abc")
+        reports = reprec.getreports("testrunner_collectreport")
         assert reports
         for rep in reports:
             d = rep._to_json()
@@ -229,10 +229,10 @@ class TestReportSerialization:
             if rep.failed:
                 assert newrep.longrepr == str(rep.longrepr)
 
-    def test_extended_report_deserialization(self, pytester: Pytester) -> None:
+    def test_extended_report_deserialization(self, testrunnerer: Testrunnerer) -> None:
         """This test came originally from test_remote.py in xdist (ca03269)."""
-        reprec = pytester.inline_runsource("qwe abc")
-        reports = reprec.getreports("pytest_collectreport")
+        reprec = testrunnerer.inline_runsource("qwe abc")
+        reports = reprec.getreports("testrunner_collectreport")
         assert reports
         for rep in reports:
             rep.extra = True  # type: ignore[attr-defined]
@@ -245,9 +245,9 @@ class TestReportSerialization:
             if rep.failed:
                 assert newrep.longrepr == str(rep.longrepr)
 
-    def test_paths_support(self, pytester: Pytester) -> None:
+    def test_paths_support(self, testrunnerer: Testrunnerer) -> None:
         """Report attributes which are path-like should become strings."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_a():
                 assert False
@@ -261,26 +261,26 @@ class TestReportSerialization:
             def __fspath__(self) -> str:
                 return self.path
 
-        reprec = pytester.inline_run()
-        reports = reprec.getreports("pytest_runtest_logreport")
+        reprec = testrunnerer.inline_run()
+        reports = reprec.getreports("testrunner_runtest_logreport")
         assert len(reports) == 3
         test_a_call = reports[1]
-        test_a_call.path1 = MyPathLike(str(pytester.path))  # type: ignore[attr-defined]
-        test_a_call.path2 = pytester.path  # type: ignore[attr-defined]
+        test_a_call.path1 = MyPathLike(str(testrunnerer.path))  # type: ignore[attr-defined]
+        test_a_call.path2 = testrunnerer.path  # type: ignore[attr-defined]
         data = test_a_call._to_json()
-        assert data["path1"] == str(pytester.path)
-        assert data["path2"] == str(pytester.path)
+        assert data["path1"] == str(testrunnerer.path)
+        assert data["path2"] == str(testrunnerer.path)
 
-    def test_deserialization_failure(self, pytester: Pytester) -> None:
+    def test_deserialization_failure(self, testrunnerer: Testrunnerer) -> None:
         """Check handling of failure during deserialization of report types."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_a():
                 assert False
         """
         )
-        reprec = pytester.inline_run()
-        reports = reprec.getreports("pytest_runtest_logreport")
+        reprec = testrunnerer.inline_run()
+        reports = reprec.getreports("testrunner_runtest_logreport")
         assert len(reports) == 3
         test_a_call = reports[1]
         data = test_a_call._to_json()
@@ -288,17 +288,17 @@ class TestReportSerialization:
         assert entry["type"] == "ReprEntry"
 
         entry["type"] = "Unknown"
-        with pytest.raises(
+        with testrunner.raises(
             RuntimeError, match="INTERNALERROR: Unknown entry type returned: Unknown"
         ):
             TestReport._from_json(data)
 
-    @pytest.mark.parametrize("report_class", [TestReport, CollectReport])
+    @testrunner.mark.parametrize("report_class", [TestReport, CollectReport])
     def test_chained_exceptions(
-        self, pytester: Pytester, tw_mock, report_class
+        self, testrunnerer: Testrunnerer, tw_mock, report_class
     ) -> None:
         """Check serialization/deserialization of report objects containing chained exceptions (#5786)"""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             f"""
             def foo():
                 raise ValueError('value error')
@@ -312,10 +312,10 @@ class TestReportSerialization:
         """
         )
 
-        reprec = pytester.inline_run()
+        reprec = testrunnerer.inline_run()
         if report_class is TestReport:
             reports: Sequence[TestReport] | Sequence[CollectReport] = reprec.getreports(
-                "pytest_runtest_logreport"
+                "testrunner_runtest_logreport"
             )
             # we have 3 reports: setup/call/teardown
             assert len(reports) == 3
@@ -324,7 +324,7 @@ class TestReportSerialization:
         else:
             assert report_class is CollectReport
             # three collection reports: session, test file, directory
-            reports = reprec.getreports("pytest_collectreport")
+            reports = reprec.getreports("testrunner_collectreport")
             assert len(reports) == 3
             report = reports[1]
 
@@ -367,14 +367,14 @@ class TestReportSerialization:
         # elsewhere and we do check the contents of the longrepr object after loading it.
         loaded_report.longrepr.toterminal(tw_mock)
 
-    def test_chained_exceptions_no_reprcrash(self, pytester: Pytester, tw_mock) -> None:
+    def test_chained_exceptions_no_reprcrash(self, testrunnerer: Testrunnerer, tw_mock) -> None:
         """Regression test for tracebacks without a reprcrash (#5971)
 
         This happens notably on exceptions raised by multiprocess.pool: the exception transfer
         from subprocess to main process creates an artificial exception, which ExceptionInfo
         can't obtain the ReprFileLocation from.
         """
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             from concurrent.futures import ProcessPoolExecutor
 
@@ -387,10 +387,10 @@ class TestReportSerialization:
         """
         )
 
-        pytester.syspathinsert()
-        reprec = pytester.inline_run()
+        testrunnerer.syspathinsert()
+        reprec = testrunnerer.inline_run()
 
-        reports = reprec.getreports("pytest_runtest_logreport")
+        reports = reprec.getreports("testrunner_runtest_logreport")
 
         def check_longrepr(longrepr: object) -> None:
             assert isinstance(longrepr, ExceptionChainRepr)
@@ -425,22 +425,22 @@ class TestReportSerialization:
         loaded_report.longrepr.toterminal(tw_mock)
 
     def test_report_prevent_ConftestImportFailure_hiding_exception(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
-        sub_dir = pytester.path.joinpath("ns")
+        sub_dir = testrunnerer.path.joinpath("ns")
         sub_dir.mkdir()
         sub_dir.joinpath("conftest.py").write_text("import unknown", encoding="utf-8")
 
-        result = pytester.runpytest_subprocess(".")
+        result = testrunnerer.runtestrunner_subprocess(".")
         result.stdout.fnmatch_lines(["E   *Error: No module named 'unknown'"])
         result.stdout.no_fnmatch_line("ERROR  - *ConftestImportFailure*")
 
-    def test_report_timestamps_match_duration(self, pytester: Pytester, mock_timing):
-        reprec = pytester.inline_runsource(
+    def test_report_timestamps_match_duration(self, testrunnerer: Testrunnerer, mock_timing):
+        reprec = testrunnerer.inline_runsource(
             """
-            import pytest
-            from _pytest import timing
-            @pytest.fixture
+            import testrunner
+            from _testrunner import timing
+            @testrunner.fixture
             def fixture_():
                 timing.sleep(5)
                 yield
@@ -448,20 +448,20 @@ class TestReportSerialization:
             def test_1(fixture_): timing.sleep(10)
         """
         )
-        reports = reprec.getreports("pytest_runtest_logreport")
+        reports = reprec.getreports("testrunner_runtest_logreport")
         assert len(reports) == 3
         for report in reports:
             data = report._to_json()
             loaded_report = TestReport._from_json(data)
             assert loaded_report.stop - loaded_report.start == approx(report.duration)
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "first_skip_reason, second_skip_reason, skip_reason_output",
         [("A", "B", "(A; B)"), ("A", "A", "(A)")],
     )
     def test_exception_group_with_only_skips(
         self,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
         first_skip_reason: str,
         second_skip_reason: str,
         skip_reason_output: str,
@@ -471,59 +471,59 @@ class TestReportSerialization:
         it is reported as a single skipped test, not as an error.
         This is a regression test for issue #13537.
         """
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             test_it=f"""
-            import pytest
-            @pytest.fixture
+            import testrunner
+            @testrunner.fixture
             def fixA():
                 yield
-                pytest.skip(reason="{first_skip_reason}")
-            @pytest.fixture
+                testrunner.skip(reason="{first_skip_reason}")
+            @testrunner.fixture
             def fixB():
                 yield
-                pytest.skip(reason="{second_skip_reason}")
+                testrunner.skip(reason="{second_skip_reason}")
             def test_skip(fixA, fixB):
                 assert True
             """
         )
-        result = pytester.runpytest("-v")
+        result = testrunnerer.runtestrunner("-v")
         result.assert_outcomes(passed=1, skipped=1)
         out = result.stdout.str()
         assert skip_reason_output in out
         assert "ERROR at teardown" not in out
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "use_item_location, skip_file_location",
         [(True, "test_it.py"), (False, "runner.py")],
     )
     def test_exception_group_skips_use_item_location(
-        self, pytester: Pytester, use_item_location: bool, skip_file_location: str
+        self, testrunnerer: Testrunnerer, use_item_location: bool, skip_file_location: str
     ):
         """
         Regression for #13537:
         If any skip inside an ExceptionGroup has _use_item_location=True,
         the report location should point to the test item, not the fixture teardown.
         """
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             test_it=f"""
-            import pytest
-            @pytest.fixture
+            import testrunner
+            @testrunner.fixture
             def fix_item1():
                 yield
-                exc = pytest.skip.Exception("A")
+                exc = testrunner.skip.Exception("A")
                 exc._use_item_location = True
                 raise exc
-            @pytest.fixture
+            @testrunner.fixture
             def fix_item2():
                 yield
-                exc = pytest.skip.Exception("B")
+                exc = testrunner.skip.Exception("B")
                 exc._use_item_location = {use_item_location}
                 raise exc
             def test_both(fix_item1, fix_item2):
                 assert True
             """
         )
-        result = pytester.runpytest("-rs")
+        result = testrunnerer.runtestrunner("-rs")
         result.assert_outcomes(passed=1, skipped=1)
 
         out = result.stdout.str()
@@ -536,70 +536,70 @@ class TestReportSerialization:
 class TestHooks:
     """Test that the hooks are working correctly for plugins"""
 
-    def test_test_report(self, pytester: Pytester, pytestconfig: Config) -> None:
-        pytester.makepyfile(
+    def test_test_report(self, testrunnerer: Testrunnerer, testrunnerconfig: Config) -> None:
+        testrunnerer.makepyfile(
             """
             def test_a(): assert False
             def test_b(): pass
         """
         )
-        reprec = pytester.inline_run()
-        reports = reprec.getreports("pytest_runtest_logreport")
+        reprec = testrunnerer.inline_run()
+        reports = reprec.getreports("testrunner_runtest_logreport")
         assert len(reports) == 6
         for rep in reports:
-            data = pytestconfig.hook.pytest_report_to_serializable(
-                config=pytestconfig, report=rep
+            data = testrunnerconfig.hook.testrunner_report_to_serializable(
+                config=testrunnerconfig, report=rep
             )
             assert data["$report_type"] == "TestReport"
-            new_rep = pytestconfig.hook.pytest_report_from_serializable(
-                config=pytestconfig, data=data
+            new_rep = testrunnerconfig.hook.testrunner_report_from_serializable(
+                config=testrunnerconfig, data=data
             )
             assert new_rep.nodeid == rep.nodeid
             assert new_rep.when == rep.when
             assert new_rep.outcome == rep.outcome
 
-    def test_collect_report(self, pytester: Pytester, pytestconfig: Config) -> None:
-        pytester.makepyfile(
+    def test_collect_report(self, testrunnerer: Testrunnerer, testrunnerconfig: Config) -> None:
+        testrunnerer.makepyfile(
             """
             def test_a(): assert False
             def test_b(): pass
         """
         )
-        reprec = pytester.inline_run()
-        reports = reprec.getreports("pytest_collectreport")
+        reprec = testrunnerer.inline_run()
+        reports = reprec.getreports("testrunner_collectreport")
         assert len(reports) == 3
         for rep in reports:
-            data = pytestconfig.hook.pytest_report_to_serializable(
-                config=pytestconfig, report=rep
+            data = testrunnerconfig.hook.testrunner_report_to_serializable(
+                config=testrunnerconfig, report=rep
             )
             assert data["$report_type"] == "CollectReport"
-            new_rep = pytestconfig.hook.pytest_report_from_serializable(
-                config=pytestconfig, data=data
+            new_rep = testrunnerconfig.hook.testrunner_report_from_serializable(
+                config=testrunnerconfig, data=data
             )
             assert new_rep.nodeid == rep.nodeid
             assert new_rep.when == "collect"
             assert new_rep.outcome == rep.outcome
 
-    @pytest.mark.parametrize(
-        "hook_name", ["pytest_runtest_logreport", "pytest_collectreport"]
+    @testrunner.mark.parametrize(
+        "hook_name", ["testrunner_runtest_logreport", "testrunner_collectreport"]
     )
     def test_invalid_report_types(
-        self, pytester: Pytester, pytestconfig: Config, hook_name: str
+        self, testrunnerer: Testrunnerer, testrunnerconfig: Config, hook_name: str
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_a(): pass
             """
         )
-        reprec = pytester.inline_run()
+        reprec = testrunnerer.inline_run()
         reports = reprec.getreports(hook_name)
         assert reports
         rep = reports[0]
-        data = pytestconfig.hook.pytest_report_to_serializable(
-            config=pytestconfig, report=rep
+        data = testrunnerconfig.hook.testrunner_report_to_serializable(
+            config=testrunnerconfig, report=rep
         )
         data["$report_type"] = "Unknown"
-        with pytest.raises(AssertionError):
-            _ = pytestconfig.hook.pytest_report_from_serializable(
-                config=pytestconfig, data=data
+        with testrunner.raises(AssertionError):
+            _ = testrunnerconfig.hook.testrunner_report_from_serializable(
+                config=testrunnerconfig, data=data
             )

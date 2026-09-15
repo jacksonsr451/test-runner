@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from _pytest.nodeid import coerce_node_id
-from _pytest.nodeid import NodeId
-from _pytest.reports import TestReport
-import pytest
+from _testrunner.nodeid import coerce_node_id
+from _testrunner.nodeid import NodeId
+from _testrunner.reports import TestReport
+import testrunner
 
 
 class TestNodeId:
@@ -49,13 +49,13 @@ class TestNodeId:
         """Cannot build further tree structure on a node that already has
         params (i.e., a leaf item)."""
         leaf = NodeId(path="a/test_b.py", names=("test_c",), params="x")
-        with pytest.raises(ValueError, match=r"\.child\(\)"):
+        with testrunner.raises(ValueError, match=r"\.child\(\)"):
             leaf.child("more")
 
     def test_with_params_raises_on_parameterised_id(self) -> None:
         """Cannot attach params to a node that is already parameterised."""
         leaf = NodeId(path="a/test_b.py", names=("test_c",), params="x")
-        with pytest.raises(ValueError, match=r"\.with_params\(\)"):
+        with testrunner.raises(ValueError, match=r"\.with_params\(\)"):
             leaf.with_params(None)
 
     # -- Equality and hashing --
@@ -131,7 +131,7 @@ class TestNodeId:
         assert str(trailing_sep) == "a/test_b.py::"
         assert no_sep != trailing_sep
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "s",
         [
             "",

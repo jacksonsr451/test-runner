@@ -7,8 +7,8 @@ Examples and customization tricks
 Here is a (growing) list of examples. :ref:`Contact <contact>` us if you
 need more examples or have questions. Also take a look at the
 :ref:`comprehensive documentation <toc>` which contains many example
-snippets as well.  Also, `pytest on stackoverflow.com
-<http://stackoverflow.com/search?q=pytest>`_ often comes with example
+snippets as well.  Also, `testrunner on stackoverflow.com
+<http://stackoverflow.com/search?q=testrunner>`_ often comes with example
 answers.
 
 For basic examples, see

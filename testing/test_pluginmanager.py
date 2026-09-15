@@ -7,77 +7,77 @@ import shutil
 import sys
 import types
 
-from _pytest._code import ExceptionInfo
-from _pytest.config import _is_missing_module
-from _pytest.config import Config
-from _pytest.config import ExitCode
-from _pytest.config import PluginImportFailure
-from _pytest.config import PytestPluginManager
-from _pytest.config.exceptions import UsageError
-from _pytest.main import Session
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.pathlib import import_path
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner._code import ExceptionInfo
+from _testrunner.config import _is_missing_module
+from _testrunner.config import Config
+from _testrunner.config import ExitCode
+from _testrunner.config import PluginImportFailure
+from _testrunner.config import TestrunnerPluginManager
+from _testrunner.config.exceptions import UsageError
+from _testrunner.main import Session
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.pathlib import import_path
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
-@pytest.fixture
-def pytestpm() -> PytestPluginManager:
-    return PytestPluginManager()
+@testrunner.fixture
+def testrunnerpm() -> TestrunnerPluginManager:
+    return TestrunnerPluginManager()
 
 
-class TestPytestPluginInteractions:
+class TestTestrunnerPluginInteractions:
     def test_addhooks_conftestplugin(
-        self, pytester: Pytester, _config_for_test: Config
+        self, testrunnerer: Testrunnerer, _config_for_test: Config
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             newhooks="""
-            def pytest_myhook(xyz):
+            def testrunner_myhook(xyz):
                 "new hook"
         """
         )
-        conf = pytester.makeconftest(
+        conf = testrunnerer.makeconftest(
             """
             import newhooks
-            def pytest_addhooks(pluginmanager):
+            def testrunner_addhooks(pluginmanager):
                 pluginmanager.add_hookspecs(newhooks)
-            def pytest_myhook(xyz):
+            def testrunner_myhook(xyz):
                 return xyz + 1
         """
         )
         config = _config_for_test
         pm = config.pluginmanager
-        pm.hook.pytest_addhooks.call_historic(
+        pm.hook.testrunner_addhooks.call_historic(
             kwargs=dict(pluginmanager=config.pluginmanager)
         )
         config.pluginmanager._importconftest(
             conf,
             importmode="prepend",
-            rootpath=pytester.path,
+            rootpath=testrunnerer.path,
             consider_namespace_packages=False,
         )
         # print(config.pluginmanager.get_plugins())
-        res = config.hook.pytest_myhook(xyz=10)
+        res = config.hook.testrunner_myhook(xyz=10)
         assert res == [11]
 
-    def test_addhooks_nohooks(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_addhooks_nohooks(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
             import sys
-            def pytest_addhooks(pluginmanager):
+            def testrunner_addhooks(pluginmanager):
                 pluginmanager.add_hookspecs(sys)
         """
         )
-        res = pytester.runpytest()
+        res = testrunnerer.runtestrunner()
         assert res.ret != 0
         res.stderr.fnmatch_lines(["*did not find*sys*"])
 
-    def test_do_option_postinitialize(self, pytester: Pytester) -> None:
-        config = pytester.parseconfigure()
+    def test_do_option_postinitialize(self, testrunnerer: Testrunnerer) -> None:
+        config = testrunnerer.parseconfigure()
         assert not hasattr(config.option, "test123")
-        p = pytester.makepyfile(
+        p = testrunnerer.makepyfile(
             """
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addoption('--test123', action="store_true",
                     default=True)
         """
@@ -85,17 +85,17 @@ class TestPytestPluginInteractions:
         config.pluginmanager._importconftest(
             p,
             importmode="prepend",
-            rootpath=pytester.path,
+            rootpath=testrunnerer.path,
             consider_namespace_packages=False,
         )
         assert config.option.test123
 
-    def test_configure(self, pytester: Pytester) -> None:
-        config = pytester.parseconfig()
+    def test_configure(self, testrunnerer: Testrunnerer) -> None:
+        config = testrunnerer.parseconfig()
         values = []
 
         class A:
-            def pytest_configure(self):
+            def testrunner_configure(self):
                 values.append(self)
 
         config.pluginmanager.register(A())
@@ -110,22 +110,22 @@ class TestPytestPluginInteractions:
         config.pluginmanager.register(A())
         assert len(values) == 2
 
-    @pytest.mark.skipif(
+    @testrunner.mark.skipif(
         not sys.platform.startswith("win"),
         reason="requires a case-insensitive file system",
     )
-    def test_conftestpath_case_sensitivity(self, pytester: Pytester) -> None:
+    def test_conftestpath_case_sensitivity(self, testrunnerer: Testrunnerer) -> None:
         """Unit test for issue #9765."""
-        config = pytester.parseconfig()
-        pytester.makepyfile(**{"tests/conftest.py": ""})
+        config = testrunnerer.parseconfig()
+        testrunnerer.makepyfile(**{"tests/conftest.py": ""})
 
-        conftest = pytester.path.joinpath("tests/conftest.py")
-        conftest_upper_case = pytester.path.joinpath("TESTS/conftest.py")
+        conftest = testrunnerer.path.joinpath("tests/conftest.py")
+        conftest_upper_case = testrunnerer.path.joinpath("TESTS/conftest.py")
 
         mod = config.pluginmanager._importconftest(
             conftest,
             importmode="prepend",
-            rootpath=pytester.path,
+            rootpath=testrunnerer.path,
             consider_namespace_packages=False,
         )
         plugin = config.pluginmanager.get_plugin(str(conftest))
@@ -134,7 +134,7 @@ class TestPytestPluginInteractions:
         mod_uppercase = config.pluginmanager._importconftest(
             conftest_upper_case,
             importmode="prepend",
-            rootpath=pytester.path,
+            rootpath=testrunnerer.path,
             consider_namespace_packages=False,
         )
         plugin_uppercase = config.pluginmanager.get_plugin(str(conftest_upper_case))
@@ -145,118 +145,118 @@ class TestPytestPluginInteractions:
         assert mod is not mod_uppercase
 
     def test_hook_tracing(self, _config_for_test: Config) -> None:
-        pytestpm = _config_for_test.pluginmanager  # fully initialized with plugins
+        testrunnerpm = _config_for_test.pluginmanager  # fully initialized with plugins
         saveindent = []
 
         class api1:
-            def pytest_plugin_registered(self):
-                saveindent.append(pytestpm.trace.root.indent)
+            def testrunner_plugin_registered(self):
+                saveindent.append(testrunnerpm.trace.root.indent)
 
         class api2:
-            def pytest_plugin_registered(self):
-                saveindent.append(pytestpm.trace.root.indent)
+            def testrunner_plugin_registered(self):
+                saveindent.append(testrunnerpm.trace.root.indent)
                 raise ValueError()
 
         values: list[str] = []
-        pytestpm.trace.root.setwriter(values.append)
-        undo = pytestpm.enable_tracing()
+        testrunnerpm.trace.root.setwriter(values.append)
+        undo = testrunnerpm.enable_tracing()
         try:
-            indent = pytestpm.trace.root.indent
+            indent = testrunnerpm.trace.root.indent
             p = api1()
-            pytestpm.register(p)
-            assert pytestpm.trace.root.indent == indent
+            testrunnerpm.register(p)
+            assert testrunnerpm.trace.root.indent == indent
             assert len(values) >= 2
-            assert "pytest_plugin_registered" in values[0]
+            assert "testrunner_plugin_registered" in values[0]
             assert "finish" in values[1]
 
             values[:] = []
-            with pytest.raises(ValueError):
-                pytestpm.register(api2())
-            assert pytestpm.trace.root.indent == indent
+            with testrunner.raises(ValueError):
+                testrunnerpm.register(api2())
+            assert testrunnerpm.trace.root.indent == indent
             assert saveindent[0] > indent
         finally:
             undo()
 
-    def test_hook_proxy(self, pytester: Pytester) -> None:
+    def test_hook_proxy(self, testrunnerer: Testrunnerer) -> None:
         """Test the gethookproxy function(#2016)"""
-        config = pytester.parseconfig()
+        config = testrunnerer.parseconfig()
         session = Session.from_config(config)
-        pytester.makepyfile(**{"tests/conftest.py": "", "tests/subdir/conftest.py": ""})
+        testrunnerer.makepyfile(**{"tests/conftest.py": "", "tests/subdir/conftest.py": ""})
 
-        conftest1 = pytester.path.joinpath("tests/conftest.py")
-        conftest2 = pytester.path.joinpath("tests/subdir/conftest.py")
+        conftest1 = testrunnerer.path.joinpath("tests/conftest.py")
+        conftest2 = testrunnerer.path.joinpath("tests/subdir/conftest.py")
 
         config.pluginmanager._importconftest(
             conftest1,
             importmode="prepend",
-            rootpath=pytester.path,
+            rootpath=testrunnerer.path,
             consider_namespace_packages=False,
         )
-        ihook_a = session.gethookproxy(pytester.path / "tests")
+        ihook_a = session.gethookproxy(testrunnerer.path / "tests")
         assert ihook_a is not None
         config.pluginmanager._importconftest(
             conftest2,
             importmode="prepend",
-            rootpath=pytester.path,
+            rootpath=testrunnerer.path,
             consider_namespace_packages=False,
         )
-        ihook_b = session.gethookproxy(pytester.path / "tests")
+        ihook_b = session.gethookproxy(testrunnerer.path / "tests")
         assert ihook_a is not ihook_b
 
-    def test_hook_with_addoption(self, pytester: Pytester) -> None:
-        """Test that hooks can be used in a call to pytest_addoption"""
-        pytester.makepyfile(
+    def test_hook_with_addoption(self, testrunnerer: Testrunnerer) -> None:
+        """Test that hooks can be used in a call to testrunner_addoption"""
+        testrunnerer.makepyfile(
             newhooks="""
-            import pytest
-            @pytest.hookspec(firstresult=True)
-            def pytest_default_value():
+            import testrunner
+            @testrunner.hookspec(firstresult=True)
+            def testrunner_default_value():
                 pass
         """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             myplugin="""
             import newhooks
-            def pytest_addhooks(pluginmanager):
+            def testrunner_addhooks(pluginmanager):
                 pluginmanager.add_hookspecs(newhooks)
-            def pytest_addoption(parser, pluginmanager):
-                default_value = pluginmanager.hook.pytest_default_value()
+            def testrunner_addoption(parser, pluginmanager):
+                default_value = pluginmanager.hook.testrunner_default_value()
                 parser.addoption("--config", help="Config, defaults to %(default)s", default=default_value)
         """
         )
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
-            pytest_plugins=("myplugin",)
-            def pytest_default_value():
+            testrunner_plugins=("myplugin",)
+            def testrunner_default_value():
                 return "default_value"
         """
         )
-        res = pytester.runpytest("--help")
+        res = testrunnerer.runtestrunner("--help")
         res.stdout.fnmatch_lines(["*--config=CONFIG*default_value*"])
 
 
-def test_default_markers(pytester: Pytester) -> None:
-    result = pytester.runpytest("--markers")
+def test_default_markers(testrunnerer: Testrunnerer) -> None:
+    result = testrunnerer.runtestrunner("--markers")
     result.stdout.fnmatch_lines(["*tryfirst*first*", "*trylast*last*"])
 
 
 def test_importplugin_error_message(
-    pytester: Pytester, pytestpm: PytestPluginManager
+    testrunnerer: Testrunnerer, testrunnerpm: TestrunnerPluginManager
 ) -> None:
     """Don't hide import errors when importing plugins and provide
     an easy to debug message.
 
     See #375 and #1998.
     """
-    pytester.syspathinsert(pytester.path)
-    pytester.makepyfile(
+    testrunnerer.syspathinsert(testrunnerer.path)
+    testrunnerer.makepyfile(
         qwe="""\
         def test_traceback():
             raise ImportError('Not possible to import: ☺')
         test_traceback()
         """
     )
-    with pytest.raises(PluginImportFailure) as excinfo:
-        pytestpm.import_plugin("qwe")
+    with testrunner.raises(PluginImportFailure) as excinfo:
+        testrunnerpm.import_plugin("qwe")
 
     assert excinfo.value.args == ("qwe",)
     # The original error and traceback must stay reachable through the cause,
@@ -273,80 +273,80 @@ def test_is_missing_module_without_name() -> None:
     assert not _is_missing_module(ModuleNotFoundError("boom"), "myplugin")
 
 
-class TestPytestPluginManager:
+class TestTestrunnerPluginManager:
     def test_register_imported_modules(self) -> None:
-        pm = PytestPluginManager()
-        mod = types.ModuleType("x.y.pytest_hello")
+        pm = TestrunnerPluginManager()
+        mod = types.ModuleType("x.y.testrunner_hello")
         pm.register(mod)
         assert pm.is_registered(mod)
         values = pm.get_plugins()
         assert mod in values
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             pm.register(mod)
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             pm.register(mod)
         # assert not pm.is_registered(mod2)
         assert pm.get_plugins() == values
 
     def test_canonical_import(self, monkeypatch):
-        mod = types.ModuleType("pytest_xyz")
-        monkeypatch.setitem(sys.modules, "pytest_xyz", mod)
-        pm = PytestPluginManager()
-        pm.import_plugin("pytest_xyz")
-        assert pm.get_plugin("pytest_xyz") == mod
+        mod = types.ModuleType("testrunner_xyz")
+        monkeypatch.setitem(sys.modules, "testrunner_xyz", mod)
+        pm = TestrunnerPluginManager()
+        pm.import_plugin("testrunner_xyz")
+        assert pm.get_plugin("testrunner_xyz") == mod
         assert pm.is_registered(mod)
 
     def test_consider_module(
-        self, pytester: Pytester, pytestpm: PytestPluginManager
+        self, testrunnerer: Testrunnerer, testrunnerpm: TestrunnerPluginManager
     ) -> None:
-        pytester.syspathinsert()
-        pytester.makepyfile(pytest_p1="#")
-        pytester.makepyfile(pytest_p2="#")
+        testrunnerer.syspathinsert()
+        testrunnerer.makepyfile(testrunner_p1="#")
+        testrunnerer.makepyfile(testrunner_p2="#")
         mod = types.ModuleType("temp")
-        mod.__dict__["pytest_plugins"] = ["pytest_p1", "pytest_p2"]
-        pytestpm.consider_module(mod)
-        p1 = pytestpm.get_plugin("pytest_p1")
+        mod.__dict__["testrunner_plugins"] = ["testrunner_p1", "testrunner_p2"]
+        testrunnerpm.consider_module(mod)
+        p1 = testrunnerpm.get_plugin("testrunner_p1")
         assert p1 is not None
-        assert p1.__name__ == "pytest_p1"
-        p2 = pytestpm.get_plugin("pytest_p2")
+        assert p1.__name__ == "testrunner_p1"
+        p2 = testrunnerpm.get_plugin("testrunner_p2")
         assert p2 is not None
-        assert p2.__name__ == "pytest_p2"
+        assert p2.__name__ == "testrunner_p2"
 
     def test_consider_module_import_module(
-        self, pytester: Pytester, _config_for_test: Config
+        self, testrunnerer: Testrunnerer, _config_for_test: Config
     ) -> None:
-        pytestpm = _config_for_test.pluginmanager
+        testrunnerpm = _config_for_test.pluginmanager
         mod = types.ModuleType("x")
-        mod.__dict__["pytest_plugins"] = "pytest_a"
-        aplugin = pytester.makepyfile(pytest_a="#")
-        reprec = pytester.make_hook_recorder(pytestpm)
-        pytester.syspathinsert(aplugin.parent)
-        pytestpm.consider_module(mod)
-        call = reprec.getcall(pytestpm.hook.pytest_plugin_registered.name)
-        assert call.plugin.__name__ == "pytest_a"
+        mod.__dict__["testrunner_plugins"] = "testrunner_a"
+        aplugin = testrunnerer.makepyfile(testrunner_a="#")
+        reprec = testrunnerer.make_hook_recorder(testrunnerpm)
+        testrunnerer.syspathinsert(aplugin.parent)
+        testrunnerpm.consider_module(mod)
+        call = reprec.getcall(testrunnerpm.hook.testrunner_plugin_registered.name)
+        assert call.plugin.__name__ == "testrunner_a"
 
         # check that it is not registered twice
-        pytestpm.consider_module(mod)
-        values = reprec.getcalls("pytest_plugin_registered")
+        testrunnerpm.consider_module(mod)
+        values = reprec.getcalls("testrunner_plugin_registered")
         assert len(values) == 1
 
     def test_consider_env_fails_to_import(
-        self, monkeypatch: MonkeyPatch, pytestpm: PytestPluginManager
+        self, monkeypatch: MonkeyPatch, testrunnerpm: TestrunnerPluginManager
     ) -> None:
-        monkeypatch.setenv("PYTEST_PLUGINS", "nonexisting", prepend=",")
-        with pytest.raises(UsageError):
-            pytestpm.consider_env()
+        monkeypatch.setenv("TESTRUNNER_PLUGINS", "nonexisting", prepend=",")
+        with testrunner.raises(UsageError):
+            testrunnerpm.consider_env()
 
     def test_consider_env_entry_point_name(
-        self, monkeypatch: MonkeyPatch, pytestpm: PytestPluginManager
+        self, monkeypatch: MonkeyPatch, testrunnerpm: TestrunnerPluginManager
     ) -> None:
-        """PYTEST_PLUGINS accepts entry point names of installed plugins,
+        """TESTRUNNER_PLUGINS accepts entry point names of installed plugins,
         in addition to importable module names (#12624)."""
         plugin = types.ModuleType("mytestplugin_module")
 
         class DummyEntryPoint:
             name = "mytestplugin"
-            group = "pytest11"
+            group = "testrunner11"
 
             def load(self):
                 return plugin
@@ -358,20 +358,20 @@ class TestPytestPluginManager:
             entry_points = (DummyEntryPoint(),)
 
         monkeypatch.setattr(importlib.metadata, "distributions", lambda: (DummyDist(),))
-        monkeypatch.setenv("PYTEST_PLUGINS", "mytestplugin")
-        pytestpm.consider_env()
-        assert pytestpm.get_plugin("mytestplugin") is plugin
+        monkeypatch.setenv("TESTRUNNER_PLUGINS", "mytestplugin")
+        testrunnerpm.consider_env()
+        assert testrunnerpm.get_plugin("mytestplugin") is plugin
 
     def test_consider_module_entry_point_name(
-        self, monkeypatch: MonkeyPatch, pytestpm: PytestPluginManager
+        self, monkeypatch: MonkeyPatch, testrunnerpm: TestrunnerPluginManager
     ) -> None:
-        """pytest_plugins accepts entry point names of installed plugins,
+        """testrunner_plugins accepts entry point names of installed plugins,
         in addition to importable module names (#12624)."""
         plugin = types.ModuleType("mytestplugin_module")
 
         class DummyEntryPoint:
             name = "mytestplugin"
-            group = "pytest11"
+            group = "testrunner11"
 
             def load(self):
                 return plugin
@@ -384,20 +384,20 @@ class TestPytestPluginManager:
 
         monkeypatch.setattr(importlib.metadata, "distributions", lambda: (DummyDist(),))
         mod = types.ModuleType("temp")
-        mod.__dict__["pytest_plugins"] = ["mytestplugin"]
-        pytestpm.consider_module(mod)
-        assert pytestpm.get_plugin("mytestplugin") is plugin
+        mod.__dict__["testrunner_plugins"] = ["mytestplugin"]
+        testrunnerpm.consider_module(mod)
+        assert testrunnerpm.get_plugin("mytestplugin") is plugin
 
     def test_consider_env_entry_point_reported_in_header(
-        self, pytester: Pytester, monkeypatch: MonkeyPatch
+        self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
     ) -> None:
-        """Plugins loaded by entry point name via PYTEST_PLUGINS are shown in
+        """Plugins loaded by entry point name via TESTRUNNER_PLUGINS are shown in
         the terminal header, like with -p (#12615)."""
         plugin = types.ModuleType("mytestplugin_module")
 
         class DummyEntryPoint:
             name = "mytestplugin"
-            group = "pytest11"
+            group = "testrunner11"
 
             def load(self):
                 return plugin
@@ -409,24 +409,24 @@ class TestPytestPluginManager:
             entry_points = (DummyEntryPoint(),)
 
         monkeypatch.setattr(importlib.metadata, "distributions", lambda: (DummyDist(),))
-        monkeypatch.setenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", "1")
-        monkeypatch.setenv("PYTEST_PLUGINS", "mytestplugin")
-        pytester.makepyfile("def test_ok(): pass")
-        result = pytester.runpytest_inprocess()
+        monkeypatch.setenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", "1")
+        monkeypatch.setenv("TESTRUNNER_PLUGINS", "mytestplugin")
+        testrunnerer.makepyfile("def test_ok(): pass")
+        result = testrunnerer.runtestrunner_inprocess()
         assert result.ret == ExitCode.OK
         result.stdout.fnmatch_lines(["plugins: *mytestplugin-1.2.3*"])
 
-    @pytest.mark.filterwarnings("always")
-    def test_plugin_skip(self, pytester: Pytester, monkeypatch: MonkeyPatch) -> None:
-        p = pytester.makepyfile(
+    @testrunner.mark.filterwarnings("always")
+    def test_plugin_skip(self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
+        p = testrunnerer.makepyfile(
             skipping1="""
-            import pytest
-            pytest.skip("hello", allow_module_level=True)
+            import testrunner
+            testrunner.skip("hello", allow_module_level=True)
         """
         )
         shutil.copy(p, p.with_name("skipping2.py"))
-        monkeypatch.setenv("PYTEST_PLUGINS", "skipping2")
-        result = pytester.runpytest("-p", "skipping1", syspathinsert=True)
+        monkeypatch.setenv("TESTRUNNER_PLUGINS", "skipping2")
+        result = testrunnerer.runtestrunner("-p", "skipping1", syspathinsert=True)
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
         result.stdout.fnmatch_lines(
             ["*skipped plugin*skipping1*hello*", "*skipped plugin*skipping2*hello*"]
@@ -434,147 +434,147 @@ class TestPytestPluginManager:
 
     def test_consider_env_plugin_instantiation(
         self,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
         monkeypatch: MonkeyPatch,
-        pytestpm: PytestPluginManager,
+        testrunnerpm: TestrunnerPluginManager,
     ) -> None:
-        pytester.syspathinsert()
-        pytester.makepyfile(xy123="#")
-        monkeypatch.setitem(os.environ, "PYTEST_PLUGINS", "xy123")
-        l1 = len(pytestpm.get_plugins())
-        pytestpm.consider_env()
-        l2 = len(pytestpm.get_plugins())
+        testrunnerer.syspathinsert()
+        testrunnerer.makepyfile(xy123="#")
+        monkeypatch.setitem(os.environ, "TESTRUNNER_PLUGINS", "xy123")
+        l1 = len(testrunnerpm.get_plugins())
+        testrunnerpm.consider_env()
+        l2 = len(testrunnerpm.get_plugins())
         assert l2 == l1 + 1
-        assert pytestpm.get_plugin("xy123")
-        pytestpm.consider_env()
-        l3 = len(pytestpm.get_plugins())
+        assert testrunnerpm.get_plugin("xy123")
+        testrunnerpm.consider_env()
+        l3 = len(testrunnerpm.get_plugins())
         assert l2 == l3
 
     def test_pluginmanager_ENV_startup(
-        self, pytester: Pytester, monkeypatch: MonkeyPatch
+        self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
     ) -> None:
-        pytester.makepyfile(pytest_x500="#")
-        p = pytester.makepyfile(
+        testrunnerer.makepyfile(testrunner_x500="#")
+        p = testrunnerer.makepyfile(
             """
-            import pytest
-            def test_hello(pytestconfig):
-                plugin = pytestconfig.pluginmanager.get_plugin('pytest_x500')
+            import testrunner
+            def test_hello(testrunnerconfig):
+                plugin = testrunnerconfig.pluginmanager.get_plugin('testrunner_x500')
                 assert plugin is not None
         """
         )
-        monkeypatch.setenv("PYTEST_PLUGINS", "pytest_x500", prepend=",")
-        result = pytester.runpytest(p, syspathinsert=True)
+        monkeypatch.setenv("TESTRUNNER_PLUGINS", "testrunner_x500", prepend=",")
+        result = testrunnerer.runtestrunner(p, syspathinsert=True)
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*1 passed*"])
 
     def test_import_plugin_importname(
-        self, pytester: Pytester, pytestpm: PytestPluginManager
+        self, testrunnerer: Testrunnerer, testrunnerpm: TestrunnerPluginManager
     ) -> None:
-        with pytest.raises(UsageError):
-            pytestpm.import_plugin("qweqwex.y")
-        with pytest.raises(UsageError):
-            pytestpm.import_plugin("pytest_qweqwx.y")
+        with testrunner.raises(UsageError):
+            testrunnerpm.import_plugin("qweqwex.y")
+        with testrunner.raises(UsageError):
+            testrunnerpm.import_plugin("testrunner_qweqwx.y")
 
-        pytester.syspathinsert()
-        pluginname = "pytest_hello"
-        pytester.makepyfile(**{pluginname: ""})
-        pytestpm.import_plugin("pytest_hello")
-        len1 = len(pytestpm.get_plugins())
-        pytestpm.import_plugin("pytest_hello")
-        len2 = len(pytestpm.get_plugins())
+        testrunnerer.syspathinsert()
+        pluginname = "testrunner_hello"
+        testrunnerer.makepyfile(**{pluginname: ""})
+        testrunnerpm.import_plugin("testrunner_hello")
+        len1 = len(testrunnerpm.get_plugins())
+        testrunnerpm.import_plugin("testrunner_hello")
+        len2 = len(testrunnerpm.get_plugins())
         assert len1 == len2
-        plugin1 = pytestpm.get_plugin("pytest_hello")
+        plugin1 = testrunnerpm.get_plugin("testrunner_hello")
         assert plugin1 is not None
-        assert plugin1.__name__.endswith("pytest_hello")
-        plugin2 = pytestpm.get_plugin("pytest_hello")
+        assert plugin1.__name__.endswith("testrunner_hello")
+        plugin2 = testrunnerpm.get_plugin("testrunner_hello")
         assert plugin2 is plugin1
 
     def test_import_plugin_dotted_name(
-        self, pytester: Pytester, pytestpm: PytestPluginManager
+        self, testrunnerer: Testrunnerer, testrunnerpm: TestrunnerPluginManager
     ) -> None:
-        with pytest.raises(UsageError):
-            pytestpm.import_plugin("qweqwex.y")
-        with pytest.raises(UsageError):
-            pytestpm.import_plugin("pytest_qweqwex.y")
+        with testrunner.raises(UsageError):
+            testrunnerpm.import_plugin("qweqwex.y")
+        with testrunner.raises(UsageError):
+            testrunnerpm.import_plugin("testrunner_qweqwex.y")
 
-        pytester.syspathinsert()
-        pytester.mkpydir("pkg").joinpath("plug.py").write_text("x=3", encoding="utf-8")
+        testrunnerer.syspathinsert()
+        testrunnerer.mkpydir("pkg").joinpath("plug.py").write_text("x=3", encoding="utf-8")
         pluginname = "pkg.plug"
-        pytestpm.import_plugin(pluginname)
-        mod = pytestpm.get_plugin("pkg.plug")
+        testrunnerpm.import_plugin(pluginname)
+        mod = testrunnerpm.get_plugin("pkg.plug")
         assert mod is not None
         assert mod.x == 3
 
     def test_consider_conftest_deps(
         self,
-        pytester: Pytester,
-        pytestpm: PytestPluginManager,
+        testrunnerer: Testrunnerer,
+        testrunnerpm: TestrunnerPluginManager,
     ) -> None:
         mod = import_path(
-            pytester.makepyfile("pytest_plugins='xyz'"),
-            root=pytester.path,
+            testrunnerer.makepyfile("testrunner_plugins='xyz'"),
+            root=testrunnerer.path,
             consider_namespace_packages=False,
         )
-        with pytest.raises(UsageError):
-            pytestpm.consider_conftest(mod, registration_name="unused")
+        with testrunner.raises(UsageError):
+            testrunnerpm.consider_conftest(mod, registration_name="unused")
 
 
-class TestPytestPluginManagerBootstrapping:
-    def test_preparse_args(self, pytestpm: PytestPluginManager) -> None:
-        with pytest.raises(UsageError):
-            pytestpm.consider_preparse(["xyz", "-p", "hello123"])
+class TestTestrunnerPluginManagerBootstrapping:
+    def test_preparse_args(self, testrunnerpm: TestrunnerPluginManager) -> None:
+        with testrunner.raises(UsageError):
+            testrunnerpm.consider_preparse(["xyz", "-p", "hello123"])
 
         # Handles -p without space (#3532).
-        with pytest.raises(UsageError) as excinfo:
-            pytestpm.consider_preparse(["-phello123"])
+        with testrunner.raises(UsageError) as excinfo:
+            testrunnerpm.consider_preparse(["-phello123"])
         assert '"hello123"' in excinfo.value.args[0]
-        pytestpm.consider_preparse(["-pno:hello123"])
+        testrunnerpm.consider_preparse(["-pno:hello123"])
 
         # Handles -p without following arg (when used without argparse).
-        pytestpm.consider_preparse(["-p"])
+        testrunnerpm.consider_preparse(["-p"])
 
-        with pytest.raises(UsageError, match=r"^plugin main cannot be disabled$"):
-            pytestpm.consider_preparse(["-p", "no:main"])
+        with testrunner.raises(UsageError, match=r"^plugin main cannot be disabled$"):
+            testrunnerpm.consider_preparse(["-p", "no:main"])
 
-    def test_plugin_prevent_register(self, pytestpm: PytestPluginManager) -> None:
-        pytestpm.consider_preparse(["xyz", "-p", "no:abc"])
-        l1 = pytestpm.get_plugins()
-        pytestpm.register(42, name="abc")
-        l2 = pytestpm.get_plugins()
+    def test_plugin_prevent_register(self, testrunnerpm: TestrunnerPluginManager) -> None:
+        testrunnerpm.consider_preparse(["xyz", "-p", "no:abc"])
+        l1 = testrunnerpm.get_plugins()
+        testrunnerpm.register(42, name="abc")
+        l2 = testrunnerpm.get_plugins()
         assert len(l2) == len(l1)
         assert 42 not in l2
 
     def test_plugin_prevent_register_unregistered_already_registered(
-        self, pytestpm: PytestPluginManager
+        self, testrunnerpm: TestrunnerPluginManager
     ) -> None:
-        pytestpm.register(42, name="abc")
-        l1 = pytestpm.get_plugins()
+        testrunnerpm.register(42, name="abc")
+        l1 = testrunnerpm.get_plugins()
         assert 42 in l1
-        pytestpm.consider_preparse(["xyz", "-p", "no:abc"])
-        l2 = pytestpm.get_plugins()
+        testrunnerpm.consider_preparse(["xyz", "-p", "no:abc"])
+        l2 = testrunnerpm.get_plugins()
         assert 42 not in l2
 
     def test_plugin_prevent_register_stepwise_on_cacheprovider_unregister(
-        self, pytestpm: PytestPluginManager
+        self, testrunnerpm: TestrunnerPluginManager
     ) -> None:
         """From PR #4304: The only way to unregister a module is documented at
-        the end of https://docs.pytest.org/en/stable/how-to/plugins.html.
+        the end of https://github.com/jacksonsr451/test-runner/tree/main/doc/en/how-to/plugins.html.
 
         When unregister cacheprovider, then unregister stepwise too.
         """
-        pytestpm.register(42, name="cacheprovider")
-        pytestpm.register(43, name="stepwise")
-        l1 = pytestpm.get_plugins()
+        testrunnerpm.register(42, name="cacheprovider")
+        testrunnerpm.register(43, name="stepwise")
+        l1 = testrunnerpm.get_plugins()
         assert 42 in l1
         assert 43 in l1
-        pytestpm.consider_preparse(["xyz", "-p", "no:cacheprovider"])
-        l2 = pytestpm.get_plugins()
+        testrunnerpm.consider_preparse(["xyz", "-p", "no:cacheprovider"])
+        l2 = testrunnerpm.get_plugins()
         assert 42 not in l2
         assert 43 not in l2
 
-    def test_blocked_plugin_can_be_used(self, pytestpm: PytestPluginManager) -> None:
-        pytestpm.consider_preparse(["xyz", "-p", "no:abc", "-p", "abc"])
+    def test_blocked_plugin_can_be_used(self, testrunnerpm: TestrunnerPluginManager) -> None:
+        testrunnerpm.consider_preparse(["xyz", "-p", "no:abc", "-p", "abc"])
 
-        assert pytestpm.has_plugin("abc")
-        assert not pytestpm.is_blocked("abc")
-        assert not pytestpm.is_blocked("pytest_abc")
+        assert testrunnerpm.has_plugin("abc")
+        assert not testrunnerpm.is_blocked("abc")
+        assert not testrunnerpm.is_blocked("testrunner_abc")

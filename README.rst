@@ -1,49 +1,49 @@
-.. image:: https://github.com/pytest-dev/pytest/raw/main/doc/en/img/pytest_logo_curves.svg
-   :target: https://docs.pytest.org/en/stable/
+.. image:: https://github.com/jacksonsr451/test-runner/raw/main/doc/en/img/testrunner_logo_curves.svg
+   :target: https://github.com/jacksonsr451/test-runner/tree/main/doc/en/
    :align: center
    :height: 200
-   :alt: pytest
+   :alt: testrunner
 
 
 ------
 
-.. image:: https://img.shields.io/pypi/v/pytest.svg
-    :target: https://pypi.org/project/pytest/
+.. image:: https://img.shields.io/pypi/v/testrunner.svg
+    :target: https://pypi.org/project/testrunner/
 
-.. image:: https://img.shields.io/conda/vn/conda-forge/pytest.svg
-    :target: https://anaconda.org/conda-forge/pytest
+.. image:: https://img.shields.io/conda/vn/conda-forge/testrunner.svg
+    :target: https://anaconda.org/conda-forge/testrunner
 
-.. image:: https://img.shields.io/pypi/pyversions/pytest.svg
-    :target: https://pypi.org/project/pytest/
+.. image:: https://img.shields.io/pypi/pyversions/testrunner.svg
+    :target: https://pypi.org/project/testrunner/
 
-.. image:: https://codecov.io/gh/pytest-dev/pytest/branch/main/graph/badge.svg
-    :target: https://codecov.io/gh/pytest-dev/pytest
+.. image:: https://codecov.io/gh/jacksonsr451/test-runner/branch/main/graph/badge.svg
+    :target: https://codecov.io/gh/jacksonsr451/test-runner
     :alt: Code coverage Status
 
-.. image:: https://github.com/pytest-dev/pytest/actions/workflows/test.yml/badge.svg
-    :target: https://github.com/pytest-dev/pytest/actions?query=workflow%3Atest
+.. image:: https://github.com/jacksonsr451/test-runner/actions/workflows/test.yml/badge.svg
+    :target: https://github.com/jacksonsr451/test-runner/actions?query=workflow%3Atest
 
-.. image:: https://results.pre-commit.ci/badge/github/pytest-dev/pytest/main.svg
-   :target: https://results.pre-commit.ci/latest/github/pytest-dev/pytest/main
+.. image:: https://results.pre-commit.ci/badge/github/jacksonsr451/test-runner/main.svg
+   :target: https://results.pre-commit.ci/latest/github/jacksonsr451/test-runner/main
    :alt: pre-commit.ci status
 
-.. image:: https://www.codetriage.com/pytest-dev/pytest/badges/users.svg
-    :target: https://www.codetriage.com/pytest-dev/pytest
+.. image:: https://www.codetriage.com/jacksonsr451/test-runner/badges/users.svg
+    :target: https://www.codetriage.com/jacksonsr451/test-runner
 
-.. image:: https://readthedocs.org/projects/pytest/badge/?version=latest
-    :target: https://pytest.readthedocs.io/en/latest/?badge=latest
+.. image:: https://readthedocs.org/projects/testrunner/badge/?version=latest
+    :target: https://testrunner.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-.. image:: https://img.shields.io/badge/Discord-pytest--dev-blue
-    :target: https://discord.com/invite/pytest-dev
+.. image:: https://img.shields.io/badge/Discord-testrunner--dev-blue
+    :target: https://discord.com/invite/testrunner-dev
     :alt: Discord
 
-.. image:: https://img.shields.io/badge/Libera%20chat-%23pytest-orange
-    :target: https://web.libera.chat/#pytest
+.. image:: https://img.shields.io/badge/Libera%20chat-%23testrunner-orange
+    :target: https://web.libera.chat/#testrunner
     :alt: Libera chat
 
 
-The ``pytest`` framework makes it easy to write small tests, yet
+The ``testrunner`` framework makes it easy to write small tests, yet
 scales to support complex functional testing for applications and libraries.
 
 An example of a simple test:
@@ -61,7 +61,7 @@ An example of a simple test:
 
 To execute it::
 
-    $ pytest
+    $ testrunner
     ============================= test session starts =============================
     collected 1 items
 
@@ -79,48 +79,48 @@ To execute it::
     ========================== 1 failed in 0.04 seconds ===========================
 
 
-Thanks to ``pytest``'s detailed assertion introspection, you can simply use plain ``assert`` statements. See `getting-started <https://docs.pytest.org/en/stable/getting-started.html#our-first-test-run>`_ for more examples.
+Thanks to ``testrunner``'s detailed assertion introspection, you can simply use plain ``assert`` statements. See `getting-started <https://github.com/jacksonsr451/test-runner/tree/main/doc/en/getting-started.html#our-first-test-run>`_ for more examples.
 
 
 Features
 --------
 
-- Detailed info on failing `assert statements <https://docs.pytest.org/en/stable/how-to/assert.html>`_ (no need to remember ``self.assert*`` names)
+- Detailed info on failing `assert statements <https://github.com/jacksonsr451/test-runner/tree/main/doc/en/how-to/assert.html>`_ (no need to remember ``self.assert*`` names)
 
 - `Auto-discovery
-  <https://docs.pytest.org/en/stable/explanation/goodpractices.html#python-test-discovery>`_
+  <https://github.com/jacksonsr451/test-runner/tree/main/doc/en/explanation/goodpractices.html#python-test-discovery>`_
   of test modules and functions
 
-- `Modular fixtures <https://docs.pytest.org/en/stable/explanation/fixtures.html>`_ for
+- `Modular fixtures <https://github.com/jacksonsr451/test-runner/tree/main/doc/en/explanation/fixtures.html>`_ for
   managing small or parametrized long-lived test resources
 
-- Can run `unittest <https://docs.pytest.org/en/stable/how-to/unittest.html>`_ (or trial)
+- Can run `unittest <https://github.com/jacksonsr451/test-runner/tree/main/doc/en/how-to/unittest.html>`_ (or trial)
   test suites out of the box
 
 - Python 3.10+ or PyPy3
 
-- Rich plugin architecture, with over 1300+ `external plugins <https://docs.pytest.org/en/latest/reference/plugin_list.html>`_ and thriving community
+- Rich plugin architecture, with over 1300+ `external plugins <https://github.com/jacksonsr451/test-runner/tree/main/doc/en/reference/plugin_list.html>`_ and thriving community
 
 
 Documentation
 -------------
 
-For full documentation, including installation, tutorials and PDF documents, please see https://docs.pytest.org/en/stable/.
+For full documentation, including installation, tutorials and PDF documents, please see https://github.com/jacksonsr451/test-runner/tree/main/doc/en/.
 
 
 Bugs/Requests
 -------------
 
-Please use the `GitHub issue tracker <https://github.com/pytest-dev/pytest/issues>`_ to submit bugs or request features.
+Please use the `GitHub issue tracker <https://github.com/jacksonsr451/test-runner/issues>`_ to submit bugs or request features.
 
 
 Changelog
 ---------
 
-Consult the `Changelog <https://docs.pytest.org/en/stable/changelog.html>`__ page for fixes and enhancements of each version.
+Consult the `Changelog <https://github.com/jacksonsr451/test-runner/tree/main/doc/en/changelog.html>`__ page for fixes and enhancements of each version.
 
 
-Support pytest
+Support testrunner
 --------------
 
 `Open Collective`_ is an online funding platform for open and transparent communities.
@@ -129,27 +129,27 @@ It provides tools to raise money and share your finances in full transparency.
 It is the platform of choice for individuals and companies that want to make one-time or
 monthly donations directly to the project.
 
-See more details in the `pytest collective`_.
+See more details in the `testrunner collective`_.
 
 .. _Open Collective: https://opencollective.com
-.. _pytest collective: https://opencollective.com/pytest
+.. _testrunner collective: https://opencollective.com/testrunner
 
 
-pytest for enterprise
+testrunner for enterprise
 ---------------------
 
 Available as part of the Tidelift Subscription.
 
-The maintainers of pytest and thousands of other packages are working with Tidelift to deliver commercial support and
+The maintainers of testrunner and thousands of other packages are working with Tidelift to deliver commercial support and
 maintenance for the open source dependencies you use to build your applications.
 Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use.
 
-`Learn more. <https://tidelift.com/subscription/pkg/pypi-pytest?utm_source=pypi-pytest&utm_medium=referral&utm_campaign=enterprise&utm_term=repo>`_
+`Learn more. <https://tidelift.com/subscription/pkg/pypi-testrunner?utm_source=pypi-testrunner&utm_medium=referral&utm_campaign=enterprise&utm_term=repo>`_
 
 Security
 ^^^^^^^^
 
-If you have found an issue that you believe is a security vulnerability, please do not create an issue -- instead, report it via a `new security advisory <https://github.com/pytest-dev/pytest/security/advisories/new>`__.
+If you have found an issue that you believe is a security vulnerability, please do not create an issue -- instead, report it via a `new security advisory <https://github.com/jacksonsr451/test-runner/security/advisories/new>`__.
 
 
 License
@@ -157,6 +157,6 @@ License
 
 Copyright Holger Krekel and others, 2004.
 
-Distributed under the terms of the `MIT`_ license, pytest is free and open source software.
+Distributed under the terms of the `MIT`_ license, testrunner is free and open source software.
 
-.. _`MIT`: https://github.com/pytest-dev/pytest/blob/main/LICENSE
+.. _`MIT`: https://github.com/jacksonsr451/test-runner/blob/main/LICENSE

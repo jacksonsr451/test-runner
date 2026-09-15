@@ -1,7 +1,7 @@
-pytest-2.3: improved fixtures / better unittest integration
+testrunner-2.3: improved fixtures / better unittest integration
 =============================================================================
 
-pytest-2.3 comes with many major improvements for fixture/funcarg management
+testrunner-2.3 comes with many major improvements for fixture/funcarg management
 and parametrized testing in Python.  It is now easier, more efficient and
 more predictable to re-run the same tests with different fixture
 instances.  Also, you can directly declare the caching "scope" of
@@ -13,33 +13,33 @@ reusable fixture design.
 
 For detailed info and tutorial-style examples, see:
 
-    http://pytest.org/en/stable/explanation/fixtures.html
+    http://testrunner.org/en/stable/explanation/fixtures.html
 
-Moreover, there is now support for using pytest fixtures/funcargs with
+Moreover, there is now support for using testrunner fixtures/funcargs with
 unittest-style suites, see here for examples:
 
-    http://pytest.org/en/stable/how-to/unittest.html
+    http://testrunner.org/en/stable/how-to/unittest.html
 
 Besides, more unittest-test suites are now expected to "simply work"
-with pytest.
+with testrunner.
 
 All changes are backward compatible and you should be able to continue
 to run your test suites and 3rd party plugins that worked with
-pytest-2.2.4.
+testrunner-2.2.4.
 
 If you are interested in the precise reasoning (including examples) of the
-pytest-2.3 fixture evolution, please consult
-http://pytest.org/en/stable/funcarg_compare.html
+testrunner-2.3 fixture evolution, please consult
+http://testrunner.org/en/stable/funcarg_compare.html
 
 For general info on installation and getting started:
 
-    http://pytest.org/en/stable/getting-started.html
+    http://testrunner.org/en/stable/getting-started.html
 
 Docs and PDF access as usual at:
 
-    http://pytest.org
+    http://testrunner.org
 
-and more details for those already in the knowing of pytest can be found
+and more details for those already in the knowing of testrunner can be found
 in the CHANGELOG below.
 
 Particular thanks for this release go to Floris Bruynooghe, Alex Okrushko
@@ -56,8 +56,8 @@ Changes between 2.2.4 and 2.3.0
 -----------------------------------
 
 - fix issue202 - better automatic names for parametrized test functions
-- fix issue139 - introduce @pytest.fixture which allows direct scoping
-  and parametrization of funcarg factories.  Introduce new @pytest.setup
+- fix issue139 - introduce @testrunner.fixture which allows direct scoping
+  and parametrization of funcarg factories.  Introduce new @testrunner.setup
   marker to allow the writing of setup functions which accept funcargs.
 - fix issue198 - conftest fixtures were not found on windows32 in some
   circumstances with nested directory structures due to path manipulation issues
@@ -67,8 +67,8 @@ Changes between 2.2.4 and 2.3.0
   on dict ordering
 - introduce re-ordering of tests by resource and parametrization setup
   which takes precedence to the usual file-ordering
-- fix issue185 monkeypatching time.time does not cause pytest to fail
-- fix issue172 duplicate call of pytest.setup-decoratored setup_module
+- fix issue185 monkeypatching time.time does not cause testrunner to fail
+- fix issue172 duplicate call of testrunner.setup-decoratored setup_module
   functions
 - fix junitxml=path construction so that if tests change the
   current working directory and the path is a relative path
@@ -77,7 +77,7 @@ Changes between 2.2.4 and 2.3.0
 - fix issue165 - fix broken doc links and mention stackoverflow for FAQ
 - catch unicode-issues when writing failure representations
   to terminal to prevent the whole session from crashing
-- fix xfail/skip confusion: a skip-mark or an imperative pytest.skip
+- fix xfail/skip confusion: a skip-mark or an imperative testrunner.skip
   will now take precedence before xfail-markers because we
   can't determine xfail/xpass status in case of a skip. see also:
   http://stackoverflow.com/questions/11105828/in-py-test-when-i-explicitly-skip-a-test-that-is-marked-as-xfail-how-can-i-get
@@ -94,9 +94,9 @@ Changes between 2.2.4 and 2.3.0
 - pluginmanager.register(...) now raises ValueError if the
   plugin has been already registered or the name is taken
 
-- fix issue159: improve https://docs.pytest.org/en/6.0.1/faq.html
+- fix issue159: improve https://github.com/jacksonsr451/test-runner/en/6.0.1/faq.html
   especially with respect to the "magic" history, also mention
-  pytest-django, trial and unittest integration.
+  testrunner-django, trial and unittest integration.
 
 - make request.keywords and node.keywords writable.  All descendant
   collection nodes will see keyword values.  Keywords are dictionaries
@@ -121,13 +121,13 @@ Changes between 2.2.4 and 2.3.0
 
 - reporting refinements:
 
-  - pytest_report_header now receives a "startdir" so that
+  - testrunner_report_header now receives a "startdir" so that
     you can use startdir.bestrelpath(yourpath) to show
     nice relative path
 
-  - allow plugins to implement both pytest_report_header and
-    pytest_sessionstart (sessionstart is invoked first).
+  - allow plugins to implement both testrunner_report_header and
+    testrunner_sessionstart (sessionstart is invoked first).
 
   - don't show deselected reason line if there is none
 
-  - py.test -vv will show all of assert comparisons instead of truncating
+  - testrunner -vv will show all of assert comparisons instead of truncating

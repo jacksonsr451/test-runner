@@ -1,7 +1,7 @@
-pytest-2.5.0: now down to ZERO reported bugs!
+testrunner-2.5.0: now down to ZERO reported bugs!
 ===========================================================================
 
-pytest-2.5.0 is a big fixing release, the result of two community bug
+testrunner-2.5.0 is a big fixing release, the result of two community bug
 fixing days plus numerous additional works from many people and
 reporters.  The release should be fully compatible to 2.4.2, existing
 plugins and test suites.  We aim at maintaining this level of ZERO reported
@@ -14,7 +14,7 @@ The issue tracker is of course not empty now.  We have many remaining
 "enhancement" issues which we'll hopefully can tackle in 2014 with your
 help.
 
-For those who use older Python versions, please note that pytest is not
+For those who use older Python versions, please note that testrunner is not
 automatically tested on python2.5 due to virtualenv, setuptools and tox
 not supporting it anymore.  Manual verification shows that it mostly
 works fine but it's not going to be part of the automated release
@@ -22,11 +22,11 @@ process and thus likely to break in the future.
 
 As usual, current docs are at
 
-    http://pytest.org
+    http://testrunner.org
 
 and you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Particular thanks for helping with this release go to Anatoly Bubenkoff,
 Floris Bruynooghe, Marc Abramowitz, Ralph Schmitt, Ronny Pfannschmidt,
@@ -40,7 +40,7 @@ holger krekel
 2.5.0
 -----------------------------------
 
-- dropped python2.5 from automated release testing of pytest itself
+- dropped python2.5 from automated release testing of testrunner itself
   which means it's probably going to break soon (but still works
   with this release we believe).
 
@@ -49,7 +49,7 @@ holger krekel
   is now performed lazily at setup time instead of in the "teardown phase".
   While this might sound odd at first, it helps to ensure that we are
   correctly handling setup/teardown even in complex code.  User-level code
-  should not be affected unless it's implementing the pytest_runtest_teardown
+  should not be affected unless it's implementing the testrunner_runtest_teardown
   hook and expecting certain fixture instances are torn down within (very
   unlikely and would have been unreliable anyway).
 
@@ -73,7 +73,7 @@ holger krekel
   with repeated same values (sometimes useful to test if calling
   a second time works as with the first time).
 
-- close issue240 - document precisely how pytest module importing
+- close issue240 - document precisely how testrunner module importing
   works, discuss the two common test directory layouts, and how it
   interacts with PEP420-namespace packages.
 
@@ -115,10 +115,10 @@ holger krekel
 - fix issue380 by making --resultlog only rely on longrepr instead
   of the "reprcrash" attribute which only exists sometimes.
 
-- address issue122: allow @pytest.fixture(params=iterator) by exploding
+- address issue122: allow @testrunner.fixture(params=iterator) by exploding
   into a list early on.
 
-- fix pexpect-3.0 compatibility for pytest's own tests.
+- fix pexpect-3.0 compatibility for testrunner's own tests.
   (fixes issue386)
 
 - allow nested parametrize-value markers, thanks James Lan for the PR.
@@ -131,23 +131,23 @@ holger krekel
 - In assertion rewriting mode on Python 2, fix the detection of coding
   cookies. See issue #330.
 
-- make "--runxfail" turn imperative pytest.xfail calls into no ops
-  (it already did neutralize pytest.mark.xfail markers)
+- make "--runxfail" turn imperative testrunner.xfail calls into no ops
+  (it already did neutralize testrunner.mark.xfail markers)
 
-- refine pytest / pkg_resources interactions: The AssertionRewritingHook
+- refine testrunner / pkg_resources interactions: The AssertionRewritingHook
   PEP302 compliant loader now registers itself with setuptools/pkg_resources
   properly so that the pkg_resources.resource_stream method works properly.
   Fixes issue366.  Thanks for the investigations and full PR to Jason R. Coombs.
 
-- pytestconfig fixture is now session-scoped as it is the same object during the
+- testrunnerconfig fixture is now session-scoped as it is the same object during the
   whole test run.  Fixes issue370.
 
 - avoid one surprising case of marker malfunction/confusion::
 
-      @pytest.mark.some(lambda arg: ...)
+      @testrunner.mark.some(lambda arg: ...)
       def test_function():
 
-  would not work correctly because pytest assumes @pytest.mark.some
+  would not work correctly because testrunner assumes @testrunner.mark.some
   gets a function to be decorated already.  We now at least detect if this
   arg is a lambda and thus the example will work.  Thanks Alex Gaynor
   for bringing it up.
@@ -156,7 +156,7 @@ holger krekel
   not error out). fixes issue385.
 
 - internally make varnames() deal with classes's __init__,
-  although it's not needed by pytest itself atm.  Also
+  although it's not needed by testrunner itself atm.  Also
   fix caching.  Fixes issue376.
 
 - fix issue221 - handle importing of namespace-package with no
@@ -166,9 +166,9 @@ holger krekel
   One of the positive user-facing effects is that the "request" object
   can now be used in closures.
 
-- fixed version comparison in pytest.importskip(modname, minverstring)
+- fixed version comparison in testrunner.importskip(modname, minverstring)
 
-- fix issue377 by clarifying in the nose-compat docs that pytest
+- fix issue377 by clarifying in the nose-compat docs that testrunner
   does not duplicate the unittest-API into the "plain" namespace.
 
 - fix verbose reporting for @mock'd test functions

@@ -1,17 +1,17 @@
-pytest-2.7.1: bug fixes
+testrunner-2.7.1: bug fixes
 =======================
 
-pytest is a mature Python testing tool with more than 1100 tests
+testrunner is a mature Python testing tool with more than 1100 tests
 against itself, passing on many different interpreters and platforms.
 This release is supposed to be drop-in compatible to 2.7.0.
 
 See below for the changes and see docs at:
 
-    http://pytest.org
+    http://testrunner.org
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed to this release, among them:
 
@@ -21,7 +21,7 @@ Thanks to all who contributed to this release, among them:
     Floris Bruynooghe
 
 Happy testing,
-The py.test Development Team
+The testrunner Development Team
 
 
 2.7.1 (compared to 2.7.0)
@@ -38,12 +38,12 @@ The py.test Development Team
 
 - fix issue660: properly report scope-mismatch-access errors
   independently from ordering of fixture arguments.  Also
-  avoid the pytest internal traceback which does not provide
+  avoid the testrunner internal traceback which does not provide
   information to the user. Thanks Holger Krekel.
 
 - streamlined and documented release process.  Also all versions
   (in setup.py and documentation generation) are now read
-  from _pytest/__init__.py. Thanks Holger Krekel.
+  from _testrunner/__init__.py. Thanks Holger Krekel.
 
 - fixed docs to remove the notion that yield-fixtures are experimental.
   They are here to stay :)  Thanks Bruno Oliveira.
@@ -54,5 +54,5 @@ The py.test Development Team
 - fixed regression to 2.6.4 which surfaced e.g. in lost stdout capture printing
   when tests raised SystemExit. Thanks Holger Krekel.
 
-- reintroduced _pytest fixture of the pytester plugin which is used
-  at least by pytest-xdist.
+- reintroduced _testrunner fixture of the testrunnerer plugin which is used
+  at least by testrunner-xdist.

@@ -3,12 +3,12 @@
 
 from __future__ import annotations
 
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
-def test_module_and_function_setup(pytester: Pytester) -> None:
-    reprec = pytester.inline_runsource(
+def test_module_and_function_setup(testrunnerer: Testrunnerer) -> None:
+    reprec = testrunnerer.inline_runsource(
         """
         modlevel = []
         def setup_module(module):
@@ -40,8 +40,8 @@ def test_module_and_function_setup(pytester: Pytester) -> None:
     assert rep.passed
 
 
-def test_module_setup_failure_no_teardown(pytester: Pytester) -> None:
-    reprec = pytester.inline_runsource(
+def test_module_setup_failure_no_teardown(testrunnerer: Testrunnerer) -> None:
+    reprec = testrunnerer.inline_runsource(
         """
         values = []
         def setup_module(module):
@@ -56,12 +56,12 @@ def test_module_setup_failure_no_teardown(pytester: Pytester) -> None:
     """
     )
     reprec.assertoutcome(failed=1)
-    calls = reprec.getcalls("pytest_runtest_setup")
+    calls = reprec.getcalls("testrunner_runtest_setup")
     assert calls[0].item.module.values == [1]
 
 
-def test_setup_function_failure_no_teardown(pytester: Pytester) -> None:
-    reprec = pytester.inline_runsource(
+def test_setup_function_failure_no_teardown(testrunnerer: Testrunnerer) -> None:
+    reprec = testrunnerer.inline_runsource(
         """
         modlevel = []
         def setup_function(function):
@@ -75,12 +75,12 @@ def test_setup_function_failure_no_teardown(pytester: Pytester) -> None:
             pass
     """
     )
-    calls = reprec.getcalls("pytest_runtest_setup")
+    calls = reprec.getcalls("testrunner_runtest_setup")
     assert calls[0].item.module.modlevel == [1]
 
 
-def test_class_setup(pytester: Pytester) -> None:
-    reprec = pytester.inline_runsource(
+def test_class_setup(testrunnerer: Testrunnerer) -> None:
+    reprec = testrunnerer.inline_runsource(
         """
         class TestSimpleClassSetup(object):
             clslevel = []
@@ -105,8 +105,8 @@ def test_class_setup(pytester: Pytester) -> None:
     reprec.assertoutcome(passed=1 + 2 + 1)
 
 
-def test_class_setup_failure_no_teardown(pytester: Pytester) -> None:
-    reprec = pytester.inline_runsource(
+def test_class_setup_failure_no_teardown(testrunnerer: Testrunnerer) -> None:
+    reprec = testrunnerer.inline_runsource(
         """
         class TestSimpleClassSetup(object):
             clslevel = []
@@ -126,8 +126,8 @@ def test_class_setup_failure_no_teardown(pytester: Pytester) -> None:
     reprec.assertoutcome(failed=1, passed=1)
 
 
-def test_method_setup(pytester: Pytester) -> None:
-    reprec = pytester.inline_runsource(
+def test_method_setup(testrunnerer: Testrunnerer) -> None:
+    reprec = testrunnerer.inline_runsource(
         """
         class TestSetupMethod(object):
             def setup_method(self, meth):
@@ -145,8 +145,8 @@ def test_method_setup(pytester: Pytester) -> None:
     reprec.assertoutcome(passed=2)
 
 
-def test_method_setup_failure_no_teardown(pytester: Pytester) -> None:
-    reprec = pytester.inline_runsource(
+def test_method_setup_failure_no_teardown(testrunnerer: Testrunnerer) -> None:
+    reprec = testrunnerer.inline_runsource(
         """
         class TestMethodSetup(object):
             clslevel = []
@@ -167,8 +167,8 @@ def test_method_setup_failure_no_teardown(pytester: Pytester) -> None:
     reprec.assertoutcome(failed=1, passed=1)
 
 
-def test_method_setup_uses_fresh_instances(pytester: Pytester) -> None:
-    reprec = pytester.inline_runsource(
+def test_method_setup_uses_fresh_instances(testrunnerer: Testrunnerer) -> None:
+    reprec = testrunnerer.inline_runsource(
         """
         class TestSelfState1(object):
             memory = []
@@ -182,26 +182,26 @@ def test_method_setup_uses_fresh_instances(pytester: Pytester) -> None:
     reprec.assertoutcome(passed=2, failed=0)
 
 
-def test_setup_that_skips_calledagain(pytester: Pytester) -> None:
-    p = pytester.makepyfile(
+def test_setup_that_skips_calledagain(testrunnerer: Testrunnerer) -> None:
+    p = testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         def setup_module(mod):
-            pytest.skip("x")
+            testrunner.skip("x")
         def test_function1():
             pass
         def test_function2():
             pass
     """
     )
-    reprec = pytester.inline_run(p)
+    reprec = testrunnerer.inline_run(p)
     reprec.assertoutcome(skipped=2)
 
 
-def test_setup_fails_again_on_all_tests(pytester: Pytester) -> None:
-    p = pytester.makepyfile(
+def test_setup_fails_again_on_all_tests(testrunnerer: Testrunnerer) -> None:
+    p = testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         def setup_module(mod):
             raise ValueError(42)
         def test_function1():
@@ -210,17 +210,17 @@ def test_setup_fails_again_on_all_tests(pytester: Pytester) -> None:
             pass
     """
     )
-    reprec = pytester.inline_run(p)
+    reprec = testrunnerer.inline_run(p)
     reprec.assertoutcome(failed=2)
 
 
-def test_setup_funcarg_setup_when_outer_scope_fails(pytester: Pytester) -> None:
-    p = pytester.makepyfile(
+def test_setup_funcarg_setup_when_outer_scope_fails(testrunnerer: Testrunnerer) -> None:
+    p = testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         def setup_module(mod):
             raise ValueError(42)
-        @pytest.fixture
+        @testrunner.fixture
         def hello(request):
             raise ValueError("xyz43")
         def test_function1(hello):
@@ -229,7 +229,7 @@ def test_setup_funcarg_setup_when_outer_scope_fails(pytester: Pytester) -> None:
             pass
     """
     )
-    result = pytester.runpytest(p)
+    result = testrunnerer.runtestrunner(p)
     result.stdout.fnmatch_lines(
         [
             "*function1*",
@@ -242,9 +242,9 @@ def test_setup_funcarg_setup_when_outer_scope_fails(pytester: Pytester) -> None:
     result.stdout.no_fnmatch_line("*xyz43*")
 
 
-@pytest.mark.parametrize("arg", ["", "arg"])
+@testrunner.mark.parametrize("arg", ["", "arg"])
 def test_setup_teardown_function_level_with_optional_argument(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
     monkeypatch,
     arg: str,
 ) -> None:
@@ -255,9 +255,9 @@ def test_setup_teardown_function_level_with_optional_argument(
     monkeypatch.setattr(
         sys, "trace_setups_teardowns", trace_setups_teardowns, raising=False
     )
-    p = pytester.makepyfile(
+    p = testrunnerer.makepyfile(
         f"""
-        import pytest
+        import testrunner
         import sys
 
         trace = sys.trace_setups_teardowns.append
@@ -279,7 +279,7 @@ def test_setup_teardown_function_level_with_optional_argument(
             def test_method_2(self): pass
     """
     )
-    result = pytester.inline_run(p)
+    result = testrunnerer.inline_run(p)
     result.assertoutcome(passed=4)
 
     expected = [

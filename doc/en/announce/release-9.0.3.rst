@@ -1,11 +1,11 @@
-pytest-9.0.3
+testrunner-9.0.3
 =======================================
 
-pytest 9.0.3 has just been released to PyPI.
+testrunner 9.0.3 has just been released to PyPI.
 
 This is a bug-fix release, being a drop-in replacement.
 
-The full changelog is available at https://docs.pytest.org/en/stable/changelog.html.
+The full changelog is available at https://github.com/jacksonsr451/test-runner/tree/main/doc/en/changelog.html.
 
 Thanks to all of the contributors to this release:
 
@@ -35,4 +35,4 @@ Thanks to all of the contributors to this release:
 
 
 Happy testing,
-The pytest Development Team
+The testrunner Development Team

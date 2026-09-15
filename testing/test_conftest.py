@@ -8,23 +8,23 @@ from pathlib import Path
 import textwrap
 from typing import cast
 
-from _pytest.config import ExitCode
-from _pytest.config import PytestPluginManager
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.pathlib import symlink_or_skip
-from _pytest.pytester import Pytester
-from _pytest.tmpdir import TempPathFactory
-import pytest
+from _testrunner.config import ExitCode
+from _testrunner.config import TestrunnerPluginManager
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.pathlib import symlink_or_skip
+from _testrunner.testrunnerer import Testrunnerer
+from _testrunner.tmpdir import TempPathFactory
+import testrunner
 
 
-def ConftestWithSetinitial(path) -> PytestPluginManager:
-    conftest = PytestPluginManager()
+def ConftestWithSetinitial(path) -> TestrunnerPluginManager:
+    conftest = TestrunnerPluginManager()
     conftest_setinitial(conftest, [path])
     return conftest
 
 
 def conftest_setinitial(
-    conftest: PytestPluginManager,
+    conftest: TestrunnerPluginManager,
     args: Sequence[str | Path],
     confcutdir: Path | None = None,
 ) -> None:
@@ -40,9 +40,9 @@ def conftest_setinitial(
     )
 
 
-@pytest.mark.usefixtures("_sys_snapshot")
+@testrunner.mark.usefixtures("_sys_snapshot")
 class TestConftestValueAccessGlobal:
-    @pytest.fixture(scope="module", params=["global", "inpackage"])
+    @testrunner.fixture(scope="module", params=["global", "inpackage"])
     @staticmethod
     def basedir(request, tmp_path_factory: TempPathFactory) -> Generator[Path]:
         tmp_path = tmp_path_factory.mktemp("basedir", numbered=True)
@@ -60,7 +60,7 @@ class TestConftestValueAccessGlobal:
         yield tmp_path
 
     def test_basic_init(self, basedir: Path) -> None:
-        conftest = PytestPluginManager()
+        conftest = TestrunnerPluginManager()
         p = basedir / "adir"
         conftest._loadconftestmodules(
             p, importmode="prepend", rootpath=basedir, consider_namespace_packages=False
@@ -70,7 +70,7 @@ class TestConftestValueAccessGlobal:
     def test_immediate_initialization_and_incremental_are_the_same(
         self, basedir: Path
     ) -> None:
-        conftest = PytestPluginManager()
+        conftest = TestrunnerPluginManager()
         assert not len(conftest._dirpath2confmods)
         conftest._loadconftestmodules(
             basedir,
@@ -97,7 +97,7 @@ class TestConftestValueAccessGlobal:
 
     def test_value_access_not_existing(self, basedir: Path) -> None:
         conftest = ConftestWithSetinitial(basedir)
-        with pytest.raises(KeyError):
+        with testrunner.raises(KeyError):
             conftest._rget_with_confmod("a", basedir)
 
     def test_value_access_by_path(self, basedir: Path) -> None:
@@ -143,34 +143,34 @@ def test_conftest_in_nonpkg_with_init(tmp_path: Path, _sys_snapshot) -> None:
     ConftestWithSetinitial(tmp_path.joinpath("adir-1.0", "b"))
 
 
-def test_doubledash_considered(pytester: Pytester) -> None:
-    conf = pytester.mkdir("--option")
+def test_doubledash_considered(testrunnerer: Testrunnerer) -> None:
+    conf = testrunnerer.mkdir("--option")
     conf.joinpath("conftest.py").touch()
-    conftest = PytestPluginManager()
+    conftest = TestrunnerPluginManager()
     conftest_setinitial(conftest, [conf.name, conf.name])
     values = conftest._getconftestmodules(conf)
     assert len(values) == 1
 
 
-def test_issue151_load_all_conftests(pytester: Pytester) -> None:
+def test_issue151_load_all_conftests(testrunnerer: Testrunnerer) -> None:
     names = ["code", "proj", "src"]
     for name in names:
-        p = pytester.mkdir(name)
+        p = testrunnerer.mkdir(name)
         p.joinpath("conftest.py").touch()
 
-    pm = PytestPluginManager()
+    pm = TestrunnerPluginManager()
     conftest_setinitial(pm, names)
     assert len(set(pm.get_plugins()) - {pm}) == len(names)
 
 
-def test_conftest_global_import(pytester: Pytester) -> None:
-    pytester.makeconftest("x=3")
-    p = pytester.makepyfile(
+def test_conftest_global_import(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest("x=3")
+    p = testrunnerer.makepyfile(
         """
         from pathlib import Path
-        import pytest
-        from _pytest.config import PytestPluginManager
-        conf = PytestPluginManager()
+        import testrunner
+        from _testrunner.config import TestrunnerPluginManager
+        conf = TestrunnerPluginManager()
         mod = conf._importconftest(
             Path("conftest.py"),
             importmode="prepend",
@@ -196,19 +196,19 @@ def test_conftest_global_import(pytester: Pytester) -> None:
         assert conftest is mod2, (conftest, mod)
     """
     )
-    res = pytester.runpython(p)
+    res = testrunnerer.runpython(p)
     assert res.ret == 0
 
 
-def test_conftestcutdir(pytester: Pytester) -> None:
-    conf = pytester.makeconftest("")
-    p = pytester.mkdir("x")
-    conftest = PytestPluginManager()
-    conftest_setinitial(conftest, [pytester.path], confcutdir=p)
+def test_conftestcutdir(testrunnerer: Testrunnerer) -> None:
+    conf = testrunnerer.makeconftest("")
+    p = testrunnerer.mkdir("x")
+    conftest = TestrunnerPluginManager()
+    conftest_setinitial(conftest, [testrunnerer.path], confcutdir=p)
     conftest._loadconftestmodules(
         p,
         importmode="prepend",
-        rootpath=pytester.path,
+        rootpath=testrunnerer.path,
         consider_namespace_packages=False,
     )
     values = conftest._getconftestmodules(p)
@@ -216,7 +216,7 @@ def test_conftestcutdir(pytester: Pytester) -> None:
     conftest._loadconftestmodules(
         conf.parent,
         importmode="prepend",
-        rootpath=pytester.path,
+        rootpath=testrunnerer.path,
         consider_namespace_packages=False,
     )
     values = conftest._getconftestmodules(conf.parent)
@@ -226,7 +226,7 @@ def test_conftestcutdir(pytester: Pytester) -> None:
     conftest._importconftest(
         conf,
         importmode="prepend",
-        rootpath=pytester.path,
+        rootpath=testrunnerer.path,
         consider_namespace_packages=False,
     )
     values = conftest._getconftestmodules(conf.parent)
@@ -239,9 +239,9 @@ def test_conftestcutdir(pytester: Pytester) -> None:
     assert values[0].__file__.startswith(str(conf))
 
 
-def test_conftestcutdir_inplace_considered(pytester: Pytester) -> None:
-    conf = pytester.makeconftest("")
-    conftest = PytestPluginManager()
+def test_conftestcutdir_inplace_considered(testrunnerer: Testrunnerer) -> None:
+    conf = testrunnerer.makeconftest("")
+    conftest = TestrunnerPluginManager()
     conftest_setinitial(conftest, [conf.parent], confcutdir=conf.parent)
     values = conftest._getconftestmodules(conf.parent)
     assert len(values) == 1
@@ -249,13 +249,13 @@ def test_conftestcutdir_inplace_considered(pytester: Pytester) -> None:
     assert values[0].__file__.startswith(str(conf))
 
 
-@pytest.mark.parametrize("name", ["test", "tests", "whatever", ".dotdir"])
-def test_setinitial_conftest_subdirs(pytester: Pytester, name: str) -> None:
-    sub = pytester.mkdir(name)
+@testrunner.mark.parametrize("name", ["test", "tests", "whatever", ".dotdir"])
+def test_setinitial_conftest_subdirs(testrunnerer: Testrunnerer, name: str) -> None:
+    sub = testrunnerer.mkdir(name)
     subconftest = sub.joinpath("conftest.py")
     subconftest.touch()
-    pm = PytestPluginManager()
-    conftest_setinitial(pm, [sub.parent], confcutdir=pytester.path)
+    pm = TestrunnerPluginManager()
+    conftest_setinitial(pm, [sub.parent], confcutdir=testrunnerer.path)
     key = subconftest.resolve()
     if name not in ("whatever", ".dotdir"):
         assert pm.has_plugin(str(key))
@@ -265,42 +265,42 @@ def test_setinitial_conftest_subdirs(pytester: Pytester, name: str) -> None:
         assert len(set(pm.get_plugins()) - {pm}) == 0
 
 
-def test_conftest_confcutdir(pytester: Pytester) -> None:
-    pytester.makeconftest("assert 0")
-    x = pytester.mkdir("x")
+def test_conftest_confcutdir(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest("assert 0")
+    x = testrunnerer.mkdir("x")
     x.joinpath("conftest.py").write_text(
         textwrap.dedent(
             """\
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addoption("--xyz", action="store_true")
             """
         ),
         encoding="utf-8",
     )
-    result = pytester.runpytest("-h", f"--confcutdir={x}", x)
+    result = testrunnerer.runtestrunner("-h", f"--confcutdir={x}", x)
     result.stdout.fnmatch_lines(["*--xyz*"])
     result.stdout.no_fnmatch_line("*warning: could not load initial*")
 
 
-def test_installed_conftest_is_picked_up(pytester: Pytester, tmp_path: Path) -> None:
+def test_installed_conftest_is_picked_up(testrunnerer: Testrunnerer, tmp_path: Path) -> None:
     """When using `--pyargs` to run tests in an installed packages (located e.g.
     in a site-packages in the PYTHONPATH), conftest files in there are picked
     up.
 
     Regression test for #9767.
     """
-    # pytester dir - the source tree.
+    # testrunnerer dir - the source tree.
     # tmp_path - the simulated site-packages dir (not in source tree).
 
-    pytester.syspathinsert(tmp_path)
-    pytester.makepyprojecttoml("[tool.pytest.ini_options]")
+    testrunnerer.syspathinsert(tmp_path)
+    testrunnerer.makepyprojecttoml("[tool.testrunner.ini_options]")
     tmp_path.joinpath("foo").mkdir()
     tmp_path.joinpath("foo", "__init__.py").touch()
     tmp_path.joinpath("foo", "conftest.py").write_text(
         textwrap.dedent(
             """\
-            import pytest
-            @pytest.fixture
+            import testrunner
+            @testrunner.fixture
             def fix(): return None
             """
         ),
@@ -309,11 +309,11 @@ def test_installed_conftest_is_picked_up(pytester: Pytester, tmp_path: Path) -> 
     tmp_path.joinpath("foo", "test_it.py").write_text(
         "def test_it(fix): pass", encoding="utf-8"
     )
-    result = pytester.runpytest("--pyargs", "foo")
+    result = testrunnerer.runtestrunner("--pyargs", "foo")
     assert result.ret == 0
 
 
-def test_conftest_symlink(pytester: Pytester) -> None:
+def test_conftest_symlink(testrunnerer: Testrunnerer) -> None:
     """`conftest.py` discovery follows normal path resolution and does not resolve symlinks."""
     # Structure:
     # /real
@@ -326,21 +326,21 @@ def test_conftest_symlink(pytester: Pytester) -> None:
     # /symlinktests -> /real/app/tests (running at symlinktests should fail)
     # /symlink -> /real (running at /symlink should work)
 
-    real = pytester.mkdir("real")
+    real = testrunnerer.mkdir("real")
     realtests = real.joinpath("app/tests")
     realtests.mkdir(parents=True)
-    symlink_or_skip(realtests, pytester.path.joinpath("symlinktests"))
-    symlink_or_skip(real, pytester.path.joinpath("symlink"))
-    pytester.makepyfile(
+    symlink_or_skip(realtests, testrunnerer.path.joinpath("symlinktests"))
+    symlink_or_skip(real, testrunnerer.path.joinpath("symlink"))
+    testrunnerer.makepyfile(
         **{
             "real/app/tests/test_foo.py": "def test1(fixture): pass",
             "real/conftest.py": textwrap.dedent(
                 """
-                import pytest
+                import testrunner
 
                 print("conftest_loaded")
 
-                @pytest.fixture
+                @testrunner.fixture
                 def fixture():
                     print("fixture_used")
                 """
@@ -349,107 +349,107 @@ def test_conftest_symlink(pytester: Pytester) -> None:
     )
 
     # Should fail because conftest cannot be found from the link structure.
-    result = pytester.runpytest("-vs", "symlinktests")
+    result = testrunnerer.runtestrunner("-vs", "symlinktests")
     result.stdout.fnmatch_lines(["*fixture 'fixture' not found*"])
     assert result.ret == ExitCode.TESTS_FAILED
 
     # Should not cause "ValueError: Plugin already registered" (#4174).
-    result = pytester.runpytest("-vs", "symlink")
+    result = testrunnerer.runtestrunner("-vs", "symlink")
     assert result.ret == ExitCode.OK
 
 
-def test_conftest_symlink_files(pytester: Pytester) -> None:
-    """Symlinked conftest.py are found when pytest is executed in a directory with symlinked
+def test_conftest_symlink_files(testrunnerer: Testrunnerer) -> None:
+    """Symlinked conftest.py are found when testrunner is executed in a directory with symlinked
     files."""
-    real = pytester.mkdir("real")
+    real = testrunnerer.mkdir("real")
     source = {
         "app/test_foo.py": "def test1(fixture): pass",
         "app/__init__.py": "",
         "app/conftest.py": textwrap.dedent(
             """
-            import pytest
+            import testrunner
 
             print("conftest_loaded")
 
-            @pytest.fixture
+            @testrunner.fixture
             def fixture():
                 print("fixture_used")
             """
         ),
     }
-    pytester.makepyfile(**{f"real/{k}": v for k, v in source.items()})
+    testrunnerer.makepyfile(**{f"real/{k}": v for k, v in source.items()})
 
     # Create a build directory that contains symlinks to actual files
     # but doesn't symlink actual directories.
-    build = pytester.mkdir("build")
+    build = testrunnerer.mkdir("build")
     build.joinpath("app").mkdir()
     for f in source:
         symlink_or_skip(real.joinpath(f), build.joinpath(f))
     os.chdir(build)
-    result = pytester.runpytest("-vs", "app/test_foo.py")
+    result = testrunnerer.runtestrunner("-vs", "app/test_foo.py")
     result.stdout.fnmatch_lines(["*conftest_loaded*", "PASSED"])
     assert result.ret == ExitCode.OK
 
 
-@pytest.mark.skipif(
+@testrunner.mark.skipif(
     os.path.normcase("x") != os.path.normcase("X"),
     reason="only relevant for case-insensitive file systems",
 )
-def test_conftest_badcase(pytester: Pytester) -> None:
+def test_conftest_badcase(testrunnerer: Testrunnerer) -> None:
     """Check conftest.py loading when directory casing is wrong (#5792)."""
-    pytester.path.joinpath("JenkinsRoot/test").mkdir(parents=True)
+    testrunnerer.path.joinpath("JenkinsRoot/test").mkdir(parents=True)
     source = {"setup.py": "", "test/__init__.py": "", "test/conftest.py": ""}
-    pytester.makepyfile(**{f"JenkinsRoot/{k}": v for k, v in source.items()})
+    testrunnerer.makepyfile(**{f"JenkinsRoot/{k}": v for k, v in source.items()})
 
-    os.chdir(pytester.path.joinpath("jenkinsroot/test"))
-    result = pytester.runpytest()
+    os.chdir(testrunnerer.path.joinpath("jenkinsroot/test"))
+    result = testrunnerer.runtestrunner()
     assert result.ret == ExitCode.NO_TESTS_COLLECTED
 
 
-def test_conftest_uppercase(pytester: Pytester) -> None:
+def test_conftest_uppercase(testrunnerer: Testrunnerer) -> None:
     """Check conftest.py whose qualified name contains uppercase characters (#5819)"""
     source = {"__init__.py": "", "Foo/conftest.py": "", "Foo/__init__.py": ""}
-    pytester.makepyfile(**source)
+    testrunnerer.makepyfile(**source)
 
-    os.chdir(pytester.path)
-    result = pytester.runpytest()
+    os.chdir(testrunnerer.path)
+    result = testrunnerer.runtestrunner()
     assert result.ret == ExitCode.NO_TESTS_COLLECTED
 
 
-def test_no_conftest(pytester: Pytester) -> None:
-    pytester.makeconftest("assert 0")
-    result = pytester.runpytest("--noconftest")
+def test_no_conftest(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest("assert 0")
+    result = testrunnerer.runtestrunner("--noconftest")
     assert result.ret == ExitCode.NO_TESTS_COLLECTED
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == ExitCode.USAGE_ERROR
 
 
-def test_conftest_existing_junitxml(pytester: Pytester) -> None:
-    x = pytester.mkdir("tests")
+def test_conftest_existing_junitxml(testrunnerer: Testrunnerer) -> None:
+    x = testrunnerer.mkdir("tests")
     x.joinpath("conftest.py").write_text(
         textwrap.dedent(
             """\
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addoption("--xyz", action="store_true")
             """
         ),
         encoding="utf-8",
     )
-    pytester.makefile(ext=".xml", junit="")  # Writes junit.xml
-    result = pytester.runpytest("-h", "--junitxml", "junit.xml")
+    testrunnerer.makefile(ext=".xml", junit="")  # Writes junit.xml
+    result = testrunnerer.runtestrunner("-h", "--junitxml", "junit.xml")
     result.stdout.fnmatch_lines(["*--xyz*"])
 
 
-def test_conftests_in_invocation_dir_tests_is_initial(pytester: Pytester) -> None:
+def test_conftests_in_invocation_dir_tests_is_initial(testrunnerer: Testrunnerer) -> None:
     """An option registered in a conftest under ``test*`` subdir of the
     invocation dir is loaded as initial when no command-line arguments
     or `testpaths` are given (#14608).
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         **{
             "tests/conftest.py": """
-                def pytest_addoption(parser):
+                def testrunner_addoption(parser):
                     parser.addoption("--db-url")
             """,
             "test_it.py": """
@@ -458,27 +458,27 @@ def test_conftests_in_invocation_dir_tests_is_initial(pytester: Pytester) -> Non
             """,
         }
     )
-    result = pytester.runpytest("--db-url", "scheme://host/db")
+    result = testrunnerer.runtestrunner("--db-url", "scheme://host/db")
     assert result.ret == ExitCode.OK
     result.assert_outcomes(passed=1)
 
 
-def test_conftest_import_order(pytester: Pytester, monkeypatch: MonkeyPatch) -> None:
-    ct1 = pytester.makeconftest("")
-    sub = pytester.mkdir("sub")
+def test_conftest_import_order(testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
+    ct1 = testrunnerer.makeconftest("")
+    sub = testrunnerer.mkdir("sub")
     ct2 = sub / "conftest.py"
     ct2.write_text("", encoding="utf-8")
 
     def impct(p, importmode, root, consider_namespace_packages):
         return p
 
-    conftest = PytestPluginManager()
-    conftest._confcutdir = pytester.path
+    conftest = TestrunnerPluginManager()
+    conftest._confcutdir = testrunnerer.path
     monkeypatch.setattr(conftest, "_importconftest", impct)
     conftest._loadconftestmodules(
         sub,
         importmode="prepend",
-        rootpath=pytester.path,
+        rootpath=testrunnerer.path,
         consider_namespace_packages=False,
     )
     mods = cast(list[Path], conftest._getconftestmodules(sub))
@@ -486,25 +486,25 @@ def test_conftest_import_order(pytester: Pytester, monkeypatch: MonkeyPatch) -> 
     assert mods == expected
 
 
-def test_fixture_dependency(pytester: Pytester) -> None:
-    pytester.makeconftest("")
-    pytester.path.joinpath("__init__.py").touch()
-    sub = pytester.mkdir("sub")
+def test_fixture_dependency(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest("")
+    testrunnerer.path.joinpath("__init__.py").touch()
+    sub = testrunnerer.mkdir("sub")
     sub.joinpath("__init__.py").touch()
     sub.joinpath("conftest.py").write_text(
         textwrap.dedent(
             """\
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def not_needed():
                 assert False, "Should not be called!"
 
-            @pytest.fixture
+            @testrunner.fixture
             def foo():
                 assert False, "Should not be called!"
 
-            @pytest.fixture
+            @testrunner.fixture
             def bar(foo):
                 return 'bar'
             """
@@ -517,9 +517,9 @@ def test_fixture_dependency(pytester: Pytester) -> None:
     subsub.joinpath("test_bar.py").write_text(
         textwrap.dedent(
             """\
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def bar():
                 return 'sub bar'
 
@@ -529,16 +529,16 @@ def test_fixture_dependency(pytester: Pytester) -> None:
         ),
         encoding="utf-8",
     )
-    result = pytester.runpytest("sub")
+    result = testrunnerer.runtestrunner("sub")
     result.stdout.fnmatch_lines(["*1 passed*"])
 
 
-def test_conftest_found_with_double_dash(pytester: Pytester) -> None:
-    sub = pytester.mkdir("sub")
+def test_conftest_found_with_double_dash(testrunnerer: Testrunnerer) -> None:
+    sub = testrunnerer.mkdir("sub")
     sub.joinpath("conftest.py").write_text(
         textwrap.dedent(
             """\
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addoption("--hello-world", action="store_true")
             """
         ),
@@ -546,7 +546,7 @@ def test_conftest_found_with_double_dash(pytester: Pytester) -> None:
     )
     p = sub.joinpath("test_hello.py")
     p.write_text("def test_hello(): pass", encoding="utf-8")
-    result = pytester.runpytest(str(p) + "::test_hello", "-h")
+    result = testrunnerer.runtestrunner(str(p) + "::test_hello", "-h")
     result.stdout.fnmatch_lines(
         """
         *--hello-world*
@@ -555,17 +555,17 @@ def test_conftest_found_with_double_dash(pytester: Pytester) -> None:
 
 
 class TestConftestVisibility:
-    def _setup_tree(self, pytester: Pytester) -> dict[str, Path]:  # for issue616
+    def _setup_tree(self, testrunnerer: Testrunnerer) -> dict[str, Path]:  # for issue616
         # example mostly taken from:
-        # https://mail.python.org/pipermail/pytest-dev/2014-September/002617.html
-        runner = pytester.mkdir("empty")
-        package = pytester.mkdir("package")
+        # https://mail.python.org/pipermail/testrunner-dev/2014-September/002617.html
+        runner = testrunnerer.mkdir("empty")
+        package = testrunnerer.mkdir("package")
 
         package.joinpath("conftest.py").write_text(
             textwrap.dedent(
                 """\
-                import pytest
-                @pytest.fixture
+                import testrunner
+                @testrunner.fixture
                 def fxtr():
                     return "from-package"
                 """
@@ -588,8 +588,8 @@ class TestConftestVisibility:
         swc.joinpath("conftest.py").write_text(
             textwrap.dedent(
                 """\
-                import pytest
-                @pytest.fixture
+                import testrunner
+                @testrunner.fixture
                 def fxtr():
                     return "from-swc"
                 """
@@ -620,14 +620,14 @@ class TestConftestVisibility:
             encoding="utf-8",
         )
         print("created directory structure:")
-        for x in pytester.path.glob("**/"):
-            print("   " + str(x.relative_to(pytester.path)))
+        for x in testrunnerer.path.glob("**/"):
+            print("   " + str(x.relative_to(testrunnerer.path)))
 
         return {"runner": runner, "package": package, "swc": swc, "snc": snc}
 
     # N.B.: "swc" stands for "subdir with conftest.py"
     #       "snc" stands for "subdir no [i.e. without] conftest.py"
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "chdir,testarg,expect_ntests_passed",
         [
             # Effective target: package/..
@@ -653,42 +653,42 @@ class TestConftestVisibility:
         ],
     )
     def test_parsefactories_relative_node_ids(
-        self, pytester: Pytester, chdir: str, testarg: str, expect_ntests_passed: int
+        self, testrunnerer: Testrunnerer, chdir: str, testarg: str, expect_ntests_passed: int
     ) -> None:
         """#616"""
-        dirs = self._setup_tree(pytester)
-        print(f"pytest run in cwd: {dirs[chdir].relative_to(pytester.path)}")
-        print(f"pytestarg        : {testarg}")
+        dirs = self._setup_tree(testrunnerer)
+        print(f"testrunner run in cwd: {dirs[chdir].relative_to(testrunnerer.path)}")
+        print(f"testrunnerarg        : {testarg}")
         print(f"expected pass    : {expect_ntests_passed}")
         os.chdir(dirs[chdir])
-        reprec = pytester.inline_run(
+        reprec = testrunnerer.inline_run(
             testarg,
             "-q",
             "--traceconfig",
             "--confcutdir",
-            pytester.path,
+            testrunnerer.path,
         )
         reprec.assertoutcome(passed=expect_ntests_passed)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "confcutdir,passed,error", [(".", 2, 0), ("src", 1, 1), (None, 1, 1)]
 )
 def test_search_conftest_up_to_inifile(
-    pytester: Pytester, confcutdir: str, passed: int, error: int
+    testrunnerer: Testrunnerer, confcutdir: str, passed: int, error: int
 ) -> None:
     """Test that conftest files are detected only up to a configuration file, unless
     an explicit --confcutdir option is given.
     """
-    root = pytester.path
+    root = testrunnerer.path
     src = root.joinpath("src")
     src.mkdir()
-    src.joinpath("pytest.ini").write_text("[pytest]", encoding="utf-8")
+    src.joinpath("testrunner.ini").write_text("[testrunner]", encoding="utf-8")
     src.joinpath("conftest.py").write_text(
         textwrap.dedent(
             """\
-            import pytest
-            @pytest.fixture
+            import testrunner
+            @testrunner.fixture
             def fix1(): pass
             """
         ),
@@ -708,8 +708,8 @@ def test_search_conftest_up_to_inifile(
     root.joinpath("conftest.py").write_text(
         textwrap.dedent(
             """\
-            import pytest
-            @pytest.fixture
+            import testrunner
+            @testrunner.fixture
             def out_of_reach(): pass
             """
         ),
@@ -719,7 +719,7 @@ def test_search_conftest_up_to_inifile(
     args = [str(src)]
     if confcutdir:
         args = [f"--confcutdir={root.joinpath(confcutdir)}"]
-    result = pytester.runpytest(*args)
+    result = testrunnerer.runtestrunner(*args)
     match = ""
     if passed:
         match += f"*{passed} passed*"
@@ -728,8 +728,8 @@ def test_search_conftest_up_to_inifile(
     result.stdout.fnmatch_lines(match)
 
 
-def test_issue1073_conftest_special_objects(pytester: Pytester) -> None:
-    pytester.makeconftest(
+def test_issue1073_conftest_special_objects(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest(
         """\
         class DontTouchMe(object):
             def __getattr__(self, x):
@@ -738,57 +738,57 @@ def test_issue1073_conftest_special_objects(pytester: Pytester) -> None:
         x = DontTouchMe()
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """\
         def test_some():
             pass
         """
     )
-    res = pytester.runpytest()
+    res = testrunnerer.runtestrunner()
     assert res.ret == 0
 
 
-def test_conftest_exception_handling(pytester: Pytester) -> None:
-    pytester.makeconftest(
+def test_conftest_exception_handling(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest(
         """\
         raise ValueError()
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """\
         def test_some():
             pass
         """
     )
-    res = pytester.runpytest()
+    res = testrunnerer.runtestrunner()
     assert res.ret == 4
     assert "raise ValueError()" in [line.strip() for line in res.errlines]
 
 
-def test_hook_proxy(pytester: Pytester) -> None:
+def test_hook_proxy(testrunnerer: Testrunnerer) -> None:
     """Session's gethookproxy() would cache conftests incorrectly (#2016).
     It was decided to remove the cache altogether.
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         **{
             "root/demo-0/test_foo1.py": "def test1(): pass",
             "root/demo-a/test_foo2.py": "def test1(): pass",
             "root/demo-a/conftest.py": """\
-            def pytest_ignore_collect(collection_path, config):
+            def testrunner_ignore_collect(collection_path, config):
                 return True
             """,
             "root/demo-b/test_foo3.py": "def test1(): pass",
             "root/demo-c/test_foo4.py": "def test1(): pass",
         }
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         ["*test_foo1.py*", "*test_foo3.py*", "*test_foo4.py*", "*3 passed*"]
     )
 
 
 def test_conftest_fixture_scoping_with_testpaths_outside_rootdir(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
     """Regression test for #14004.
 
@@ -806,12 +806,12 @@ def test_conftest_fixture_scoping_with_testpaths_outside_rootdir(
                     conftest.py (inner fixture - should NOT be visible in test_outer)
                     test_inner.py
     """
-    root = pytester.path
+    root = testrunnerer.path
     sdk = root / "sdk"
     sdk.mkdir()
     sdk.joinpath("pyproject.toml").write_text(
         textwrap.dedent("""\
-            [tool.pytest.ini_options]
+            [tool.testrunner.ini_options]
             testpaths = ["../tests/sdk"]
         """),
         encoding="utf-8",
@@ -821,9 +821,9 @@ def test_conftest_fixture_scoping_with_testpaths_outside_rootdir(
     tests_sdk.mkdir(parents=True)
     tests_sdk.joinpath("conftest.py").write_text(
         textwrap.dedent("""\
-            import pytest
+            import testrunner
 
-            @pytest.fixture(autouse=True)
+            @testrunner.fixture(autouse=True)
             def outer_fixture():
                 pass
         """),
@@ -843,9 +843,9 @@ def test_conftest_fixture_scoping_with_testpaths_outside_rootdir(
     inner.mkdir()
     inner.joinpath("conftest.py").write_text(
         textwrap.dedent("""\
-            import pytest
+            import testrunner
 
-            @pytest.fixture(autouse=True)
+            @testrunner.fixture(autouse=True)
             def inner_fixture():
                 pass
         """),
@@ -861,7 +861,7 @@ def test_conftest_fixture_scoping_with_testpaths_outside_rootdir(
         encoding="utf-8",
     )
 
-    result = pytester.runpytest("--rootdir", str(sdk), "-v")
+    result = testrunnerer.runtestrunner("--rootdir", str(sdk), "-v")
     result.stdout.fnmatch_lines(
         [
             "*test_inner*PASSED*",
@@ -872,7 +872,7 @@ def test_conftest_fixture_scoping_with_testpaths_outside_rootdir(
 
 
 def test_conftest_fixture_from_ancestor_above_rootdir(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
     """Conftests from ancestor directories above rootdir that are loaded as
     initial conftests get Session (global) visibility.
@@ -884,12 +884,12 @@ def test_conftest_fixture_from_ancestor_above_rootdir(
                 pyproject.toml  (rootdir)
                 test_it.py      (should see ancestor_fixture)
     """
-    root = pytester.path
+    root = testrunnerer.path
     root.joinpath("conftest.py").write_text(
         textwrap.dedent("""\
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def ancestor_fixture():
                 return "from-ancestor"
         """),
@@ -898,7 +898,7 @@ def test_conftest_fixture_from_ancestor_above_rootdir(
     sub = root / "sub"
     sub.mkdir()
     sub.joinpath("pyproject.toml").write_text(
-        "[tool.pytest.ini_options]\n", encoding="utf-8"
+        "[tool.testrunner.ini_options]\n", encoding="utf-8"
     )
     sub.joinpath("test_it.py").write_text(
         textwrap.dedent("""\
@@ -908,37 +908,37 @@ def test_conftest_fixture_from_ancestor_above_rootdir(
         encoding="utf-8",
     )
 
-    result = pytester.runpytest("--rootdir", str(sub), "--confcutdir", str(root), "-v")
+    result = testrunnerer.runtestrunner("--rootdir", str(sub), "--confcutdir", str(root), "-v")
     result.stdout.fnmatch_lines(["*test_uses_ancestor*PASSED*", "*1 passed*"])
 
 
-def test_rootdir_conftest_visible_outside_rootdir(pytester: Pytester) -> None:
+def test_rootdir_conftest_visible_outside_rootdir(testrunnerer: Testrunnerer) -> None:
     """A conftest located in the rootdir provides fixtures to items that are
     collected from *outside* the rootdir.
 
-    Before pytest 9.1 the rootdir conftest got an empty baseid (which matches
+    Before testrunner 9.1 the rootdir conftest got an empty baseid (which matches
     every collected item), so its fixtures were visible session-wide. The
-    node-based scoping introduced in #14098 (pytest 9.1) inadvertently scoped
+    node-based scoping introduced in #14098 (testrunner 9.1) inadvertently scoped
     it to its own Directory node, making it invisible to items collected from
     a parent/sibling of the rootdir. Regression test for #14683.
 
     Layout::
 
-        project/                  <- pytest invoked here
+        project/                  <- testrunner invoked here
             xclim/                <- collected (``--doctest-modules xclim``)
                 testing/           <- rootdir (``--rootdir xclim/testing``)
                     conftest.py    <- defines a fixture
                 core/
                     test_it.py     <- collected from outside rootdir
     """
-    root = pytester.path
+    root = testrunnerer.path
     testing = root / "xclim" / "testing"
     testing.mkdir(parents=True)
     testing.joinpath("conftest.py").write_text(
         textwrap.dedent("""\
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def rootdir_fixture():
                 return "from-rootdir"
         """),
@@ -954,27 +954,27 @@ def test_rootdir_conftest_visible_outside_rootdir(pytester: Pytester) -> None:
         encoding="utf-8",
     )
 
-    result = pytester.runpytest(
+    result = testrunnerer.runtestrunner(
         "--rootdir", str(testing), "--doctest-modules", "xclim", "-v"
     )
     result.stdout.fnmatch_lines(["*test_uses_rootdir*PASSED*", "*1 passed*"])
 
 
 def test_fixture_closure_order_independence_with_parametrize(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
     """Regression test for #14635.
 
     A test's fixture closure (and thus parametrize validation) should be
     independent of which unrelated paths were collected earlier in the session.
 
-    The scenario: a test uses @pytest.mark.parametrize("fixture_param", [...])
+    The scenario: a test uses @testrunner.mark.parametrize("fixture_param", [...])
     where fixture_param is NOT a direct arg of the test but IS an argname of a
     fixture the test depends on transitively. Collecting unrelated directories
     before the test's directory should not cause the fixture_param to drop out
     of the closure.
     """
-    root = pytester.path
+    root = testrunnerer.path
     tests = root / "tests"
     tests.mkdir()
     tests.joinpath("__init__.py").write_text("", encoding="utf-8")
@@ -982,7 +982,7 @@ def test_fixture_closure_order_independence_with_parametrize(
     # tests/conftest.py - empty (or with some unrelated fixture)
     tests.joinpath("conftest.py").write_text(
         textwrap.dedent("""\
-            import pytest
+            import testrunner
         """),
         encoding="utf-8",
     )
@@ -993,17 +993,17 @@ def test_fixture_closure_order_independence_with_parametrize(
     components.joinpath("__init__.py").write_text("", encoding="utf-8")
     components.joinpath("conftest.py").write_text(
         textwrap.dedent("""\
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def cache_dir_side_effect():
                 return None
 
-            @pytest.fixture
+            @testrunner.fixture
             def mock_init_cache_dir(cache_dir_side_effect):
                 return cache_dir_side_effect
 
-            @pytest.fixture
+            @testrunner.fixture
             def mock_cache_dir(mock_init_cache_dir):
                 return mock_init_cache_dir
         """),
@@ -1028,9 +1028,9 @@ def test_fixture_closure_order_independence_with_parametrize(
     tts.joinpath("__init__.py").write_text("", encoding="utf-8")
     tts.joinpath("conftest.py").write_text(
         textwrap.dedent("""\
-            import pytest
+            import testrunner
 
-            @pytest.fixture(autouse=True)
+            @testrunner.fixture(autouse=True)
             def mock_cache_dir(mock_cache_dir):
                 # Autouse override that requests the parent fixture of same name
                 return mock_cache_dir
@@ -1039,9 +1039,9 @@ def test_fixture_closure_order_independence_with_parametrize(
     )
     tts.joinpath("test_init.py").write_text(
         textwrap.dedent("""\
-            import pytest
+            import testrunner
 
-            @pytest.mark.parametrize("cache_dir_side_effect", ["error_value"])
+            @testrunner.mark.parametrize("cache_dir_side_effect", ["error_value"])
             async def test_setup_no_access(mock_init_cache_dir):
                 assert mock_init_cache_dir == "error_value"
         """),
@@ -1059,7 +1059,7 @@ def test_fixture_closure_order_independence_with_parametrize(
 
     # This order triggers the bug: collecting water_heater and config_entries
     # BEFORE tts causes the fixture closure to be wrong.
-    result = pytester.runpytest(
+    result = testrunnerer.runtestrunner(
         "--collect-only",
         str(water_heater),
         str(tests / "test_config_entries.py"),
@@ -1069,18 +1069,18 @@ def test_fixture_closure_order_independence_with_parametrize(
     assert result.ret == ExitCode.OK
 
 
-def test_required_option_help(pytester: Pytester) -> None:
-    pytester.makeconftest("assert 0")
-    x = pytester.mkdir("x")
+def test_required_option_help(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest("assert 0")
+    x = testrunnerer.mkdir("x")
     x.joinpath("conftest.py").write_text(
         textwrap.dedent(
             """\
-            def pytest_addoption(parser):
+            def testrunner_addoption(parser):
                 parser.addoption("--xyz", action="store_true", required=True)
             """
         ),
         encoding="utf-8",
     )
-    result = pytester.runpytest("-h", x)
+    result = testrunnerer.runtestrunner("-h", x)
     result.stdout.no_fnmatch_line("*argument --xyz is required*")
     assert "general:" in result.stdout.str()

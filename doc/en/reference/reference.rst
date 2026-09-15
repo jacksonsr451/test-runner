@@ -5,159 +5,159 @@
 API Reference
 =============
 
-This page contains the full reference to pytest's API.
+This page contains the full reference to testrunner's API.
 
 
 Constants
 ---------
 
-pytest.__version__
+testrunner.__version__
 ~~~~~~~~~~~~~~~~~~
 
-The current pytest version, as a string::
+The current testrunner version, as a string::
 
-    >>> import pytest
-    >>> pytest.__version__
+    >>> import testrunner
+    >>> testrunner.__version__
     '9.0.2'
 
 .. _`hidden-param`:
 
-pytest.HIDDEN_PARAM
+testrunner.HIDDEN_PARAM
 ~~~~~~~~~~~~~~~~~~~
 
 .. versionadded:: 8.4
 
-Can be passed to ``ids`` of :py:func:`Metafunc.parametrize <pytest.Metafunc.parametrize>`
-or to ``id`` of :func:`pytest.param` to hide a parameter set from the test name.
+Can be passed to ``ids`` of :py:func:`Metafunc.parametrize <testrunner.Metafunc.parametrize>`
+or to ``id`` of :func:`testrunner.param` to hide a parameter set from the test name.
 Can only be used at most 1 time, as test names need to be unique.
 
 .. _`version-tuple`:
 
-pytest.version_tuple
+testrunner.version_tuple
 ~~~~~~~~~~~~~~~~~~~~
 
 .. versionadded:: 7.0
 
-The current pytest version, as a tuple::
+The current testrunner version, as a tuple::
 
-    >>> import pytest
-    >>> pytest.version_tuple
+    >>> import testrunner
+    >>> testrunner.version_tuple
     (7, 0, 0)
 
 For pre-releases, the last component will be a string with the prerelease version::
 
-    >>> import pytest
-    >>> pytest.version_tuple
+    >>> import testrunner
+    >>> testrunner.version_tuple
     (7, 0, '0rc1')
 
 
 Functions
 ---------
 
-pytest.approx
+testrunner.approx
 ~~~~~~~~~~~~~
 
-.. autofunction:: pytest.approx
+.. autofunction:: testrunner.approx
 
-pytest.fail
+testrunner.fail
 ~~~~~~~~~~~
 
 **Tutorial**: :ref:`skipping`
 
-.. autofunction:: pytest.fail(reason, [pytrace=True])
+.. autofunction:: testrunner.fail(reason, [pytrace=True])
 
-.. class:: pytest.fail.Exception
+.. class:: testrunner.fail.Exception
 
-    The exception raised by :func:`pytest.fail`.
+    The exception raised by :func:`testrunner.fail`.
 
-pytest.skip
+testrunner.skip
 ~~~~~~~~~~~
 
-.. autofunction:: pytest.skip(reason, [allow_module_level=False])
+.. autofunction:: testrunner.skip(reason, [allow_module_level=False])
 
-.. class:: pytest.skip.Exception
+.. class:: testrunner.skip.Exception
 
-    The exception raised by :func:`pytest.skip`.
+    The exception raised by :func:`testrunner.skip`.
 
-.. _`pytest.importorskip ref`:
+.. _`testrunner.importorskip ref`:
 
-pytest.importorskip
+testrunner.importorskip
 ~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: pytest.importorskip
+.. autofunction:: testrunner.importorskip
 
-pytest.xfail
+testrunner.xfail
 ~~~~~~~~~~~~
 
-.. autofunction:: pytest.xfail
+.. autofunction:: testrunner.xfail
 
-.. class:: pytest.xfail.Exception
+.. class:: testrunner.xfail.Exception
 
-    The exception raised by :func:`pytest.xfail`.
+    The exception raised by :func:`testrunner.xfail`.
 
-pytest.exit
+testrunner.exit
 ~~~~~~~~~~~
 
-.. autofunction:: pytest.exit(reason, [returncode=None])
+.. autofunction:: testrunner.exit(reason, [returncode=None])
 
-.. class:: pytest.exit.Exception
+.. class:: testrunner.exit.Exception
 
-    The exception raised by :func:`pytest.exit`.
+    The exception raised by :func:`testrunner.exit`.
 
-pytest.main
+testrunner.main
 ~~~~~~~~~~~
 
-**Tutorial**: :ref:`pytest.main-usage`
+**Tutorial**: :ref:`testrunner.main-usage`
 
-.. autofunction:: pytest.main
+.. autofunction:: testrunner.main
 
-pytest.param
+testrunner.param
 ~~~~~~~~~~~~
 
-.. autofunction:: pytest.param(*values, [id], [marks])
+.. autofunction:: testrunner.param(*values, [id], [marks])
 
-pytest.raises
+testrunner.raises
 ~~~~~~~~~~~~~
 
 **Tutorial**: :ref:`assertraises`
 
-.. autofunction:: pytest.raises(expected_exception: Exception [, *, match])
+.. autofunction:: testrunner.raises(expected_exception: Exception [, *, match])
     :with: excinfo
 
-pytest.deprecated_call
+testrunner.deprecated_call
 ~~~~~~~~~~~~~~~~~~~~~~
 
 **Tutorial**: :ref:`ensuring_function_triggers`
 
-.. autofunction:: pytest.deprecated_call([match])
+.. autofunction:: testrunner.deprecated_call([match])
     :with:
 
-pytest.register_assert_rewrite
+testrunner.register_assert_rewrite
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Tutorial**: :ref:`assertion-rewriting`
 
-.. autofunction:: pytest.register_assert_rewrite
+.. autofunction:: testrunner.register_assert_rewrite
 
-pytest.register_fixture
+testrunner.register_fixture
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. autofunction:: pytest.register_fixture
+.. autofunction:: testrunner.register_fixture
 
-pytest.warns
+testrunner.warns
 ~~~~~~~~~~~~
 
 **Tutorial**: :ref:`assertwarnings`
 
-.. autofunction:: pytest.warns(expected_warning: Exception, [match])
+.. autofunction:: testrunner.warns(expected_warning: Exception, [match])
     :with:
 
-pytest.freeze_includes
+testrunner.freeze_includes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Tutorial**: :ref:`freezing-pytest`
+**Tutorial**: :ref:`freezing-testrunner`
 
-.. autofunction:: pytest.freeze_includes
+.. autofunction:: testrunner.freeze_includes
 
 .. _`marks ref`:
 
@@ -170,16 +170,16 @@ fixtures or plugins.
 
 
 
-.. _`pytest.mark.filterwarnings ref`:
+.. _`testrunner.mark.filterwarnings ref`:
 
-pytest.mark.filterwarnings
+testrunner.mark.filterwarnings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **Tutorial**: :ref:`filterwarnings`
 
 Add warning filters to marked test items.
 
-.. py:function:: pytest.mark.filterwarnings(filter)
+.. py:function:: testrunner.mark.filterwarnings(filter)
 
     :keyword str filter:
         A *warning specification string*, which is composed of contents of the tuple ``(action, message, category, module, lineno)``
@@ -191,82 +191,82 @@ Add warning filters to marked test items.
 
         .. code-block:: python
 
-            @pytest.mark.filterwarnings(r"ignore:.*usage will be deprecated.*:DeprecationWarning")
+            @testrunner.mark.filterwarnings(r"ignore:.*usage will be deprecated.*:DeprecationWarning")
             def test_foo(): ...
 
 
-.. _`pytest.mark.parametrize ref`:
+.. _`testrunner.mark.parametrize ref`:
 
-pytest.mark.parametrize
+testrunner.mark.parametrize
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 **Tutorial**: :ref:`parametrize`
 
-This mark has the same signature as :py:meth:`pytest.Metafunc.parametrize`; see there.
+This mark has the same signature as :py:meth:`testrunner.Metafunc.parametrize`; see there.
 
 
-.. _`pytest.mark.skip ref`:
+.. _`testrunner.mark.skip ref`:
 
-pytest.mark.skip
+testrunner.mark.skip
 ~~~~~~~~~~~~~~~~
 
 **Tutorial**: :ref:`skip`
 
 Unconditionally skip a test function.
 
-.. py:function:: pytest.mark.skip(reason="unconditional skip")
+.. py:function:: testrunner.mark.skip(reason="unconditional skip")
 
     :keyword str reason: Reason why the test function is being skipped.
 
 
-.. _`pytest.mark.skipif ref`:
+.. _`testrunner.mark.skipif ref`:
 
-pytest.mark.skipif
+testrunner.mark.skipif
 ~~~~~~~~~~~~~~~~~~
 
 **Tutorial**: :ref:`skipif`
 
 Skip a test function if a condition is ``True``.
 
-.. py:function:: pytest.mark.skipif(condition, *, reason=None)
+.. py:function:: testrunner.mark.skipif(condition, *, reason=None)
 
     :type condition: bool or str
     :param condition: ``True/False`` if the condition should be skipped or a :ref:`condition string <string conditions>`.
     :keyword str reason: Reason why the test function is being skipped.
 
 
-.. _`pytest.mark.usefixtures ref`:
+.. _`testrunner.mark.usefixtures ref`:
 
-pytest.mark.usefixtures
+testrunner.mark.usefixtures
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 **Tutorial**: :ref:`usefixtures`
 
 Mark a test function as using the given fixture names.
 
-.. py:function:: pytest.mark.usefixtures(*names)
+.. py:function:: testrunner.mark.usefixtures(*names)
 
     :param args: The names of the fixture to use, as strings.
 
 .. note::
 
     When using `usefixtures` in hooks, it can only load fixtures when applied to a test function before test setup
-    (for example in the `pytest_collection_modifyitems` hook).
+    (for example in the `testrunner_collection_modifyitems` hook).
 
     Also note that this mark has no effect when applied to **fixtures**.
 
 
 
-.. _`pytest.mark.xfail ref`:
+.. _`testrunner.mark.xfail ref`:
 
-pytest.mark.xfail
+testrunner.mark.xfail
 ~~~~~~~~~~~~~~~~~~
 
 **Tutorial**: :ref:`xfail`
 
 Marks a test function as *expected to fail*.
 
-.. py:function:: pytest.mark.xfail(condition=True, *, reason=None, raises=None, run=True, strict=strict_xfail)
+.. py:function:: testrunner.mark.xfail(condition=True, *, reason=None, raises=None, run=True, strict=strict_xfail)
 
     :keyword Union[bool, str] condition:
         Condition for marking the test function as xfail (``True/False`` or a
@@ -297,18 +297,18 @@ Marks a test function as *expected to fail*.
 Custom marks
 ~~~~~~~~~~~~
 
-Marks are created dynamically using the factory object ``pytest.mark`` and applied as a decorator.
+Marks are created dynamically using the factory object ``testrunner.mark`` and applied as a decorator.
 
 For example:
 
 .. code-block:: python
 
-    @pytest.mark.timeout(10, "slow", method="thread")
+    @testrunner.mark.timeout(10, "slow", method="thread")
     def test_function(): ...
 
-Will create and attach a :class:`Mark <pytest.Mark>` object to the collected
-:class:`Item <pytest.Item>`, which can then be accessed by fixtures or hooks with
-:meth:`Node.iter_markers <_pytest.nodes.Node.iter_markers>`. The ``mark`` object will have the following attributes:
+Will create and attach a :class:`Mark <testrunner.Mark>` object to the collected
+:class:`Item <testrunner.Item>`, which can then be accessed by fixtures or hooks with
+:meth:`Node.iter_markers <_testrunner.nodes.Node.iter_markers>`. The ``mark`` object will have the following attributes:
 
 .. code-block:: python
 
@@ -319,11 +319,11 @@ Example for using multiple custom markers:
 
 .. code-block:: python
 
-    @pytest.mark.timeout(10, "slow", method="thread")
-    @pytest.mark.slow
+    @testrunner.mark.timeout(10, "slow", method="thread")
+    @testrunner.mark.slow
     def test_function(): ...
 
-When :meth:`Node.iter_markers <_pytest.nodes.Node.iter_markers>` or :meth:`Node.iter_markers_with_node <_pytest.nodes.Node.iter_markers_with_node>` is used with multiple markers, the marker closest to the function will be iterated over first. The above example will result in ``@pytest.mark.slow`` followed by ``@pytest.mark.timeout(...)``.
+When :meth:`Node.iter_markers <_testrunner.nodes.Node.iter_markers>` or :meth:`Node.iter_markers_with_node <_testrunner.nodes.Node.iter_markers_with_node>` is used with multiple markers, the marker closest to the function will be iterated over first. The above example will result in ``@testrunner.mark.slow`` followed by ``@testrunner.mark.timeout(...)``.
 
 .. _`fixtures-api`:
 
@@ -349,7 +349,7 @@ Example of a fixture requiring another fixture:
 
 .. code-block:: python
 
-    @pytest.fixture
+    @testrunner.fixture
     def db_session(tmp_path):
         fn = tmp_path / "db.file"
         return connect(fn)
@@ -357,12 +357,12 @@ Example of a fixture requiring another fixture:
 For more details, consult the full :ref:`fixtures docs <fixture>`.
 
 
-.. _`pytest.fixture-api`:
+.. _`testrunner.fixture-api`:
 
-@pytest.fixture
+@testrunner.fixture
 ~~~~~~~~~~~~~~~
 
-.. autofunction:: pytest.fixture
+.. autofunction:: testrunner.fixture
     :decorator:
 
 
@@ -373,7 +373,7 @@ capfd
 
 **Tutorial**: :ref:`captures`
 
-.. autofunction:: _pytest.capture.capfd()
+.. autofunction:: _testrunner.capture.capfd()
     :no-auto-options:
 
 
@@ -384,7 +384,7 @@ capfdbinary
 
 **Tutorial**: :ref:`captures`
 
-.. autofunction:: _pytest.capture.capfdbinary()
+.. autofunction:: _testrunner.capture.capfdbinary()
     :no-auto-options:
 
 
@@ -395,12 +395,12 @@ caplog
 
 **Tutorial**: :ref:`logging`
 
-.. autofunction:: _pytest.logging.caplog()
+.. autofunction:: _testrunner.logging.caplog()
     :no-auto-options:
 
-    Returns a :class:`pytest.LogCaptureFixture` instance.
+    Returns a :class:`testrunner.LogCaptureFixture` instance.
 
-.. autoclass:: pytest.LogCaptureFixture()
+.. autoclass:: testrunner.LogCaptureFixture()
     :members:
 
 
@@ -411,10 +411,10 @@ capsys
 
 **Tutorial**: :ref:`captures`
 
-.. autofunction:: _pytest.capture.capsys()
+.. autofunction:: _testrunner.capture.capsys()
     :no-auto-options:
 
-.. autoclass:: pytest.CaptureFixture()
+.. autoclass:: testrunner.CaptureFixture()
     :members:
 
 .. fixture:: capteesys
@@ -424,7 +424,7 @@ capteesys
 
 **Tutorial**: :ref:`captures`
 
-.. autofunction:: _pytest.capture.capteesys()
+.. autofunction:: _testrunner.capture.capteesys()
     :no-auto-options:
 
 .. fixture:: capsysbinary
@@ -434,7 +434,7 @@ capsysbinary
 
 **Tutorial**: :ref:`captures`
 
-.. autofunction:: _pytest.capture.capsysbinary()
+.. autofunction:: _testrunner.capture.capsysbinary()
     :no-auto-options:
 
 
@@ -447,14 +447,14 @@ config.cache
 
 The ``config.cache`` object allows other plugins and fixtures
 to store and retrieve values across test runs. To access it from fixtures
-request ``pytestconfig`` into your fixture and get it with ``pytestconfig.cache``.
+request ``testrunnerconfig`` into your fixture and get it with ``testrunnerconfig.cache``.
 
 Under the hood, the cache plugin uses the simple
 ``dumps``/``loads`` API of the :py:mod:`json` stdlib module.
 
-``config.cache`` is an instance of :class:`pytest.Cache`:
+``config.cache`` is an instance of :class:`testrunner.Cache`:
 
-.. autoclass:: pytest.Cache()
+.. autoclass:: testrunner.Cache()
    :members:
 
 
@@ -465,7 +465,7 @@ doctest_namespace
 
 **Tutorial**: :ref:`doctest`
 
-.. autofunction:: _pytest.doctest.doctest_namespace()
+.. autofunction:: _testrunner.doctest.doctest_namespace()
 
 
 .. fixture:: monkeypatch
@@ -475,57 +475,57 @@ monkeypatch
 
 **Tutorial**: :ref:`monkeypatching`
 
-.. autofunction:: _pytest.monkeypatch.monkeypatch()
+.. autofunction:: _testrunner.monkeypatch.monkeypatch()
     :no-auto-options:
 
-    Returns a :class:`~pytest.MonkeyPatch` instance.
+    Returns a :class:`~testrunner.MonkeyPatch` instance.
 
-.. autoclass:: pytest.MonkeyPatch
+.. autoclass:: testrunner.MonkeyPatch
     :members:
 
 
-.. fixture:: pytestconfig
+.. fixture:: testrunnerconfig
 
-pytestconfig
+testrunnerconfig
 ~~~~~~~~~~~~
 
-.. autofunction:: _pytest.fixtures.pytestconfig()
+.. autofunction:: _testrunner.fixtures.testrunnerconfig()
 
 
-.. fixture:: pytester
+.. fixture:: testrunnerer
 
-pytester
+testrunnerer
 ~~~~~~~~
 
 .. versionadded:: 6.2
 
-Provides a :class:`~pytest.Pytester` instance that can be used to run and test pytest itself.
+Provides a :class:`~testrunner.Testrunnerer` instance that can be used to run and test testrunner itself.
 
-It provides an empty directory where pytest can be executed in isolation, and contains facilities
+It provides an empty directory where testrunner can be executed in isolation, and contains facilities
 to write tests, configuration files, and match against expected output.
 
 To use it, include in your topmost ``conftest.py`` file:
 
 .. code-block:: python
 
-    pytest_plugins = "pytester"
+    testrunner_plugins = "testrunnerer"
 
 
 
-.. autoclass:: pytest.Pytester()
+.. autoclass:: testrunner.Testrunnerer()
     :members:
 
-.. autoclass:: pytest.RunResult()
+.. autoclass:: testrunner.RunResult()
     :members:
 
-.. autoclass:: pytest.LineMatcher()
+.. autoclass:: testrunner.LineMatcher()
     :members:
     :special-members: __str__
 
-.. autoclass:: pytest.HookRecorder()
+.. autoclass:: testrunner.HookRecorder()
     :members:
 
-.. autoclass:: pytest.RecordedHookCall()
+.. autoclass:: testrunner.RecordedHookCall()
     :members:
 
 
@@ -536,7 +536,7 @@ record_property
 
 **Tutorial**: :ref:`record_property example`
 
-.. autofunction:: _pytest.junitxml.record_property()
+.. autofunction:: _testrunner.junitxml.record_property()
 
 
 .. fixture:: record_testsuite_property
@@ -546,7 +546,7 @@ record_testsuite_property
 
 **Tutorial**: :ref:`record_testsuite_property example`
 
-.. autofunction:: _pytest.junitxml.record_testsuite_property()
+.. autofunction:: _testrunner.junitxml.record_testsuite_property()
 
 
 .. fixture:: recwarn
@@ -556,10 +556,10 @@ recwarn
 
 **Tutorial**: :ref:`recwarn`
 
-.. autofunction:: _pytest.recwarn.recwarn()
+.. autofunction:: _testrunner.recwarn.recwarn()
     :no-auto-options:
 
-.. autoclass:: pytest.WarningsRecorder()
+.. autoclass:: testrunner.WarningsRecorder()
     :members:
     :special-members: __getitem__, __iter__, __len__
 
@@ -573,7 +573,7 @@ request
 
 The ``request`` fixture is a special fixture providing information of the requesting test function.
 
-.. autoclass:: pytest.FixtureRequest()
+.. autoclass:: testrunner.FixtureRequest()
     :members:
 
 
@@ -586,7 +586,7 @@ The ``subtests`` fixture enables declaring subtests inside test functions.
 
 **Tutorial**: :ref:`subtests`
 
-.. autoclass:: pytest.Subtests()
+.. autoclass:: testrunner.Subtests()
     :members:
 
 
@@ -595,12 +595,12 @@ The ``subtests`` fixture enables declaring subtests inside test functions.
 testdir
 ~~~~~~~
 
-Identical to :fixture:`pytester`, but provides an instance whose methods return
+Identical to :fixture:`testrunnerer`, but provides an instance whose methods return
 legacy ``py.path.local`` objects instead when applicable.
 
-New code should avoid using :fixture:`testdir` in favor of :fixture:`pytester`.
+New code should avoid using :fixture:`testdir` in favor of :fixture:`testrunnerer`.
 
-.. autoclass:: pytest.Testdir()
+.. autoclass:: testrunner.Testdir()
     :members:
     :noindex: TimeoutExpired
 
@@ -612,7 +612,7 @@ tmp_path
 
 **Tutorial**: :ref:`tmp_path`
 
-.. autofunction:: _pytest.tmpdir.tmp_path()
+.. autofunction:: _testrunner.tmpdir.tmp_path()
     :no-auto-options:
 
 
@@ -625,9 +625,9 @@ tmp_path_factory
 
 .. _`tmp_path_factory factory api`:
 
-``tmp_path_factory`` is an instance of :class:`~pytest.TempPathFactory`:
+``tmp_path_factory`` is an instance of :class:`~testrunner.TempPathFactory`:
 
-.. autoclass:: pytest.TempPathFactory()
+.. autoclass:: testrunner.TempPathFactory()
     :members:
 
 
@@ -638,7 +638,7 @@ tmpdir
 
 **Tutorial**: :ref:`tmpdir and tmpdir_factory`
 
-.. autofunction:: _pytest.legacypath.LegacyTmpdirPlugin.tmpdir()
+.. autofunction:: _testrunner.legacypath.LegacyTmpdirPlugin.tmpdir()
     :no-auto-options:
 
 
@@ -649,9 +649,9 @@ tmpdir_factory
 
 **Tutorial**: :ref:`tmpdir and tmpdir_factory`
 
-``tmpdir_factory`` is an instance of :class:`~pytest.TempdirFactory`:
+``tmpdir_factory`` is an instance of :class:`~testrunner.TempdirFactory`:
 
-.. autoclass:: pytest.TempdirFactory()
+.. autoclass:: testrunner.TempdirFactory()
     :members:
 
 
@@ -664,39 +664,39 @@ Hooks
 
 Reference to all hooks which can be implemented by :ref:`conftest.py files <localplugin>` and :ref:`plugins <plugins>`.
 
-@pytest.hookimpl
+@testrunner.hookimpl
 ~~~~~~~~~~~~~~~~
 
-.. function:: pytest.hookimpl
+.. function:: testrunner.hookimpl
     :decorator:
 
-    pytest's decorator for marking functions as hook implementations.
+    testrunner's decorator for marking functions as hook implementations.
 
     See :ref:`writinghooks` and :func:`pluggy.HookimplMarker`.
 
-@pytest.hookspec
+@testrunner.hookspec
 ~~~~~~~~~~~~~~~~
 
-.. function:: pytest.hookspec
+.. function:: testrunner.hookspec
     :decorator:
 
-    pytest's decorator for marking functions as hook specifications.
+    testrunner's decorator for marking functions as hook specifications.
 
     See :ref:`declaringhooks` and :func:`pluggy.HookspecMarker`.
 
-.. currentmodule:: _pytest.hookspec
+.. currentmodule:: _testrunner.hookspec
 
 Bootstrapping hooks
 ~~~~~~~~~~~~~~~~~~~
 
 Bootstrapping hooks called for plugins registered early enough (internal and third-party plugins).
 
-.. hook:: pytest_load_initial_conftests
-.. autofunction:: pytest_load_initial_conftests
-.. hook:: pytest_cmdline_parse
-.. autofunction:: pytest_cmdline_parse
-.. hook:: pytest_cmdline_main
-.. autofunction:: pytest_cmdline_main
+.. hook:: testrunner_load_initial_conftests
+.. autofunction:: testrunner_load_initial_conftests
+.. hook:: testrunner_cmdline_parse
+.. autofunction:: testrunner_cmdline_parse
+.. hook:: testrunner_cmdline_main
+.. autofunction:: testrunner_cmdline_main
 
 .. _`initialization-hooks`:
 
@@ -705,142 +705,142 @@ Initialization hooks
 
 Initialization hooks called for plugins and ``conftest.py`` files.
 
-.. hook:: pytest_addoption
-.. autofunction:: pytest_addoption
-.. hook:: pytest_addhooks
-.. autofunction:: pytest_addhooks
-.. hook:: pytest_configure
-.. autofunction:: pytest_configure
-.. hook:: pytest_unconfigure
-.. autofunction:: pytest_unconfigure
-.. hook:: pytest_sessionstart
-.. autofunction:: pytest_sessionstart
-.. hook:: pytest_sessionfinish
-.. autofunction:: pytest_sessionfinish
+.. hook:: testrunner_addoption
+.. autofunction:: testrunner_addoption
+.. hook:: testrunner_addhooks
+.. autofunction:: testrunner_addhooks
+.. hook:: testrunner_configure
+.. autofunction:: testrunner_configure
+.. hook:: testrunner_unconfigure
+.. autofunction:: testrunner_unconfigure
+.. hook:: testrunner_sessionstart
+.. autofunction:: testrunner_sessionstart
+.. hook:: testrunner_sessionfinish
+.. autofunction:: testrunner_sessionfinish
 
-.. hook:: pytest_plugin_registered
-.. autofunction:: pytest_plugin_registered
+.. hook:: testrunner_plugin_registered
+.. autofunction:: testrunner_plugin_registered
 
 Collection hooks
 ~~~~~~~~~~~~~~~~
 
-``pytest`` calls the following hooks for collecting files and directories:
+``testrunner`` calls the following hooks for collecting files and directories:
 
-.. hook:: pytest_collection
-.. autofunction:: pytest_collection
-.. hook:: pytest_ignore_collect
-.. autofunction:: pytest_ignore_collect
-.. hook:: pytest_collect_directory
-.. autofunction:: pytest_collect_directory
-.. hook:: pytest_collect_file
-.. autofunction:: pytest_collect_file
-.. hook:: pytest_pycollect_makemodule
-.. autofunction:: pytest_pycollect_makemodule
+.. hook:: testrunner_collection
+.. autofunction:: testrunner_collection
+.. hook:: testrunner_ignore_collect
+.. autofunction:: testrunner_ignore_collect
+.. hook:: testrunner_collect_directory
+.. autofunction:: testrunner_collect_directory
+.. hook:: testrunner_collect_file
+.. autofunction:: testrunner_collect_file
+.. hook:: testrunner_pycollect_makemodule
+.. autofunction:: testrunner_pycollect_makemodule
 
 For influencing the collection of objects in Python modules
 you can use the following hook:
 
-.. hook:: pytest_pycollect_makeitem
-.. autofunction:: pytest_pycollect_makeitem
-.. hook:: pytest_generate_tests
-.. autofunction:: pytest_generate_tests
-.. hook:: pytest_make_parametrize_id
-.. autofunction:: pytest_make_parametrize_id
+.. hook:: testrunner_pycollect_makeitem
+.. autofunction:: testrunner_pycollect_makeitem
+.. hook:: testrunner_generate_tests
+.. autofunction:: testrunner_generate_tests
+.. hook:: testrunner_make_parametrize_id
+.. autofunction:: testrunner_make_parametrize_id
 
 Hooks for influencing test skipping:
 
-.. hook:: pytest_markeval_namespace
-.. autofunction:: pytest_markeval_namespace
+.. hook:: testrunner_markeval_namespace
+.. autofunction:: testrunner_markeval_namespace
 
 After collection is complete, you can modify the order of
 items, delete or otherwise amend the test items:
 
-.. hook:: pytest_collection_modifyitems
-.. autofunction:: pytest_collection_modifyitems
+.. hook:: testrunner_collection_modifyitems
+.. autofunction:: testrunner_collection_modifyitems
 
 .. note::
     If this hook is implemented in ``conftest.py`` files, it always receives all collected items, not only those
     under the ``conftest.py`` where it is implemented.
 
-.. hook:: pytest_collection_finish
-.. autofunction:: pytest_collection_finish
+.. hook:: testrunner_collection_finish
+.. autofunction:: testrunner_collection_finish
 
 Test running (runtest) hooks
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-All runtest related hooks receive a :py:class:`pytest.Item <pytest.Item>` object.
+All runtest related hooks receive a :py:class:`testrunner.Item <testrunner.Item>` object.
 
-.. hook:: pytest_runtestloop
-.. autofunction:: pytest_runtestloop
-.. hook:: pytest_runtest_protocol
-.. autofunction:: pytest_runtest_protocol
-.. hook:: pytest_runtest_logstart
-.. autofunction:: pytest_runtest_logstart
-.. hook:: pytest_runtest_logfinish
-.. autofunction:: pytest_runtest_logfinish
-.. hook:: pytest_runtest_setup
-.. autofunction:: pytest_runtest_setup
-.. hook:: pytest_runtest_call
-.. autofunction:: pytest_runtest_call
-.. hook:: pytest_runtest_teardown
-.. autofunction:: pytest_runtest_teardown
-.. hook:: pytest_runtest_makereport
-.. autofunction:: pytest_runtest_makereport
-.. hook:: pytest_fixture_setup
-.. autofunction:: pytest_fixture_setup
-.. hook:: pytest_fixture_post_finalizer
-.. autofunction:: pytest_fixture_post_finalizer
+.. hook:: testrunner_runtestloop
+.. autofunction:: testrunner_runtestloop
+.. hook:: testrunner_runtest_protocol
+.. autofunction:: testrunner_runtest_protocol
+.. hook:: testrunner_runtest_logstart
+.. autofunction:: testrunner_runtest_logstart
+.. hook:: testrunner_runtest_logfinish
+.. autofunction:: testrunner_runtest_logfinish
+.. hook:: testrunner_runtest_setup
+.. autofunction:: testrunner_runtest_setup
+.. hook:: testrunner_runtest_call
+.. autofunction:: testrunner_runtest_call
+.. hook:: testrunner_runtest_teardown
+.. autofunction:: testrunner_runtest_teardown
+.. hook:: testrunner_runtest_makereport
+.. autofunction:: testrunner_runtest_makereport
+.. hook:: testrunner_fixture_setup
+.. autofunction:: testrunner_fixture_setup
+.. hook:: testrunner_fixture_post_finalizer
+.. autofunction:: testrunner_fixture_post_finalizer
 
 For deeper understanding you may look at the default implementation of
-these hooks in ``_pytest.runner`` and maybe also
-in ``_pytest.pdb`` which interacts with ``_pytest.capture``
+these hooks in ``_testrunner.runner`` and maybe also
+in ``_testrunner.pdb`` which interacts with ``_testrunner.capture``
 and its input/output capturing in order to immediately drop
 into interactive debugging when a test failure occurs.
 
-.. hook:: pytest_pyfunc_call
-.. autofunction:: pytest_pyfunc_call
+.. hook:: testrunner_pyfunc_call
+.. autofunction:: testrunner_pyfunc_call
 
 Reporting hooks
 ~~~~~~~~~~~~~~~
 
 Session related reporting hooks:
 
-.. hook:: pytest_collectstart
-.. autofunction:: pytest_collectstart
-.. hook:: pytest_make_collect_report
-.. autofunction:: pytest_make_collect_report
-.. hook:: pytest_itemcollected
-.. autofunction:: pytest_itemcollected
-.. hook:: pytest_collectreport
-.. autofunction:: pytest_collectreport
-.. hook:: pytest_deselected
-.. autofunction:: pytest_deselected
-.. hook:: pytest_report_header
-.. autofunction:: pytest_report_header
-.. hook:: pytest_report_collectionfinish
-.. autofunction:: pytest_report_collectionfinish
-.. hook:: pytest_report_teststatus
-.. autofunction:: pytest_report_teststatus
-.. hook:: pytest_report_to_serializable
-.. autofunction:: pytest_report_to_serializable
-.. hook:: pytest_report_from_serializable
-.. autofunction:: pytest_report_from_serializable
-.. hook:: pytest_terminal_summary
-.. autofunction:: pytest_terminal_summary
-.. hook:: pytest_warning_recorded
-.. autofunction:: pytest_warning_recorded
+.. hook:: testrunner_collectstart
+.. autofunction:: testrunner_collectstart
+.. hook:: testrunner_make_collect_report
+.. autofunction:: testrunner_make_collect_report
+.. hook:: testrunner_itemcollected
+.. autofunction:: testrunner_itemcollected
+.. hook:: testrunner_collectreport
+.. autofunction:: testrunner_collectreport
+.. hook:: testrunner_deselected
+.. autofunction:: testrunner_deselected
+.. hook:: testrunner_report_header
+.. autofunction:: testrunner_report_header
+.. hook:: testrunner_report_collectionfinish
+.. autofunction:: testrunner_report_collectionfinish
+.. hook:: testrunner_report_teststatus
+.. autofunction:: testrunner_report_teststatus
+.. hook:: testrunner_report_to_serializable
+.. autofunction:: testrunner_report_to_serializable
+.. hook:: testrunner_report_from_serializable
+.. autofunction:: testrunner_report_from_serializable
+.. hook:: testrunner_terminal_summary
+.. autofunction:: testrunner_terminal_summary
+.. hook:: testrunner_warning_recorded
+.. autofunction:: testrunner_warning_recorded
 
 Central hook for reporting about test execution:
 
-.. hook:: pytest_runtest_logreport
-.. autofunction:: pytest_runtest_logreport
+.. hook:: testrunner_runtest_logreport
+.. autofunction:: testrunner_runtest_logreport
 
 Assertion related hooks:
 
-.. hook:: pytest_assertrepr_compare
-.. autofunction:: pytest_assertrepr_compare
-.. hook:: pytest_assertion_pass
-.. autofunction:: pytest_assertion_pass
+.. hook:: testrunner_assertrepr_compare
+.. autofunction:: testrunner_assertrepr_compare
+.. hook:: testrunner_assertion_pass
+.. autofunction:: testrunner_assertion_pass
 
 
 Debugging/Interaction hooks
@@ -849,16 +849,16 @@ Debugging/Interaction hooks
 There are few hooks which can be used for special
 reporting or interaction with exceptions:
 
-.. hook:: pytest_internalerror
-.. autofunction:: pytest_internalerror
-.. hook:: pytest_keyboard_interrupt
-.. autofunction:: pytest_keyboard_interrupt
-.. hook:: pytest_exception_interact
-.. autofunction:: pytest_exception_interact
-.. hook:: pytest_enter_pdb
-.. autofunction:: pytest_enter_pdb
-.. hook:: pytest_leave_pdb
-.. autofunction:: pytest_leave_pdb
+.. hook:: testrunner_internalerror
+.. autofunction:: testrunner_internalerror
+.. hook:: testrunner_keyboard_interrupt
+.. autofunction:: testrunner_keyboard_interrupt
+.. hook:: testrunner_exception_interact
+.. autofunction:: testrunner_exception_interact
+.. hook:: testrunner_enter_pdb
+.. autofunction:: testrunner_enter_pdb
+.. hook:: testrunner_leave_pdb
+.. autofunction:: testrunner_leave_pdb
 
 
 Collection tree objects
@@ -870,77 +870,77 @@ make up the collection tree.
 Node
 ~~~~
 
-.. autoclass:: _pytest.nodes.Node()
+.. autoclass:: _testrunner.nodes.Node()
     :members:
     :show-inheritance:
 
 Collector
 ~~~~~~~~~
 
-.. autoclass:: pytest.Collector()
+.. autoclass:: testrunner.Collector()
     :members:
     :show-inheritance:
 
 Item
 ~~~~
 
-.. autoclass:: pytest.Item()
+.. autoclass:: testrunner.Item()
     :members:
     :show-inheritance:
 
 File
 ~~~~
 
-.. autoclass:: pytest.File()
+.. autoclass:: testrunner.File()
     :members:
     :show-inheritance:
 
 FSCollector
 ~~~~~~~~~~~
 
-.. autoclass:: _pytest.nodes.FSCollector()
+.. autoclass:: _testrunner.nodes.FSCollector()
     :members:
     :show-inheritance:
 
 Session
 ~~~~~~~
 
-.. autoclass:: pytest.Session()
+.. autoclass:: testrunner.Session()
     :members:
     :show-inheritance:
 
 Package
 ~~~~~~~
 
-.. autoclass:: pytest.Package()
+.. autoclass:: testrunner.Package()
     :members:
     :show-inheritance:
 
 Module
 ~~~~~~
 
-.. autoclass:: pytest.Module()
+.. autoclass:: testrunner.Module()
     :members:
     :show-inheritance:
 
 Class
 ~~~~~
 
-.. autoclass:: pytest.Class()
+.. autoclass:: testrunner.Class()
     :members:
     :show-inheritance:
 
 Function
 ~~~~~~~~
 
-.. autoclass:: pytest.Function()
+.. autoclass:: testrunner.Function()
     :members:
     :show-inheritance:
 
 FunctionDefinition
 ~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: _pytest.python.FunctionDefinition()
+.. autoclass:: _testrunner.python.FunctionDefinition()
     :members:
     :show-inheritance:
 
@@ -949,24 +949,24 @@ Objects
 -------
 
 Objects accessible from :ref:`fixtures <fixture>` or :ref:`hooks <hook-reference>`
-or importable from ``pytest``.
+or importable from ``testrunner``.
 
 Approx
 ~~~~~~
 
-.. autoclass:: pytest.Approx()
+.. autoclass:: testrunner.Approx()
     :members:
 
 CallInfo
 ~~~~~~~~
 
-.. autoclass:: pytest.CallInfo()
+.. autoclass:: testrunner.CallInfo()
     :members:
 
 CollectReport
 ~~~~~~~~~~~~~
 
-.. autoclass:: pytest.CollectReport()
+.. autoclass:: testrunner.CollectReport()
     :members:
     :show-inheritance:
     :inherited-members:
@@ -974,85 +974,85 @@ CollectReport
 Config
 ~~~~~~
 
-.. autoclass:: pytest.Config()
+.. autoclass:: testrunner.Config()
     :members:
 
 Dir
 ~~~
 
-.. autoclass:: pytest.Dir()
+.. autoclass:: testrunner.Dir()
     :members:
 
 Directory
 ~~~~~~~~~
 
-.. autoclass:: pytest.Directory()
+.. autoclass:: testrunner.Directory()
     :members:
 
 ExceptionInfo
 ~~~~~~~~~~~~~
 
-.. autoclass:: pytest.ExceptionInfo()
+.. autoclass:: testrunner.ExceptionInfo()
     :members:
 
 
 ExitCode
 ~~~~~~~~
 
-.. autoclass:: pytest.ExitCode
+.. autoclass:: testrunner.ExitCode
     :members:
 
 
 FixtureDef
 ~~~~~~~~~~
 
-.. autoclass:: pytest.FixtureDef()
+.. autoclass:: testrunner.FixtureDef()
     :members:
     :show-inheritance:
 
 MarkDecorator
 ~~~~~~~~~~~~~
 
-.. autoclass:: pytest.MarkDecorator()
+.. autoclass:: testrunner.MarkDecorator()
     :members:
 
 
 MarkGenerator
 ~~~~~~~~~~~~~
 
-.. autoclass:: pytest.MarkGenerator()
+.. autoclass:: testrunner.MarkGenerator()
     :members:
 
 
 Mark
 ~~~~
 
-.. autoclass:: pytest.Mark()
+.. autoclass:: testrunner.Mark()
     :members:
 
 
 Metafunc
 ~~~~~~~~
 
-.. autoclass:: pytest.Metafunc()
+.. autoclass:: testrunner.Metafunc()
     :members:
 
 Parser
 ~~~~~~
 
-.. autoclass:: pytest.Parser()
+.. autoclass:: testrunner.Parser()
     :members:
 
 OptionGroup
 ~~~~~~~~~~~
 
-.. autoclass:: pytest.OptionGroup()
+.. autoclass:: testrunner.OptionGroup()
     :members:
 
-PytestPluginManager
+TestrunnerPluginManager
 ~~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: pytest.PytestPluginManager()
+.. autoclass:: testrunner.TestrunnerPluginManager()
     :members:
     :undoc-members:
     :inherited-members:
@@ -1061,7 +1061,7 @@ PytestPluginManager
 RaisesExc
 ~~~~~~~~~
 
-.. autoclass:: pytest.RaisesExc()
+.. autoclass:: testrunner.RaisesExc()
     :members:
 
     .. autoattribute:: fail_reason
@@ -1070,7 +1070,7 @@ RaisesGroup
 ~~~~~~~~~~~
 **Tutorial**: :ref:`assert-matching-exception-groups`
 
-.. autoclass:: pytest.RaisesGroup()
+.. autoclass:: testrunner.RaisesGroup()
     :members:
 
     .. autoattribute:: fail_reason
@@ -1078,14 +1078,14 @@ RaisesGroup
 TerminalReporter
 ~~~~~~~~~~~~~~~~
 
-.. autoclass:: pytest.TerminalReporter
+.. autoclass:: testrunner.TerminalReporter
     :members:
     :inherited-members:
 
 TestReport
 ~~~~~~~~~~
 
-.. autoclass:: pytest.TestReport()
+.. autoclass:: testrunner.TestReport()
     :members:
     :show-inheritance:
     :inherited-members:
@@ -1093,7 +1093,7 @@ TestReport
 TestShortLogReport
 ~~~~~~~~~~~~~~~~~~
 
-.. autoclass:: pytest.TestShortLogReport()
+.. autoclass:: testrunner.TestShortLogReport()
     :members:
 
 Result
@@ -1104,11 +1104,11 @@ Result object used within :ref:`hook wrappers <hookwrapper>`, see :py:class:`Res
 Stash
 ~~~~~
 
-.. autoclass:: pytest.Stash
+.. autoclass:: testrunner.Stash
     :special-members: __setitem__, __getitem__, __delitem__, __contains__, __len__
     :members:
 
-.. autoclass:: pytest.StashKey
+.. autoclass:: testrunner.StashKey
     :show-inheritance:
     :members:
 
@@ -1116,7 +1116,7 @@ Stash
 Global Variables
 ----------------
 
-pytest treats some global variables in a special manner when defined in a test module or
+testrunner treats some global variables in a special manner when defined in a test module or
 ``conftest.py`` files.
 
 
@@ -1145,7 +1145,7 @@ contain glob patterns.
   collect_ignore_glob = ["*_ignore.py"]
 
 
-.. globalvar:: pytest_plugins
+.. globalvar:: testrunner_plugins
 
 **Tutorial**: :ref:`available installable plugins`
 
@@ -1155,18 +1155,18 @@ Each entry can be the name of an importable module or the entry point name of an
 
 .. code-block:: python
 
-    pytest_plugins = "myapp.testsupport.myplugin"
+    testrunner_plugins = "myapp.testsupport.myplugin"
 
 .. code-block:: python
 
-    pytest_plugins = ("myapp.testsupport.tools", "myapp.testsupport.regression")
+    testrunner_plugins = ("myapp.testsupport.tools", "myapp.testsupport.regression")
 
 .. versionchanged:: 9.2
    Entry point names of installed plugins are now also accepted, in addition
    to importable module names.
 
 
-.. globalvar:: pytestmark
+.. globalvar:: _testrunner_mark
 
 **Tutorial**: :ref:`scoped-marking`
 
@@ -1175,70 +1175,70 @@ test functions and methods. Can be either a single mark or a list of marks (appl
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
-    pytestmark = pytest.mark.webtest
+    _testrunner_mark = testrunner.mark.webtest
 
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
-    pytestmark = [pytest.mark.integration, pytest.mark.slow]
+    _testrunner_mark = [testrunner.mark.integration, testrunner.mark.slow]
 
 
 Environment Variables
 ---------------------
 
-Environment variables that can be used to change pytest's behavior.
+Environment variables that can be used to change testrunner's behavior.
 
 .. envvar:: CI
 
-   When set to a non-empty value, pytest acknowledges that it is running in a CI process. See also :ref:`ci-pipelines`.
+   When set to a non-empty value, testrunner acknowledges that it is running in a CI process. See also :ref:`ci-pipelines`.
 
 .. envvar:: BUILD_NUMBER
 
-   When set to a non-empty value, pytest acknowledges that it is running in a CI process. Alternative to :envvar:`CI`. See also :ref:`ci-pipelines`.
+   When set to a non-empty value, testrunner acknowledges that it is running in a CI process. Alternative to :envvar:`CI`. See also :ref:`ci-pipelines`.
 
-.. envvar:: PYTEST_ADDOPTS
+.. envvar:: TESTRUNNER_ADDOPTS
 
    This contains a command-line (parsed by the py:mod:`shlex` module) that will be **prepended** to the command line given
    by the user, see :ref:`adding default options` for more information.
 
-.. envvar:: PYTEST_VERSION
+.. envvar:: TESTRUNNER_VERSION
 
-   This environment variable is defined at the start of the pytest session and is undefined afterwards.
-   It contains the value of ``pytest.__version__``, and among other things can be used to easily check if a code is running from within a pytest run.
+   This environment variable is defined at the start of the testrunner session and is undefined afterwards.
+   It contains the value of ``testrunner.__version__``, and among other things can be used to easily check if a code is running from within a testrunner run.
 
-.. envvar:: PYTEST_CURRENT_TEST
+.. envvar:: TESTRUNNER_CURRENT_TEST
 
-   This is not meant to be set by users, but is set by pytest internally with the name of the current test so other
-   processes can inspect it, see :ref:`pytest current test env` for more information.
+   This is not meant to be set by users, but is set by testrunner internally with the name of the current test so other
+   processes can inspect it, see :ref:`testrunner current test env` for more information.
 
-.. envvar:: PYTEST_DEBUG
+.. envvar:: TESTRUNNER_DEBUG
 
-   When set, pytest will print tracing and debug information.
+   When set, testrunner will print tracing and debug information.
 
-.. envvar:: PYTEST_DEBUG_TEMPROOT
+.. envvar:: TESTRUNNER_DEBUG_TEMPROOT
 
    Root for temporary directories produced by fixtures like :fixture:`tmp_path`
    as discussed in :ref:`temporary directory location and retention`.
 
-.. envvar:: PYTEST_DISABLE_PLUGIN_AUTOLOAD
+.. envvar:: TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD
 
    When set, disables plugin auto-loading through :std:doc:`entry point packaging
    metadata <packaging:guides/creating-and-discovering-plugins>`. Only plugins
-   explicitly specified in :envvar:`PYTEST_PLUGINS` or with :option:`-p` will be loaded.
+   explicitly specified in :envvar:`TESTRUNNER_PLUGINS` or with :option:`-p` will be loaded.
    See also :ref:`--disable-plugin-autoload <disable_plugin_autoload>`.
 
-.. envvar:: PYTEST_PLUGINS
+.. envvar:: TESTRUNNER_PLUGINS
 
    Contains comma-separated list of modules or plugin entry point names that
    should be loaded as plugins:
 
    .. code-block:: bash
 
-       export PYTEST_PLUGINS=mymodule.plugin,xdist
+       export TESTRUNNER_PLUGINS=mymodule.plugin,xdist
 
    See also :option:`-p`.
 
@@ -1246,38 +1246,38 @@ Environment variables that can be used to change pytest's behavior.
       Entry point names of installed plugins are now also accepted, in
       addition to importable module names.
 
-.. envvar:: PYTEST_THEME
+.. envvar:: TESTRUNNER_THEME
 
    Sets a `pygment style <https://pygments.org/docs/styles/>`_ to use for the code output.
 
-.. envvar:: PYTEST_THEME_MODE
+.. envvar:: TESTRUNNER_THEME_MODE
 
-   Sets the :envvar:`PYTEST_THEME` to be either *dark* or *light*.
+   Sets the :envvar:`TESTRUNNER_THEME` to be either *dark* or *light*.
 
 .. envvar:: PY_COLORS
 
-   When set to ``1``, pytest will use color in terminal output.
-   When set to ``0``, pytest will not use color.
+   When set to ``1``, testrunner will use color in terminal output.
+   When set to ``0``, testrunner will not use color.
    ``PY_COLORS`` takes precedence over ``NO_COLOR`` and ``FORCE_COLOR``.
 
 .. envvar:: NO_COLOR
 
-   When set to a non-empty string (regardless of value), pytest will not use color in terminal output.
+   When set to a non-empty string (regardless of value), testrunner will not use color in terminal output.
    ``PY_COLORS`` takes precedence over ``NO_COLOR``, which takes precedence over ``FORCE_COLOR``.
    See `no-color.org <https://no-color.org/>`__ for other libraries supporting this community standard.
 
 .. envvar:: FORCE_COLOR
 
-   When set to a non-empty string (regardless of value), pytest will use color in terminal output.
+   When set to a non-empty string (regardless of value), testrunner will use color in terminal output.
    ``PY_COLORS`` and ``NO_COLOR`` take precedence over ``FORCE_COLOR``.
 
 Exceptions
 ----------
 
-.. autoexception:: pytest.UsageError()
+.. autoexception:: testrunner.UsageError()
     :show-inheritance:
 
-.. autoexception:: pytest.FixtureLookupError()
+.. autoexception:: testrunner.FixtureLookupError()
     :show-inheritance:
 
 .. _`warnings ref`:
@@ -1287,43 +1287,43 @@ Warnings
 
 Custom warnings generated in some situations such as improper usage or deprecated features.
 
-.. autoclass:: pytest.PytestWarning
+.. autoclass:: testrunner.TestrunnerWarning
    :show-inheritance:
 
-.. autoclass:: pytest.PytestApproxDecimalToleranceWarning
+.. autoclass:: testrunner.TestrunnerApproxDecimalToleranceWarning
    :show-inheritance:
 
-.. autoclass:: pytest.PytestAssertRewriteWarning
+.. autoclass:: testrunner.TestrunnerAssertRewriteWarning
    :show-inheritance:
 
-.. autoclass:: pytest.PytestCacheWarning
+.. autoclass:: testrunner.TestrunnerCacheWarning
    :show-inheritance:
 
-.. autoclass:: pytest.PytestCollectionWarning
+.. autoclass:: testrunner.TestrunnerCollectionWarning
    :show-inheritance:
 
-.. autoclass:: pytest.PytestConfigWarning
+.. autoclass:: testrunner.TestrunnerConfigWarning
    :show-inheritance:
 
-.. autoclass:: pytest.PytestDeprecationWarning
+.. autoclass:: testrunner.TestrunnerDeprecationWarning
    :show-inheritance:
 
-.. autoclass:: pytest.PytestExperimentalApiWarning
+.. autoclass:: testrunner.TestrunnerExperimentalApiWarning
    :show-inheritance:
 
-.. autoclass:: pytest.PytestReturnNotNoneWarning
+.. autoclass:: testrunner.TestrunnerReturnNotNoneWarning
   :show-inheritance:
 
-.. autoclass:: pytest.PytestRemovedIn10Warning
+.. autoclass:: testrunner.TestrunnerRemovedIn10Warning
   :show-inheritance:
 
-.. autoclass:: pytest.PytestUnknownMarkWarning
+.. autoclass:: testrunner.TestrunnerUnknownMarkWarning
    :show-inheritance:
 
-.. autoclass:: pytest.PytestUnraisableExceptionWarning
+.. autoclass:: testrunner.TestrunnerUnraisableExceptionWarning
    :show-inheritance:
 
-.. autoclass:: pytest.PytestUnhandledThreadExceptionWarning
+.. autoclass:: testrunner.TestrunnerUnhandledThreadExceptionWarning
    :show-inheritance:
 
 
@@ -1335,21 +1335,21 @@ Consult the :ref:`internal-warnings` section in the documentation for more infor
 Configuration Options
 ---------------------
 
-Here is a list of builtin configuration options that may be written in a ``pytest.ini`` (or ``.pytest.ini``),
+Here is a list of builtin configuration options that may be written in a ``testrunner.ini`` (or ``.testrunner.ini``),
 ``pyproject.toml``, ``tox.ini``, or ``setup.cfg`` file, usually located at the root of your repository.
 
 To see each file format in detail, see :ref:`config file formats`.
 
 .. warning::
     Usage of ``setup.cfg`` is not recommended except for very simple use cases. ``.cfg``
-    files use a different parser than ``pytest.ini`` and ``tox.ini`` which might cause hard to track
+    files use a different parser than ``testrunner.ini`` and ``tox.ini`` which might cause hard to track
     down problems.
-    When possible, it is recommended to use the latter files, or ``pytest.toml`` or ``pyproject.toml``, to hold your pytest configuration.
+    When possible, it is recommended to use the latter files, or ``testrunner.toml`` or ``pyproject.toml``, to hold your testrunner configuration.
 
 Configuration options may be overwritten in the command-line by using ``-o/--override-ini``, which can also be
 passed multiple times. The expected format is ``name=value``. For example::
 
-   pytest -o console_output_style=classic -o cache_dir=/tmp/mycache
+   testrunner -o console_output_style=classic -o cache_dir=/tmp/mycache
 
 
 .. confval:: addopts
@@ -1360,20 +1360,20 @@ passed multiple times. The expected format is ``name=value``. For example::
 
    .. code-block:: toml
 
-        # content of pytest.toml
-        [pytest]
+        # content of testrunner.toml
+        [testrunner]
         addopts = ["--maxfail=2", "-rf"]  # exit after 2 failures, report fail info
 
-   issuing ``pytest test_hello.py`` actually means:
+   issuing ``testrunner test_hello.py`` actually means:
 
    .. code-block:: bash
 
-        pytest --maxfail=2 -rf test_hello.py
+        testrunner --maxfail=2 -rf test_hello.py
 
 
 .. confval:: cache_dir
    :type: ``str``
-   :default: ``".pytest_cache"``
+   :default: ``".testrunner_cache"``
 
    Sets the directory where the cache plugin's content is stored.
    Directory may be relative or absolute path. If setting relative path, then directory is created
@@ -1387,24 +1387,24 @@ passed multiple times. The expected format is ``name=value``. For example::
 
    .. versionadded:: 8.4
 
-   Setting this to ``false`` will make pytest collect classes/functions from test
+   Setting this to ``false`` will make testrunner collect classes/functions from test
    files **only** if they are defined in that file (as opposed to imported there).
 
    .. tab:: toml
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             collect_imported_tests = false
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             collect_imported_tests = false
 
-   pytest traditionally collects classes/functions in the test module namespace even if they are imported from another file.
+   testrunner traditionally collects classes/functions in the test module namespace even if they are imported from another file.
 
    For example:
 
@@ -1420,7 +1420,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        def test_testament(): ...
 
-   In this scenario, with the default options, pytest will collect the class `Testament` from `tests/test_testament.py` because it starts with `Test`, even though in this case it is a production class being imported in the test module namespace.
+   In this scenario, with the default options, testrunner will collect the class `Testament` from `tests/test_testament.py` because it starts with `Test`, even though in this case it is a production class being imported in the test module namespace.
 
    Set ``collected_imported_tests`` to ``false`` in the configuration file prevents that.
 
@@ -1428,7 +1428,7 @@ passed multiple times. The expected format is ``name=value``. For example::
    :type: ``bool``
    :default: ``false``
 
-   Controls if pytest should attempt to identify `namespace packages <https://packaging.python.org/en/latest/guides/packaging-namespace-packages>`__
+   Controls if testrunner should attempt to identify `namespace packages <https://packaging.python.org/en/latest/guides/packaging-namespace-packages>`__
    when collecting Python modules.
 
    Set to ``True`` if the package you are testing is part of a namespace package.
@@ -1438,7 +1438,7 @@ passed multiple times. The expected format is ``name=value``. For example::
    are supported, with no plans to support `legacy namespace packages <https://packaging.python.org/en/latest/guides/packaging-namespace-packages/#legacy-namespace-packages>`__.
 
    For best results when using `consider_namespace_packages`,
-   pytest needs to be able to import your namespace packages.
+   testrunner needs to be able to import your namespace packages.
    This is best achieved by installing the packages in your environment,
    most commonly in `"editable" mode <https://packaging.python.org/en/latest/guides/distributing-packages-using-setuptools/#working-in-development-mode>`_.
    If you can't install the packages, consider adding the namespace root paths to :confval:`pythonpath`.
@@ -1451,8 +1451,8 @@ passed multiple times. The expected format is ``name=value``. For example::
 
    Sets the console output style while running tests:
 
-   * ``classic``: classic pytest output.
-   * ``progress``: like classic pytest output, but with a progress indicator.
+   * ``classic``: classic testrunner output.
+   * ``progress``: like classic testrunner output, but with a progress indicator.
    * ``progress-even-when-capture-no``: allows the use of the progress indicator even when ``capture=no``.
    * ``count``: like progress, but shows progress as the number of tests completed instead of a percent.
    * ``times``: show tests duration.
@@ -1464,14 +1464,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             console_output_style = "classic"
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             console_output_style = classic
 
 
@@ -1481,7 +1481,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
    .. versionadded:: 4.4
 
-   pytest by default escapes any non-ascii characters used in unicode strings
+   testrunner by default escapes any non-ascii characters used in unicode strings
    for the parametrization because it has several downsides.
    If however you would like to use unicode strings in parametrization
    and see them in the terminal as is (non-escaped), use this option
@@ -1491,14 +1491,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-           [pytest]
+           [testrunner]
            disable_test_id_escaping_and_forfeit_all_rights_to_community_support = true
 
    .. tab:: ini
 
        .. code-block:: ini
 
-           [pytest]
+           [testrunner]
            disable_test_id_escaping_and_forfeit_all_rights_to_community_support = true
 
    Keep in mind however that this might cause unwanted side effects and
@@ -1515,9 +1515,9 @@ passed multiple times. The expected format is ``name=value``. For example::
    .. versionadded:: 9.1
 
    Strategy for handling long ``str`` or ``bytes`` parameter values when
-   auto-generating test IDs for ``@pytest.mark.parametrize``. This only
+   auto-generating test IDs for ``@testrunner.mark.parametrize``. This only
    affects auto-generated IDs — explicit IDs set via ``ids=[...]`` or
-   ``pytest.param(..., id=...)`` are never affected.
+   ``testrunner.param(..., id=...)`` are never affected.
 
    Available strategies:
 
@@ -1543,14 +1543,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-           [pytest]
+           [testrunner]
            parametrize_long_str_id_strategy = "sha256"
 
    .. tab:: ini
 
        .. code-block:: ini
 
-           [pytest]
+           [testrunner]
            parametrize_long_str_id_strategy = sha256
 
    See :ref:`parametrizemark`.
@@ -1560,14 +1560,14 @@ passed multiple times. The expected format is ``name=value``. For example::
    :default: ``"utf-8"``
 
    Default encoding to use to decode text files with docstrings.
-   :ref:`See how pytest handles doctests <doctest>`.
+   :ref:`See how testrunner handles doctests <doctest>`.
 
 
 .. confval:: doctest_optionflags
    :type: ``list[str]``
 
    One or more doctest flag names from the standard ``doctest`` module.
-   :ref:`See how pytest handles doctests <doctest>`.
+   :ref:`See how testrunner handles doctests <doctest>`.
 
 
 .. confval:: empty_parameter_set_mark
@@ -1584,14 +1584,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             empty_parameter_set_mark = "xfail"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             empty_parameter_set_mark = xfail
 
     .. note::
@@ -1604,21 +1604,21 @@ passed multiple times. The expected format is ``name=value``. For example::
    :type: ``bool``
    :default: ``false``
 
-   Enables the :hook:`pytest_assertion_pass` hook.
+   Enables the :hook:`testrunner_assertion_pass` hook.
    Make sure to delete any previously generated ``.pyc`` cache files.
 
    .. tab:: toml
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             enable_assertion_pass_hook = true
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             enable_assertion_pass_hook = true
 
 
@@ -1626,7 +1626,7 @@ passed multiple times. The expected format is ``name=value``. For example::
    :type: ``bool``
    :default: ``false``
 
-   Exit the pytest process after the per-test timeout is reached by passing
+   Exit the testrunner process after the per-test timeout is reached by passing
    `exit=True` to the :func:`faulthandler.dump_traceback_later` function. This
    is particularly useful to avoid wasting CI resources for test suites that
    are prone to putting the main Python interpreter into a deadlock state.
@@ -1635,7 +1635,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             faulthandler_timeout = 5
             faulthandler_exit_on_timeout = true
 
@@ -1643,7 +1643,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             faulthandler_timeout = 5
             faulthandler_exit_on_timeout = true
 
@@ -1661,14 +1661,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             faulthandler_timeout = 5
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             faulthandler_timeout = 5
 
    For more information please refer to :ref:`faulthandler`.
@@ -1685,7 +1685,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             filterwarnings = [
                 'error',
                 'ignore::DeprecationWarning',
@@ -1697,13 +1697,13 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             filterwarnings =
                 error
                 ignore::DeprecationWarning
                 ignore:function ham\(\) should not be used:UserWarning
 
-   This tells pytest to ignore deprecation warnings and turn all other warnings
+   This tells testrunner to ignore deprecation warnings and turn all other warnings
    into errors. For more information please refer to :ref:`warnings`.
 
 
@@ -1715,21 +1715,21 @@ passed multiple times. The expected format is ``name=value``. For example::
         Added support for specifying the value as an integer in TOML configuration.
 
    Maximum number of warnings allowed before the test run is considered a failure.
-   When all tests pass, but the total number of warnings exceeds this value, pytest exits with
-   :class:`pytest.ExitCode` ``MAX_WARNINGS_ERROR`` (code ``6``).
+   When all tests pass, but the total number of warnings exceeds this value, testrunner exits with
+   :class:`testrunner.ExitCode` ``MAX_WARNINGS_ERROR`` (code ``6``).
 
    .. tab:: toml
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             max_warnings = 10
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             max_warnings = 10
 
    Note that :confval:`filtered warnings <filterwarnings>` do not count toward this maximum total.
@@ -1752,14 +1752,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             junit_duration_report = "call"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             junit_duration_report = call
 
 
@@ -1780,14 +1780,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             junit_family = "xunit2"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             junit_family = xunit2
 
 
@@ -1804,14 +1804,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             junit_log_passing_tests = false
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             junit_log_passing_tests = False
 
 
@@ -1836,20 +1836,20 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             junit_logging = "system-out"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             junit_logging = system-out
 
 
 .. confval:: junit_suite_name
     :type: ``str``
-    :default: ``"pytest"``
+    :default: ``"testrunner"``
 
     To set the name of the root test suite xml item, you can configure the ``junit_suite_name`` option in your config file:
 
@@ -1857,14 +1857,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             junit_suite_name = "my_suite"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             junit_suite_name = my_suite
 
 .. confval:: log_auto_indent
@@ -1886,14 +1886,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_auto_indent = "false"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_auto_indent = false
 
     Supports passing kwarg ``extra={"auto_indent": [value]}`` to
@@ -1911,14 +1911,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_cli = true
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_cli = true
 
 .. confval:: log_cli_date_format
@@ -1931,14 +1931,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_cli_date_format = "%Y-%m-%d %H:%M:%S"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_cli_date_format = %Y-%m-%d %H:%M:%S
 
     For more information, see :ref:`live_logs`.
@@ -1953,14 +1953,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_cli_format = "%(asctime)s %(levelname)s %(message)s"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_cli_format = %(asctime)s %(levelname)s %(message)s
 
     For more information, see :ref:`live_logs`.
@@ -1978,7 +1978,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_cli_level = "INFO"
             log_cli_level = "10"
 
@@ -1986,7 +1986,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_cli_level = INFO
             log_cli_level = 10
 
@@ -2003,14 +2003,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_date_format = "%Y-%m-%d %H:%M:%S"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_date_format = %Y-%m-%d %H:%M:%S
 
     For more information, see :ref:`logging`.
@@ -2026,15 +2026,15 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
-            log_file = "logs/pytest-logs.txt"
+            [testrunner]
+            log_file = "logs/testrunner-logs.txt"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
-            log_file = logs/pytest-logs.txt
+            [testrunner]
+            log_file = logs/testrunner-logs.txt
 
     For more information, see :ref:`logging`.
 
@@ -2049,14 +2049,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_file_date_format = "%Y-%m-%d %H:%M:%S"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_file_date_format = %Y-%m-%d %H:%M:%S
 
     For more information, see :ref:`logging`.
@@ -2071,14 +2071,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_file_format = "%(asctime)s %(levelname)s %(message)s"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_file_format = %(asctime)s %(levelname)s %(message)s
 
     For more information, see :ref:`logging`.
@@ -2094,7 +2094,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_file_level = "INFO"
             log_cli_level = "10"
 
@@ -2102,7 +2102,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_file_level = INFO
             log_cli_level = 10
 
@@ -2120,14 +2120,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_file_mode = "a"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_file_mode = a
 
     For more information, see :ref:`logging`.
@@ -2143,14 +2143,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_format = "%(asctime)s %(levelname)s %(message)s"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_format = %(asctime)s %(levelname)s %(message)s
 
     For more information, see :ref:`logging`.
@@ -2168,7 +2168,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             log_level = "INFO"
             log_cli_level = "10"
 
@@ -2176,7 +2176,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             log_level = INFO
             log_cli_level = 10
 
@@ -2187,7 +2187,7 @@ passed multiple times. The expected format is ``name=value``. For example::
     :type: ``list[str]``
 
     When the :confval:`strict_markers` configuration option is set,
-    only known markers - defined in code by core pytest or some plugin - are allowed.
+    only known markers - defined in code by core testrunner or some plugin - are allowed.
 
     You can list additional markers in this setting to add them to the whitelist,
     in which case you probably want to set :confval:`strict_markers` to ``true``
@@ -2197,7 +2197,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             addopts = ["--strict-markers"]
             markers = ["slow", "serial"]
 
@@ -2205,7 +2205,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             strict_markers = true
             markers =
                 slow
@@ -2215,21 +2215,21 @@ passed multiple times. The expected format is ``name=value``. For example::
 .. confval:: minversion
    :type: ``str``
 
-   Specifies a minimal pytest version required for running tests.
+   Specifies a minimal testrunner version required for running tests.
 
    .. tab:: toml
 
        .. code-block:: toml
 
-            [pytest]
-            minversion = 3.0  # will fail if we run with pytest-2.8
+            [testrunner]
+            minversion = 3.0  # will fail if we run with testrunner-2.8
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
-            minversion = 3.0  # will fail if we run with pytest-2.8
+            [testrunner]
+            minversion = 3.0  # will fail if we run with testrunner-2.8
 
 
 .. confval:: norecursedirs
@@ -2253,20 +2253,20 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             norecursedirs = [".svn", "_build", "tmp*"]
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             norecursedirs = .svn _build tmp*
 
-   This would tell ``pytest`` to not look into typical subversion or
+   This would tell ``testrunner`` to not look into typical subversion or
    sphinx-build directories or into any ``tmp`` prefixed directory.
 
-   Additionally, ``pytest`` will attempt to intelligently identify and ignore
+   Additionally, ``testrunner`` will attempt to intelligently identify and ignore
    a virtualenv.  Any directory deemed to be the root of a virtual environment
    will not be considered during test collection unless
    :option:`--collect-in-virtualenv` is given.  Note also that ``norecursedirs``
@@ -2282,7 +2282,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
    One or more name prefixes or glob-style patterns determining which classes
    are considered for test collection. Search for multiple glob patterns by
-   adding a space between patterns. By default, pytest will consider any
+   adding a space between patterns. By default, testrunner will consider any
    class prefixed with ``Test`` as a test collection.  Here is an example of how
    to collect tests from classes that end in ``Suite``:
 
@@ -2290,14 +2290,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             python_classes = ["*Suite"]
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             python_classes = *Suite
 
    Note that ``unittest.TestCase`` derived classes are always collected
@@ -2317,21 +2317,21 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             python_files = ["test_*.py", "check_*.py", "example_*.py"]
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             python_files = test_*.py check_*.py example_*.py
 
        Or one per line:
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             python_files =
                 test_*.py
                 check_*.py
@@ -2345,7 +2345,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
    One or more name prefixes or glob-patterns determining which test functions
    and methods are considered tests. Search for multiple glob patterns by
-   adding a space between patterns. By default, pytest will consider any
+   adding a space between patterns. By default, testrunner will consider any
    function prefixed with ``test`` as a test.  Here is an example of how
    to collect test functions and methods that end in ``_test``:
 
@@ -2353,14 +2353,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             python_functions = ["*_test"]
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             python_functions = *_test
 
    Note that this has no effect on methods that live on a ``unittest.TestCase``
@@ -2384,21 +2384,21 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             pythonpath = ["src1", "src2"]
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             pythonpath = src1 src2
 
 
 .. confval:: required_plugins
    :type: ``list[str]``
 
-   A space separated list of plugins that must be present for pytest to run.
+   A space separated list of plugins that must be present for testrunner to run.
    Plugins can be listed with or without version specifiers directly following
    their name. Whitespace between different version specifiers is not allowed.
    If any one of the plugins is not found, emit an error.
@@ -2407,15 +2407,15 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-           [pytest]
-           required_plugins = ["pytest-django>=3.0.0,<4.0.0", "pytest-html", "pytest-xdist>=1.0.0"]
+           [testrunner]
+           required_plugins = ["testrunner-django>=3.0.0,<4.0.0", "testrunner-html", "testrunner-xdist>=1.0.0"]
 
    .. tab:: ini
 
        .. code-block:: ini
 
-           [pytest]
-           required_plugins = pytest-django>=3.0.0,<4.0.0 pytest-html pytest-xdist>=1.0.0
+           [testrunner]
+           required_plugins = testrunner-django>=3.0.0,<4.0.0 testrunner-html testrunner-xdist>=1.0.0
 
 
 .. confval:: strict
@@ -2434,22 +2434,22 @@ passed multiple times. The expected format is ``name=value``. For example::
     If you explicitly set an individual strictness option, it takes precedence over ``strict``.
 
     .. note::
-        If pytest adds new strictness options in the future, they will also be enabled in strict mode.
-        Therefore, you should only enable strict mode if you use a pinned/locked version of pytest,
+        If testrunner adds new strictness options in the future, they will also be enabled in strict mode.
+        Therefore, you should only enable strict mode if you use a pinned/locked version of testrunner,
         or if you want to proactively adopt new strictness options as they are added.
 
     .. tab:: toml
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             strict = true
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             strict = true
 
     .. versionadded:: 9.0
@@ -2459,20 +2459,20 @@ passed multiple times. The expected format is ``name=value``. For example::
     :type: ``bool``
     :default: ``false``
 
-    If set to ``true``, any warnings encountered while parsing the ``pytest`` section of the configuration file will raise errors.
+    If set to ``true``, any warnings encountered while parsing the ``testrunner`` section of the configuration file will raise errors.
 
     .. tab:: toml
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             strict_config = true
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             strict_config = true
 
     You can also enable this option via the :confval:`strict` option.
@@ -2484,21 +2484,21 @@ passed multiple times. The expected format is ``name=value``. For example::
 
     If set to ``true``, markers not registered in the ``markers`` section of the configuration file will raise errors.
 
-    This applies both to markers applied to tests (e.g. ``@pytest.mark.slow``) and to marker
+    This applies both to markers applied to tests (e.g. ``@testrunner.mark.slow``) and to marker
     names used in :option:`-m` expressions.
 
     .. tab:: toml
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             strict_markers = true
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             strict_markers = true
 
     You can also enable this option via the :confval:`strict` option.
@@ -2508,23 +2508,23 @@ passed multiple times. The expected format is ``name=value``. For example::
     :type: ``bool``
     :default: ``false``
 
-    If set to ``true``, pytest emits an error if it detects non-unique parameter set IDs.
+    If set to ``true``, testrunner emits an error if it detects non-unique parameter set IDs.
 
-    If not set, pytest automatically handles this by adding `0`, `1`, ... to duplicate IDs,
+    If not set, testrunner automatically handles this by adding `0`, `1`, ... to duplicate IDs,
     making them unique.
 
     .. tab:: toml
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             strict_parametrization_ids = true
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             strict_parametrization_ids = true
 
     You can also enable this option via the :confval:`strict` option.
@@ -2533,10 +2533,10 @@ passed multiple times. The expected format is ``name=value``. For example::
 
     .. code-block:: python
 
-        import pytest
+        import testrunner
 
 
-        @pytest.mark.parametrize("letter", ["a", "a"])
+        @testrunner.mark.parametrize("letter", ["a", "a"])
         def test_letter_is_ascii(letter):
             assert letter.isascii()
 
@@ -2546,21 +2546,21 @@ passed multiple times. The expected format is ``name=value``. For example::
 
     .. code-block:: python
 
-        import pytest
+        import testrunner
 
 
-        @pytest.mark.parametrize("letter", ["a", "a"], ids=["a0", "a1"])
+        @testrunner.mark.parametrize("letter", ["a", "a"], ids=["a0", "a1"])
         def test_letter_is_ascii(letter):
             assert letter.isascii()
 
-    See :func:`parametrize <pytest.Metafunc.parametrize>` and :func:`pytest.param` for other ways to set IDs.
+    See :func:`parametrize <testrunner.Metafunc.parametrize>` and :func:`testrunner.param` for other ways to set IDs.
 
 
 .. confval:: strict_xfail
     :type: ``bool``
     :default: ``false``
 
-    If set to ``true``, tests marked with ``@pytest.mark.xfail`` that actually succeed will by default fail the
+    If set to ``true``, tests marked with ``@testrunner.mark.xfail`` that actually succeed will by default fail the
     test suite.
     For more information, see :ref:`xfail strict tutorial`.
 
@@ -2568,14 +2568,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             strict_xfail = true
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             strict_xfail = true
 
     You can also enable this option via the :confval:`strict` option.
@@ -2590,7 +2590,7 @@ passed multiple times. The expected format is ``name=value``. For example::
 
    Sets list of directories that should be searched for tests when
    no specific directories, files or test ids are given in the command line when
-   executing pytest from the :ref:`rootdir <rootdir>` directory.
+   executing testrunner from the :ref:`rootdir <rootdir>` directory.
    File system paths may use shell-style wildcards, including the recursive
    ``**`` pattern.
 
@@ -2601,47 +2601,47 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             testpaths = ["testing", "doc"]
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             testpaths = testing doc
 
    This configuration means that executing:
 
    .. code-block:: console
 
-       pytest
+       testrunner
 
    has the same practical effects as executing:
 
    .. code-block:: console
 
-       pytest testing doc
+       testrunner testing doc
 
 .. confval:: tmp_path_retention_count
    :type: ``str``
    :default: ``"3"``
 
-   How many sessions should pytest keep the `tmp_path` directories,
+   How many sessions should testrunner keep the `tmp_path` directories,
    according to :confval:`tmp_path_retention_policy`.
 
    .. tab:: toml
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             tmp_path_retention_count = "3"
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             tmp_path_retention_count = 3
 
 
@@ -2660,14 +2660,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             tmp_path_retention_policy = "all"
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             tmp_path_retention_policy = all
 
 
@@ -2683,21 +2683,21 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             truncation_limit_chars = 640
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             truncation_limit_chars = 640
 
-   pytest truncates the assert messages to a certain limit by default to prevent comparison with large data to overload the console output.
+   testrunner truncates the assert messages to a certain limit by default to prevent comparison with large data to overload the console output.
 
    .. note::
 
-        If pytest detects it is :ref:`running on CI <ci-pipelines>`, truncation is disabled automatically.
+        If testrunner detects it is :ref:`running on CI <ci-pipelines>`, truncation is disabled automatically.
 
 
 .. confval:: truncation_limit_lines
@@ -2712,42 +2712,42 @@ passed multiple times. The expected format is ``name=value``. For example::
 
        .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             truncation_limit_lines = 8
 
    .. tab:: ini
 
        .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             truncation_limit_lines = 8
 
-   pytest truncates the assert messages to a certain limit by default to prevent comparison with large data to overload the console output.
+   testrunner truncates the assert messages to a certain limit by default to prevent comparison with large data to overload the console output.
 
    .. note::
 
-        If pytest detects it is :ref:`running on CI <ci-pipelines>`, truncation is disabled automatically.
+        If testrunner detects it is :ref:`running on CI <ci-pipelines>`, truncation is disabled automatically.
 
 
 .. confval:: usefixtures
     :type: ``list[str]``
 
     List of fixtures that will be applied to all test functions; this is semantically the same as applying
-    the ``@pytest.mark.usefixtures`` marker to all test functions.
+    the ``@testrunner.mark.usefixtures`` marker to all test functions.
 
 
     .. tab:: toml
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             usefixtures = ["clean_db"]
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             usefixtures =
                 clean_db
 
@@ -2762,14 +2762,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             verbosity_assertions = "2"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             verbosity_assertions = 2
 
     A special value of ``"auto"`` can be used to explicitly use the global verbosity level.
@@ -2779,7 +2779,7 @@ passed multiple times. The expected format is ``name=value``. For example::
     :type: ``"ndiff" | "block"``
     :default: ``"ndiff"``
 
-    Set how pytest renders diffs for string equality assertions.
+    Set how testrunner renders diffs for string equality assertions.
 
     Supported values are:
 
@@ -2790,14 +2790,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             assertion_text_diff_style = "block"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             assertion_text_diff_style = block
 
 
@@ -2811,14 +2811,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             verbosity_subtests = "1"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             verbosity_subtests = 1
 
     A value of ``1`` or higher will show output for **passed** subtests (**failed** subtests are always reported).
@@ -2839,14 +2839,14 @@ passed multiple times. The expected format is ``name=value``. For example::
 
         .. code-block:: toml
 
-            [pytest]
+            [testrunner]
             verbosity_test_cases = "2"
 
     .. tab:: ini
 
         .. code-block:: ini
 
-            [pytest]
+            [testrunner]
             verbosity_test_cases = 2
 
     A special value of ``"auto"`` can be used to explicitly use the global verbosity level.
@@ -2857,13 +2857,13 @@ passed multiple times. The expected format is ``name=value``. For example::
 Command-line Flags
 ------------------
 
-This section documents all command-line options provided by pytest's core plugins.
+This section documents all command-line options provided by testrunner's core plugins.
 
 .. note::
 
     External plugins can add their own command-line options.
-    This reference documents only the options from pytest's core plugins.
-    To see all available options including those from installed plugins, run ``pytest --help``.
+    This reference documents only the options from testrunner's core plugins.
+    To see all available options including those from installed plugins, run ``testrunner --help``.
 
 Test Selection
 ~~~~~~~~~~~~~~
@@ -2875,9 +2875,9 @@ Test Selection
 
     Examples::
 
-        pytest -k "test_method or test_other"  # matches names containing 'test_method' OR 'test_other'
-        pytest -k "not test_method"            # matches names NOT containing 'test_method'
-        pytest -k "not test_method and not test_other"  # excludes both
+        testrunner -k "test_method or test_other"  # matches names containing 'test_method' OR 'test_other'
+        testrunner -k "not test_method"            # matches names NOT containing 'test_method'
+        testrunner -k "not test_method and not test_other"  # excludes both
 
     The matching is case-insensitive.
     Keywords are also matched to classes and functions containing extra names in their ``extra_keyword_matches`` set.
@@ -2891,9 +2891,9 @@ Test Selection
 
     Examples::
 
-        pytest -m slow                  # run tests marked with @pytest.mark.slow
-        pytest -m "not slow"            # run tests NOT marked slow
-        pytest -m "mark1 and not mark2" # run tests marked mark1 but not mark2
+        testrunner -m slow                  # run tests marked with @testrunner.mark.slow
+        testrunner -m "not slow"            # run tests NOT marked slow
+        testrunner -m "mark1 and not mark2" # run tests marked mark1 but not mark2
 
     See :ref:`mark` for more information on markers.
 
@@ -2971,7 +2971,7 @@ Collection
     Try to interpret all arguments as Python packages.
     Useful for running tests of installed packages::
 
-        pytest --pyargs pkg.testing
+        testrunner --pyargs pkg.testing
 
 .. option:: --ignore=PATH
 
@@ -2997,12 +2997,12 @@ Collection
 
 .. option:: --keep-duplicates
 
-    Keep duplicate tests. By default, pytest removes duplicate test items.
+    Keep duplicate tests. By default, testrunner removes duplicate test items.
 
 .. option:: --collect-in-virtualenv
 
     Don't ignore tests in a local virtualenv directory.
-    By default, pytest skips tests in virtualenv directories.
+    By default, testrunner skips tests in virtualenv directories.
 
 .. option:: --continue-on-collection-errors
 
@@ -3057,7 +3057,7 @@ Debugging
 
     Example::
 
-        pytest --pdbcls=IPython.terminal.debugger:TerminalPdb
+        testrunner --pdbcls=IPython.terminal.debugger:TerminalPdb
 
 .. option:: --trace
 
@@ -3075,7 +3075,7 @@ Debugging
 
     Store internal tracing debug information in this log file.
     This file is opened with ``'w'`` and truncated as a result, care advised.
-    Default file name if not specified: ``pytestdebug.log``.
+    Default file name if not specified: ``testrunnerdebug.log``.
 
 .. option:: --trace-config
 
@@ -3089,7 +3089,7 @@ Output and Reporting
     Increase verbosity.
     Can be specified multiple times (e.g., ``-vv``) for even more verbose output.
 
-    See :ref:`pytest.fine_grained_verbosity` for fine-grained control over verbosity.
+    See :ref:`testrunner.fine_grained_verbosity` for fine-grained control over verbosity.
 
 .. option:: -q, --quiet
 
@@ -3119,11 +3119,11 @@ Output and Reporting
 
     Examples::
 
-        pytest -rA           # show all outcomes
-        pytest -rfE          # show only failed and errors (default)
-        pytest -rfs          # show failed and skipped
+        testrunner -rA           # show all outcomes
+        testrunner -rfE          # show only failed and errors (default)
+        testrunner -rfs          # show failed and skipped
 
-    See :ref:`pytest.detailed_failed_tests_usage` for more information.
+    See :ref:`testrunner.detailed_failed_tests_usage` for more information.
 
 .. option:: --no-header
 
@@ -3248,7 +3248,7 @@ Cache
 Warnings
 ~~~~~~~~
 
-.. option:: --disable-pytest-warnings, --disable-warnings
+.. option:: --disable-testrunner-warnings, --disable-warnings
 
     Disable warnings summary.
 
@@ -3259,7 +3259,7 @@ Warnings
 
 .. option:: --max-warnings=NUM
 
-    Exit with :class:`pytest.ExitCode` ``MAX_WARNINGS_ERROR`` (code ``6``) if all the tests pass, but the number
+    Exit with :class:`testrunner.ExitCode` ``MAX_WARNINGS_ERROR`` (code ``6``) if all the tests pass, but the number
     of warnings exceeds the given threshold. By default there is no limit.
     Can also be set via the :confval:`max_warnings` configuration option.
 
@@ -3270,7 +3270,7 @@ Doctest
 
     Run doctests in all .py modules.
 
-    See :ref:`doctest` for more information on using doctests with pytest.
+    See :ref:`doctest` for more information on using doctests with testrunner.
 
 .. option:: --doctest-report
 
@@ -3321,7 +3321,7 @@ Configuration
 
     Example::
 
-        pytest -o strict_xfail=true -o cache_dir=cache
+        testrunner -o strict_xfail=true -o cache_dir=cache
 
 .. option:: --strict-config
 
@@ -3416,14 +3416,14 @@ Plugin and Extension Management
 .. option:: --disable-plugin-autoload
 
     Disable plugin auto-loading through entry point packaging metadata.
-    Only plugins explicitly specified in :option:`-p` or env var :envvar:`PYTEST_PLUGINS` will be loaded.
+    Only plugins explicitly specified in :option:`-p` or env var :envvar:`TESTRUNNER_PLUGINS` will be loaded.
 
 Version and Help
 ~~~~~~~~~~~~~~~~
 
 .. option:: -V, --version
 
-    Display pytest version and information about plugins. When given twice, also display information about plugins.
+    Display testrunner version and information about plugins. When given twice, also display information about plugins.
 
 .. option:: -h, --help
 
@@ -3432,10 +3432,10 @@ Version and Help
 Complete Help Output
 ~~~~~~~~~~~~~~~~~~~~
 
-All the command-line flags can also be obtained by running ``pytest --help``::
+All the command-line flags can also be obtained by running ``testrunner --help``::
 
-    $ pytest --help
-    usage: pytest [options] [file_or_dir] [file_or_dir] [...]
+    $ testrunner --help
+    usage: testrunner [options] [file_or_dir] [file_or_dir] [...]
 
     positional arguments:
       file_or_dir
@@ -3526,7 +3526,7 @@ All the command-line flags can also be obtained by running ``pytest --help``::
                             (p/P), or (A)ll. (w)arnings are enabled by default
                             (see --disable-warnings), 'N' can be used to reset
                             the list. (default: 'fE').
-      --disable-warnings, --disable-pytest-warnings
+      --disable-warnings, --disable-testrunner-warnings
                             Disable warnings summary
       -l, --showlocals      Show locals in tracebacks (disabled by default)
       --no-showlocals       Hide locals in tracebacks (negate --showlocals
@@ -3548,7 +3548,7 @@ All the command-line flags can also be obtained by running ``pytest --help``::
       --junitprefix, --junit-prefix=str
                             Prepend prefix to classnames in junit-xml output
 
-    pytest-warnings:
+    testrunner-warnings:
       -W, --pythonwarnings PYTHONWARNINGS
                             Set which warnings to report, see -W option of
                             Python itself
@@ -3596,7 +3596,7 @@ All the command-line flags can also be obtained by running ``pytest --help``::
                             '$HOME/root_dir'.
       --basetemp=dir        Base temporary directory for this test run.
                             (Warning: this directory is removed if it exists.)
-      -V, --version         Display pytest version and information about
+      -V, --version         Display testrunner version and information about
                             plugins. When given twice, also display information
                             about plugins.
       -h, --help            Show help message and configuration info
@@ -3607,13 +3607,13 @@ All the command-line flags can also be obtained by running ``pytest --help``::
       --disable-plugin-autoload
                             Disable plugin auto-loading through entry point
                             packaging metadata. Only plugins explicitly
-                            specified in -p or env var PYTEST_PLUGINS will be
+                            specified in -p or env var TESTRUNNER_PLUGINS will be
                             loaded.
       --trace-config        Trace considerations of conftest.py files
       --debug=[DEBUG_FILE_NAME]
                             Store internal tracing debug information in this log
                             file. This file is opened with 'w' and truncated as
-                            a result, care advised. Default: pytestdebug.log.
+                            a result, care advised. Default: testrunnerdebug.log.
       -o, --override-ini OVERRIDE_INI
                             Override configuration option with "option=value"
                             style, e.g. `-o strict_xfail=True -o
@@ -3659,12 +3659,12 @@ All the command-line flags can also be obtained by running ``pytest --help``::
                             Disable a logger by name. Can be passed multiple
                             times.
 
-    [pytest] configuration options in the first pytest.toml|pytest.ini|tox.ini|setup.cfg|pyproject.toml file found:
+    [testrunner] configuration options in the first testrunner.toml|testrunner.ini|tox.ini|setup.cfg|pyproject.toml file found:
 
       markers (linelist):   Register new markers for test functions
       empty_parameter_set_mark ('skip' | 'xfail' | 'fail_at_collect'):
                             Default marker for empty parametersets
-      strict_config (bool): Any warnings encountered while parsing the `pytest`
+      strict_config (bool): Any warnings encountered while parsing the `testrunner`
                             section of the configuration file raise errors
       strict_markers (bool):
                             Markers not registered in the `markers` section of
@@ -3725,7 +3725,7 @@ All the command-line flags can also be obtained by running ``pytest --help``::
                             Controls which directories created by the `tmp_path`
                             fixture are kept around, based on test outcome.
       enable_assertion_pass_hook (bool):
-                            Enables the pytest_assertion_pass hook. Make sure to
+                            Enables the testrunner_assertion_pass hook. Make sure to
                             delete any previously generated pyc cache files.
       truncation_limit_lines (int | string):
                             Set threshold of LINES after which truncation will
@@ -3734,7 +3734,7 @@ All the command-line flags can also be obtained by running ``pytest --help``::
                             Set threshold of CHARS after which truncation will
                             take effect
       assertion_text_diff_style ('ndiff' | 'block'):
-                            Choose how pytest renders diffs for string equality
+                            Choose how testrunner renders diffs for string equality
                             assertions
       verbosity_assertions (string):
                             Specify a verbosity level for assertions, overriding
@@ -3790,23 +3790,23 @@ All the command-line flags can also be obtained by running ``pytest --help``::
                             will generate output for passed subtests. Failed
                             subtests are always reported.
       addopts (args):       Extra command line options
-      minversion (string):  Minimally required pytest version
+      minversion (string):  Minimally required testrunner version
       pythonpath (paths):   Add paths to sys.path
       required_plugins (args):
-                            Plugins that must be present for pytest to run
+                            Plugins that must be present for testrunner to run
 
     Environment variables:
-      CI                       When set to a non-empty value, pytest knows it is running in a CI process and does not truncate summary info
+      CI                       When set to a non-empty value, testrunner knows it is running in a CI process and does not truncate summary info
       BUILD_NUMBER             Equivalent to CI
-      PYTEST_ADDOPTS           Extra command line options
-      PYTEST_PLUGINS           Comma-separated plugins to load during startup
-      PYTEST_DISABLE_PLUGIN_AUTOLOAD Set to disable plugin auto-loading
-      PYTEST_DEBUG             Set to enable debug tracing of pytest's internals
-      PYTEST_DEBUG_TEMPROOT    Override the system temporary directory
-      PYTEST_THEME             The Pygments style to use for code output
-      PYTEST_THEME_MODE        Set the PYTEST_THEME to be either 'dark' or 'light'
+      TESTRUNNER_ADDOPTS           Extra command line options
+      TESTRUNNER_PLUGINS           Comma-separated plugins to load during startup
+      TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD Set to disable plugin auto-loading
+      TESTRUNNER_DEBUG             Set to enable debug tracing of testrunner's internals
+      TESTRUNNER_DEBUG_TEMPROOT    Override the system temporary directory
+      TESTRUNNER_THEME             The Pygments style to use for code output
+      TESTRUNNER_THEME_MODE        Set the TESTRUNNER_THEME to be either 'dark' or 'light'
 
 
-    to see available markers type: pytest --markers
-    to see available fixtures type: pytest --fixtures
+    to see available markers type: testrunner --markers
+    to see available fixtures type: testrunner --fixtures
     (shown according to specified file_or_dir or current dir if not specified; fixtures with leading '_' are only shown with the '-v' option

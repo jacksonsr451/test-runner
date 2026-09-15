@@ -1,1 +1,1 @@
-Configured warning filters now apply to warnings emitted by ``pytest_configure`` hooks.
+Configured warning filters now apply to warnings emitted by ``testrunner_configure`` hooks.

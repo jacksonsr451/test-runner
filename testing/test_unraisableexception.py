@@ -4,19 +4,19 @@ import gc
 import sys
 from unittest import mock
 
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
 PYPY = hasattr(sys, "pypy_version_info")
 
 UNRAISABLE_LINE = (
     (
-        "  * PytestUnraisableExceptionWarning: Exception ignored while calling "
+        "  * TestrunnerUnraisableExceptionWarning: Exception ignored while calling "
         "deallocator <function BrokenDel.__del__ at *>: None"
     )
     if sys.version_info >= (3, 14)
-    else "  * PytestUnraisableExceptionWarning: Exception ignored in: <function BrokenDel.__del__ at *>"
+    else "  * TestrunnerUnraisableExceptionWarning: Exception ignored in: <function BrokenDel.__del__ at *>"
 )
 
 TRACEMALLOC_LINES = (
@@ -29,10 +29,10 @@ TRACEMALLOC_LINES = (
 )
 
 
-@pytest.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
-@pytest.mark.filterwarnings("default::pytest.PytestUnraisableExceptionWarning")
-def test_unraisable(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
+@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnraisableExceptionWarning")
+def test_unraisable(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
         class BrokenDel:
             def __del__(self):
@@ -45,7 +45,7 @@ def test_unraisable(pytester: Pytester) -> None:
         def test_2(): pass
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
     result.assert_outcomes(passed=2, warnings=1)
     result.stdout.fnmatch_lines(
@@ -58,23 +58,23 @@ def test_unraisable(pytester: Pytester) -> None:
             "  ValueError: del is broken",
             "  ",
             *TRACEMALLOC_LINES,
-            "    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))",
+            "    warnings.warn(testrunner.TestrunnerUnraisableExceptionWarning(msg))",
         ]
     )
 
 
-@pytest.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
-@pytest.mark.filterwarnings("default::pytest.PytestUnraisableExceptionWarning")
-def test_unraisable_in_setup(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
+@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnraisableExceptionWarning")
+def test_unraisable_in_setup(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
-        import pytest
+        import testrunner
 
         class BrokenDel:
             def __del__(self):
                 raise ValueError("del is broken")
 
-        @pytest.fixture
+        @testrunner.fixture
         def broken_del():
             obj = BrokenDel()
             del obj
@@ -83,7 +83,7 @@ def test_unraisable_in_setup(pytester: Pytester) -> None:
         def test_2(): pass
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
     result.assert_outcomes(passed=2, warnings=1)
     result.stdout.fnmatch_lines(
@@ -96,23 +96,23 @@ def test_unraisable_in_setup(pytester: Pytester) -> None:
             "  ValueError: del is broken",
             "  ",
             *TRACEMALLOC_LINES,
-            "    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))",
+            "    warnings.warn(testrunner.TestrunnerUnraisableExceptionWarning(msg))",
         ]
     )
 
 
-@pytest.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
-@pytest.mark.filterwarnings("default::pytest.PytestUnraisableExceptionWarning")
-def test_unraisable_in_teardown(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
+@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnraisableExceptionWarning")
+def test_unraisable_in_teardown(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
-        import pytest
+        import testrunner
 
         class BrokenDel:
             def __del__(self):
                 raise ValueError("del is broken")
 
-        @pytest.fixture
+        @testrunner.fixture
         def broken_del():
             yield
             obj = BrokenDel()
@@ -122,7 +122,7 @@ def test_unraisable_in_teardown(pytester: Pytester) -> None:
         def test_2(): pass
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
     result.assert_outcomes(passed=2, warnings=1)
     result.stdout.fnmatch_lines(
@@ -135,14 +135,14 @@ def test_unraisable_in_teardown(pytester: Pytester) -> None:
             "  ValueError: del is broken",
             "  ",
             *TRACEMALLOC_LINES,
-            "    warnings.warn(pytest.PytestUnraisableExceptionWarning(msg))",
+            "    warnings.warn(testrunner.TestrunnerUnraisableExceptionWarning(msg))",
         ]
     )
 
 
-@pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
-def test_unraisable_warning_error(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnraisableExceptionWarning")
+def test_unraisable_warning_error(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it=f"""
         class BrokenDel:
             def __del__(self) -> None:
@@ -156,14 +156,14 @@ def test_unraisable_warning_error(pytester: Pytester) -> None:
         def test_2(): pass
         """
     )
-    result = pytester.runpytest()
-    assert result.ret == pytest.ExitCode.TESTS_FAILED
+    result = testrunnerer.runtestrunner()
+    assert result.ret == testrunner.ExitCode.TESTS_FAILED
     result.assert_outcomes(passed=1, failed=1)
 
 
-@pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
-def test_unraisable_warning_multiple_errors(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnraisableExceptionWarning")
+def test_unraisable_warning_multiple_errors(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it=f"""
         class BrokenDel:
             def __init__(self, msg: str):
@@ -180,8 +180,8 @@ def test_unraisable_warning_multiple_errors(pytester: Pytester) -> None:
         def test_2(): pass
         """
     )
-    result = pytester.runpytest()
-    assert result.ret == pytest.ExitCode.TESTS_FAILED
+    result = testrunnerer.runtestrunner()
+    assert result.ret == testrunner.ExitCode.TESTS_FAILED
     result.assert_outcomes(passed=1, failed=1)
     result.stdout.fnmatch_lines(
         [
@@ -190,8 +190,8 @@ def test_unraisable_warning_multiple_errors(pytester: Pytester) -> None:
     )
 
 
-def test_unraisable_collection_failure(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_unraisable_collection_failure(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it=f"""
         class BrokenDel:
             def __del__(self):
@@ -210,7 +210,7 @@ def test_unraisable_collection_failure(pytester: Pytester) -> None:
         pass
 
     with mock.patch("traceback.format_exception", side_effect=MyError):
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
     assert result.ret == 1
     result.assert_outcomes(passed=1, failed=1)
     result.stdout.fnmatch_lines(
@@ -227,14 +227,14 @@ def _set_gc_state(enabled: bool) -> bool:
     return was_enabled
 
 
-def test_refcycle_unraisable(pytester: Pytester) -> None:
-    # see: https://github.com/pytest-dev/pytest/issues/10404
-    pytester.makepyfile(
+def test_refcycle_unraisable(testrunnerer: Testrunnerer) -> None:
+    # see: https://github.com/jacksonsr451/test-runner/issues/10404
+    testrunnerer.makepyfile(
         test_it="""
         # Should catch the unraisable exception even if gc is disabled.
         import gc; gc.disable()
 
-        import pytest
+        import testrunner
 
         class BrokenDel:
             def __init__(self):
@@ -248,8 +248,8 @@ def test_refcycle_unraisable(pytester: Pytester) -> None:
         """
     )
 
-    result = pytester.runpytest_subprocess(
-        "-Wdefault::pytest.PytestUnraisableExceptionWarning"
+    result = testrunnerer.runtestrunner_subprocess(
+        "-Wdefault::testrunner.TestrunnerUnraisableExceptionWarning"
     )
 
     assert result.ret == 0
@@ -258,13 +258,13 @@ def test_refcycle_unraisable(pytester: Pytester) -> None:
     result.stderr.fnmatch_lines("ValueError: del is broken")
 
 
-def test_refcycle_unraisable_warning_filter(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_refcycle_unraisable_warning_filter(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
         # Should catch the unraisable exception even if gc is disabled.
         import gc; gc.disable()
 
-        import pytest
+        import testrunner
 
         class BrokenDel:
             def __init__(self):
@@ -278,8 +278,8 @@ def test_refcycle_unraisable_warning_filter(pytester: Pytester) -> None:
         """
     )
 
-    result = pytester.runpytest_subprocess(
-        "-Werror::pytest.PytestUnraisableExceptionWarning"
+    result = testrunnerer.runtestrunner_subprocess(
+        "-Werror::testrunner.TestrunnerUnraisableExceptionWarning"
     )
 
     # TODO: Should be a test failure or error. Currently the exception
@@ -290,34 +290,34 @@ def test_refcycle_unraisable_warning_filter(pytester: Pytester) -> None:
     result.stderr.fnmatch_lines("ValueError: del is broken")
 
 
-def test_create_task_raises_unraisable_warning_filter(pytester: Pytester) -> None:
-    # note that the host pytest warning filter is disabled and the pytester
+def test_create_task_raises_unraisable_warning_filter(testrunnerer: Testrunnerer) -> None:
+    # note that the host testrunner warning filter is disabled and the testrunnerer
     # warning filter applies during config teardown of unraisablehook.
-    # see: https://github.com/pytest-dev/pytest/issues/10404
+    # see: https://github.com/jacksonsr451/test-runner/issues/10404
     # This is a dupe of the above test, but using the exact reproducer from
     # the issue
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         test_it="""
         # Should catch the unraisable exception even if gc is disabled.
         import gc; gc.disable()
 
         import asyncio
-        import pytest
+        import testrunner
 
         async def my_task():
             pass
 
         def test_scheduler_must_be_created_within_running_loop() -> None:
-            with pytest.raises(RuntimeError) as _:
+            with testrunner.raises(RuntimeError) as _:
                 asyncio.create_task(my_task())
         """
     )
 
-    result = pytester.runpytest_subprocess("-Werror")
+    result = testrunnerer.runtestrunner_subprocess("-Werror")
 
     # TODO: Should be a test failure or error. Currently the exception
     # propagates all the way to the top resulting in exit code 1.
-    # -Werror matches the wrapping PytestUnraisableExceptionWarning, so the
+    # -Werror matches the wrapping TestrunnerUnraisableExceptionWarning, so the
     # wrapper propagates; its message embeds the original RuntimeWarning.
     assert result.ret == 1
 
@@ -325,18 +325,18 @@ def test_create_task_raises_unraisable_warning_filter(pytester: Pytester) -> Non
     result.stderr.fnmatch_lines("RuntimeWarning: coroutine 'my_task' was never awaited")
 
 
-def test_refcycle_unraisable_warning_filter_default(pytester: Pytester) -> None:
-    # note this time we use a default warning filter for pytester
+def test_refcycle_unraisable_warning_filter_default(testrunnerer: Testrunnerer) -> None:
+    # note this time we use a default warning filter for testrunnerer
     # and run it in a subprocess, because the warning can only go to the
     # sys.stdout rather than the terminal reporter, which has already
     # finished.
-    # see: https://github.com/pytest-dev/pytest/pull/13057#discussion_r1888396126
-    pytester.makepyfile(
+    # see: https://github.com/jacksonsr451/test-runner/pull/13057#discussion_r1888396126
+    testrunnerer.makepyfile(
         test_it="""
         import gc
         gc.disable()
 
-        import pytest
+        import testrunner
 
         class BrokenDel:
             def __init__(self):
@@ -351,9 +351,9 @@ def test_refcycle_unraisable_warning_filter_default(pytester: Pytester) -> None:
     )
 
     # since we use subprocess we need to disable gc inside test_it
-    result = pytester.runpytest_subprocess("-Wdefault")
+    result = testrunnerer.runtestrunner_subprocess("-Wdefault")
 
-    assert result.ret == pytest.ExitCode.OK
+    assert result.ret == testrunner.ExitCode.OK
 
     # TODO: should be warnings=1, but the outcome has already come out
     # by the time the warning triggers
@@ -361,13 +361,13 @@ def test_refcycle_unraisable_warning_filter_default(pytester: Pytester) -> None:
     result.stderr.fnmatch_lines("ValueError: del is broken")
 
 
-def test_unraisable_warning_without_filter_still_wraps(pytester: Pytester) -> None:
+def test_unraisable_warning_without_filter_still_wraps(testrunnerer: Testrunnerer) -> None:
     # A Warning raised from ``__del__`` gets wrapped in
-    # PytestUnraisableExceptionWarning like any other unraisable exception.
-    # pytest does not unwrap it to honor a filter on the inner class, so with
-    # no filter matching the wrapper, pytest logs the warning and the run
+    # TestrunnerUnraisableExceptionWarning like any other unraisable exception.
+    # testrunner does not unwrap it to honor a filter on the inner class, so with
+    # no filter matching the wrapper, testrunner logs the warning and the run
     # passes. This guards against re-introducing the dropped unwrap path.
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         test_it="""
         class RaisingDel:
             def __del__(self):
@@ -379,64 +379,64 @@ def test_unraisable_warning_without_filter_still_wraps(pytester: Pytester) -> No
         """
     )
 
-    # Subprocess so we don't inherit the outer pytest's ``error`` filter from
+    # Subprocess so we don't inherit the outer testrunner's ``error`` filter from
     # pyproject.toml, which would promote the wrapper and fail the run.
-    # ``-Wdefault::pytest.PytestUnraisableExceptionWarning`` makes the wrapping
+    # ``-Wdefault::testrunner.TestrunnerUnraisableExceptionWarning`` makes the wrapping
     # warning visible on stderr whether ``__del__`` fires inside the test or
     # during later GC (PyPy).
-    result = pytester.runpytest_subprocess(
-        "-Wdefault::pytest.PytestUnraisableExceptionWarning"
+    result = testrunnerer.runtestrunner_subprocess(
+        "-Wdefault::testrunner.TestrunnerUnraisableExceptionWarning"
     )
 
     assert result.ret == 0
     result.assert_outcomes(passed=1)
-    # The unraisable hook emitted PytestUnraisableExceptionWarning.
+    # The unraisable hook emitted TestrunnerUnraisableExceptionWarning.
     # The warning lands in the warnings-summary section of stdout on
     # CPython (where ``__del__`` fires inside the test) and on stderr on
     # PyPy (where it fires during later GC). Check both rather than the
     # outcomes counter, which is timing-dependent.
     combined = "\n".join(result.outlines + result.errlines)
-    assert "PytestUnraisableExceptionWarning" in combined
+    assert "TestrunnerUnraisableExceptionWarning" in combined
 
 
-@pytest.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
-def test_unraisable_decouples_from_cleanup_stack_order(pytester: Pytester) -> None:
+@testrunner.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
+def test_unraisable_decouples_from_cleanup_stack_order(testrunnerer: Testrunnerer) -> None:
     # Regression test for the structural fix. The garbage-collection step
     # that surfaces queued unraisables must run before _cleanup_stack.close()
     # so warning filters installed via cleanup-stack-managed contexts are
     # still in effect when finalizers fire. Otherwise correctness depends
     # on the order in which plugins register their cleanups under LIFO.
     #
-    # The conftest uses ``@hookimpl(trylast=True)`` so its pytest_configure
-    # runs after all built-in pytest_configures. Its
+    # The conftest uses ``@hookimpl(trylast=True)`` so its testrunner_configure
+    # runs after all built-in testrunner_configures. Its
     # ``warnings.resetwarnings`` cleanup then lands on the cleanup stack
     # last and pops first under LIFO. Under the pre-fix layout, where
     # garbage collection runs inside unraisableexception's own cleanup
     # callback, that pop clears the user's
-    # ``error::pytest.PytestUnraisableExceptionWarning`` filter before the
-    # finalizer raises; pytest logs the wrapped warning instead of
+    # ``error::testrunner.TestrunnerUnraisableExceptionWarning`` filter before the
+    # finalizer raises; testrunner logs the wrapped warning instead of
     # promoting it, and the suite exits 0. Under the post-fix layout,
-    # ``pytest_unconfigure`` runs the garbage collection and queue processing
+    # ``testrunner_unconfigure`` runs the garbage collection and queue processing
     # before the cleanup stack starts closing, so the conftest's reset has no
     # effect.
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         filterwarnings =
-            error::pytest.PytestUnraisableExceptionWarning
+            error::testrunner.TestrunnerUnraisableExceptionWarning
         """
     )
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
         import warnings
-        import pytest
+        import testrunner
 
-        @pytest.hookimpl(trylast=True)
-        def pytest_configure(config):
+        @testrunner.hookimpl(trylast=True)
+        def testrunner_configure(config):
             config.add_cleanup(warnings.resetwarnings)
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         test_it="""
         import gc; gc.disable()
 
@@ -452,7 +452,7 @@ def test_unraisable_decouples_from_cleanup_stack_order(pytester: Pytester) -> No
         """
     )
 
-    result = pytester.runpytest_subprocess()
+    result = testrunnerer.runtestrunner_subprocess()
 
     assert result.ret == 1, (
         "wrapper filter is still installed at GC time, so the unraisable "
@@ -462,30 +462,30 @@ def test_unraisable_decouples_from_cleanup_stack_order(pytester: Pytester) -> No
     result.stderr.fnmatch_lines("*ValueError: del is broken*")
 
 
-def test_pytest_unconfigure_survives_failed_pytest_configure(
-    pytester: Pytester,
+def test_testrunner_unconfigure_survives_failed_testrunner_configure(
+    testrunnerer: Testrunnerer,
 ) -> None:
     # Regression test for the guard against an unset stash key. When
-    # another plugin's pytest_configure raises pytest.UsageError, pluggy
+    # another plugin's testrunner_configure raises testrunner.UsageError, pluggy
     # stops calling the remaining configure hooks; the unraisable plugin's
-    # pytest_configure never runs and config.stash[unraisable_exceptions]
-    # stays unset. pytest_unconfigure still fires for partially-configured
+    # testrunner_configure never runs and config.stash[unraisable_exceptions]
+    # stays unset. testrunner_unconfigure still fires for partially-configured
     # runs, so without a presence check the unraisable plugin's
-    # pytest_unconfigure raises KeyError and pytest reports INTERNALERROR
+    # testrunner_unconfigure raises KeyError and testrunner reports INTERNALERROR
     # instead of USAGE_ERROR.
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-        import pytest
+        import testrunner
 
-        def pytest_configure(config):
-            raise pytest.UsageError("simulated bad config")
+        def testrunner_configure(config):
+            raise testrunner.UsageError("simulated bad config")
         """
     )
-    pytester.makepyfile(test_it="def test_it(): pass")
+    testrunnerer.makepyfile(test_it="def test_it(): pass")
 
-    result = pytester.runpytest_subprocess()
+    result = testrunnerer.runtestrunner_subprocess()
 
-    assert result.ret == pytest.ExitCode.USAGE_ERROR, (
+    assert result.ret == testrunner.ExitCode.USAGE_ERROR, (
         "the UsageError must surface as USAGE_ERROR, not a KeyError INTERNALERROR"
     )
     result.stderr.fnmatch_lines("*ERROR: simulated bad config*")
@@ -493,9 +493,9 @@ def test_pytest_unconfigure_survives_failed_pytest_configure(
     result.stderr.no_fnmatch_line("*KeyError*")
 
 
-@pytest.mark.filterwarnings("error::pytest.PytestUnraisableExceptionWarning")
-def test_possibly_none_excinfo(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnraisableExceptionWarning")
+def test_possibly_none_excinfo(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
         import sys
         import types
@@ -513,15 +513,15 @@ def test_possibly_none_excinfo(pytester: Pytester) -> None:
         """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
 
     # TODO: should be a test failure or error
-    assert result.ret == pytest.ExitCode.TESTS_FAILED
+    assert result.ret == testrunner.ExitCode.TESTS_FAILED
 
     result.assert_outcomes(failed=1)
     result.stdout.fnmatch_lines(
         [
-            "E                   pytest.PytestUnraisableExceptionWarning:"
+            "E                   testrunner.TestrunnerUnraisableExceptionWarning:"
             " Exception ignored in: None",
             "E                   ",
             "E                   NoneType: None",

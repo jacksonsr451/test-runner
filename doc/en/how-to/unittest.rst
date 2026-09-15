@@ -2,22 +2,22 @@
 .. _`unittest.TestCase`:
 .. _`unittest`:
 
-How to use ``unittest``-based tests with pytest
+How to use ``unittest``-based tests with testrunner
 ===============================================
 
-``pytest`` supports running Python ``unittest``-based tests out of the box.
+``testrunner`` supports running Python ``unittest``-based tests out of the box.
 It's meant for leveraging existing ``unittest``-based test suites
-to use pytest as a test runner and also allow to incrementally adapt
-the test suite to take full advantage of pytest's features.
+to use testrunner as a test runner and also allow to incrementally adapt
+the test suite to take full advantage of testrunner's features.
 
-To run an existing ``unittest``-style test suite using ``pytest``, type:
+To run an existing ``unittest``-style test suite using ``testrunner``, type:
 
 .. code-block:: bash
 
-    pytest tests
+    testrunner tests
 
 
-pytest will automatically collect ``unittest.TestCase`` subclasses and
+testrunner will automatically collect ``unittest.TestCase`` subclasses and
 their ``test`` methods in ``test_*.py`` or ``*_test.py`` files.
 
 Almost all ``unittest`` features are supported:
@@ -30,14 +30,14 @@ Almost all ``unittest`` features are supported:
 
 .. _`load_tests protocol`: https://docs.python.org/3/library/unittest.html#load-tests-protocol
 
-Up to this point pytest does not have support for the following features:
+Up to this point testrunner does not have support for the following features:
 
 * `load_tests protocol`_;
 
 Benefits out of the box
 -----------------------
 
-By running your test suite with pytest you can make use of several features,
+By running your test suite with testrunner you can make use of several features,
 in most cases without having to modify existing code:
 
 * Obtain :ref:`more informative tracebacks <tbreportdemo>`;
@@ -46,20 +46,20 @@ in most cases without having to modify existing code:
 * :ref:`maxfail`;
 * :ref:`--pdb <pdb-option>` command-line option for debugging on test failures
   (see :ref:`note <pdb-unittest-note>` below);
-* Distribute tests to multiple CPUs using the :pypi:`pytest-xdist` plugin;
+* Distribute tests to multiple CPUs using the :pypi:`testrunner-xdist` plugin;
 * Use :ref:`plain assert-statements <assert>` instead of ``self.assert*`` functions
-  (:pypi:`unittest2pytest` is immensely helpful in this);
+  (:pypi:`unittest2testrunner` is immensely helpful in this);
 
 
-pytest features in ``unittest.TestCase`` subclasses
+testrunner features in ``unittest.TestCase`` subclasses
 ---------------------------------------------------
 
-The following pytest features work in ``unittest.TestCase`` subclasses:
+The following testrunner features work in ``unittest.TestCase`` subclasses:
 
 * :ref:`Marks <mark>`: :ref:`skip <skip>`, :ref:`skipif <skipif>`, :ref:`xfail <xfail>`;
 * :ref:`Auto-use fixtures <mixing-fixtures>`;
 
-The following pytest features **do not** work, and probably
+The following testrunner features **do not** work, and probably
 never will due to different design philosophies:
 
 * :ref:`Fixtures <fixture>` (except for ``autouse`` fixtures, see :ref:`below <mixing-fixtures>`);
@@ -71,13 +71,13 @@ Third party plugins may or may not work well, depending on the plugin and the te
 
 .. _mixing-fixtures:
 
-Mixing pytest fixtures into ``unittest.TestCase`` subclasses using marks
+Mixing testrunner fixtures into ``unittest.TestCase`` subclasses using marks
 ------------------------------------------------------------------------
 
-Running your unittest with ``pytest`` allows you to use its
+Running your unittest with ``testrunner`` allows you to use its
 :ref:`fixture mechanism <fixture>` with ``unittest.TestCase`` style
-tests.  Assuming you have at least skimmed the pytest fixture features,
-let's jump-start into an example that integrates a pytest ``db_class``
+tests.  Assuming you have at least skimmed the testrunner fixture features,
+let's jump-start into an example that integrates a testrunner ``db_class``
 fixture, setting up a class-cached database object, and then reference
 it from a unittest-style test:
 
@@ -88,10 +88,10 @@ it from a unittest-style test:
     # we define a fixture function below and it will be "used" by
     # referencing its name from tests
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture(scope="class")
+    @testrunner.fixture(scope="class")
     def db_class(request):
         class DummyDB:
             pass
@@ -116,10 +116,10 @@ fixture definition:
 
     import unittest
 
-    import pytest
+    import testrunner
 
 
-    @pytest.mark.usefixtures("db_class")
+    @testrunner.mark.usefixtures("db_class")
     class MyTest(unittest.TestCase):
         def test_method1(self):
             assert hasattr(self, "db")
@@ -128,16 +128,16 @@ fixture definition:
         def test_method2(self):
             assert 0, self.db  # fail for demo purposes
 
-The ``@pytest.mark.usefixtures("db_class")`` class-decorator makes sure that
-the pytest fixture function ``db_class`` is called once per class.
+The ``@testrunner.mark.usefixtures("db_class")`` class-decorator makes sure that
+the testrunner fixture function ``db_class`` is called once per class.
 Due to the deliberately failing assert statements, we can take a look at
 the ``self.db`` values in the traceback:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest test_unittest_db.py
+    $ testrunner test_unittest_db.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 2 items
 
@@ -172,7 +172,7 @@ the ``self.db`` values in the traceback:
     FAILED test_unittest_db.py::MyTest::test_method2 - AssertionError: <conft...
     ============================ 2 failed in 0.12s =============================
 
-This default pytest traceback shows that the two test methods
+This default testrunner traceback shows that the two test methods
 share the same ``self.db`` instance which was our intention
 when writing the class-scoped fixture function above.
 
@@ -186,12 +186,12 @@ automatically used in a given context.  After all, the traditional
 style of unittest-setup mandates the use of this implicit fixture writing
 and chances are, you are used to it or like it.
 
-You can flag fixture functions with ``@pytest.fixture(autouse=True)``
+You can flag fixture functions with ``@testrunner.fixture(autouse=True)``
 and define the fixture function in the context where you want it used.
 Let's look at an ``initdir`` fixture which makes all test methods of a
 ``TestCase`` class execute in a temporary directory with a
 pre-initialized ``samplefile.ini``.  Our ``initdir`` fixture itself uses
-the pytest builtin :fixture:`tmp_path` fixture to delegate the
+the testrunner builtin :fixture:`tmp_path` fixture to delegate the
 creation of a per-test temporary directory:
 
 .. code-block:: python
@@ -199,13 +199,13 @@ creation of a per-test temporary directory:
     # content of test_unittest_cleandir.py
     import unittest
 
-    import pytest
+    import testrunner
 
 
     class MyTest(unittest.TestCase):
-        @pytest.fixture(autouse=True)
+        @testrunner.fixture(autouse=True)
         def initdir(self, tmp_path, monkeypatch):
-            monkeypatch.chdir(tmp_path)  # change to pytest-provided temporary directory
+            monkeypatch.chdir(tmp_path)  # change to testrunner-provided temporary directory
             tmp_path.joinpath("samplefile.ini").write_text("# testdata", encoding="utf-8")
 
         def test_method(self):
@@ -215,14 +215,14 @@ creation of a per-test temporary directory:
 
 Due to the ``autouse`` flag the ``initdir`` fixture function will be
 used for all methods of the class where it is defined.  This is a
-shortcut for using a ``@pytest.mark.usefixtures("initdir")`` marker
+shortcut for using a ``@testrunner.mark.usefixtures("initdir")`` marker
 on the class like in the previous example.
 
 Running this test module ...:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q test_unittest_cleandir.py
+    $ testrunner -q test_unittest_cleandir.py
     .                                                                    [100%]
     1 passed in 0.12s
 
@@ -236,10 +236,10 @@ was executed ahead of the ``test_method``.
    on the ability to run general unittest.TestCase test suites.
 
    The above ``usefixtures`` and ``autouse`` examples should help to mix in
-   pytest fixtures into unittest suites.
+   testrunner fixtures into unittest suites.
 
    You can also gradually move away from subclassing from ``unittest.TestCase`` to *plain asserts*
-   and then start to benefit from the full pytest feature set step by step.
+   and then start to benefit from the full testrunner feature set step by step.
 
 .. _pdb-unittest-note:
 
@@ -247,8 +247,8 @@ was executed ahead of the ``test_method``.
 
     Due to architectural differences between the two frameworks, setup and
     teardown for ``unittest``-based tests is performed during the ``call`` phase
-    of testing instead of in ``pytest``'s standard ``setup`` and ``teardown``
+    of testing instead of in ``testrunner``'s standard ``setup`` and ``teardown``
     stages. This can be important to understand in some situations, particularly
     when reasoning about errors. For example, if a ``unittest``-based suite
-    exhibits errors during setup, ``pytest`` will report no errors during its
+    exhibits errors during setup, ``testrunner`` will report no errors during its
     ``setup`` phase and will instead raise the error during ``call``.

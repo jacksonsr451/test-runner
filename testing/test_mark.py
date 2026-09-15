@@ -7,31 +7,31 @@ import sys
 from typing import cast
 from unittest import mock
 
-from _pytest.config import Config
-from _pytest.config import ExitCode
-from _pytest.config import RegisteredMarker
-from _pytest.config import UsageError
-from _pytest.mark import _validate_marker_names
-from _pytest.mark import MarkGenerator
-from _pytest.mark.expression import Expression
-from _pytest.mark.structures import _EmptyParameterSetMark
-from _pytest.mark.structures import EMPTY_PARAMETERSET_OPTION
-from _pytest.nodeid import NodeId
-from _pytest.nodes import Collector
-from _pytest.nodes import Node
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.config import Config
+from _testrunner.config import ExitCode
+from _testrunner.config import RegisteredMarker
+from _testrunner.config import UsageError
+from _testrunner.mark import _validate_marker_names
+from _testrunner.mark import MarkGenerator
+from _testrunner.mark.expression import Expression
+from _testrunner.mark.structures import _EmptyParameterSetMark
+from _testrunner.mark.structures import EMPTY_PARAMETERSET_OPTION
+from _testrunner.nodeid import NodeId
+from _testrunner.nodes import Collector
+from _testrunner.nodes import Node
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
 class TestMark:
-    @pytest.mark.parametrize("attr", ["mark", "param"])
-    def test_pytest_exists_in_namespace_all(self, attr: str) -> None:
-        module = sys.modules["pytest"]
+    @testrunner.mark.parametrize("attr", ["mark", "param"])
+    def test_testrunner_exists_in_namespace_all(self, attr: str) -> None:
+        module = sys.modules["testrunner"]
         assert attr in module.__all__
 
-    def test_pytest_mark_notcallable(self) -> None:
-        mark = MarkGenerator(_ispytest=True)
-        with pytest.raises(TypeError):
+    def test_testrunner_mark_notcallable(self) -> None:
+        mark = MarkGenerator(_istestrunner=True)
+        with testrunner.raises(TypeError):
             mark()  # type: ignore[operator]
 
     def test_mark_with_param(self):
@@ -41,158 +41,158 @@ class TestMark:
         class SomeClass:
             pass
 
-        assert pytest.mark.foo(some_function) is some_function
-        marked_with_args = pytest.mark.foo.with_args(some_function)
+        assert testrunner.mark.foo(some_function) is some_function
+        marked_with_args = testrunner.mark.foo.with_args(some_function)
         assert marked_with_args is not some_function
 
-        assert pytest.mark.foo(SomeClass) is SomeClass
-        assert pytest.mark.foo.with_args(SomeClass) is not SomeClass  # type: ignore[comparison-overlap]
+        assert testrunner.mark.foo(SomeClass) is SomeClass
+        assert testrunner.mark.foo.with_args(SomeClass) is not SomeClass  # type: ignore[comparison-overlap]
 
-    def test_pytest_mark_name_starts_with_underscore(self) -> None:
-        mark = MarkGenerator(_ispytest=True)
-        with pytest.raises(AttributeError):
+    def test_testrunner_mark_name_starts_with_underscore(self) -> None:
+        mark = MarkGenerator(_istestrunner=True)
+        with testrunner.raises(AttributeError):
             _ = mark._some_name
 
 
-def test_marked_class_run_twice(pytester: Pytester) -> None:
+def test_marked_class_run_twice(testrunnerer: Testrunnerer) -> None:
     """Test fails file is run twice that contains marked class.
     See issue#683.
     """
-    py_file = pytester.makepyfile(
+    py_file = testrunnerer.makepyfile(
         """
-    import pytest
-    @pytest.mark.parametrize('abc', [1, 2, 3])
+    import testrunner
+    @testrunner.mark.parametrize('abc', [1, 2, 3])
     class Test1(object):
         def test_1(self, abc):
             assert abc in [1, 2, 3]
     """
     )
     file_name = os.path.basename(py_file)
-    rec = pytester.inline_run("--keep-duplicates", file_name, file_name)
+    rec = testrunnerer.inline_run("--keep-duplicates", file_name, file_name)
     rec.assertoutcome(passed=6)
 
 
-def test_ini_markers(pytester: Pytester) -> None:
-    pytester.makeini(
+def test_ini_markers(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         markers =
             a1: this is a webtest marker
             a2: this is a smoke marker
     """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        def test_markers(pytestconfig):
-            markers = pytestconfig.getini("markers")
+        def test_markers(testrunnerconfig):
+            markers = testrunnerconfig.getini("markers")
             print(markers)
             assert len(markers) >= 2
             assert markers[0].startswith("a1:")
             assert markers[1].startswith("a2:")
     """
     )
-    rec = pytester.inline_run()
+    rec = testrunnerer.inline_run()
     rec.assertoutcome(passed=1)
 
 
-def test_markers_option(pytester: Pytester) -> None:
-    pytester.makeini(
+def test_markers_option(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         markers =
             a1: this is a webtest marker
             a1some: another marker
             nodescription
     """
     )
-    result = pytester.runpytest("--markers")
+    result = testrunnerer.runtestrunner("--markers")
     result.stdout.fnmatch_lines(
         ["*a1*this is a webtest*", "*a1some*another marker", "*nodescription*"]
     )
 
 
-def test_ini_markers_whitespace(pytester: Pytester) -> None:
-    pytester.makeini(
+def test_ini_markers_whitespace(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         markers =
             a1 : this is a whitespace marker
     """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.mark.a1
+        @testrunner.mark.a1
         def test_markers():
             assert True
     """
     )
-    rec = pytester.inline_run("--strict-markers", "-m", "a1")
+    rec = testrunnerer.inline_run("--strict-markers", "-m", "a1")
     rec.assertoutcome(passed=1)
 
 
-def test_marker_without_description(pytester: Pytester) -> None:
-    pytester.makefile(
+def test_marker_without_description(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makefile(
         ".cfg",
         setup="""
-        [tool:pytest]
+        [tool:testrunner]
         markers=slow
     """,
     )
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-        import pytest
-        pytest.mark.xfail('FAIL')
+        import testrunner
+        testrunner.mark.xfail('FAIL')
     """
     )
-    ftdir = pytester.mkdir("ft1_dummy")
-    pytester.path.joinpath("conftest.py").replace(ftdir.joinpath("conftest.py"))
-    rec = pytester.runpytest("--strict-markers")
+    ftdir = testrunnerer.mkdir("ft1_dummy")
+    testrunnerer.path.joinpath("conftest.py").replace(ftdir.joinpath("conftest.py"))
+    rec = testrunnerer.runtestrunner("--strict-markers")
     rec.assert_outcomes()
 
 
-def test_markers_option_with_plugin_in_current_dir(pytester: Pytester) -> None:
-    pytester.makeconftest('pytest_plugins = "flip_flop"')
-    pytester.makepyfile(
+def test_markers_option_with_plugin_in_current_dir(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest('testrunner_plugins = "flip_flop"')
+    testrunnerer.makepyfile(
         flip_flop="""\
-        def pytest_configure(config):
+        def testrunner_configure(config):
             config.addinivalue_line("markers", "flip:flop")
 
-        def pytest_generate_tests(metafunc):
+        def testrunner_generate_tests(metafunc):
             try:
                 mark = metafunc.function.flipper
             except AttributeError:
                 return
             metafunc.parametrize("x", (10, 20))"""
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """\
-        import pytest
-        @pytest.mark.flipper
+        import testrunner
+        @testrunner.mark.flipper
         def test_example(x):
             assert x"""
     )
 
-    result = pytester.runpytest("--markers")
+    result = testrunnerer.runtestrunner("--markers")
     result.stdout.fnmatch_lines(["*flip*flop*"])
 
 
-def test_mark_on_pseudo_function(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_mark_on_pseudo_function(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.mark.r(lambda x: 0/0)
+        @testrunner.mark.r(lambda x: 0/0)
         def test_hello():
             pass
     """
     )
-    reprec = pytester.inline_run()
+    reprec = testrunnerer.inline_run()
     reprec.assertoutcome(passed=1)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "option",
     [
         "--strict-markers",
@@ -202,25 +202,25 @@ def test_mark_on_pseudo_function(pytester: Pytester) -> None:
         "addopts = --strict-markers",
     ],
 )
-def test_strict_prohibits_unregistered_markers(pytester: Pytester, option: str) -> None:
-    pytester.makepyfile(
+def test_strict_prohibits_unregistered_markers(testrunnerer: Testrunnerer, option: str) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
-        @pytest.mark.unregisteredmark
+        import testrunner
+        @testrunner.mark.unregisteredmark
         def test_hello():
             pass
     """
     )
     if option.startswith("-"):
-        result = pytester.runpytest(option)
+        result = testrunnerer.runtestrunner(option)
     else:
-        pytester.makeini(
+        testrunnerer.makeini(
             f"""
-            [pytest]
+            [testrunner]
             {option}
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
     assert result.ret != 0
     result.stdout.fnmatch_lines(
         ["'unregisteredmark' not found in `markers` configuration option"]
@@ -266,13 +266,13 @@ class TestValidateMarkerNames:
     def test_unknown_marker_with_strict_markers(self) -> None:
         expr = Expression.compile("unknown_marker")
 
-        with pytest.raises(UsageError, match=r"Unknown marker.*unknown_marker"):
+        with testrunner.raises(UsageError, match=r"Unknown marker.*unknown_marker"):
             _validate_marker_names(expr, self._make_config(strict_markers=True))
 
     def test_unknown_marker_with_strict(self) -> None:
         expr = Expression.compile("unknown_marker")
 
-        with pytest.raises(UsageError, match=r"Unknown marker.*unknown_marker"):
+        with testrunner.raises(UsageError, match=r"Unknown marker.*unknown_marker"):
             _validate_marker_names(expr, self._make_config(strict=True))
 
     def test_registered_marker_passes(self) -> None:
@@ -286,20 +286,20 @@ class TestValidateMarkerNames:
         _validate_marker_names(expr, self._make_config())
 
 
-@pytest.fixture
-def markexpr_pytester(pytester: Pytester) -> Pytester:
-    pytester.makeini(
+@testrunner.fixture
+def markexpr_testrunnerer(testrunnerer: Testrunnerer) -> Testrunnerer:
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         markers =
             registered: a registered marker
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.mark.registered
+        @testrunner.mark.registered
         def test_registered():
             pass
 
@@ -307,14 +307,14 @@ def markexpr_pytester(pytester: Pytester) -> Pytester:
             pass
         """
     )
-    return pytester
+    return testrunnerer
 
 
-@pytest.mark.parametrize("option", ["--strict-markers", "--strict"])
+@testrunner.mark.parametrize("option", ["--strict-markers", "--strict"])
 def test_strict_prohibits_unregistered_markers_in_markexpr(
-    markexpr_pytester: Pytester, option: str
+    markexpr_testrunnerer: Testrunnerer, option: str
 ) -> None:
-    result = markexpr_pytester.runpytest(option, "-m", "registered or unregisteredmark")
+    result = markexpr_testrunnerer.runtestrunner(option, "-m", "registered or unregisteredmark")
     assert result.ret == ExitCode.USAGE_ERROR
     result.stderr.fnmatch_lines(
         ["*Unknown marker(s) in '-m' expression: unregisteredmark*"]
@@ -322,20 +322,20 @@ def test_strict_prohibits_unregistered_markers_in_markexpr(
 
 
 def test_strict_allows_registered_markers_in_markexpr(
-    markexpr_pytester: Pytester,
+    markexpr_testrunnerer: Testrunnerer,
 ) -> None:
-    result = markexpr_pytester.runpytest("--strict-markers", "-m", "registered")
+    result = markexpr_testrunnerer.runtestrunner("--strict-markers", "-m", "registered")
     result.assert_outcomes(passed=1, deselected=1)
 
 
 def test_unregistered_markers_in_markexpr_allowed_without_strict(
-    markexpr_pytester: Pytester,
+    markexpr_testrunnerer: Testrunnerer,
 ) -> None:
-    result = markexpr_pytester.runpytest("-m", "unregisteredmark")
+    result = markexpr_testrunnerer.runtestrunner("-m", "unregisteredmark")
     result.assert_outcomes(deselected=2)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("expr", "expected_passed"),
     [
         ("xyz", ["test_one"]),
@@ -347,26 +347,26 @@ def test_unregistered_markers_in_markexpr_allowed_without_strict(
     ],
 )
 def test_mark_option(
-    expr: str, expected_passed: list[str | None], pytester: Pytester
+    expr: str, expected_passed: list[str | None], testrunnerer: Testrunnerer
 ) -> None:
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
-        @pytest.mark.xyz
+        import testrunner
+        @testrunner.mark.xyz
         def test_one():
             pass
-        @pytest.mark.xyz2
+        @testrunner.mark.xyz2
         def test_two():
             pass
     """
     )
-    rec = pytester.inline_run("-m", expr)
+    rec = testrunnerer.inline_run("-m", expr)
     passed, _skipped, _fail = rec.listoutcomes()
     passed_str = [x.nodeid.split("::")[-1] for x in passed]
     assert passed_str == expected_passed
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("expr", "expected_passed"),
     [
         ("car(color='red')", ["test_one"]),
@@ -383,54 +383,54 @@ def test_mark_option(
     ids=str,
 )
 def test_mark_option_with_kwargs(
-    expr: str, expected_passed: list[str | None], pytester: Pytester
+    expr: str, expected_passed: list[str | None], testrunnerer: Testrunnerer
 ) -> None:
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
-        @pytest.mark.car
-        @pytest.mark.car(ac=True)
-        @pytest.mark.car(temp=4)
-        @pytest.mark.car(color="red")
+        import testrunner
+        @testrunner.mark.car
+        @testrunner.mark.car(ac=True)
+        @testrunner.mark.car(temp=4)
+        @testrunner.mark.car(color="red")
         def test_one():
             pass
-        @pytest.mark.car
-        @pytest.mark.car(ac=False)
-        @pytest.mark.car(temp=5)
-        @pytest.mark.car(color="blue")
+        @testrunner.mark.car
+        @testrunner.mark.car(ac=False)
+        @testrunner.mark.car(temp=5)
+        @testrunner.mark.car(color="blue")
         def test_two():
             pass
-        @pytest.mark.car
-        @pytest.mark.car(ac=None)
-        @pytest.mark.car(temp=-5)
+        @testrunner.mark.car
+        @testrunner.mark.car(ac=None)
+        @testrunner.mark.car(temp=-5)
         def test_three():
             pass
 
     """
     )
-    rec = pytester.inline_run("-m", expr)
+    rec = testrunnerer.inline_run("-m", expr)
     passed, _skipped, _fail = rec.listoutcomes()
     passed_str = [x.nodeid.split("::")[-1] for x in passed]
     assert passed_str == expected_passed
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("expr", "expected_passed"),
     [("interface", ["test_interface"]), ("not interface", ["test_nointer"])],
 )
 def test_mark_option_custom(
-    expr: str, expected_passed: list[str], pytester: Pytester
+    expr: str, expected_passed: list[str], testrunnerer: Testrunnerer
 ) -> None:
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-        import pytest
-        def pytest_collection_modifyitems(items):
+        import testrunner
+        def testrunner_collection_modifyitems(items):
             for item in items:
                 if "interface" in item.nodeid:
-                    item.add_marker(pytest.mark.interface)
+                    item.add_marker(testrunner.mark.interface)
     """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_interface():
             pass
@@ -438,13 +438,13 @@ def test_mark_option_custom(
             pass
     """
     )
-    rec = pytester.inline_run("-m", expr)
+    rec = testrunnerer.inline_run("-m", expr)
     passed, _skipped, _fail = rec.listoutcomes()
     passed_str = [x.nodeid.split("::")[-1] for x in passed]
     assert passed_str == expected_passed
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("expr", "expected_passed"),
     [
         ("interface", ["test_interface"]),
@@ -457,9 +457,9 @@ def test_mark_option_custom(
     ],
 )
 def test_keyword_option_custom(
-    expr: str, expected_passed: list[str], pytester: Pytester
+    expr: str, expected_passed: list[str], testrunnerer: Testrunnerer
 ) -> None:
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test_interface():
             pass
@@ -473,20 +473,20 @@ def test_keyword_option_custom(
             pass
     """
     )
-    rec = pytester.inline_run("-k", expr)
+    rec = testrunnerer.inline_run("-k", expr)
     passed, _skipped, _fail = rec.listoutcomes()
     passed_str = [x.nodeid.split("::")[-1] for x in passed]
     assert passed_str == expected_passed
 
 
-def test_keyword_option_considers_mark(pytester: Pytester) -> None:
-    pytester.copy_example("marks/marks_considered_keywords")
-    rec = pytester.inline_run("-k", "foo")
+def test_keyword_option_considers_mark(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.copy_example("marks/marks_considered_keywords")
+    rec = testrunnerer.inline_run("-k", "foo")
     passed = rec.listoutcomes()[0]
     assert len(passed) == 1
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("expr", "expected_passed"),
     [
         ("None", ["test_func[None]"]),
@@ -495,38 +495,38 @@ def test_keyword_option_considers_mark(pytester: Pytester) -> None:
     ],
 )
 def test_keyword_option_parametrize(
-    expr: str, expected_passed: list[str], pytester: Pytester
+    expr: str, expected_passed: list[str], testrunnerer: Testrunnerer
 ) -> None:
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
-        @pytest.mark.parametrize("arg", [None, 1.3, "2-3"])
+        import testrunner
+        @testrunner.mark.parametrize("arg", [None, 1.3, "2-3"])
         def test_func(arg):
             pass
     """
     )
-    rec = pytester.inline_run("-k", expr)
+    rec = testrunnerer.inline_run("-k", expr)
     passed, _skipped, _fail = rec.listoutcomes()
     passed_str = [x.nodeid.split("::")[-1] for x in passed]
     assert passed_str == expected_passed
 
 
-def test_parametrize_with_module(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_parametrize_with_module(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
-        @pytest.mark.parametrize("arg", [pytest,])
+        import testrunner
+        @testrunner.mark.parametrize("arg", [testrunner,])
         def test_func(arg):
             pass
     """
     )
-    rec = pytester.inline_run()
+    rec = testrunnerer.inline_run()
     passed, _skipped, _fail = rec.listoutcomes()
-    expected_id = "test_func[" + pytest.__name__ + "]"
+    expected_id = "test_func[" + testrunner.__name__ + "]"
     assert passed[0].nodeid.split("::")[-1] == expected_id
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("expr", "expected_error"),
     [
         (
@@ -560,48 +560,48 @@ def test_parametrize_with_module(pytester: Pytester) -> None:
     ],
 )
 def test_keyword_option_wrong_arguments(
-    expr: str, expected_error: str, pytester: Pytester, capsys
+    expr: str, expected_error: str, testrunnerer: Testrunnerer, capsys
 ) -> None:
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
             def test_func(arg):
                 pass
         """
     )
-    pytester.inline_run("-k", expr)
+    testrunnerer.inline_run("-k", expr)
     err = capsys.readouterr().err
     assert expected_error in err
 
 
-def test_parametrized_collected_from_command_line(pytester: Pytester) -> None:
+def test_parametrized_collected_from_command_line(testrunnerer: Testrunnerer) -> None:
     """Parametrized test not collected if test named specified in command
     line issue#649."""
-    py_file = pytester.makepyfile(
+    py_file = testrunnerer.makepyfile(
         """
-        import pytest
-        @pytest.mark.parametrize("arg", [None, 1.3, "2-3"])
+        import testrunner
+        @testrunner.mark.parametrize("arg", [None, 1.3, "2-3"])
         def test_func(arg):
             pass
     """
     )
     file_name = os.path.basename(py_file)
-    rec = pytester.inline_run(file_name + "::" + "test_func")
+    rec = testrunnerer.inline_run(file_name + "::" + "test_func")
     rec.assertoutcome(passed=3)
 
 
-def test_parametrized_collect_with_wrong_args(pytester: Pytester) -> None:
+def test_parametrized_collect_with_wrong_args(testrunnerer: Testrunnerer) -> None:
     """Test collect parametrized func with wrong number of args."""
-    py_file = pytester.makepyfile(
+    py_file = testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.mark.parametrize('foo, bar', [(1, 2, 3)])
+        @testrunner.mark.parametrize('foo, bar', [(1, 2, 3)])
         def test_func(foo, bar):
             pass
     """
     )
 
-    result = pytester.runpytest(py_file)
+    result = testrunnerer.runtestrunner(py_file)
     result.stdout.fnmatch_lines(
         [
             'test_parametrized_collect_with_wrong_args.py::test_func: in "parametrize" the number of names (2):',
@@ -612,19 +612,19 @@ def test_parametrized_collect_with_wrong_args(pytester: Pytester) -> None:
     )
 
 
-def test_parametrized_collect_with_non_sequence_values(pytester: Pytester) -> None:
+def test_parametrized_collect_with_non_sequence_values(testrunnerer: Testrunnerer) -> None:
     """Test collect parametrized func with tuple-style argnames and scalar values."""
-    py_file = pytester.makepyfile(
+    py_file = testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.mark.parametrize("x,", [None])
+        @testrunner.mark.parametrize("x,", [None])
         def test_func(x):
             pass
     """
     )
 
-    result = pytester.runpytest(py_file)
+    result = testrunnerer.runtestrunner(py_file)
     result.stdout.fnmatch_lines(
         [
             "test_parametrized_collect_with_non_sequence_values.py::test_func: "
@@ -636,56 +636,56 @@ def test_parametrized_collect_with_non_sequence_values(pytester: Pytester) -> No
     )
 
 
-def test_parametrized_with_kwargs(pytester: Pytester) -> None:
+def test_parametrized_with_kwargs(testrunnerer: Testrunnerer) -> None:
     """Test collect parametrized func with wrong number of args."""
-    py_file = pytester.makepyfile(
+    py_file = testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.fixture(params=[1,2])
+        @testrunner.fixture(params=[1,2])
         def a(request):
             return request.param
 
-        @pytest.mark.parametrize(argnames='b', argvalues=[1, 2])
+        @testrunner.mark.parametrize(argnames='b', argvalues=[1, 2])
         def test_func(a, b):
             pass
     """
     )
 
-    result = pytester.runpytest(py_file)
+    result = testrunnerer.runtestrunner(py_file)
     assert result.ret == 0
 
 
-def test_parametrize_iterator(pytester: Pytester) -> None:
+def test_parametrize_iterator(testrunnerer: Testrunnerer) -> None:
     """`parametrize` should work with generators (#5354)."""
-    py_file = pytester.makepyfile(
+    py_file = testrunnerer.makepyfile(
         """\
-        import pytest
+        import testrunner
 
         def gen():
             yield 1
             yield 2
             yield 3
 
-        @pytest.mark.parametrize('a', gen())
+        @testrunner.mark.parametrize('a', gen())
         def test(a):
             assert a >= 1
         """
     )
-    result = pytester.runpytest(py_file)
+    result = testrunnerer.runtestrunner(py_file)
     assert result.ret == 0
     # should not skip any tests
     result.stdout.fnmatch_lines(["*3 passed*"])
 
 
 class TestFunctional:
-    def test_merging_markers_deep(self, pytester: Pytester) -> None:
+    def test_merging_markers_deep(self, testrunnerer: Testrunnerer) -> None:
         # issue 199 - propagate markers into nested classes
-        p = pytester.makepyfile(
+        p = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
             class TestA(object):
-                pytestmark = pytest.mark.a
+                _testrunner_mark = testrunner.mark.a
                 def test_b(self):
                     assert True
                 class TestC(object):
@@ -694,22 +694,22 @@ class TestFunctional:
                         assert True
         """
         )
-        items, _rec = pytester.inline_genitems(p)
+        items, _rec = testrunnerer.inline_genitems(p)
         for item in items:
             print(item, item.keywords)
             assert [x for x in item.iter_markers() if x.name == "a"]
 
     def test_mark_decorator_subclass_does_not_propagate_to_base(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
-        p = pytester.makepyfile(
+        p = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
-            @pytest.mark.a
+            @testrunner.mark.a
             class Base(object): pass
 
-            @pytest.mark.b
+            @testrunner.mark.b
             class Test1(Base):
                 def test_foo(self): pass
 
@@ -717,20 +717,20 @@ class TestFunctional:
                 def test_bar(self): pass
         """
         )
-        items, _rec = pytester.inline_genitems(p)
+        items, _rec = testrunnerer.inline_genitems(p)
         self.assert_markers(items, test_foo=("a", "b"), test_bar=("a",))
 
-    def test_mark_should_not_pass_to_siebling_class(self, pytester: Pytester) -> None:
+    def test_mark_should_not_pass_to_siebling_class(self, testrunnerer: Testrunnerer) -> None:
         """#568"""
-        p = pytester.makepyfile(
+        p = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
             class TestBase(object):
                 def test_foo(self):
                     pass
 
-            @pytest.mark.b
+            @testrunner.mark.b
             class TestSub(TestBase):
                 pass
 
@@ -740,7 +740,7 @@ class TestFunctional:
 
         """
         )
-        items, _rec = pytester.inline_genitems(p)
+        items, _rec = testrunnerer.inline_genitems(p)
         base_item, sub_item, sub_item_other = items
         print(items, [x.nodeid for x in items])
         # new api segregates
@@ -748,37 +748,37 @@ class TestFunctional:
         assert not list(sub_item_other.iter_markers(name="b"))
         assert list(sub_item.iter_markers(name="b"))
 
-    def test_mark_decorator_baseclasses_merged(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_mark_decorator_baseclasses_merged(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
-            @pytest.mark.a
+            @testrunner.mark.a
             class Base(object): pass
 
-            @pytest.mark.b
+            @testrunner.mark.b
             class Base2(Base): pass
 
-            @pytest.mark.c
+            @testrunner.mark.c
             class Test1(Base2):
                 def test_foo(self): pass
 
             class Test2(Base2):
-                @pytest.mark.d
+                @testrunner.mark.d
                 def test_bar(self): pass
         """
         )
-        items, _rec = pytester.inline_genitems(p)
+        items, _rec = testrunnerer.inline_genitems(p)
         self.assert_markers(items, test_foo=("a", "b", "c"), test_bar=("a", "b", "d"))
 
-    def test_mark_closest(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_mark_closest(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
-            @pytest.mark.c(location="class")
+            @testrunner.mark.c(location="class")
             class Test:
-                @pytest.mark.c(location="function")
+                @testrunner.mark.c(location="function")
                 def test_has_own(self):
                     pass
 
@@ -787,7 +787,7 @@ class TestFunctional:
 
         """
         )
-        items, _rec = pytester.inline_genitems(p)
+        items, _rec = testrunnerer.inline_genitems(p)
         has_own, has_inherited = items
         has_own_marker = has_own.get_closest_marker("c")
         has_inherited_marker = has_inherited.get_closest_marker("c")
@@ -797,23 +797,23 @@ class TestFunctional:
         assert has_inherited_marker.kwargs == {"location": "class"}
         assert has_own.get_closest_marker("missing") is None
 
-    def test_mark_closest_default_mark_decorator(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_mark_closest_default_mark_decorator(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
             def test_without_mark():
                 pass
         """
         )
-        items, _rec = pytester.inline_genitems(p)
+        items, _rec = testrunnerer.inline_genitems(p)
         (item,) = items
-        default = pytest.mark.foo(location="default")
+        default = testrunner.mark.foo(location="default")
         assert item.get_closest_marker("foo", default) is default.mark
 
-    def test_mark_with_wrong_marker(self, pytester: Pytester) -> None:
-        reprec = pytester.inline_runsource(
+    def test_mark_with_wrong_marker(self, testrunnerer: Testrunnerer) -> None:
+        reprec = testrunnerer.inline_runsource(
             """
-                import pytest
-                class pytestmark(object):
+                import testrunner
+                class _testrunner_mark(object):
                     pass
                 def test_func():
                     pass
@@ -823,32 +823,32 @@ class TestFunctional:
         assert len(values) == 1
         assert "TypeError" in str(values[0].longrepr)
 
-    def test_mark_dynamically_in_funcarg(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_mark_dynamically_in_funcarg(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            import pytest
-            @pytest.fixture
+            import testrunner
+            @testrunner.fixture
             def arg(request):
-                request.applymarker(pytest.mark.hello)
-            def pytest_terminal_summary(terminalreporter):
+                request.applymarker(testrunner.mark.hello)
+            def testrunner_terminal_summary(terminalreporter):
                 values = terminalreporter.stats['passed']
                 terminalreporter._tw.line("keyword: %s" % values[0].keywords)
         """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_func(arg):
                 pass
         """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["keyword: *hello*"])
 
-    def test_no_marker_match_on_unmarked_names(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_no_marker_match_on_unmarked_names(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            import pytest
-            @pytest.mark.shouldmatch
+            import testrunner
+            @testrunner.mark.shouldmatch
             def test_marked():
                 assert 1
 
@@ -856,48 +856,48 @@ class TestFunctional:
                 assert 1
         """
         )
-        reprec = pytester.inline_run("-m", "test_unmarked", p)
+        reprec = testrunnerer.inline_run("-m", "test_unmarked", p)
         passed, skipped, failed = reprec.listoutcomes()
         assert len(passed) + len(skipped) + len(failed) == 0
-        dlist = reprec.getcalls("pytest_deselected")
+        dlist = reprec.getcalls("testrunner_deselected")
         deselected_tests = dlist[0].items
         assert len(deselected_tests) == 2
 
-    def test_keywords_at_node_level(self, pytester: Pytester) -> None:
-        pytester.makepyfile(
+    def test_keywords_at_node_level(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(
             """
-            import pytest
-            @pytest.fixture(scope="session", autouse=True)
+            import testrunner
+            @testrunner.fixture(scope="session", autouse=True)
             def some(request):
                 request.keywords["hello"] = 42
                 assert "world" not in request.keywords
 
-            @pytest.fixture(scope="function", autouse=True)
+            @testrunner.fixture(scope="function", autouse=True)
             def funcsetup(request):
                 assert "world" in request.keywords
                 assert "hello" in  request.keywords
 
-            @pytest.mark.world
+            @testrunner.mark.world
             def test_function():
                 pass
         """
         )
-        reprec = pytester.inline_run()
+        reprec = testrunnerer.inline_run()
         reprec.assertoutcome(passed=1)
 
-    def test_keyword_added_for_session(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_keyword_added_for_session(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            import pytest
-            def pytest_collection_modifyitems(session):
+            import testrunner
+            def testrunner_collection_modifyitems(session):
                 session.add_marker("mark1")
-                session.add_marker(pytest.mark.mark2)
-                session.add_marker(pytest.mark.mark3)
-                with pytest.raises(ValueError):
+                session.add_marker(testrunner.mark.mark2)
+                session.add_marker(testrunner.mark.mark3)
+                with testrunner.raises(ValueError):
                     session.add_marker(10)
         """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_some(request):
                 assert "mark1" in request.keywords
@@ -910,14 +910,14 @@ class TestFunctional:
                 assert marker.kwargs == {}
         """
         )
-        reprec = pytester.inline_run("-m", "mark1")
+        reprec = testrunnerer.inline_run("-m", "mark1")
         reprec.assertoutcome(passed=1)
 
     def assert_markers(self, items, **expected) -> None:
         """Assert that given items have expected marker names applied to them.
         expected should be a dict of (item name -> seq of expected marker names).
 
-        Note: this could be moved to ``pytester`` if proven to be useful
+        Note: this could be moved to ``testrunnerer`` if proven to be useful
         to other modules.
         """
         items = {x.name: x for x in items}
@@ -925,20 +925,20 @@ class TestFunctional:
             markers = {m.name for m in items[name].iter_markers()}
             assert markers == set(expected_markers)
 
-    @pytest.mark.filterwarnings("ignore")
-    def test_mark_from_parameters(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("ignore")
+    def test_mark_from_parameters(self, testrunnerer: Testrunnerer) -> None:
         """#1540"""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
-            pytestmark = pytest.mark.skipif(True, reason='skip all')
+            _testrunner_mark = testrunner.mark.skipif(True, reason='skip all')
 
             # skipifs inside fixture params
-            params = [pytest.mark.skipif(False, reason='dont skip')('parameter')]
+            params = [testrunner.mark.skipif(False, reason='dont skip')('parameter')]
 
 
-            @pytest.fixture(params=params)
+            @testrunner.fixture(params=params)
             def parameter(request):
                 return request.param
 
@@ -947,29 +947,29 @@ class TestFunctional:
                 assert True
         """
         )
-        reprec = pytester.inline_run()
+        reprec = testrunnerer.inline_run()
         reprec.assertoutcome(skipped=1)
 
-    def test_reevaluate_dynamic_expr(self, pytester: Pytester) -> None:
+    def test_reevaluate_dynamic_expr(self, testrunnerer: Testrunnerer) -> None:
         """#7360"""
-        py_file1 = pytester.makepyfile(
+        py_file1 = testrunnerer.makepyfile(
             test_reevaluate_dynamic_expr1="""
-            import pytest
+            import testrunner
 
             skip = True
 
-            @pytest.mark.skipif("skip")
+            @testrunner.mark.skipif("skip")
             def test_should_skip():
                 assert True
         """
         )
-        py_file2 = pytester.makepyfile(
+        py_file2 = testrunnerer.makepyfile(
             test_reevaluate_dynamic_expr2="""
-            import pytest
+            import testrunner
 
             skip = False
 
-            @pytest.mark.skipif("skip")
+            @testrunner.mark.skipif("skip")
             def test_should_not_skip():
                 assert True
         """
@@ -977,13 +977,13 @@ class TestFunctional:
 
         file_name1 = os.path.basename(py_file1)
         file_name2 = os.path.basename(py_file2)
-        reprec = pytester.inline_run(file_name1, file_name2)
+        reprec = testrunnerer.inline_run(file_name1, file_name2)
         reprec.assertoutcome(passed=1, skipped=1)
 
 
 class TestKeywordSelection:
-    def test_select_simple(self, pytester: Pytester) -> None:
-        file_test = pytester.makepyfile(
+    def test_select_simple(self, testrunnerer: Testrunnerer) -> None:
+        file_test = testrunnerer.makepyfile(
             """
             def test_one():
                 assert 0
@@ -994,17 +994,17 @@ class TestKeywordSelection:
         )
 
         def check(keyword, name):
-            reprec = pytester.inline_run("-s", "-k", keyword, file_test)
+            reprec = testrunnerer.inline_run("-s", "-k", keyword, file_test)
             _passed, _skipped, failed = reprec.listoutcomes()
             assert len(failed) == 1
             assert failed[0].nodeid.split("::")[-1] == name
-            assert len(reprec.getcalls("pytest_deselected")) == 1
+            assert len(reprec.getcalls("testrunner_deselected")) == 1
 
         for keyword in ["test_one", "est_on"]:
             check(keyword, "test_one")
         check("TestClass and test", "test_method_one")
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "keyword",
         [
             "xxx",
@@ -1015,8 +1015,8 @@ class TestKeywordSelection:
             "xxx and TestClass and test_2",
         ],
     )
-    def test_select_extra_keywords(self, pytester: Pytester, keyword) -> None:
-        p = pytester.makepyfile(
+    def test_select_extra_keywords(self, testrunnerer: Testrunnerer, keyword) -> None:
+        p = testrunnerer.makepyfile(
             test_select="""
             def test_1():
                 pass
@@ -1025,41 +1025,41 @@ class TestKeywordSelection:
                     pass
         """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             conftest="""
-            import pytest
-            @pytest.hookimpl(wrapper=True)
-            def pytest_pycollect_makeitem(name):
+            import testrunner
+            @testrunner.hookimpl(wrapper=True)
+            def testrunner_pycollect_makeitem(name):
                 item = yield
                 if name == "TestClass":
                     item.extra_keyword_matches.add("xxx")
                 return item
         """
         )
-        reprec = pytester.inline_run(p.parent, "-s", "-k", keyword)
+        reprec = testrunnerer.inline_run(p.parent, "-s", "-k", keyword)
         print("keyword", repr(keyword))
         passed, _skipped, _failed = reprec.listoutcomes()
         assert len(passed) == 1
         assert passed[0].nodeid.endswith("test_2")
-        dlist = reprec.getcalls("pytest_deselected")
+        dlist = reprec.getcalls("testrunner_deselected")
         assert len(dlist) == 1
         assert dlist[0].items[0].name == "test_1"
 
-    def test_keyword_extra(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_keyword_extra(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
            def test_one():
                assert 0
            test_one.mykeyword = True
         """
         )
-        reprec = pytester.inline_run("-k", "mykeyword", p)
+        reprec = testrunnerer.inline_run("-k", "mykeyword", p)
         _passed, _skipped, failed = reprec.countoutcomes()
         assert failed == 1
 
-    @pytest.mark.xfail
-    def test_keyword_extra_dash(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    @testrunner.mark.xfail
+    def test_keyword_extra_dash(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
            def test_one():
                assert 0
@@ -1068,44 +1068,44 @@ class TestKeywordSelection:
         )
         # with argparse the argument to an option cannot
         # start with '-'
-        reprec = pytester.inline_run("-k", "-mykeyword", p)
+        reprec = testrunnerer.inline_run("-k", "-mykeyword", p)
         passed, skipped, failed = reprec.countoutcomes()
         assert passed + skipped + failed == 0
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "keyword",
         ["__", "+", ".."],
     )
-    def test_no_magic_values(self, pytester: Pytester, keyword: str) -> None:
+    def test_no_magic_values(self, testrunnerer: Testrunnerer, keyword: str) -> None:
         """Make sure the tests do not match on magic values,
         no double underscored values, like '__dict__' and '+'.
         """
-        p = pytester.makepyfile(
+        p = testrunnerer.makepyfile(
             """
             def test_one(): assert 1
         """
         )
 
-        reprec = pytester.inline_run("-k", keyword, p)
+        reprec = testrunnerer.inline_run("-k", keyword, p)
         passed, skipped, failed = reprec.countoutcomes()
-        dlist = reprec.getcalls("pytest_deselected")
+        dlist = reprec.getcalls("testrunner_deselected")
         assert passed + skipped + failed == 0
         deselected_tests = dlist[0].items
         assert len(deselected_tests) == 1
 
     def test_no_match_directories_outside_the_suite(
         self,
-        pytester: Pytester,
-        monkeypatch: pytest.MonkeyPatch,
+        testrunnerer: Testrunnerer,
+        monkeypatch: testrunner.MonkeyPatch,
     ) -> None:
         """`-k` should not match against directories containing the test suite (#7040)."""
-        pytester.makefile(
+        testrunnerer.makefile(
             **{
-                "suite/pytest": """[pytest]""",
+                "suite/testrunner": """[testrunner]""",
             },
             ext=".ini",
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             **{
                 "suite/ddd/tests/__init__.py": "",
                 "suite/ddd/tests/test_foo.py": """
@@ -1114,11 +1114,11 @@ class TestKeywordSelection:
             """,
             }
         )
-        monkeypatch.chdir(pytester.path / "suite")
+        monkeypatch.chdir(testrunnerer.path / "suite")
 
         def get_collected_names(*args: str) -> list[str]:
-            _, rec = pytester.inline_genitems(*args)
-            calls = rec.getcalls("pytest_collection_finish")
+            _, rec = testrunnerer.inline_genitems(*args)
+            calls = rec.getcalls("testrunner_collection_finish")
             assert len(calls) == 1
             return [x.name for x in calls[0].session.items]
 
@@ -1126,46 +1126,46 @@ class TestKeywordSelection:
         assert get_collected_names() == ["test_aaa", "test_ddd"]
 
         # do not collect anything based on names outside the collection tree
-        assert get_collected_names("-k", pytester._name) == []
+        assert get_collected_names("-k", testrunnerer._name) == []
 
 
 class TestMarkDecorator:
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "lhs, rhs, expected",
         [
-            (pytest.mark.foo(), pytest.mark.foo(), True),
-            (pytest.mark.foo(), pytest.mark.bar(), False),
-            (pytest.mark.foo(), "bar", False),
-            ("foo", pytest.mark.bar(), False),
+            (testrunner.mark.foo(), testrunner.mark.foo(), True),
+            (testrunner.mark.foo(), testrunner.mark.bar(), False),
+            (testrunner.mark.foo(), "bar", False),
+            ("foo", testrunner.mark.bar(), False),
         ],
     )
     def test__eq__(self, lhs, rhs, expected) -> None:
         assert (lhs == rhs) == expected
 
     def test_aliases(self) -> None:
-        md = pytest.mark.foo(1, "2", three=3)
+        md = testrunner.mark.foo(1, "2", three=3)
         assert md.name == "foo"
         assert md.args == (1, "2")
         assert md.kwargs == {"three": 3}
 
 
-@pytest.mark.parametrize("mark", [None, "skip", "xfail"])
+@testrunner.mark.parametrize("mark", [None, "skip", "xfail"])
 def test_parameterset_for_parametrize_marks(
-    pytester: Pytester, mark: _EmptyParameterSetMark | None
+    testrunnerer: Testrunnerer, mark: _EmptyParameterSetMark | None
 ) -> None:
     if mark is not None:
-        pytester.makeini(
+        testrunnerer.makeini(
             f"""
-        [pytest]
+        [testrunner]
         {EMPTY_PARAMETERSET_OPTION}={mark}
         """
         )
 
-    config = pytester.parseconfig()
-    from _pytest.mark import get_empty_parameterset_mark
-    from _pytest.mark import pytest_configure
+    config = testrunnerer.parseconfig()
+    from _testrunner.mark import get_empty_parameterset_mark
+    from _testrunner.mark import testrunner_configure
 
-    pytest_configure(config)
+    testrunner_configure(config)
     result_mark = get_empty_parameterset_mark(config, ["a"], all)
     if mark is None:
         # normalize to the default
@@ -1176,15 +1176,15 @@ def test_parameterset_for_parametrize_marks(
         assert result_mark.kwargs.get("run") is False
 
 
-def test_parameterset_for_parametrize_marks_invalid(pytester: Pytester) -> None:
-    pytester.makeini(
+def test_parameterset_for_parametrize_marks_invalid(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeini(
         f"""
-        [pytest]
+        [testrunner]
         {EMPTY_PARAMETERSET_OPTION}=dontcare
         """
     )
-    result = pytester.runpytest()
-    assert result.ret == pytest.ExitCode.USAGE_ERROR
+    result = testrunnerer.runtestrunner()
+    assert result.ret == testrunner.ExitCode.USAGE_ERROR
     result.stderr.fnmatch_lines(
         [
             f"*ERROR: *: config option '{EMPTY_PARAMETERSET_OPTION}' expects one of "
@@ -1193,36 +1193,36 @@ def test_parameterset_for_parametrize_marks_invalid(pytester: Pytester) -> None:
     )
 
 
-def test_parameterset_for_fail_at_collect(pytester: Pytester) -> None:
-    pytester.makeini(
+def test_parameterset_for_fail_at_collect(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeini(
         f"""
-    [pytest]
+    [testrunner]
     {EMPTY_PARAMETERSET_OPTION}=fail_at_collect
     """
     )
 
-    config = pytester.parseconfig()
-    from _pytest.mark import get_empty_parameterset_mark
-    from _pytest.mark import pytest_configure
+    config = testrunnerer.parseconfig()
+    from _testrunner.mark import get_empty_parameterset_mark
+    from _testrunner.mark import testrunner_configure
 
-    pytest_configure(config)
+    testrunner_configure(config)
 
-    with pytest.raises(
+    with testrunner.raises(
         Collector.CollectError,
-        match=r"Empty parameter set in 'pytest_configure' at line \d\d+",
+        match=r"Empty parameter set in 'testrunner_configure' at line \d\d+",
     ):
-        get_empty_parameterset_mark(config, ["a"], pytest_configure)
+        get_empty_parameterset_mark(config, ["a"], testrunner_configure)
 
-    p1 = pytester.makepyfile(
+    p1 = testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.mark.parametrize("empty", [])
+        @testrunner.mark.parametrize("empty", [])
         def test():
             pass
         """
     )
-    result = pytester.runpytest(str(p1))
+    result = testrunnerer.runtestrunner(str(p1))
     result.stdout.fnmatch_lines(
         [
             "collected 0 items / 1 error",
@@ -1235,21 +1235,21 @@ def test_parameterset_for_fail_at_collect(pytester: Pytester) -> None:
 
 
 def test_paramset_empty_no_idfunc(
-    pytester: Pytester, monkeypatch: pytest.MonkeyPatch
+    testrunnerer: Testrunnerer, monkeypatch: testrunner.MonkeyPatch
 ) -> None:
     """An empty parameter set should not call the user provided id function (#13031)."""
-    p1 = pytester.makepyfile(
+    p1 = testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
         def idfunc(value):
             raise ValueError()
-        @pytest.mark.parametrize("param", [], ids=idfunc)
+        @testrunner.mark.parametrize("param", [], ids=idfunc)
         def test(param):
             pass
         """
     )
-    result = pytester.runpytest(p1, "-v", "-rs")
+    result = testrunnerer.runtestrunner(p1, "-v", "-rs")
     result.stdout.fnmatch_lines(
         [
             "* collected 1 item",
@@ -1260,28 +1260,28 @@ def test_paramset_empty_no_idfunc(
     )
 
 
-def test_mark_expressions_no_smear(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_mark_expressions_no_smear(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
         class BaseTests(object):
             def test_something(self):
                 pass
 
-        @pytest.mark.FOO
+        @testrunner.mark.FOO
         class TestFooClass(BaseTests):
             pass
 
-        @pytest.mark.BAR
+        @testrunner.mark.BAR
         class TestBarClass(BaseTests):
             pass
     """
     )
 
-    reprec = pytester.inline_run("-m", "FOO")
+    reprec = testrunnerer.inline_run("-m", "FOO")
     passed, skipped, failed = reprec.countoutcomes()
-    dlist = reprec.getcalls("pytest_deselected")
+    dlist = reprec.getcalls("testrunner_deselected")
     assert passed == 1
     assert skipped == failed == 0
     deselected_tests = dlist[0].items
@@ -1289,19 +1289,19 @@ def test_mark_expressions_no_smear(pytester: Pytester) -> None:
 
     # todo: fixed
     # keywords smear - expected behaviour
-    # reprec_keywords = pytester.inline_run("-k", "FOO")
+    # reprec_keywords = testrunnerer.inline_run("-k", "FOO")
     # passed_k, skipped_k, failed_k = reprec_keywords.countoutcomes()
     # assert passed_k == 2
     # assert skipped_k == failed_k == 0
 
 
-def test_addmarker_order(pytester) -> None:
+def test_addmarker_order(testrunnerer) -> None:
     session = mock.Mock(spec=Collector)
     session.own_markers = []
     session.parent = None
     session.nodeid = ""
     session.id = NodeId(path="")
-    session.path = pytester.path
+    session.path = testrunnerer.path
     node = Node.from_parent(session, name="Test")
     node.add_marker("foo")
     node.add_marker("bar")
@@ -1310,16 +1310,16 @@ def test_addmarker_order(pytester) -> None:
     assert extracted == ["baz", "foo", "bar"]
 
 
-@pytest.mark.filterwarnings("ignore")
-def test_markers_from_parametrize(pytester: Pytester) -> None:
+@testrunner.mark.filterwarnings("ignore")
+def test_markers_from_parametrize(testrunnerer: Testrunnerer) -> None:
     """#3605"""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        first_custom_mark = pytest.mark.custom_marker
-        custom_mark = pytest.mark.custom_mark
-        @pytest.fixture(autouse=True)
+        first_custom_mark = testrunner.mark.custom_marker
+        custom_mark = testrunner.mark.custom_mark
+        @testrunner.fixture(autouse=True)
         def trigger(request):
             custom_mark = list(request.node.iter_markers('custom_mark'))
             print("Custom mark %s" % custom_mark)
@@ -1328,11 +1328,11 @@ def test_markers_from_parametrize(pytester: Pytester) -> None:
         def test_custom_mark_non_parametrized():
             print("Hey from test")
 
-        @pytest.mark.parametrize(
+        @testrunner.mark.parametrize(
             "obj_type",
             [
                 first_custom_mark("first custom mark")("template"),
-                pytest.param( # Think this should be recommended way?
+                testrunner.param( # Think this should be recommended way?
                     "disk",
                     marks=custom_mark('custom mark1')
                 ),
@@ -1344,45 +1344,45 @@ def test_markers_from_parametrize(pytester: Pytester) -> None:
     """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.assert_outcomes(passed=4)
 
 
-def test_pytest_param_id_requires_string() -> None:
-    with pytest.raises(TypeError) as excinfo:
-        pytest.param(id=True)  # type: ignore[arg-type]
+def test_testrunner_param_id_requires_string() -> None:
+    with testrunner.raises(TypeError) as excinfo:
+        testrunner.param(id=True)  # type: ignore[arg-type]
     (msg,) = excinfo.value.args
     expected = (
-        "Expected id to be a string or a `pytest.HIDDEN_PARAM` sentinel, "
+        "Expected id to be a string or a `testrunner.HIDDEN_PARAM` sentinel, "
         "got <class 'bool'>: True"
     )
     assert msg == expected
 
 
-@pytest.mark.parametrize("s", (None, "hello world"))
-def test_pytest_param_id_allows_none_or_string(s) -> None:
-    assert pytest.param(id=s)
+@testrunner.mark.parametrize("s", (None, "hello world"))
+def test_testrunner_param_id_allows_none_or_string(s) -> None:
+    assert testrunner.param(id=s)
 
 
-@pytest.mark.parametrize("expr", ("NOT internal_err", "NOT (internal_err)", "bogus="))
-def test_marker_expr_eval_failure_handling(pytester: Pytester, expr) -> None:
-    foo = pytester.makepyfile(
+@testrunner.mark.parametrize("expr", ("NOT internal_err", "NOT (internal_err)", "bogus="))
+def test_marker_expr_eval_failure_handling(testrunnerer: Testrunnerer, expr) -> None:
+    foo = testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.mark.internal_err
+        @testrunner.mark.internal_err
         def test_foo():
             pass
         """
     )
     expected = f"ERROR: Wrong expression passed to '-m': {expr}: *"
-    result = pytester.runpytest(foo, "-m", expr)
+    result = testrunnerer.runtestrunner(foo, "-m", expr)
     result.stderr.fnmatch_lines([expected])
     assert result.ret == ExitCode.USAGE_ERROR
 
 
 def test_mark_mro() -> None:
-    xfail = pytest.mark.xfail
+    xfail = testrunner.mark.xfail
 
     @xfail("a")
     class A:
@@ -1396,7 +1396,7 @@ def test_mark_mro() -> None:
     class C(A, B):
         pass
 
-    from _pytest.mark.structures import get_unpacked_marks
+    from _testrunner.mark.structures import get_unpacked_marks
 
     all_marks = get_unpacked_marks(C)
 
@@ -1405,126 +1405,126 @@ def test_mark_mro() -> None:
     assert get_unpacked_marks(C, consider_mro=False) == [xfail("c").mark]
 
 
-# @pytest.mark.issue("https://github.com/pytest-dev/pytest/issues/10447")
-def test_mark_fixture_order_mro(pytester: Pytester):
+# @testrunner.mark.issue("https://github.com/jacksonsr451/test-runner/issues/10447")
+def test_mark_fixture_order_mro(testrunnerer: Testrunnerer):
     """This ensures we walk marks of the mro starting with the base classes
     the action at a distance fixtures are taken as minimal example from a real project
 
     """
-    foo = pytester.makepyfile(
+    foo = testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.fixture
+        @testrunner.fixture
         def add_attr1(request):
             request.instance.attr1 = object()
 
 
-        @pytest.fixture
+        @testrunner.fixture
         def add_attr2(request):
             request.instance.attr2 = request.instance.attr1
 
 
-        @pytest.mark.usefixtures('add_attr1')
+        @testrunner.mark.usefixtures('add_attr1')
         class Parent:
             pass
 
 
-        @pytest.mark.usefixtures('add_attr2')
+        @testrunner.mark.usefixtures('add_attr2')
         class TestThings(Parent):
             def test_attrs(self):
                 assert self.attr1 == self.attr2
         """
     )
-    result = pytester.runpytest(foo)
+    result = testrunnerer.runtestrunner(foo)
     result.assert_outcomes(passed=1)
 
 
-def test_mark_parametrize_over_staticmethod(pytester: Pytester) -> None:
+def test_mark_parametrize_over_staticmethod(testrunnerer: Testrunnerer) -> None:
     """Check that applying marks works as intended on classmethods and staticmethods.
 
     Regression test for #12863.
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
         class TestClass:
-            @pytest.mark.parametrize("value", [1, 2])
+            @testrunner.mark.parametrize("value", [1, 2])
             @classmethod
             def test_classmethod_wrapper(cls, value: int):
                 assert value in [1, 2]
 
             @classmethod
-            @pytest.mark.parametrize("value", [1, 2])
+            @testrunner.mark.parametrize("value", [1, 2])
             def test_classmethod_wrapper_on_top(cls, value: int):
                 assert value in [1, 2]
 
-            @pytest.mark.parametrize("value", [1, 2])
+            @testrunner.mark.parametrize("value", [1, 2])
             @staticmethod
             def test_staticmethod_wrapper(value: int):
                 assert value in [1, 2]
 
             @staticmethod
-            @pytest.mark.parametrize("value", [1, 2])
+            @testrunner.mark.parametrize("value", [1, 2])
             def test_staticmethod_wrapper_on_top(value: int):
                 assert value in [1, 2]
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.assert_outcomes(passed=8)
 
 
 def test_fixture_disallow_on_marked_functions() -> None:
-    """Test that applying @pytest.fixture to a marked function errors (#3364)."""
-    with pytest.raises(
-        pytest.fail.Exception,
+    """Test that applying @testrunner.fixture to a marked function errors (#3364)."""
+    with testrunner.raises(
+        testrunner.fail.Exception,
         match=r"Marks cannot be applied to fixtures",
     ):
 
-        @pytest.fixture
-        @pytest.mark.parametrize("example", ["hello"])
-        @pytest.mark.usefixtures("tmp_path")
+        @testrunner.fixture
+        @testrunner.mark.parametrize("example", ["hello"])
+        @testrunner.mark.usefixtures("tmp_path")
         def foo():
             raise NotImplementedError()
 
 
 def test_fixture_disallow_marks_on_fixtures() -> None:
     """Test that applying a mark to a fixture errors (#3364)."""
-    with pytest.raises(
-        pytest.fail.Exception,
+    with testrunner.raises(
+        testrunner.fail.Exception,
         match=r"Marks cannot be applied to fixtures",
     ):
 
-        @pytest.mark.parametrize("example", ["hello"])
-        @pytest.mark.usefixtures("tmp_path")
-        @pytest.fixture
+        @testrunner.mark.parametrize("example", ["hello"])
+        @testrunner.mark.usefixtures("tmp_path")
+        @testrunner.fixture
         def foo():
             raise NotImplementedError()
 
 
 def test_fixture_disallowed_between_marks() -> None:
     """Test that applying a mark to a fixture errors (#3364)."""
-    with pytest.raises(
-        pytest.fail.Exception,
+    with testrunner.raises(
+        testrunner.fail.Exception,
         match=r"Marks cannot be applied to fixtures",
     ):
 
-        @pytest.mark.parametrize("example", ["hello"])
-        @pytest.fixture
-        @pytest.mark.usefixtures("tmp_path")
+        @testrunner.mark.parametrize("example", ["hello"])
+        @testrunner.fixture
+        @testrunner.mark.usefixtures("tmp_path")
         def foo():
             raise NotImplementedError()
 
 
-def test_module_getattr_without_attributeerror(pytester: Pytester) -> None:
+def test_module_getattr_without_attributeerror(testrunnerer: Testrunnerer) -> None:
     """
     Test that a helpful warning is emitted when a module-level
     __getattr__ returns None instead of raising AttributeError.
 
-    Regression test for https://github.com/pytest-dev/pytest/issues/8265
+    Regression test for https://github.com/jacksonsr451/test-runner/issues/8265
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def __getattr__(key):
             # Bug: should raise AttributeError, but returns None
@@ -1534,12 +1534,12 @@ def test_module_getattr_without_attributeerror(pytester: Pytester) -> None:
             assert True
         """
     )
-    result = pytester.runpytest("-W", "always::pytest.PytestCollectionWarning")
+    result = testrunnerer.runtestrunner("-W", "always::testrunner.TestrunnerCollectionWarning")
     result.stdout.fnmatch_lines(
         [
-            "*PytestCollectionWarning*__getattr__*returns None*AttributeError*",
+            "*TestrunnerCollectionWarning*__getattr__*returns None*AttributeError*",
         ]
     )
     # The module is buggy (__getattr__ returns None for all attributes),
-    # so no tests are collected, but pytest should NOT crash with a TypeError.
+    # so no tests are collected, but testrunner should NOT crash with a TypeError.
     assert result.ret != ExitCode.INTERNAL_ERROR

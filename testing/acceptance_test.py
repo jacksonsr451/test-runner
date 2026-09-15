@@ -12,11 +12,11 @@ import types
 
 import setuptools
 
-from _pytest.config import ExitCode
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.pathlib import symlink_or_skip
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.config import ExitCode
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.pathlib import symlink_or_skip
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
 def prepend_pythonpath(*dirs) -> str:
@@ -27,99 +27,99 @@ def prepend_pythonpath(*dirs) -> str:
 
 
 class TestGeneralUsage:
-    def test_config_error(self, pytester: Pytester) -> None:
-        pytester.copy_example("conftest_usageerror/conftest.py")
-        result = pytester.runpytest(pytester.path)
+    def test_config_error(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.copy_example("conftest_usageerror/conftest.py")
+        result = testrunnerer.runtestrunner(testrunnerer.path)
         assert result.ret == ExitCode.USAGE_ERROR
         result.stderr.fnmatch_lines(["*ERROR: hello"])
-        result.stdout.fnmatch_lines(["*pytest_unconfigure_called"])
+        result.stdout.fnmatch_lines(["*testrunner_unconfigure_called"])
 
-    def test_root_conftest_syntax_error(self, pytester: Pytester) -> None:
-        pytester.makepyfile(conftest="raise SyntaxError\n")
-        result = pytester.runpytest()
+    def test_root_conftest_syntax_error(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(conftest="raise SyntaxError\n")
+        result = testrunnerer.runtestrunner()
         result.stderr.fnmatch_lines(["*raise SyntaxError*"])
         assert result.ret != 0
 
-    def test_early_hook_error_issue38_1(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_early_hook_error_issue38_1(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_sessionstart():
+            def testrunner_sessionstart():
                 0 / 0
         """
         )
-        result = pytester.runpytest(pytester.path)
+        result = testrunnerer.runtestrunner(testrunnerer.path)
         assert result.ret != 0
         # tracestyle is native by default for hook failures
         result.stdout.fnmatch_lines(
             ["*INTERNALERROR*File*conftest.py*line 2*", "*0 / 0*"]
         )
-        result = pytester.runpytest(pytester.path, "--fulltrace")
+        result = testrunnerer.runtestrunner(testrunnerer.path, "--fulltrace")
         assert result.ret != 0
         # tracestyle is native by default for hook failures
         result.stdout.fnmatch_lines(
-            ["*INTERNALERROR*def pytest_sessionstart():*", "*INTERNALERROR*0 / 0*"]
+            ["*INTERNALERROR*def testrunner_sessionstart():*", "*INTERNALERROR*0 / 0*"]
         )
 
-    def test_early_hook_configure_error_issue38(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_early_hook_configure_error_issue38(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_configure():
+            def testrunner_configure():
                 0 / 0
         """
         )
-        result = pytester.runpytest(pytester.path)
+        result = testrunnerer.runtestrunner(testrunnerer.path)
         assert result.ret != 0
         # here we get it on stderr
         result.stderr.fnmatch_lines(
             ["*INTERNALERROR*File*conftest.py*line 2*", "*0 / 0*"]
         )
 
-    def test_file_not_found(self, pytester: Pytester) -> None:
-        result = pytester.runpytest("asd")
+    def test_file_not_found(self, testrunnerer: Testrunnerer) -> None:
+        result = testrunnerer.runtestrunner("asd")
         assert result.ret != 0
         result.stderr.fnmatch_lines(["ERROR: file or directory not found: asd"])
 
-    def test_file_not_found_unconfigure_issue143(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_file_not_found_unconfigure_issue143(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_configure():
+            def testrunner_configure():
                 print("---configure")
-            def pytest_unconfigure():
+            def testrunner_unconfigure():
                 print("---unconfigure")
         """
         )
-        result = pytester.runpytest("-s", "asd")
+        result = testrunnerer.runtestrunner("-s", "asd")
         assert result.ret == ExitCode.USAGE_ERROR
         result.stderr.fnmatch_lines(["ERROR: file or directory not found: asd"])
         result.stdout.fnmatch_lines(["*---configure", "*---unconfigure"])
 
-    def test_config_preparse_plugin_option(self, pytester: Pytester) -> None:
-        pytester.makepyfile(
-            pytest_xyz="""
-            def pytest_addoption(parser):
+    def test_config_preparse_plugin_option(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(
+            testrunner_xyz="""
+            def testrunner_addoption(parser):
                 parser.addoption("--xyz", dest="xyz", action="store")
         """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             test_one="""
-            def test_option(pytestconfig):
-                assert pytestconfig.option.xyz == "123"
+            def test_option(testrunnerconfig):
+                assert testrunnerconfig.option.xyz == "123"
         """
         )
-        result = pytester.runpytest("-p", "pytest_xyz", "--xyz=123", syspathinsert=True)
+        result = testrunnerer.runtestrunner("-p", "testrunner_xyz", "--xyz=123", syspathinsert=True)
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*1 passed*"])
 
-    @pytest.mark.parametrize("load_cov_early", [True, False])
+    @testrunner.mark.parametrize("load_cov_early", [True, False])
     def test_early_load_setuptools_name(
-        self, pytester: Pytester, monkeypatch, load_cov_early
+        self, testrunnerer: Testrunnerer, monkeypatch, load_cov_early
     ) -> None:
-        monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD")
+        monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD")
 
-        pytester.makepyfile(mytestplugin1_module="")
-        pytester.makepyfile(mytestplugin2_module="")
-        pytester.makepyfile(mycov_module="")
-        pytester.syspathinsert()
+        testrunnerer.makepyfile(mytestplugin1_module="")
+        testrunnerer.makepyfile(mytestplugin2_module="")
+        testrunnerer.makepyfile(mycov_module="")
+        testrunnerer.syspathinsert()
 
         loaded = []
 
@@ -127,7 +127,7 @@ class TestGeneralUsage:
         class DummyEntryPoint:
             name: str
             module: str
-            group: str = "pytest11"
+            group: str = "testrunner11"
 
             def load(self):
                 mod = importlib.import_module(self.module)
@@ -150,35 +150,35 @@ class TestGeneralUsage:
 
         monkeypatch.setattr(importlib.metadata, "distributions", my_dists)
         params = ("-p", "mycov") if load_cov_early else ()
-        pytester.runpytest_inprocess(*params)
+        testrunnerer.runtestrunner_inprocess(*params)
         if load_cov_early:
             assert loaded == ["mycov", "myplugin1", "myplugin2"]
         else:
             assert loaded == ["myplugin1", "myplugin2", "mycov"]
 
-    @pytest.mark.parametrize("import_mode", ["prepend", "append", "importlib"])
-    def test_assertion_rewrite(self, pytester: Pytester, import_mode) -> None:
-        p = pytester.makepyfile(
+    @testrunner.mark.parametrize("import_mode", ["prepend", "append", "importlib"])
+    def test_assertion_rewrite(self, testrunnerer: Testrunnerer, import_mode) -> None:
+        p = testrunnerer.makepyfile(
             """
             def test_this():
                 x = 0
                 assert x
         """
         )
-        result = pytester.runpytest(p, f"--import-mode={import_mode}")
+        result = testrunnerer.runtestrunner(p, f"--import-mode={import_mode}")
         result.stdout.fnmatch_lines([">       assert x", "E       assert 0"])
         assert result.ret == 1
 
-    def test_nested_import_error(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_nested_import_error(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
                 import import_fails
                 def test_this():
                     assert import_fails.a == 1
         """
         )
-        pytester.makepyfile(import_fails="import does_not_work")
-        result = pytester.runpytest(p)
+        testrunnerer.makepyfile(import_fails="import does_not_work")
+        result = testrunnerer.runtestrunner(p)
         result.stdout.fnmatch_lines(
             [
                 "ImportError while importing test module*",
@@ -187,10 +187,10 @@ class TestGeneralUsage:
         )
         assert result.ret == 2
 
-    def test_not_collectable_arguments(self, pytester: Pytester) -> None:
-        p1 = pytester.makepyfile("")
-        p2 = pytester.makefile(".pyc", "123")
-        result = pytester.runpytest(p1, p2)
+    def test_not_collectable_arguments(self, testrunnerer: Testrunnerer) -> None:
+        p1 = testrunnerer.makepyfile("")
+        p2 = testrunnerer.makefile(".pyc", "123")
+        result = testrunnerer.runtestrunner(p1, p2)
         assert result.ret == ExitCode.USAGE_ERROR
         result.stderr.fnmatch_lines(
             [
@@ -200,27 +200,27 @@ class TestGeneralUsage:
             ]
         )
 
-    @pytest.mark.filterwarnings("default")
+    @testrunner.mark.filterwarnings("default")
     def test_better_reporting_on_conftest_load_failure(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """Show a user-friendly traceback on conftest import failures (#486, #3332)"""
-        pytester.makepyfile("")
-        conftest = pytester.makeconftest(
+        testrunnerer.makepyfile("")
+        conftest = testrunnerer.makeconftest(
             """
             def foo():
                 import qwerty
             foo()
         """
         )
-        result = pytester.runpytest("--help")
+        result = testrunnerer.runtestrunner("--help")
         result.stdout.fnmatch_lines(
             """
             *--version*
             *warning*conftest.py*
         """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.stdout.lines == []
         assert result.stderr.lines == [
             f"ImportError while loading conftest '{conftest}'.",
@@ -231,229 +231,229 @@ class TestGeneralUsage:
             "E   ModuleNotFoundError: No module named 'qwerty'",
         ]
 
-    def test_early_skip(self, pytester: Pytester) -> None:
-        pytester.mkdir("xyz")
-        pytester.makeconftest(
+    def test_early_skip(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.mkdir("xyz")
+        testrunnerer.makeconftest(
             """
-            import pytest
-            def pytest_collect_file():
-                pytest.skip("early")
+            import testrunner
+            def testrunner_collect_file():
+                testrunner.skip("early")
         """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
         result.stdout.fnmatch_lines(["*1 skip*"])
 
-    def test_issue88_initial_file_multinodes(self, pytester: Pytester) -> None:
-        pytester.copy_example("issue88_initial_file_multinodes")
-        p = pytester.makepyfile("def test_hello(): pass")
-        result = pytester.runpytest(p, "--collect-only")
+    def test_issue88_initial_file_multinodes(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.copy_example("issue88_initial_file_multinodes")
+        p = testrunnerer.makepyfile("def test_hello(): pass")
+        result = testrunnerer.runtestrunner(p, "--collect-only")
         result.stdout.fnmatch_lines(["*MyFile*test_issue88*", "*Module*test_issue88*"])
 
-    def test_issue93_initialnode_importing_capturing(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_issue93_initialnode_importing_capturing(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
             import sys
             print("should not be seen")
             sys.stderr.write("stder42\\n")
         """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
         result.stdout.no_fnmatch_line("*should not be seen*")
         assert "stderr42" not in result.stderr.str()
 
-    def test_conftest_printing_shows_if_error(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_conftest_printing_shows_if_error(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
             print("should be seen")
             assert 0
         """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.ret != 0
         assert "should be seen" in result.stdout.str()
 
-    def test_issue109_sibling_conftests_not_loaded(self, pytester: Pytester) -> None:
-        sub1 = pytester.mkdir("sub1")
-        sub2 = pytester.mkdir("sub2")
+    def test_issue109_sibling_conftests_not_loaded(self, testrunnerer: Testrunnerer) -> None:
+        sub1 = testrunnerer.mkdir("sub1")
+        sub2 = testrunnerer.mkdir("sub2")
         sub1.joinpath("conftest.py").write_text("assert 0", encoding="utf-8")
-        result = pytester.runpytest(sub2)
+        result = testrunnerer.runtestrunner(sub2)
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
         sub2.joinpath("__init__.py").touch()
         p = sub2.joinpath("test_hello.py")
         p.touch()
-        result = pytester.runpytest(p)
+        result = testrunnerer.runtestrunner(p)
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
-        result = pytester.runpytest(sub1)
+        result = testrunnerer.runtestrunner(sub1)
         assert result.ret == ExitCode.USAGE_ERROR
 
-    def test_directory_skipped(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_directory_skipped(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            import pytest
-            def pytest_ignore_collect():
-                pytest.skip("intentional")
+            import testrunner
+            def testrunner_ignore_collect():
+                testrunner.skip("intentional")
         """
         )
-        pytester.makepyfile("def test_hello(): pass")
-        result = pytester.runpytest()
+        testrunnerer.makepyfile("def test_hello(): pass")
+        result = testrunnerer.runtestrunner()
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
         result.stdout.fnmatch_lines(["*1 skipped*"])
 
-    def test_multiple_items_per_collector_byid(self, pytester: Pytester) -> None:
-        c = pytester.makeconftest(
+    def test_multiple_items_per_collector_byid(self, testrunnerer: Testrunnerer) -> None:
+        c = testrunnerer.makeconftest(
             """
-            import pytest
-            class MyItem(pytest.Item):
+            import testrunner
+            class MyItem(testrunner.Item):
                 def runtest(self):
                     pass
-            class MyCollector(pytest.File):
+            class MyCollector(testrunner.File):
                 def collect(self):
                     return [MyItem.from_parent(name="xyz", parent=self)]
-            def pytest_collect_file(file_path, parent):
+            def testrunner_collect_file(file_path, parent):
                 if file_path.name.startswith("conftest"):
                     return MyCollector.from_parent(path=file_path, parent=parent)
         """
         )
-        result = pytester.runpytest(c.name + "::" + "xyz")
+        result = testrunnerer.runtestrunner(c.name + "::" + "xyz")
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*1 pass*"])
 
-    def test_skip_on_generated_funcarg_id(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_skip_on_generated_funcarg_id(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            import pytest
-            def pytest_generate_tests(metafunc):
+            import testrunner
+            def testrunner_generate_tests(metafunc):
                 metafunc.parametrize('x', [3], ids=['hello-123'])
-            def pytest_runtest_setup(item):
+            def testrunner_runtest_setup(item):
                 print(item.keywords)
                 if 'hello-123' in item.keywords:
-                    pytest.skip("hello")
+                    testrunner.skip("hello")
                 assert 0
         """
         )
-        p = pytester.makepyfile("""def test_func(x): pass""")
-        res = pytester.runpytest(p)
+        p = testrunnerer.makepyfile("""def test_func(x): pass""")
+        res = testrunnerer.runtestrunner(p)
         assert res.ret == 0
         res.stdout.fnmatch_lines(["*1 skipped*"])
 
-    def test_direct_addressing_selects(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_direct_addressing_selects(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            def pytest_generate_tests(metafunc):
+            def testrunner_generate_tests(metafunc):
                 metafunc.parametrize('i', [1, 2], ids=["1", "2"])
             def test_func(i):
                 pass
         """
         )
-        res = pytester.runpytest(p.name + "::" + "test_func[1]")
+        res = testrunnerer.runtestrunner(p.name + "::" + "test_func[1]")
         assert res.ret == 0
         res.stdout.fnmatch_lines(["*1 passed*"])
 
-    def test_direct_addressing_selects_duplicates(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_direct_addressing_selects_duplicates(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
-            @pytest.mark.parametrize("a", [1, 2, 10, 11, 2, 1, 12, 11])
+            @testrunner.mark.parametrize("a", [1, 2, 10, 11, 2, 1, 12, 11])
             def test_func(a):
                 pass
             """
         )
-        result = pytester.runpytest(p)
+        result = testrunnerer.runtestrunner(p)
         result.assert_outcomes(failed=0, passed=8)
 
-    def test_direct_addressing_selects_duplicates_1(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_direct_addressing_selects_duplicates_1(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
-            @pytest.mark.parametrize("a", [1, 2, 10, 11, 2, 1, 12, 1_1,2_1])
+            @testrunner.mark.parametrize("a", [1, 2, 10, 11, 2, 1, 12, 1_1,2_1])
             def test_func(a):
                 pass
             """
         )
-        result = pytester.runpytest(p)
+        result = testrunnerer.runtestrunner(p)
         result.assert_outcomes(failed=0, passed=9)
 
-    def test_direct_addressing_selects_duplicates_2(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_direct_addressing_selects_duplicates_2(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
-            @pytest.mark.parametrize("a", ["a","b","c","a","a1"])
+            @testrunner.mark.parametrize("a", ["a","b","c","a","a1"])
             def test_func(a):
                 pass
             """
         )
-        result = pytester.runpytest(p)
+        result = testrunnerer.runtestrunner(p)
         result.assert_outcomes(failed=0, passed=5)
 
-    def test_direct_addressing_notfound(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_direct_addressing_notfound(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
             def test_func():
                 pass
         """
         )
-        res = pytester.runpytest(p.name + "::" + "test_notfound")
+        res = testrunnerer.runtestrunner(p.name + "::" + "test_notfound")
         assert res.ret
         res.stderr.fnmatch_lines(["*ERROR*not found*"])
 
     def test_docstring_on_hookspec(self) -> None:
-        from _pytest import hookspec
+        from _testrunner import hookspec
 
         for name, value in vars(hookspec).items():
-            if name.startswith("pytest_"):
+            if name.startswith("testrunner_"):
                 assert value.__doc__, f"no docstring for {name}"
 
-    def test_initialization_error_issue49(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_initialization_error_issue49(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            def pytest_configure():
+            def testrunner_configure():
                 x
         """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         assert result.ret == 3  # internal error
-        result.stderr.fnmatch_lines(["INTERNAL*pytest_configure*", "INTERNAL*x*"])
+        result.stderr.fnmatch_lines(["INTERNAL*testrunner_configure*", "INTERNAL*x*"])
         assert "sessionstarttime" not in result.stderr.str()
 
-    @pytest.mark.parametrize("lookfor", ["test_fun.py::test_a"])
+    @testrunner.mark.parametrize("lookfor", ["test_fun.py::test_a"])
     def test_issue134_report_error_when_collecting_member(
-        self, pytester: Pytester, lookfor
+        self, testrunnerer: Testrunnerer, lookfor
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             test_fun="""
             def test_a():
                 pass
             def"""
         )
-        result = pytester.runpytest(lookfor)
+        result = testrunnerer.runtestrunner(lookfor)
         result.stdout.fnmatch_lines(["*SyntaxError*"])
         if "::" in lookfor:
             result.stderr.fnmatch_lines(["*ERROR*"])
             assert result.ret == 4  # usage error only if item not found
 
-    def test_report_all_failed_collections_initargs(self, pytester: Pytester) -> None:
-        pytester.makeconftest(
+    def test_report_all_failed_collections_initargs(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makeconftest(
             """
-            from _pytest.config import ExitCode
+            from _testrunner.config import ExitCode
 
-            def pytest_sessionfinish(exitstatus):
+            def testrunner_sessionfinish(exitstatus):
                 assert exitstatus == ExitCode.USAGE_ERROR
-                print("pytest_sessionfinish_called")
+                print("testrunner_sessionfinish_called")
             """
         )
-        pytester.makepyfile(test_a="def", test_b="def")
-        result = pytester.runpytest("test_a.py::a", "test_b.py::b")
+        testrunnerer.makepyfile(test_a="def", test_b="def")
+        result = testrunnerer.runtestrunner("test_a.py::a", "test_b.py::b")
         result.stderr.fnmatch_lines(["*ERROR*test_a.py::a*", "*ERROR*test_b.py::b*"])
-        result.stdout.fnmatch_lines(["pytest_sessionfinish_called"])
+        result.stdout.fnmatch_lines(["testrunner_sessionfinish_called"])
         assert result.ret == ExitCode.USAGE_ERROR
 
     def test_namespace_import_doesnt_confuse_import_hook(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """Ref #383.
 
@@ -461,8 +461,8 @@ class TestGeneralUsage:
         Importing a module that didn't exist, even if the ImportError was
         gracefully handled, would make our test crash.
         """
-        pytester.mkdir("not_a_package")
-        p = pytester.makepyfile(
+        testrunnerer.mkdir("not_a_package")
+        p = testrunnerer.makepyfile(
             """
             try:
                 from not_a_package import doesnt_exist
@@ -474,11 +474,11 @@ class TestGeneralUsage:
                 pass
         """
         )
-        res = pytester.runpytest(p.name)
+        res = testrunnerer.runtestrunner(p.name)
         assert res.ret == 0
 
-    def test_unknown_option(self, pytester: Pytester) -> None:
-        result = pytester.runpytest("--qwlkej")
+    def test_unknown_option(self, testrunnerer: Testrunnerer) -> None:
+        result = testrunnerer.runtestrunner("--qwlkej")
         result.stderr.fnmatch_lines(
             """
             *unrecognized*
@@ -486,10 +486,10 @@ class TestGeneralUsage:
         )
 
     def test_getsourcelines_error_issue553(
-        self, pytester: Pytester, monkeypatch
+        self, testrunnerer: Testrunnerer, monkeypatch
     ) -> None:
         monkeypatch.setattr("inspect.getsourcelines", None)
-        p = pytester.makepyfile(
+        p = testrunnerer.makepyfile(
             """
             def raise_error(obj):
                 raise OSError('source code not available')
@@ -501,67 +501,67 @@ class TestGeneralUsage:
                 pass
         """
         )
-        res = pytester.runpytest(p)
+        res = testrunnerer.runtestrunner(p)
         res.stdout.fnmatch_lines(
             ["*source code not available*", "E*fixture 'invalid_fixture' not found"]
         )
 
     def test_plugins_given_as_strings(
-        self, pytester: Pytester, monkeypatch, _sys_snapshot
+        self, testrunnerer: Testrunnerer, monkeypatch, _sys_snapshot
     ) -> None:
         """Test that str values passed to main() as `plugins` arg are
         interpreted as module names to be imported and registered (#855)."""
         # A plugin which cannot be found is a usage error, reported through the
-        # return value rather than raised out of pytest.main() (#993).
-        ret = pytest.main([str(pytester.path)], plugins=["invalid.module"])
+        # return value rather than raised out of testrunner.main() (#993).
+        ret = testrunner.main([str(testrunnerer.path)], plugins=["invalid.module"])
         assert ret == ExitCode.USAGE_ERROR
 
-        p = pytester.path.joinpath("test_test_plugins_given_as_strings.py")
+        p = testrunnerer.path.joinpath("test_test_plugins_given_as_strings.py")
         p.write_text("def test_foo(): pass", encoding="utf-8")
         mod = types.ModuleType("myplugin")
         monkeypatch.setitem(sys.modules, "myplugin", mod)
-        assert pytest.main(args=[str(pytester.path)], plugins=["myplugin"]) == 0
+        assert testrunner.main(args=[str(testrunnerer.path)], plugins=["myplugin"]) == 0
 
-    def test_parametrized_with_bytes_regex(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_parametrized_with_bytes_regex(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
             import re
-            import pytest
-            @pytest.mark.parametrize('r', [re.compile(b'foo')])
+            import testrunner
+            @testrunner.mark.parametrize('r', [re.compile(b'foo')])
             def test_stuff(r):
                 pass
         """
         )
-        res = pytester.runpytest(p)
+        res = testrunnerer.runtestrunner(p)
         res.stdout.fnmatch_lines(["*1 passed*"])
 
-    def test_parametrized_with_null_bytes(self, pytester: Pytester) -> None:
+    def test_parametrized_with_null_bytes(self, testrunnerer: Testrunnerer) -> None:
         """Test parametrization with values that contain null bytes and unicode characters (#2644, #2957)"""
-        p = pytester.makepyfile(
+        p = testrunnerer.makepyfile(
             """\
-            import pytest
+            import testrunner
 
-            @pytest.mark.parametrize("data", [b"\\x00", "\\x00", 'ação'])
+            @testrunner.mark.parametrize("data", [b"\\x00", "\\x00", 'ação'])
             def test_foo(data):
                 assert data
             """
         )
-        res = pytester.runpytest(p)
+        res = testrunnerer.runtestrunner(p)
         res.assert_outcomes(passed=3)
 
     # Warning ignore because of:
     # https://github.com/python/cpython/issues/85308
     # Can be removed once Python<3.12 support is dropped.
-    @pytest.mark.filterwarnings("ignore:'encoding' argument not specified")
+    @testrunner.mark.filterwarnings("ignore:'encoding' argument not specified")
     def test_command_line_args_from_file(
-        self, pytester: Pytester, tmp_path: Path
+        self, testrunnerer: Testrunnerer, tmp_path: Path
     ) -> None:
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             test_file="""
-            import pytest
+            import testrunner
 
             class TestClass:
-                @pytest.mark.parametrize("a", ["x","y"])
+                @testrunner.mark.parametrize("a", ["x","y"])
                 def test_func(self, a):
                     pass
             """
@@ -571,32 +571,32 @@ class TestGeneralUsage:
             "test_file.py::TestClass::test_func[y]",
             "-q",
         ]
-        args_file = pytester.maketxtfile(tests="\n".join(tests))
-        result = pytester.runpytest(f"@{args_file}")
+        args_file = testrunnerer.maketxtfile(tests="\n".join(tests))
+        result = testrunnerer.runtestrunner(f"@{args_file}")
         result.assert_outcomes(failed=0, passed=2)
 
 
 class TestInvocationVariants:
-    def test_earlyinit(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_earlyinit(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            import pytest
-            assert hasattr(pytest, 'mark')
+            import testrunner
+            assert hasattr(testrunner, 'mark')
         """
         )
-        result = pytester.runpython(p)
+        result = testrunnerer.runpython(p)
         assert result.ret == 0
 
-    def test_pydoc(self, pytester: Pytester) -> None:
-        result = pytester.runpython_c("import pytest;help(pytest)")
+    def test_pydoc(self, testrunnerer: Testrunnerer) -> None:
+        result = testrunnerer.runpython_c("import testrunner;help(testrunner)")
         assert result.ret == 0
         s = result.stdout.str()
         assert "MarkGenerator" in s
 
-    def test_import_star_pytest(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_import_star_testrunner(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            from pytest import *
+            from testrunner import *
             #Item
             #File
             main
@@ -604,81 +604,81 @@ class TestInvocationVariants:
             xfail
         """
         )
-        result = pytester.runpython(p)
+        result = testrunnerer.runpython(p)
         assert result.ret == 0
 
-    def test_double_pytestcmdline(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_double_testrunnercmdline(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             run="""
-            import pytest
-            pytest.main()
-            pytest.main()
+            import testrunner
+            testrunner.main()
+            testrunner.main()
         """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             def test_hello():
                 pass
         """
         )
-        result = pytester.runpython(p)
+        result = testrunnerer.runpython(p)
         result.stdout.fnmatch_lines(["*1 passed*", "*1 passed*"])
 
-    def test_python_minus_m_invocation_ok(self, pytester: Pytester) -> None:
-        p1 = pytester.makepyfile("def test_hello(): pass")
-        res = pytester.run(sys.executable, "-m", "pytest", str(p1))
+    def test_python_minus_m_invocation_ok(self, testrunnerer: Testrunnerer) -> None:
+        p1 = testrunnerer.makepyfile("def test_hello(): pass")
+        res = testrunnerer.run(sys.executable, "-m", "testrunner", str(p1))
         assert res.ret == 0
 
-    def test_python_minus_m_invocation_fail(self, pytester: Pytester) -> None:
-        p1 = pytester.makepyfile("def test_fail(): 0/0")
-        res = pytester.run(sys.executable, "-m", "pytest", str(p1))
+    def test_python_minus_m_invocation_fail(self, testrunnerer: Testrunnerer) -> None:
+        p1 = testrunnerer.makepyfile("def test_fail(): 0/0")
+        res = testrunnerer.run(sys.executable, "-m", "testrunner", str(p1))
         assert res.ret == 1
 
-    def test_python_pytest_package(self, pytester: Pytester) -> None:
-        p1 = pytester.makepyfile("def test_pass(): pass")
-        res = pytester.run(sys.executable, "-m", "pytest", str(p1))
+    def test_python_testrunner_package(self, testrunnerer: Testrunnerer) -> None:
+        p1 = testrunnerer.makepyfile("def test_pass(): pass")
+        res = testrunnerer.run(sys.executable, "-m", "testrunner", str(p1))
         assert res.ret == 0
         res.stdout.fnmatch_lines(["*1 passed*"])
 
     def test_invoke_with_invalid_type(self) -> None:
-        with pytest.raises(
+        with testrunner.raises(
             TypeError, match="expected to be a list of strings, got: '-h'"
         ):
-            pytest.main("-h")  # type: ignore[arg-type]
+            testrunner.main("-h")  # type: ignore[arg-type]
 
-    def test_invoke_with_path(self, pytester: Pytester) -> None:
-        retcode = pytest.main([str(pytester.path)])
+    def test_invoke_with_path(self, testrunnerer: Testrunnerer) -> None:
+        retcode = testrunner.main([str(testrunnerer.path)])
         assert retcode == ExitCode.NO_TESTS_COLLECTED
 
     def test_invoke_plugin_api(self, capsys) -> None:
         class MyPlugin:
-            def pytest_addoption(self, parser):
+            def testrunner_addoption(self, parser):
                 parser.addoption("--myopt")
 
-        pytest.main(["-h"], plugins=[MyPlugin()])
+        testrunner.main(["-h"], plugins=[MyPlugin()])
         out, _err = capsys.readouterr()
         assert "--myopt" in out
 
-    def test_pyargs_importerror(self, pytester: Pytester, monkeypatch) -> None:
+    def test_pyargs_importerror(self, testrunnerer: Testrunnerer, monkeypatch) -> None:
         monkeypatch.delenv("PYTHONDONTWRITEBYTECODE", False)
-        path = pytester.mkpydir("tpkg")
+        path = testrunnerer.mkpydir("tpkg")
         path.joinpath("test_hello.py").write_text("raise ImportError", encoding="utf-8")
 
-        result = pytester.runpytest("--pyargs", "tpkg.test_hello", syspathinsert=True)
+        result = testrunnerer.runtestrunner("--pyargs", "tpkg.test_hello", syspathinsert=True)
         assert result.ret != 0
 
         result.stdout.fnmatch_lines(["collected*0*items*/*1*error"])
 
-    def test_pyargs_only_imported_once(self, pytester: Pytester) -> None:
-        pkg = pytester.mkpydir("foo")
+    def test_pyargs_only_imported_once(self, testrunnerer: Testrunnerer) -> None:
+        pkg = testrunnerer.mkpydir("foo")
         pkg.joinpath("test_foo.py").write_text(
             "print('hello from test_foo')\ndef test(): pass", encoding="utf-8"
         )
         pkg.joinpath("conftest.py").write_text(
-            "def pytest_configure(config): print('configuring')", encoding="utf-8"
+            "def testrunner_configure(config): print('configuring')", encoding="utf-8"
         )
 
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--pyargs", "foo.test_foo", "-s", syspathinsert=True
         )
         # should only import once
@@ -686,51 +686,51 @@ class TestInvocationVariants:
         # should only configure once
         assert result.outlines.count("configuring") == 1
 
-    def test_pyargs_filename_looks_like_module(self, pytester: Pytester) -> None:
-        pytester.path.joinpath("conftest.py").touch()
-        pytester.path.joinpath("t.py").write_text("def test(): pass", encoding="utf-8")
-        result = pytester.runpytest("--pyargs", "t.py")
+    def test_pyargs_filename_looks_like_module(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.path.joinpath("conftest.py").touch()
+        testrunnerer.path.joinpath("t.py").write_text("def test(): pass", encoding="utf-8")
+        result = testrunnerer.runtestrunner("--pyargs", "t.py")
         assert result.ret == ExitCode.OK
 
-    def test_cmdline_python_package(self, pytester: Pytester, monkeypatch) -> None:
+    def test_cmdline_python_package(self, testrunnerer: Testrunnerer, monkeypatch) -> None:
         import warnings
 
         monkeypatch.delenv("PYTHONDONTWRITEBYTECODE", False)
-        path = pytester.mkpydir("tpkg")
+        path = testrunnerer.mkpydir("tpkg")
         path.joinpath("test_hello.py").write_text(
             "def test_hello(): pass", encoding="utf-8"
         )
         path.joinpath("test_world.py").write_text(
             "def test_world(): pass", encoding="utf-8"
         )
-        result = pytester.runpytest("--pyargs", "tpkg")
+        result = testrunnerer.runtestrunner("--pyargs", "tpkg")
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*2 passed*"])
-        result = pytester.runpytest("--pyargs", "tpkg.test_hello", syspathinsert=True)
+        result = testrunnerer.runtestrunner("--pyargs", "tpkg.test_hello", syspathinsert=True)
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*1 passed*"])
 
-        empty_package = pytester.mkpydir("empty_package")
+        empty_package = testrunnerer.mkpydir("empty_package")
         monkeypatch.setenv("PYTHONPATH", str(empty_package), prepend=os.pathsep)
         # the path which is not a package raises a warning on pypy;
         # no idea why only pypy and not normal python warn about it here
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", ImportWarning)
-            result = pytester.runpytest("--pyargs", ".")
+            result = testrunnerer.runtestrunner("--pyargs", ".")
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*2 passed*"])
 
-        monkeypatch.setenv("PYTHONPATH", str(pytester), prepend=os.pathsep)
-        result = pytester.runpytest("--pyargs", "tpkg.test_missing", syspathinsert=True)
+        monkeypatch.setenv("PYTHONPATH", str(testrunnerer), prepend=os.pathsep)
+        result = testrunnerer.runtestrunner("--pyargs", "tpkg.test_missing", syspathinsert=True)
         assert result.ret != 0
         result.stderr.fnmatch_lines(["*not*found*test_missing*"])
 
-    @pytest.mark.skipif(
+    @testrunner.mark.skipif(
         int(setuptools.__version__.split(".")[0]) >= 80,
         reason="modern setuptools removing pkg_resources",
     )
     def test_cmdline_python_legacy_namespace_package(
-        self, pytester: Pytester, monkeypatch
+        self, testrunnerer: Testrunnerer, monkeypatch
     ) -> None:
         """Test --pyargs option with legacy namespace packages (#1567).
 
@@ -740,7 +740,7 @@ class TestInvocationVariants:
 
         search_path = []
         for dirname in "hello", "world":
-            d = pytester.mkdir(dirname)
+            d = testrunnerer.mkdir(dirname)
             search_path.append(d)
             ns = d.joinpath("ns_pkg")
             ns.mkdir()
@@ -787,7 +787,7 @@ class TestInvocationVariants:
             r"-Wignore:Deprecated call to `pkg_resources.declare_namespace",
             r"-Wignore:pkg_resources is deprecated",
         )
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--pyargs", "-v", "ns_pkg.hello", "ns_pkg/world", *ignore_w
         )
         assert result.ret == 0
@@ -802,8 +802,8 @@ class TestInvocationVariants:
         )
 
         # specify tests within a module
-        pytester.chdir()
-        result = pytester.runpytest(
+        testrunnerer.chdir()
+        result = testrunnerer.runtestrunner(
             "--pyargs", "-v", "ns_pkg.world.test_world::test_other"
         )
         assert result.ret == 0
@@ -811,18 +811,18 @@ class TestInvocationVariants:
             ["*test_world.py::test_other*PASSED*", "*1 passed*"]
         )
 
-    def test_invoke_test_and_doctestmodules(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_invoke_test_and_doctestmodules(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
             def test():
                 pass
         """
         )
-        result = pytester.runpytest(str(p) + "::test", "--doctest-modules")
+        result = testrunnerer.runtestrunner(str(p) + "::test", "--doctest-modules")
         result.stdout.fnmatch_lines(["*1 passed*"])
 
     def test_cmdline_python_package_symlink(
-        self, pytester: Pytester, monkeypatch
+        self, testrunnerer: Testrunnerer, monkeypatch
     ) -> None:
         """
         --pyargs with packages with path containing symlink can have conftest.py in
@@ -831,7 +831,7 @@ class TestInvocationVariants:
         monkeypatch.delenv("PYTHONDONTWRITEBYTECODE", raising=False)
 
         dirname = "lib"
-        d = pytester.mkdir(dirname)
+        d = testrunnerer.mkdir(dirname)
         foo = d.joinpath("foo")
         foo.mkdir()
         foo.joinpath("__init__.py").touch()
@@ -842,10 +842,10 @@ class TestInvocationVariants:
             "def test_bar(): pass\ndef test_other(a_fixture):pass", encoding="utf-8"
         )
         lib.joinpath("conftest.py").write_text(
-            "import pytest\n@pytest.fixture\ndef a_fixture():pass", encoding="utf-8"
+            "import testrunner\n@testrunner.fixture\ndef a_fixture():pass", encoding="utf-8"
         )
 
-        d_local = pytester.mkdir("symlink_root")
+        d_local = testrunnerer.mkdir("symlink_root")
         symlink_location = d_local / "lib"
         symlink_or_skip(d, symlink_location, target_is_directory=True)
 
@@ -869,8 +869,8 @@ class TestInvocationVariants:
 
         # module picked up in symlink-ed directory:
         # It picks up symlink_root/lib/foo/bar (symlink) via sys.path.
-        result = pytester.runpytest("--pyargs", "-v", "foo.bar")
-        pytester.chdir()
+        result = testrunnerer.runtestrunner("--pyargs", "-v", "foo.bar")
+        testrunnerer.chdir()
         assert result.ret == 0
         result.stdout.fnmatch_lines(
             [
@@ -880,14 +880,14 @@ class TestInvocationVariants:
             ]
         )
 
-    def test_cmdline_python_package_not_exists(self, pytester: Pytester) -> None:
-        result = pytester.runpytest("--pyargs", "tpkgwhatv")
+    def test_cmdline_python_package_not_exists(self, testrunnerer: Testrunnerer) -> None:
+        result = testrunnerer.runtestrunner("--pyargs", "tpkgwhatv")
         assert result.ret
         result.stderr.fnmatch_lines(["ERROR*module*or*package*not*found*"])
 
-    @pytest.mark.xfail(reason="decide: feature or bug")
-    def test_noclass_discovery_if_not_testcase(self, pytester: Pytester) -> None:
-        testpath = pytester.makepyfile(
+    @testrunner.mark.xfail(reason="decide: feature or bug")
+    def test_noclass_discovery_if_not_testcase(self, testrunnerer: Testrunnerer) -> None:
+        testpath = testrunnerer.makepyfile(
             """
             import unittest
             class TestHello(object):
@@ -898,11 +898,11 @@ class TestInvocationVariants:
                 attr = 42
         """
         )
-        reprec = pytester.inline_run(testpath)
+        reprec = testrunnerer.inline_run(testpath)
         reprec.assertoutcome(passed=1)
 
-    def test_doctest_id(self, pytester: Pytester) -> None:
-        pytester.makefile(
+    def test_doctest_id(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makefile(
             ".txt",
             """
             >>> x=3
@@ -917,22 +917,22 @@ class TestInvocationVariants:
             "FAILED test_doctest_id.txt::test_doctest_id.txt",
             "*= 1 failed in*",
         ]
-        result = pytester.runpytest(testid, "-rf", "--tb=short")
+        result = testrunnerer.runtestrunner(testid, "-rf", "--tb=short")
         result.stdout.fnmatch_lines(expected_lines)
 
         # Ensure that re-running it will still handle it as
         # doctest.DocTestFailure, which was not the case before when
         # re-importing doctest, but not creating a new RUNNER_CLASS.
-        result = pytester.runpytest(testid, "-rf", "--tb=short")
+        result = testrunnerer.runtestrunner(testid, "-rf", "--tb=short")
         result.stdout.fnmatch_lines(expected_lines)
 
     def test_core_backward_compatibility(self) -> None:
         """Test backward compatibility for get_plugin_manager function. See #787."""
-        import _pytest.config
+        import _testrunner.config
 
         assert (
-            type(_pytest.config.get_plugin_manager())
-            is _pytest.config.PytestPluginManager
+            type(_testrunner.config.get_plugin_manager())
+            is _testrunner.config.TestrunnerPluginManager
         )
 
     def test_has_plugin(self, request) -> None:
@@ -942,7 +942,7 @@ class TestInvocationVariants:
 
 class TestDurations:
     source = """
-        from _pytest import timing
+        from _testrunner import timing
         def test_something():
             pass
         def test_2():
@@ -953,9 +953,9 @@ class TestDurations:
             timing.sleep(0.020)
     """
 
-    def test_calls(self, pytester: Pytester, mock_timing) -> None:
-        pytester.makepyfile(self.source)
-        result = pytester.runpytest_inprocess("--durations=10")
+    def test_calls(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+        testrunnerer.makepyfile(self.source)
+        result = testrunnerer.runtestrunner_inprocess("--durations=10")
         assert result.ret == 0
 
         result.stdout.fnmatch_lines_random(
@@ -966,37 +966,37 @@ class TestDurations:
             ["(8 durations < 0.005s hidden.  Use -vv to show these durations.)"]
         )
 
-    def test_calls_show_2(self, pytester: Pytester, mock_timing) -> None:
-        pytester.makepyfile(self.source)
-        result = pytester.runpytest_inprocess("--durations=2")
+    def test_calls_show_2(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+        testrunnerer.makepyfile(self.source)
+        result = testrunnerer.runtestrunner_inprocess("--durations=2")
         assert result.ret == 0
 
         lines = result.stdout.get_lines_after("*slowest*durations*")
         assert "4 passed" in lines[2]
 
-    def test_calls_showall(self, pytester: Pytester, mock_timing) -> None:
-        pytester.makepyfile(self.source)
-        result = pytester.runpytest_inprocess("--durations=0")
+    def test_calls_showall(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+        testrunnerer.makepyfile(self.source)
+        result = testrunnerer.runtestrunner_inprocess("--durations=0")
         assert result.ret == 0
         TestDurations.check_tests_in_output(result.stdout.lines, 2, 3)
 
-    def test_calls_showall_verbose(self, pytester: Pytester, mock_timing) -> None:
-        pytester.makepyfile(self.source)
-        result = pytester.runpytest_inprocess("--durations=0", "-vv")
+    def test_calls_showall_verbose(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+        testrunnerer.makepyfile(self.source)
+        result = testrunnerer.runtestrunner_inprocess("--durations=0", "-vv")
         assert result.ret == 0
         TestDurations.check_tests_in_output(result.stdout.lines, 1, 2, 3)
 
-    def test_calls_showall_durationsmin(self, pytester: Pytester, mock_timing) -> None:
-        pytester.makepyfile(self.source)
-        result = pytester.runpytest_inprocess("--durations=0", "--durations-min=0.015")
+    def test_calls_showall_durationsmin(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+        testrunnerer.makepyfile(self.source)
+        result = testrunnerer.runtestrunner_inprocess("--durations=0", "--durations-min=0.015")
         assert result.ret == 0
         TestDurations.check_tests_in_output(result.stdout.lines, 3)
 
     def test_calls_showall_durationsmin_verbose(
-        self, pytester: Pytester, mock_timing
+        self, testrunnerer: Testrunnerer, mock_timing
     ) -> None:
-        pytester.makepyfile(self.source)
-        result = pytester.runpytest_inprocess(
+        testrunnerer.makepyfile(self.source)
+        result = testrunnerer.runtestrunner_inprocess(
             "--durations=0", "--durations-min=0.015", "-vv"
         )
         assert result.ret == 0
@@ -1016,17 +1016,17 @@ class TestDurations:
         }
         assert found_test_numbers == set(expected_test_numbers)
 
-    def test_with_deselected(self, pytester: Pytester, mock_timing) -> None:
-        pytester.makepyfile(self.source)
-        result = pytester.runpytest_inprocess("--durations=2", "-k test_3")
+    def test_with_deselected(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+        testrunnerer.makepyfile(self.source)
+        result = testrunnerer.runtestrunner_inprocess("--durations=2", "-k test_3")
         assert result.ret == 0
 
         result.stdout.fnmatch_lines(["*durations*", "*call*test_3*"])
 
-    def test_with_failing_collection(self, pytester: Pytester, mock_timing) -> None:
-        pytester.makepyfile(self.source)
-        pytester.makepyfile(test_collecterror="""xyz""")
-        result = pytester.runpytest_inprocess("--durations=2", "-k test_1")
+    def test_with_failing_collection(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+        testrunnerer.makepyfile(self.source)
+        testrunnerer.makepyfile(test_collecterror="""xyz""")
+        result = testrunnerer.runtestrunner_inprocess("--durations=2", "-k test_1")
         assert result.ret == 2
 
         result.stdout.fnmatch_lines(["*Interrupted: 1 error during collection*"])
@@ -1034,18 +1034,18 @@ class TestDurations:
         # output
         result.stdout.no_fnmatch_line("*duration*")
 
-    def test_with_not(self, pytester: Pytester, mock_timing) -> None:
-        pytester.makepyfile(self.source)
-        result = pytester.runpytest_inprocess("-k not 1")
+    def test_with_not(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+        testrunnerer.makepyfile(self.source)
+        result = testrunnerer.runtestrunner_inprocess("-k not 1")
         assert result.ret == 0
 
 
 class TestDurationsWithFixture:
     source = """
-        import pytest
-        from _pytest import timing
+        import testrunner
+        from _testrunner import timing
 
-        @pytest.fixture
+        @testrunner.fixture
         def setup_fixt():
             timing.sleep(2)
 
@@ -1053,9 +1053,9 @@ class TestDurationsWithFixture:
             timing.sleep(5)
     """
 
-    def test_setup_function(self, pytester: Pytester, mock_timing) -> None:
-        pytester.makepyfile(self.source)
-        result = pytester.runpytest_inprocess("--durations=10")
+    def test_setup_function(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+        testrunnerer.makepyfile(self.source)
+        result = testrunnerer.runtestrunner_inprocess("--durations=10")
         assert result.ret == 0
 
         result.stdout.fnmatch_lines_random(
@@ -1067,24 +1067,24 @@ class TestDurationsWithFixture:
         )
 
 
-def test_zipimport_hook(pytester: Pytester) -> None:
+def test_zipimport_hook(testrunnerer: Testrunnerer) -> None:
     """Test package loader is being used correctly (see #1837)."""
-    zipapp = pytest.importorskip("zipapp")
-    pytester.path.joinpath("app").mkdir()
-    pytester.makepyfile(
+    zipapp = testrunner.importorskip("zipapp")
+    testrunnerer.path.joinpath("app").mkdir()
+    testrunnerer.makepyfile(
         **{
             "app/foo.py": """
-            import pytest
+            import testrunner
             def main():
-                pytest.main(['--pyargs', 'foo'])
+                testrunner.main(['--pyargs', 'foo'])
         """
         }
     )
-    target = pytester.path.joinpath("foo.zip")
+    target = testrunnerer.path.joinpath("foo.zip")
     zipapp.create_archive(
-        str(pytester.path.joinpath("app")), str(target), main="foo:main"
+        str(testrunnerer.path.joinpath("app")), str(target), main="foo:main"
     )
-    result = pytester.runpython(target)
+    result = testrunnerer.runpython(target)
     assert result.ret == 0
     result.stderr.fnmatch_lines(["*not found*foo*"])
     result.stdout.no_fnmatch_line("*INTERNALERROR>*")
@@ -1093,43 +1093,43 @@ def test_zipimport_hook(pytester: Pytester) -> None:
 class TestStartupPluginImportErrors:
     """Exit codes for plugins which fail to load at startup (#993).
 
-    A plugin which cannot be found means pytest was pointed at something which
+    A plugin which cannot be found means testrunner was pointed at something which
     is not there, which is a usage error; a plugin which is found but blows up
     while importing is a defect in the plugin, reported as an internal error.
     """
 
-    @pytest.fixture
-    def broken_plugin(self, pytester: Pytester) -> Pytester:
-        pytester.syspathinsert()
-        pytester.makepyfile(myplugin="raise ValueError('plugin is broken')")
-        pytester.makepyfile("def test_foo(): pass")
-        return pytester
+    @testrunner.fixture
+    def broken_plugin(self, testrunnerer: Testrunnerer) -> Testrunnerer:
+        testrunnerer.syspathinsert()
+        testrunnerer.makepyfile(myplugin="raise ValueError('plugin is broken')")
+        testrunnerer.makepyfile("def test_foo(): pass")
+        return testrunnerer
 
-    @pytest.fixture
-    def missing_plugin(self, pytester: Pytester) -> Pytester:
-        pytester.syspathinsert()
-        pytester.makepyfile("def test_foo(): pass")
-        return pytester
+    @testrunner.fixture
+    def missing_plugin(self, testrunnerer: Testrunnerer) -> Testrunnerer:
+        testrunnerer.syspathinsert()
+        testrunnerer.makepyfile("def test_foo(): pass")
+        return testrunnerer
 
-    def test_missing_via_cmdline(self, missing_plugin: Pytester) -> None:
-        result = missing_plugin.runpytest("-p", "nosuchplugin")
+    def test_missing_via_cmdline(self, missing_plugin: Testrunnerer) -> None:
+        result = missing_plugin.runtestrunner("-p", "nosuchplugin")
         assert result.ret == ExitCode.USAGE_ERROR
         result.stderr.fnmatch_lines(['*Error importing plugin "nosuchplugin"*'])
 
-    def test_missing_via_conftest(self, missing_plugin: Pytester) -> None:
-        missing_plugin.makeconftest("pytest_plugins = ['nosuchplugin']")
-        result = missing_plugin.runpytest()
+    def test_missing_via_conftest(self, missing_plugin: Testrunnerer) -> None:
+        missing_plugin.makeconftest("testrunner_plugins = ['nosuchplugin']")
+        result = missing_plugin.runtestrunner()
         assert result.ret == ExitCode.USAGE_ERROR
 
     def test_missing_via_env(
-        self, missing_plugin: Pytester, monkeypatch: MonkeyPatch
+        self, missing_plugin: Testrunnerer, monkeypatch: MonkeyPatch
     ) -> None:
-        monkeypatch.setenv("PYTEST_PLUGINS", "nosuchplugin")
-        result = missing_plugin.runpytest()
+        monkeypatch.setenv("TESTRUNNER_PLUGINS", "nosuchplugin")
+        result = missing_plugin.runtestrunner()
         assert result.ret == ExitCode.USAGE_ERROR
 
-    def test_broken_via_cmdline(self, broken_plugin: Pytester) -> None:
-        result = broken_plugin.runpytest("-p", "myplugin")
+    def test_broken_via_cmdline(self, broken_plugin: Testrunnerer) -> None:
+        result = broken_plugin.runtestrunner("-p", "myplugin")
         assert result.ret == ExitCode.INTERNAL_ERROR
         result.stderr.fnmatch_lines(
             [
@@ -1139,36 +1139,36 @@ class TestStartupPluginImportErrors:
             ]
         )
 
-    def test_broken_via_conftest(self, broken_plugin: Pytester) -> None:
-        broken_plugin.makeconftest("pytest_plugins = ['myplugin']")
-        result = broken_plugin.runpytest()
+    def test_broken_via_conftest(self, broken_plugin: Testrunnerer) -> None:
+        broken_plugin.makeconftest("testrunner_plugins = ['myplugin']")
+        result = broken_plugin.runtestrunner()
         assert result.ret == ExitCode.INTERNAL_ERROR
 
     def test_broken_via_env(
-        self, broken_plugin: Pytester, monkeypatch: MonkeyPatch
+        self, broken_plugin: Testrunnerer, monkeypatch: MonkeyPatch
     ) -> None:
-        monkeypatch.setenv("PYTEST_PLUGINS", "myplugin")
-        result = broken_plugin.runpytest()
+        monkeypatch.setenv("TESTRUNNER_PLUGINS", "myplugin")
+        result = broken_plugin.runtestrunner()
         assert result.ret == ExitCode.INTERNAL_ERROR
 
-    def test_usage_error_passes_through(self, pytester: Pytester) -> None:
+    def test_usage_error_passes_through(self, testrunnerer: Testrunnerer) -> None:
         """A plugin raising UsageError at import keeps its usage-error semantics."""
-        pytester.syspathinsert()
-        pytester.makepyfile(
-            myplugin="import pytest\nraise pytest.UsageError('config trouble')"
+        testrunnerer.syspathinsert()
+        testrunnerer.makepyfile(
+            myplugin="import testrunner\nraise testrunner.UsageError('config trouble')"
         )
-        result = pytester.runpytest("-p", "myplugin")
+        result = testrunnerer.runtestrunner("-p", "myplugin")
         assert result.ret == ExitCode.USAGE_ERROR
         result.stderr.fnmatch_lines(["ERROR: config trouble*"])
 
     def test_broken_via_entry_point(
-        self, pytester: Pytester, monkeypatch: MonkeyPatch
+        self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
     ) -> None:
-        monkeypatch.delenv("PYTEST_DISABLE_PLUGIN_AUTOLOAD", raising=False)
+        monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", raising=False)
 
         class DummyEntryPoint:
             name = "myplugin"
-            group = "pytest11"
+            group = "testrunner11"
 
             def load(self):
                 raise ValueError("plugin is broken")
@@ -1182,105 +1182,105 @@ class TestStartupPluginImportErrors:
         monkeypatch.setattr(
             importlib.metadata, "distributions", lambda: (Distribution(),)
         )
-        pytester.makepyfile("def test_foo(): pass")
-        result = pytester.runpytest()
+        testrunnerer.makepyfile("def test_foo(): pass")
+        result = testrunnerer.runtestrunner()
         assert result.ret == ExitCode.INTERNAL_ERROR
 
-    def test_import_error_without_args(self, pytester: Pytester) -> None:
+    def test_import_error_without_args(self, testrunnerer: Testrunnerer) -> None:
         """A bare ``raise ImportError`` used to crash with an IndexError (#993)."""
-        pytester.syspathinsert()
-        pytester.makepyfile(myplugin="raise ImportError")
-        pytester.makepyfile("def test_foo(): pass")
-        result = pytester.runpytest("-p", "myplugin")
+        testrunnerer.syspathinsert()
+        testrunnerer.makepyfile(myplugin="raise ImportError")
+        testrunnerer.makepyfile("def test_foo(): pass")
+        result = testrunnerer.runtestrunner("-p", "myplugin")
         assert result.ret == ExitCode.INTERNAL_ERROR
         result.stderr.no_fnmatch_line("*IndexError*")
         result.stderr.fnmatch_lines(['Error while loading plugin "myplugin".'])
 
-    def test_missing_dependency_is_not_a_usage_error(self, pytester: Pytester) -> None:
+    def test_missing_dependency_is_not_a_usage_error(self, testrunnerer: Testrunnerer) -> None:
         """The plugin was found; one of *its* imports is unsatisfied (#993)."""
-        pytester.syspathinsert()
-        pytester.makepyfile(myplugin="import nosuchdependency")
-        pytester.makepyfile("def test_foo(): pass")
-        result = pytester.runpytest("-p", "myplugin")
+        testrunnerer.syspathinsert()
+        testrunnerer.makepyfile(myplugin="import nosuchdependency")
+        testrunnerer.makepyfile("def test_foo(): pass")
+        result = testrunnerer.runtestrunner("-p", "myplugin")
         assert result.ret == ExitCode.INTERNAL_ERROR
 
-    def test_missing_submodule_of_existing_package(self, pytester: Pytester) -> None:
+    def test_missing_submodule_of_existing_package(self, testrunnerer: Testrunnerer) -> None:
         """The package exists but the requested plugin module within it does not."""
-        pytester.syspathinsert()
-        pytester.mkpydir("mypkg")
-        pytester.makepyfile("def test_foo(): pass")
-        result = pytester.runpytest("-p", "mypkg.nosuchmodule")
+        testrunnerer.syspathinsert()
+        testrunnerer.mkpydir("mypkg")
+        testrunnerer.makepyfile("def test_foo(): pass")
+        result = testrunnerer.runtestrunner("-p", "mypkg.nosuchmodule")
         assert result.ret == ExitCode.USAGE_ERROR
 
     def test_conftest_import_failure_stays_a_usage_error(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """conftest.py is not a plugin; it keeps reporting a usage error (#993)."""
-        pytester.makeconftest("raise ValueError('conftest is broken')")
-        pytester.makepyfile("def test_foo(): pass")
-        result = pytester.runpytest()
+        testrunnerer.makeconftest("raise ValueError('conftest is broken')")
+        testrunnerer.makepyfile("def test_foo(): pass")
+        result = testrunnerer.runtestrunner()
         assert result.ret == ExitCode.USAGE_ERROR
 
 
-def test_import_plugin_unicode_name(pytester: Pytester) -> None:
-    pytester.makepyfile(myplugin="")
-    pytester.makepyfile("def test(): pass")
-    pytester.makeconftest("pytest_plugins = ['myplugin']")
-    r = pytester.runpytest()
+def test_import_plugin_unicode_name(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(myplugin="")
+    testrunnerer.makepyfile("def test(): pass")
+    testrunnerer.makeconftest("testrunner_plugins = ['myplugin']")
+    r = testrunnerer.runtestrunner()
     assert r.ret == 0
 
 
-def test_pytest_plugins_as_module(pytester: Pytester) -> None:
-    """Do not raise an error if pytest_plugins attribute is a module (#3899)"""
-    pytester.makepyfile(
+def test_testrunner_plugins_as_module(testrunnerer: Testrunnerer) -> None:
+    """Do not raise an error if testrunner_plugins attribute is a module (#3899)"""
+    testrunnerer.makepyfile(
         **{
             "__init__.py": "",
-            "pytest_plugins.py": "",
-            "conftest.py": "from . import pytest_plugins",
+            "testrunner_plugins.py": "",
+            "conftest.py": "from . import testrunner_plugins",
             "test_foo.py": "def test(): pass",
         }
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["* 1 passed in *"])
 
 
-def test_deferred_hook_checking(pytester: Pytester) -> None:
+def test_deferred_hook_checking(testrunnerer: Testrunnerer) -> None:
     """Check hooks as late as possible (#1821)."""
-    pytester.syspathinsert()
-    pytester.makepyfile(
+    testrunnerer.syspathinsert()
+    testrunnerer.makepyfile(
         **{
             "plugin.py": """
         class Hooks(object):
-            def pytest_my_hook(self, config):
+            def testrunner_my_hook(self, config):
                 pass
 
-        def pytest_configure(config):
+        def testrunner_configure(config):
             config.pluginmanager.add_hookspecs(Hooks)
         """,
             "conftest.py": """
-            pytest_plugins = ['plugin']
-            def pytest_my_hook(config):
+            testrunner_plugins = ['plugin']
+            def testrunner_my_hook(config):
                 return 40
         """,
             "test_foo.py": """
             def test(request):
-                assert request.config.hook.pytest_my_hook(config=request.config) == [40]
+                assert request.config.hook.testrunner_my_hook(config=request.config) == [40]
         """,
         }
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["* 1 passed *"])
 
 
-def test_fixture_values_leak(pytester: Pytester) -> None:
+def test_fixture_values_leak(testrunnerer: Testrunnerer) -> None:
     """Ensure that fixture objects are properly destroyed by the garbage collector at the end of their expected
     life-times (#2981).
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         import dataclasses
         import gc
-        import pytest
+        import testrunner
         import weakref
 
         @dataclasses.dataclass
@@ -1290,14 +1290,14 @@ def test_fixture_values_leak(pytester: Pytester) -> None:
         fix_of_test1_ref = None
         session_ref = None
 
-        @pytest.fixture(scope='session')
+        @testrunner.fixture(scope='session')
         def session_fix():
             global session_ref
             obj = SomeObj(name='session-fixture')
             session_ref = weakref.ref(obj)
             return obj
 
-        @pytest.fixture
+        @testrunner.fixture
         def fix(session_fix):
             global fix_of_test1_ref
             obj = SomeObj(name='local-fixture')
@@ -1315,45 +1315,45 @@ def test_fixture_values_leak(pytester: Pytester) -> None:
     )
     # Running on subprocess does not activate the HookRecorder
     # which holds itself a reference to objects in case of the
-    # pytest_assert_reprcompare hook
-    result = pytester.runpytest_subprocess()
+    # testrunner_assert_reprcompare hook
+    result = testrunnerer.runtestrunner_subprocess()
     result.stdout.fnmatch_lines(["* 2 passed *"])
 
 
-def test_fixture_order_respects_scope(pytester: Pytester) -> None:
+def test_fixture_order_respects_scope(testrunnerer: Testrunnerer) -> None:
     """Ensure that fixtures are created according to scope order (#2405)."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
         data = {}
 
-        @pytest.fixture(scope='module')
+        @testrunner.fixture(scope='module')
         def clean_data():
             data.clear()
 
-        @pytest.fixture(autouse=True)
+        @testrunner.fixture(autouse=True)
         def add_data():
             data.update(value=True)
 
-        @pytest.mark.usefixtures('clean_data')
+        @testrunner.mark.usefixtures('clean_data')
         def test_value():
             assert data.get('value')
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
 
 
-def test_frame_leak_on_failing_test(pytester: Pytester) -> None:
-    """Pytest would leak garbage referencing the frames of tests that failed
+def test_frame_leak_on_failing_test(testrunnerer: Testrunnerer) -> None:
+    """Testrunner would leak garbage referencing the frames of tests that failed
     that could never be reclaimed (#2798).
 
     Unfortunately it was not possible to remove the actual circles because most of them
     are made of traceback objects which cannot be weakly referenced. Those objects at least
     can be eventually claimed by the garbage collector.
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         import gc
         import weakref
@@ -1374,27 +1374,27 @@ def test_frame_leak_on_failing_test(pytester: Pytester) -> None:
             assert ref() is None
     """
     )
-    result = pytester.runpytest_subprocess()
+    result = testrunnerer.runtestrunner_subprocess()
     result.stdout.fnmatch_lines(["*1 failed, 1 passed in*"])
 
 
-def test_fixture_mock_integration(pytester: Pytester) -> None:
+def test_fixture_mock_integration(testrunnerer: Testrunnerer) -> None:
     """Test that decorators applied to fixture are left working (#3774)"""
-    p = pytester.copy_example("acceptance/fixture_mock_integration.py")
-    result = pytester.runpytest(p)
+    p = testrunnerer.copy_example("acceptance/fixture_mock_integration.py")
+    result = testrunnerer.runtestrunner(p)
     result.stdout.fnmatch_lines(["*1 passed*"])
 
 
-def test_usage_error_code(pytester: Pytester) -> None:
-    result = pytester.runpytest("-unknown-option-")
+def test_usage_error_code(testrunnerer: Testrunnerer) -> None:
+    result = testrunnerer.runtestrunner("-unknown-option-")
     assert result.ret == ExitCode.USAGE_ERROR
 
 
-def test_error_on_async_function(pytester: Pytester) -> None:
+def test_error_on_async_function(testrunnerer: Testrunnerer) -> None:
     # In the below we .close() the coroutine only to avoid
     # "RuntimeWarning: coroutine 'test_2' was never awaited"
     # which messes with other tests.
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         test_async="""
         async def test_1():
             pass
@@ -1406,7 +1406,7 @@ def test_error_on_async_function(pytester: Pytester) -> None:
             return coro
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [
             "*async def functions are not natively supported*",
@@ -1418,8 +1418,8 @@ def test_error_on_async_function(pytester: Pytester) -> None:
     result.assert_outcomes(failed=3)
 
 
-def test_error_on_async_gen_function(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_error_on_async_gen_function(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_async="""
         async def test_1():
             yield
@@ -1429,7 +1429,7 @@ def test_error_on_async_gen_function(pytester: Pytester) -> None:
             return test_2()
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [
             "*async def functions are not natively supported*",
@@ -1441,12 +1441,12 @@ def test_error_on_async_gen_function(pytester: Pytester) -> None:
     result.assert_outcomes(failed=3)
 
 
-def test_error_on_sync_test_async_fixture(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_error_on_sync_test_async_fixture(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_sync="""
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             async def async_fixture():
                 ...
 
@@ -1458,22 +1458,22 @@ def test_error_on_sync_test_async_fixture(pytester: Pytester) -> None:
                     pass
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.assert_outcomes(errors=1)
     result.stdout.fnmatch_lines(
         [
             "'test_foo' requested an async fixture 'async_fixture', with no plugin or hook that handled it. "
-            "This is an error, as pytest does not natively support it."
+            "This is an error, as testrunner does not natively support it."
         ]
     )
 
 
-def test_error_on_sync_test_async_fixture_gen(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_error_on_sync_test_async_fixture_gen(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_sync="""
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             async def async_fixture():
                 yield
 
@@ -1482,22 +1482,22 @@ def test_error_on_sync_test_async_fixture_gen(pytester: Pytester) -> None:
                 ...
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.assert_outcomes(errors=1)
     result.stdout.fnmatch_lines(
         [
             "'test_foo' requested an async fixture 'async_fixture', with no plugin or hook that handled it. "
-            "This is an error, as pytest does not natively support it."
+            "This is an error, as testrunner does not natively support it."
         ]
     )
 
 
-def test_error_on_sync_test_async_autouse_fixture(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_error_on_sync_test_async_autouse_fixture(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_sync="""
-            import pytest
+            import testrunner
 
-            @pytest.fixture(autouse=True)
+            @testrunner.fixture(autouse=True)
             async def async_fixture():
                 ...
 
@@ -1510,23 +1510,23 @@ def test_error_on_sync_test_async_autouse_fixture(pytester: Pytester) -> None:
                     pass
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.assert_outcomes(errors=1)
     result.stdout.fnmatch_lines(
         [
             "'test_foo' requested an async fixture 'async_fixture' with autouse=True, "
             "with no plugin or hook that handled it. "
-            "This is an error, as pytest does not natively support it."
+            "This is an error, as testrunner does not natively support it."
         ]
     )
 
 
-def test_pdb_can_be_rewritten(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_pdb_can_be_rewritten(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         **{
             "conftest.py": """
-                import pytest
-                pytest.register_assert_rewrite("pdb")
+                import testrunner
+                testrunner.register_assert_rewrite("pdb")
                 """,
             "__init__.py": "",
             "pdb.py": """
@@ -1542,7 +1542,7 @@ def test_pdb_can_be_rewritten(pytester: Pytester) -> None:
     )
     # Disable debugging plugin itself to avoid:
     # > INTERNALERROR> AttributeError: module 'pdb' has no attribute 'set_trace'
-    result = pytester.runpytest_subprocess("-p", "no:debugging", "-vv")
+    result = testrunnerer.runtestrunner_subprocess("-p", "no:debugging", "-vv")
     result.stdout.fnmatch_lines(
         [
             "    def check():",
@@ -1556,8 +1556,8 @@ def test_pdb_can_be_rewritten(pytester: Pytester) -> None:
     assert result.ret == 1
 
 
-def test_tee_stdio_captures_and_live_prints(pytester: Pytester) -> None:
-    testpath = pytester.makepyfile(
+def test_tee_stdio_captures_and_live_prints(testrunnerer: Testrunnerer) -> None:
+    testpath = testrunnerer.makepyfile(
         """
         import sys
         def test_simple():
@@ -1565,7 +1565,7 @@ def test_tee_stdio_captures_and_live_prints(pytester: Pytester) -> None:
             print ("@this is stderr@", file=sys.stderr)
     """
     )
-    result = pytester.runpytest_subprocess(
+    result = testrunnerer.runtestrunner_subprocess(
         testpath,
         "--capture=tee-sys",
         "--junitxml=output.xml",
@@ -1578,23 +1578,23 @@ def test_tee_stdio_captures_and_live_prints(pytester: Pytester) -> None:
     result.stderr.fnmatch_lines(["*@this is stderr@*"])
 
     # now ensure the output is in the junitxml
-    fullXml = pytester.path.joinpath("output.xml").read_text(encoding="utf-8")
+    fullXml = testrunnerer.path.joinpath("output.xml").read_text(encoding="utf-8")
     assert "@this is stdout@\n" in fullXml
     assert "@this is stderr@\n" in fullXml
 
 
-@pytest.mark.skipif(
+@testrunner.mark.skipif(
     sys.platform == "win32",
     reason="Windows raises `OSError: [Errno 22] Invalid argument` instead",
 )
-def test_no_brokenpipeerror_message(pytester: Pytester) -> None:
+def test_no_brokenpipeerror_message(testrunnerer: Testrunnerer) -> None:
     """Ensure that the broken pipe error message is suppressed.
 
     In some Python versions, it reaches sys.unraisablehook, in others
     a BrokenPipeError exception is propagated, but either way it prints
     to stderr on shutdown, so checking nothing is printed is enough.
     """
-    popen = pytester.popen((*pytester._getpytestargs(), "--help"))
+    popen = testrunnerer.popen((*testrunnerer._gettestrunnerargs(), "--help"))
     popen.stdout.close()
     ret = popen.wait()
     assert popen.stderr.read() == b""
@@ -1604,19 +1604,19 @@ def test_no_brokenpipeerror_message(pytester: Pytester) -> None:
     popen.stderr.close()
 
 
-@pytest.mark.filterwarnings("default")
-def test_function_return_non_none_warning(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("default")
+def test_function_return_non_none_warning(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         def test_stuff():
             return "something"
     """
     )
-    res = pytester.runpytest()
+    res = testrunnerer.runtestrunner()
     res.stdout.fnmatch_lines(["*Did you mean to use `assert` instead of `return`?*"])
 
 
-def test_doctest_and_normal_imports_with_importlib(pytester: Pytester) -> None:
+def test_doctest_and_normal_imports_with_importlib(testrunnerer: Testrunnerer) -> None:
     """
     Regression test for #10811: previously import_path with ImportMode.importlib would
     not return a module if already in sys.modules, resulting in modules being imported
@@ -1624,7 +1624,7 @@ def test_doctest_and_normal_imports_with_importlib(pytester: Pytester) -> None:
     """
     # Uses the exact reproducer form #10811, given it is very minimal
     # and illustrates the problem well.
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         **{
             "pmxbot/commands.py": "from . import logging",
             "pmxbot/logging.py": "",
@@ -1639,31 +1639,31 @@ def test_doctest_and_normal_imports_with_importlib(pytester: Pytester) -> None:
                 """,
         }
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         addopts=
             --doctest-modules
             --import-mode importlib
         """
     )
-    result = pytester.runpytest_subprocess()
+    result = testrunnerer.runtestrunner_subprocess()
     result.stdout.fnmatch_lines("*1 passed*")
 
 
-@pytest.mark.skip(reason="Test is not isolated")
-def test_issue_9765(pytester: Pytester) -> None:
+@testrunner.mark.skip(reason="Test is not isolated")
+def test_issue_9765(testrunnerer: Testrunnerer) -> None:
     """Reproducer for issue #9765 on Windows
 
-    https://github.com/pytest-dev/pytest/issues/9765
+    https://github.com/jacksonsr451/test-runner/issues/9765
     """
-    pytester.makepyprojecttoml(
+    testrunnerer.makepyprojecttoml(
         """
-        [tool.pytest.ini_options]
+        [tool.testrunner.ini_options]
         addopts = "-p my_package.plugin.my_plugin"
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         **{
             "setup.py": (
                 """
@@ -1679,12 +1679,12 @@ def test_issue_9765(pytester: Pytester) -> None:
             "my_package/plugin/__init__.py": "",
             "my_package/plugin/my_plugin.py": (
                 """
-                import pytest
+                import testrunner
 
-                def pytest_configure(config):
+                def testrunner_configure(config):
 
                     class SimplePlugin:
-                        @pytest.fixture(params=[1, 2, 3])
+                        @testrunner.fixture(params=[1, 2, 3])
                         def my_fixture(self, request):
                             yield request.param
 
@@ -1699,12 +1699,12 @@ def test_issue_9765(pytester: Pytester) -> None:
         check=True,
     )
     try:
-        # We are using subprocess.run rather than pytester.run on purpose.
-        # pytester.run is adding the current directory to PYTHONPATH which avoids
-        # the bug. We also use pytest rather than python -m pytest for the same
+        # We are using subprocess.run rather than testrunnerer.run on purpose.
+        # testrunnerer.run is adding the current directory to PYTHONPATH which avoids
+        # the bug. We also use testrunner rather than python -m testrunner for the same
         # PYTHONPATH reason.
         subprocess.run(
-            ["pytest", "my_package"],
+            ["testrunner", "my_package"],
             capture_output=True,
             check=True,
             encoding="utf-8",
@@ -1712,20 +1712,20 @@ def test_issue_9765(pytester: Pytester) -> None:
         )
     except subprocess.CalledProcessError as exc:
         raise AssertionError(
-            f"pytest command failed:\n{exc.stdout=!s}\n{exc.stderr=!s}"
+            f"testrunner command failed:\n{exc.stdout=!s}\n{exc.stderr=!s}"
         ) from exc
 
 
-def test_no_terminal_plugin(pytester: Pytester) -> None:
-    """Smoke test to ensure pytest can execute without the terminal plugin (#9422)."""
-    pytester.makepyfile("def test(): assert 1 == 2")
-    result = pytester.runpytest("-pno:terminal", "-s")
+def test_no_terminal_plugin(testrunnerer: Testrunnerer) -> None:
+    """Smoke test to ensure testrunner can execute without the terminal plugin (#9422)."""
+    testrunnerer.makepyfile("def test(): assert 1 == 2")
+    result = testrunnerer.runtestrunner("-pno:terminal", "-s")
     assert result.ret == ExitCode.TESTS_FAILED
 
 
-def test_stop_iteration_from_collect(pytester: Pytester) -> None:
-    pytester.makepyfile(test_it="raise StopIteration('hello')")
-    result = pytester.runpytest()
+def test_stop_iteration_from_collect(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(test_it="raise StopIteration('hello')")
+    result = testrunnerer.runtestrunner()
     assert result.ret == ExitCode.INTERRUPTED
     result.assert_outcomes(failed=0, passed=0, errors=1)
     result.stdout.fnmatch_lines(
@@ -1738,11 +1738,11 @@ def test_stop_iteration_from_collect(pytester: Pytester) -> None:
     )
 
 
-def test_stop_iteration_runtest_protocol(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_stop_iteration_runtest_protocol(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
-        import pytest
-        @pytest.fixture
+        import testrunner
+        @testrunner.fixture
         def fail_setup():
             raise StopIteration(1)
         def test_fail_setup(fail_setup):
@@ -1755,7 +1755,7 @@ def test_stop_iteration_runtest_protocol(pytester: Pytester) -> None:
             raise StopIteration(3)
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == ExitCode.TESTS_FAILED
     result.assert_outcomes(failed=1, passed=1, errors=2)
     result.stdout.fnmatch_lines(

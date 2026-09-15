@@ -1,9 +1,9 @@
-pytest-3.0.0
+testrunner-3.0.0
 ============
 
-The pytest team is proud to announce the 3.0.0 release!
+The testrunner team is proud to announce the 3.0.0 release!
 
-pytest is a mature Python testing tool with more than 1600 tests
+testrunner is a mature Python testing tool with more than 1600 tests
 against itself, passing on many different interpreters and platforms.
 
 This release contains a lot of bugs fixes and improvements, and much of
@@ -11,16 +11,16 @@ the work done on it was possible because of the 2016 Sprint[1], which
 was funded by an indiegogo campaign which raised over US$12,000 with
 nearly 100 backers.
 
-There's a "What's new in pytest 3.0" [2] blog post highlighting the
+There's a "What's new in testrunner 3.0" [2] blog post highlighting the
 major features in this release.
 
 To see the complete changelog and documentation, please visit:
 
-    http://docs.pytest.org
+    http://docs.testrunner.org
 
 As usual, you can upgrade from pypi via:
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed to this release, among them:
 
@@ -76,7 +76,7 @@ Thanks to all who contributed to this release, among them:
 
 
 Happy testing,
-The Pytest Development Team
+The Testrunner Development Team
 
-[1] http://blog.pytest.org/2016/pytest-development-sprint/
-[2] http://blog.pytest.org/2016/whats-new-in-pytest-30/
+[1] http://blog.testrunner.org/2016/testrunner-development-sprint/
+[2] http://blog.testrunner.org/2016/whats-new-in-testrunner-30/

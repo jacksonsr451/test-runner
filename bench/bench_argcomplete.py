@@ -9,7 +9,7 @@ import timeit
 
 imports = [
     "from argcomplete.completers import FilesCompleter as completer",
-    "from _pytest._argcomplete import FastFilesCompleter as completer",
+    "from _testrunner._argcomplete import FastFilesCompleter as completer",
 ]
 
 count = 1000  # only a few seconds

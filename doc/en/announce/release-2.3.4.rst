@@ -1,7 +1,7 @@
-pytest-2.3.4: stabilization, more flexible selection via "-k expr"
+testrunner-2.3.4: stabilization, more flexible selection via "-k expr"
 ===========================================================================
 
-pytest-2.3.4 is a small stabilization release of the py.test tool
+testrunner-2.3.4 is a small stabilization release of the testrunner tool
 which offers uebersimple assertions, scalable fixture mechanisms
 and deep customization for testing with Python.  This release
 comes with the following fixes and features:
@@ -16,7 +16,7 @@ comes with the following fixes and features:
 - yielded test functions will now have autouse-fixtures active but
   cannot accept fixtures as funcargs - it's anyway recommended to
   rather use the post-2.0 parametrize features instead of yield, see:
-  http://pytest.org/en/stable/example/how-to/parametrize.html
+  http://testrunner.org/en/stable/example/how-to/parametrize.html
 - fix autouse-issue where autouse-fixtures would not be discovered
   if defined in an a/conftest.py file and tests in a/tests/test_some.py
 - fix issue226 - LIFO ordering for fixture teardowns
@@ -28,12 +28,12 @@ Thanks in particular to Thomas Waldmann for spotting and reporting issues.
 
 See
 
-     http://pytest.org/
+     http://testrunner.org/
 
-for general information.  To install or upgrade pytest:
+for general information.  To install or upgrade testrunner:
 
-    pip install -U pytest # or
-    easy_install -U pytest
+    pip install -U testrunner # or
+    easy_install -U testrunner
 
 best,
 holger krekel

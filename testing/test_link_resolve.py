@@ -9,7 +9,7 @@ import subprocess
 import sys
 import textwrap
 
-from _pytest.pytester import Pytester
+from _testrunner.testrunnerer import Testrunnerer
 
 
 @contextmanager
@@ -51,14 +51,14 @@ def subst_path_linux(filepath: Path):
         pass
 
 
-def test_link_resolve(pytester: Pytester) -> None:
-    """See: https://github.com/pytest-dev/pytest/issues/5965."""
-    sub1 = pytester.mkpydir("sub1")
+def test_link_resolve(testrunnerer: Testrunnerer) -> None:
+    """See: https://github.com/jacksonsr451/test-runner/issues/5965."""
+    sub1 = testrunnerer.mkpydir("sub1")
     p = sub1.joinpath("test_foo.py")
     p.write_text(
         textwrap.dedent(
             """
-        import pytest
+        import testrunner
         def test_foo():
             raise AssertionError()
         """
@@ -71,10 +71,10 @@ def test_link_resolve(pytester: Pytester) -> None:
         subst = subst_path_windows
 
     with subst(p) as subst_p:
-        result = pytester.runpytest(str(subst_p), "-v")
+        result = testrunnerer.runtestrunner(str(subst_p), "-v")
         # i.e.: Make sure that the error is reported as a relative path, not as a
         # resolved path.
-        # See: https://github.com/pytest-dev/pytest/issues/5965
+        # See: https://github.com/jacksonsr451/test-runner/issues/5965
         stdout = result.stdout.str()
         assert "sub1/test_foo.py" not in stdout
 

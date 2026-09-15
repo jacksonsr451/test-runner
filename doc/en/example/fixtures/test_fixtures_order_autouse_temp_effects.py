@@ -1,25 +1,25 @@
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-@pytest.fixture
+@testrunner.fixture
 def order():
     return []
 
 
-@pytest.fixture
+@testrunner.fixture
 def c1(order):
     order.append("c1")
 
 
-@pytest.fixture
+@testrunner.fixture
 def c2(order):
     order.append("c2")
 
 
 class TestClassWithAutouse:
-    @pytest.fixture(autouse=True)
+    @testrunner.fixture(autouse=True)
     def c3(self, order, c2):
         order.append("c3")
 

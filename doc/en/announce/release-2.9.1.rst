@@ -1,16 +1,16 @@
-pytest-2.9.1
+testrunner-2.9.1
 ============
 
-pytest is a mature Python testing tool with more than 1100 tests
+testrunner is a mature Python testing tool with more than 1100 tests
 against itself, passing on many different interpreters and platforms.
 
 See below for the changes and see docs at:
 
-    http://pytest.org
+    http://testrunner.org
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed to this release, among them:
 
@@ -28,7 +28,7 @@ Thanks to all who contributed to this release, among them:
 
 
 Happy testing,
-The py.test Development Team
+The testrunner Development Team
 
 
 2.9.1 (compared to 2.9.0)
@@ -40,7 +40,7 @@ The py.test Development Team
   Thanks :user:`nicoddemus` for the PR.
 
 * Fix (:issue:`1178`):
-  ``pytest.fail`` with non-ascii characters raises an internal pytest error.
+  ``testrunner.fail`` with non-ascii characters raises an internal testrunner error.
   Thanks :user:`nicoddemus` for the PR.
 
 * Fix (:issue:`469`): junit parses report.nodeid incorrectly, when params IDs
@@ -48,7 +48,7 @@ The py.test Development Team
 
 * Fix (:issue:`578`): SyntaxErrors
   containing non-ascii lines at the point of failure generated an internal
-  py.test error.
+  testrunner error.
   Thanks :user:`asottile` for the report and :user:`nicoddemus` for the PR.
 
 * Fix (:issue:`1437`): When passing in a bytestring regex pattern to parameterize

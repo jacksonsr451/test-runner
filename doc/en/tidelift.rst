@@ -1,12 +1,12 @@
-pytest for enterprise
+testrunner for enterprise
 =====================
 
-`Tidelift`_ is working with the maintainers of pytest and thousands of other
+`Tidelift`_ is working with the maintainers of testrunner and thousands of other
 open source projects to deliver commercial support and maintenance for the open source dependencies you use
 to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the
 exact dependencies you use.
 
-`Get more details <https://tidelift.com/subscription/pkg/pypi-pytest?utm_source=pypi-pytest&utm_medium=referral&utm_campaign=enterprise>`_
+`Get more details <https://tidelift.com/subscription/pkg/pypi-testrunner?utm_source=pypi-testrunner&utm_medium=referral&utm_campaign=enterprise>`_
 
 The Tidelift Subscription is a managed open source subscription for application dependencies covering millions of open source projects across JavaScript, Python, Java, PHP, Ruby, .NET, and more.
 
@@ -40,6 +40,6 @@ The end result? All of the capabilities you expect from commercial-grade softwar
 source you use. That means less time grappling with esoteric open source trivia, and more time building your own
 applications—and your business.
 
-`Request a demo <https://tidelift.com/subscription/request-a-demo?utm_source=pypi-pytest&utm_medium=referral&utm_campaign=enterprise>`_
+`Request a demo <https://tidelift.com/subscription/request-a-demo?utm_source=pypi-testrunner&utm_medium=referral&utm_campaign=enterprise>`_
 
 .. _Tidelift: https://tidelift.com

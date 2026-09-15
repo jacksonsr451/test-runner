@@ -1,24 +1,24 @@
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-@pytest.fixture(scope="class")
+@testrunner.fixture(scope="class")
 def order():
     return []
 
 
-@pytest.fixture(scope="class", autouse=True)
+@testrunner.fixture(scope="class", autouse=True)
 def c1(order):
     order.append("c1")
 
 
-@pytest.fixture(scope="class")
+@testrunner.fixture(scope="class")
 def c2(order):
     order.append("c2")
 
 
-@pytest.fixture(scope="class")
+@testrunner.fixture(scope="class")
 def c3(order, c1):
     order.append("c3")
 

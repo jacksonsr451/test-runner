@@ -14,10 +14,10 @@ from types import MappingProxyType
 from types import SimpleNamespace
 from typing import Any
 
-from _pytest._io.pprint import _safe_tuple
-from _pytest._io.pprint import _wrap_bytes_repr
-from _pytest._io.pprint import PrettyPrinter
-import pytest
+from _testrunner._io.pprint import _safe_tuple
+from _testrunner._io.pprint import _wrap_bytes_repr
+from _testrunner._io.pprint import PrettyPrinter
+import testrunner
 
 
 @dataclass
@@ -36,15 +36,15 @@ class DataclassWithTwoItems:
     bar: str
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("data", "expected"),
     (
-        pytest.param(
+        testrunner.param(
             EmptyDataclass(),
             "EmptyDataclass()",
             id="dataclass-empty",
         ),
-        pytest.param(
+        testrunner.param(
             DataclassWithOneItem(foo="bar"),
             """
             DataclassWithOneItem(
@@ -53,7 +53,7 @@ class DataclassWithTwoItems:
             """,
             id="dataclass-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             DataclassWithTwoItems(foo="foo", bar="bar"),
             """
             DataclassWithTwoItems(
@@ -63,12 +63,12 @@ class DataclassWithTwoItems:
             """,
             id="dataclass-two-items",
         ),
-        pytest.param(
+        testrunner.param(
             {},
             "{}",
             id="dict-empty",
         ),
-        pytest.param(
+        testrunner.param(
             {"one": 1},
             """
             {
@@ -77,7 +77,7 @@ class DataclassWithTwoItems:
             """,
             id="dict-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             {"one": 1, "two": 2},
             """
             {
@@ -87,8 +87,8 @@ class DataclassWithTwoItems:
             """,
             id="dict-two-items",
         ),
-        pytest.param(OrderedDict(), "OrderedDict()", id="ordereddict-empty"),
-        pytest.param(
+        testrunner.param(OrderedDict(), "OrderedDict()", id="ordereddict-empty"),
+        testrunner.param(
             OrderedDict({"one": 1}),
             """
             OrderedDict({
@@ -97,7 +97,7 @@ class DataclassWithTwoItems:
             """,
             id="ordereddict-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             OrderedDict({"one": 1, "two": 2}),
             """
             OrderedDict({
@@ -107,12 +107,12 @@ class DataclassWithTwoItems:
             """,
             id="ordereddict-two-items",
         ),
-        pytest.param(
+        testrunner.param(
             [],
             "[]",
             id="list-empty",
         ),
-        pytest.param(
+        testrunner.param(
             [1],
             """
             [
@@ -121,7 +121,7 @@ class DataclassWithTwoItems:
             """,
             id="list-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             [1, 2],
             """
             [
@@ -131,12 +131,12 @@ class DataclassWithTwoItems:
             """,
             id="list-two-items",
         ),
-        pytest.param(
+        testrunner.param(
             tuple(),
             "()",
             id="tuple-empty",
         ),
-        pytest.param(
+        testrunner.param(
             (1,),
             """
             (
@@ -145,7 +145,7 @@ class DataclassWithTwoItems:
             """,
             id="tuple-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             (1, 2),
             """
             (
@@ -155,12 +155,12 @@ class DataclassWithTwoItems:
             """,
             id="tuple-two-items",
         ),
-        pytest.param(
+        testrunner.param(
             set(),
             "set()",
             id="set-empty",
         ),
-        pytest.param(
+        testrunner.param(
             {1},
             """
             {
@@ -169,7 +169,7 @@ class DataclassWithTwoItems:
             """,
             id="set-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             {1, 2},
             """
             {
@@ -179,12 +179,12 @@ class DataclassWithTwoItems:
             """,
             id="set-two-items",
         ),
-        pytest.param(
+        testrunner.param(
             MappingProxyType({}),
             "mappingproxy({})",
             id="mappingproxy-empty",
         ),
-        pytest.param(
+        testrunner.param(
             MappingProxyType({"one": 1}),
             """
             mappingproxy({
@@ -193,7 +193,7 @@ class DataclassWithTwoItems:
             """,
             id="mappingproxy-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             MappingProxyType({"one": 1, "two": 2}),
             """
             mappingproxy({
@@ -203,12 +203,12 @@ class DataclassWithTwoItems:
             """,
             id="mappingproxy-two-items",
         ),
-        pytest.param(
+        testrunner.param(
             SimpleNamespace(),
             "namespace()",
             id="simplenamespace-empty",
         ),
-        pytest.param(
+        testrunner.param(
             SimpleNamespace(one=1),
             """
             namespace(
@@ -217,7 +217,7 @@ class DataclassWithTwoItems:
             """,
             id="simplenamespace-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             SimpleNamespace(one=1, two=2),
             """
             namespace(
@@ -227,10 +227,10 @@ class DataclassWithTwoItems:
             """,
             id="simplenamespace-two-items",
         ),
-        pytest.param(
+        testrunner.param(
             defaultdict(str), "defaultdict(<class 'str'>, {})", id="defaultdict-empty"
         ),
-        pytest.param(
+        testrunner.param(
             defaultdict(str, {"one": "1"}),
             """
             defaultdict(<class 'str'>, {
@@ -239,7 +239,7 @@ class DataclassWithTwoItems:
             """,
             id="defaultdict-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             defaultdict(str, {"one": "1", "two": "2"}),
             """
             defaultdict(<class 'str'>, {
@@ -249,12 +249,12 @@ class DataclassWithTwoItems:
             """,
             id="defaultdict-two-items",
         ),
-        pytest.param(
+        testrunner.param(
             Counter(),
             "Counter()",
             id="counter-empty",
         ),
-        pytest.param(
+        testrunner.param(
             Counter("1"),
             """
             Counter({
@@ -263,7 +263,7 @@ class DataclassWithTwoItems:
             """,
             id="counter-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             Counter("121"),
             """
             Counter({
@@ -273,8 +273,8 @@ class DataclassWithTwoItems:
             """,
             id="counter-two-items",
         ),
-        pytest.param(ChainMap(), "ChainMap({})", id="chainmap-empty"),
-        pytest.param(
+        testrunner.param(ChainMap(), "ChainMap({})", id="chainmap-empty"),
+        testrunner.param(
             ChainMap({"one": 1, "two": 2}),
             """
             ChainMap(
@@ -286,7 +286,7 @@ class DataclassWithTwoItems:
             """,
             id="chainmap-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             ChainMap({"one": 1}, {"two": 2}),
             """
             ChainMap(
@@ -300,12 +300,12 @@ class DataclassWithTwoItems:
             """,
             id="chainmap-two-items",
         ),
-        pytest.param(
+        testrunner.param(
             deque(),
             "deque([])",
             id="deque-empty",
         ),
-        pytest.param(
+        testrunner.param(
             deque([1]),
             """
             deque([
@@ -314,7 +314,7 @@ class DataclassWithTwoItems:
             """,
             id="deque-one-item",
         ),
-        pytest.param(
+        testrunner.param(
             deque([1, 2]),
             """
             deque([
@@ -324,7 +324,7 @@ class DataclassWithTwoItems:
             """,
             id="deque-two-items",
         ),
-        pytest.param(
+        testrunner.param(
             deque([1, 2], maxlen=3),
             """
             deque(maxlen=3, [
@@ -334,8 +334,8 @@ class DataclassWithTwoItems:
             """,
             id="deque-maxlen",
         ),
-        pytest.param(frozenset(), "frozenset()", id="frozenset-empty"),
-        pytest.param(
+        testrunner.param(frozenset(), "frozenset()", id="frozenset-empty"),
+        testrunner.param(
             frozenset({1, 2, 3}),
             """
             frozenset({
@@ -346,8 +346,8 @@ class DataclassWithTwoItems:
             """,
             id="frozenset-items",
         ),
-        pytest.param(UserDict(), "{}", id="userdict-empty"),
-        pytest.param(
+        testrunner.param(UserDict(), "{}", id="userdict-empty"),
+        testrunner.param(
             UserDict({"one": 1, "two": 2}),
             """
             {
@@ -357,8 +357,8 @@ class DataclassWithTwoItems:
             """,
             id="userdict-items",
         ),
-        pytest.param(UserList(), "[]", id="userlist-empty"),
-        pytest.param(
+        testrunner.param(UserList(), "[]", id="userlist-empty"),
+        testrunner.param(
             UserList([1, 2]),
             """
             [
@@ -368,15 +368,15 @@ class DataclassWithTwoItems:
             """,
             id="userlist-items",
         ),
-        pytest.param(UserString("hello world"), "'hello world'", id="userstring"),
-        pytest.param(b"short", "(b'short')", id="bytes-short"),
-        pytest.param(
+        testrunner.param(UserString("hello world"), "'hello world'", id="userstring"),
+        testrunner.param(b"short", "(b'short')", id="bytes-short"),
+        testrunner.param(
             b"x" * 100,
             "(b'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'\n"
             " b'xxxxxxxxxxxxxxxxxxxxxxxx')",
             id="bytes-long",
         ),
-        pytest.param(
+        testrunner.param(
             # Length not a multiple of 4 so the final 4-byte group lands
             # exactly on ``last`` and exercises the allowance trim.
             b"z" * 102,
@@ -384,27 +384,27 @@ class DataclassWithTwoItems:
             " b'zzzzzzzzzzzzzzzzzzzzzzzzzz')",
             id="bytes-long-unaligned",
         ),
-        pytest.param(bytearray(b"short"), "bytearray(b'short')", id="bytearray-short"),
-        pytest.param(
+        testrunner.param(bytearray(b"short"), "bytearray(b'short')", id="bytearray-short"),
+        testrunner.param(
             bytearray(b"y" * 100),
             "bytearray(b'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'\n"
             "          b'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy')",
             id="bytearray-long",
         ),
-        pytest.param(
+        testrunner.param(
             "word " * 30,
             "('word word word word word word word word word word word word word word word '\n"
             " 'word word word word word word word word word word word word word word word ')",
             id="str-long-wrap",
         ),
-        pytest.param(
+        testrunner.param(
             "line1\nline2\nline3",
             "('line1\\n'\n 'line2\\n'\n 'line3')",
             id="str-multiline",
         ),
-        pytest.param("", "''", id="str-empty"),
-        pytest.param("hello", "'hello'", id="str-single-chunk"),
-        pytest.param(
+        testrunner.param("", "''", id="str-empty"),
+        testrunner.param("hello", "'hello'", id="str-single-chunk"),
+        testrunner.param(
             ["word " * 30],
             "[\n"
             "    'word word word word word word word word word word word word word word '\n"
@@ -413,16 +413,16 @@ class DataclassWithTwoItems:
             "]",
             id="str-nested-wrap",
         ),
-        pytest.param(b"abc", "b'abc'", id="bytes-le-4"),
-        pytest.param(
+        testrunner.param(b"abc", "b'abc'", id="bytes-le-4"),
+        testrunner.param(
             "word " * 30 + "\nshort",
             "('word word word word word word word word word word word word word word word '\n"
             " 'word word word word word word word word word word word word word word word \\n'\n"
             " 'short')",
             id="str-wrap-then-line",
         ),
-        pytest.param({(): 0}, "{\n    (): 0,\n}", id="dict-empty-tuple-key"),
-        pytest.param(
+        testrunner.param({(): 0}, "{\n    (): 0,\n}", id="dict-empty-tuple-key"),
+        testrunner.param(
             {(1, 2): 0},
             """
             {
@@ -431,7 +431,7 @@ class DataclassWithTwoItems:
             """,
             id="dict-tuple-key",
         ),
-        pytest.param(
+        testrunner.param(
             {(1,): 0},
             """
             {
@@ -440,7 +440,7 @@ class DataclassWithTwoItems:
             """,
             id="dict-singleton-tuple-key",
         ),
-        pytest.param(
+        testrunner.param(
             {
                 "chainmap": ChainMap({"one": 1}, {"two": 2}),
                 "counter": Counter("122"),
@@ -604,16 +604,16 @@ def test_pformat_sorts_heterogeneous_set() -> None:
     assert pp.pformat({1, "a", 2, "b"}) == "{\n    1,\n    2,\n    'a',\n    'b',\n}"
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "kwargs",
     [
-        pytest.param({"indent": -1}, id="indent-negative"),
-        pytest.param({"depth": 0}, id="depth-zero"),
-        pytest.param({"width": 0}, id="width-zero"),
+        testrunner.param({"indent": -1}, id="indent-negative"),
+        testrunner.param({"depth": 0}, id="depth-zero"),
+        testrunner.param({"width": 0}, id="width-zero"),
     ],
 )
 def test_invalid_constructor_args_raise(kwargs: dict[str, int]) -> None:
-    with pytest.raises(ValueError):
+    with testrunner.raises(ValueError):
         PrettyPrinter(**kwargs)
 
 
@@ -671,13 +671,13 @@ class _HashableList(list[Any]):
         return id(self)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("key", "expected"),
     [
-        pytest.param(_HashableDict(), "{\n    {}: 0,\n}", id="empty-dict-key"),
-        pytest.param(_HashableDict({"a": 1}), "{\n    {'a': 1}: 0,\n}", id="dict-key"),
-        pytest.param(_HashableList(), "{\n    []: 0,\n}", id="empty-list-key"),
-        pytest.param(_HashableList([1, 2]), "{\n    [1, 2]: 0,\n}", id="list-key"),
+        testrunner.param(_HashableDict(), "{\n    {}: 0,\n}", id="empty-dict-key"),
+        testrunner.param(_HashableDict({"a": 1}), "{\n    {'a': 1}: 0,\n}", id="dict-key"),
+        testrunner.param(_HashableList(), "{\n    []: 0,\n}", id="empty-list-key"),
+        testrunner.param(_HashableList([1, 2]), "{\n    [1, 2]: 0,\n}", id="list-key"),
     ],
 )
 def test_hashable_container_subclass_as_key(key: Any, expected: str) -> None:

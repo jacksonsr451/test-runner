@@ -14,4 +14,4 @@ it.
 The archival file is not shipped in the sdist -- an sdist carries its version
 in its metadata, and the template is only ever expanded by ``git archive``.
 
-Building pytest from a git checkout now requires ``setuptools-scm >= 10.1``.
+Building testrunner from a git checkout now requires ``setuptools-scm >= 10.1``.

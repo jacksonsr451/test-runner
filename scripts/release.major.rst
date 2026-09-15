@@ -1,24 +1,24 @@
-pytest-{version}
+testrunner-{version}
 =======================================
 
-The pytest team is proud to announce the {version} release!
+The testrunner team is proud to announce the {version} release!
 
 This release contains new features, improvements, bug fixes, and breaking changes, so users
 are encouraged to take a look at the CHANGELOG carefully:
 
-    https://docs.pytest.org/en/stable/changelog.html
+    https://github.com/jacksonsr451/test-runner/tree/main/doc/en/changelog.html
 
 For complete documentation, please visit:
 
-    https://docs.pytest.org/en/stable/
+    https://github.com/jacksonsr451/test-runner/tree/main/doc/en/
 
 As usual, you can upgrade from PyPI via:
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all of the contributors to this release:
 
 {contributors}
 
 Happy testing,
-The pytest Development Team
+The testrunner Development Team

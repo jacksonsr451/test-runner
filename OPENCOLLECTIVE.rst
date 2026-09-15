@@ -2,7 +2,7 @@
 OpenCollective
 ==============
 
-pytest has a collective setup at `OpenCollective`_. This document describes how the core team manages
+testrunner has a collective setup at `OpenCollective`_. This document describes how the core team manages
 OpenCollective-related activities.
 
 What is it
@@ -17,9 +17,9 @@ monthly donations directly to the project.
 Funds
 =====
 
-The OpenCollective funds donated to pytest will be used to fund overall maintenance,
+The OpenCollective funds donated to testrunner will be used to fund overall maintenance,
 local sprints, merchandising (stickers to distribute in conferences for example), and future
-gatherings of pytest developers (sprints).
+gatherings of testrunner developers (sprints).
 
 `Core contributors`_ which are contributing on a continuous basis are free to submit invoices
 to bill maintenance hours using the platform. How much each contributor should request is still an
@@ -31,14 +31,14 @@ Admins
 ======
 
 A few people have admin access to the OpenCollective dashboard to make changes. Those people
-are part of the `@pytest-dev/opencollective-admins`_ team.
+are part of the `@testrunner-dev/opencollective-admins`_ team.
 
 `Core contributors`_ interested in helping out with OpenCollective maintenance are welcome! We don't
 expect much work here other than the occasional approval of expenses from other core contributors.
-Just drop a line to one of the `@pytest-dev/opencollective-admins`_ or use the mailing list.
+Just drop a line to one of the `@testrunner-dev/opencollective-admins`_ or use the mailing list.
 
 
-.. _`OpenCollective`: https://opencollective.com/pytest
+.. _`OpenCollective`: https://opencollective.com/testrunner
 .. _`Tidelift`: https://tidelift.com
-.. _`core contributors`: https://github.com/orgs/pytest-dev/teams/core/members
-.. _`@pytest-dev/opencollective-admins`: https://github.com/orgs/pytest-dev/teams/opencollective-admins/members
+.. _`core contributors`: https://github.com/orgs/testrunner-dev/teams/core/members
+.. _`@testrunner-dev/opencollective-admins`: https://github.com/orgs/testrunner-dev/teams/opencollective-admins/members

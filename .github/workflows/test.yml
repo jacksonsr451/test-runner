@@ -23,7 +23,7 @@ on:
   workflow_dispatch:  # allows manual triggering of the workflow
 
 env:
-  PYTEST_ADDOPTS: "--color=yes"
+  TESTRUNNER_ADDOPTS: "--color=yes"
 
 # Cancel running jobs for the same workflow and branch.
 concurrency:
@@ -297,14 +297,14 @@ jobs:
       if: "! matrix.use_coverage"
       shell: bash
       env:
-        _PYTEST_TOX_POSARGS_JUNIT: --junitxml=junit.xml
+        _TESTRUNNER_TOX_POSARGS_JUNIT: --junitxml=junit.xml
       run: tox run -e ${{ matrix.tox_env }} --installpkg `find dist/*.tar.gz`
 
     - name: Test with coverage
       if: "matrix.use_coverage"
       shell: bash
       env:
-        _PYTEST_TOX_POSARGS_JUNIT: --junitxml=junit.xml
+        _TESTRUNNER_TOX_POSARGS_JUNIT: --junitxml=junit.xml
       run: tox run -e ${{ matrix.tox_env }}-coverage --installpkg `find dist/*.tar.gz`
 
     - name: Upload coverage to Codecov

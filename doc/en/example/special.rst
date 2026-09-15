@@ -11,16 +11,16 @@ calls it:
 
     # content of conftest.py
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture(scope="session", autouse=True)
+    @testrunner.fixture(scope="session", autouse=True)
     def callattr_ahead_of_alltests(request):
         print("callattr_ahead_of_alltests called")
         seen = {None}
         session = request.node
         for item in session.items:
-            cls = item.getparent(pytest.Class)
+            cls = item.getparent(testrunner.Class)
             if cls not in seen:
                 if hasattr(cls.obj, "callme"):
                     cls.obj.callme()
@@ -69,9 +69,9 @@ will be called ahead of running any tests:
 
 If you run this without output capturing:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q -s test_module.py
+    $ testrunner -q -s test_module.py
     callattr_ahead_of_alltests called
     callme called!
     callme other called

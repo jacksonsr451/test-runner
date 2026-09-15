@@ -1,20 +1,20 @@
-pytest-2.4.0: new fixture features/hooks and bug fixes
+testrunner-2.4.0: new fixture features/hooks and bug fixes
 ===========================================================================
 
-The just released pytest-2.4.0 brings many improvements and numerous
+The just released testrunner-2.4.0 brings many improvements and numerous
 bug fixes while remaining plugin- and test-suite compatible apart
 from a few supposedly very minor incompatibilities.  See below for
 a full list of details.  A few feature highlights:
 
-- new yield-style fixtures `pytest.yield_fixture
-  <http://pytest.org/en/stable/yieldfixture.html>`_, allowing to use
+- new yield-style fixtures `testrunner.yield_fixture
+  <http://testrunner.org/en/stable/yieldfixture.html>`_, allowing to use
   existing with-style context managers in fixture functions.
 
 - improved pdb support: ``import pdb ; pdb.set_trace()`` now works
   without requiring prior disabling of stdout/stderr capturing.
   Also the ``--pdb`` options works now on collection and internal errors
   and we introduced a new experimental hook for IDEs/plugins to
-  intercept debugging: ``pytest_exception_interact(node, call, report)``.
+  intercept debugging: ``testrunner_exception_interact(node, call, report)``.
 
 - shorter monkeypatch variant to allow specifying an import path as
   a target, for example: ``monkeypatch.setattr("requests.get", myfunc)``
@@ -28,20 +28,20 @@ a full list of details.  A few feature highlights:
 - allow boolean expression directly with skipif/xfail
   if a "reason" is also specified.
 
-- a new hook ``pytest_load_initial_conftests`` allows plugins like
-  :pypi:`pytest-django` to
+- a new hook ``testrunner_load_initial_conftests`` allows plugins like
+  :pypi:`testrunner-django` to
   influence the environment before conftest files import ``django``.
 
 - reporting: color the last line red or green depending if
   failures/errors occurred or everything passed.
 
 The documentation has been updated to accommodate the changes,
-see `http://pytest.org <http://pytest.org>`_
+see `http://testrunner.org <http://testrunner.org>`_
 
-To install or upgrade pytest::
+To install or upgrade testrunner::
 
-    pip install -U pytest # or
-    easy_install -U pytest
+    pip install -U testrunner # or
+    easy_install -U testrunner
 
 
 **Many thanks to all who helped, including Floris Bruynooghe,
@@ -62,24 +62,24 @@ known incompatibilities:
   standalone script which works on python2.7 or above.  Use Python2.6
   to also get a python2.5 compatible version.
 
-- all xunit-style teardown methods (nose-style, pytest-style,
+- all xunit-style teardown methods (nose-style, testrunner-style,
   unittest-style) will not be called if the corresponding setup method failed,
   see issue322 below.
 
-- the pytest_plugin_unregister hook wasn't ever properly called
+- the testrunner_plugin_unregister hook wasn't ever properly called
   and there is no known implementation of the hook - so it got removed.
 
-- pytest.fixture-decorated functions cannot be generators (i.e. use
+- testrunner.fixture-decorated functions cannot be generators (i.e. use
   yield) anymore.  This change might be reversed in 2.4.1 if it causes
   unforeseen real-life issues.  However, you can always write and return
   an inner function/generator and change the fixture consumer to iterate
   over the returned generator.  This change was done in lieu of the new
-  ``pytest.yield_fixture`` decorator, see below.
+  ``testrunner.yield_fixture`` decorator, see below.
 
 new features:
 
-- experimentally introduce a new ``pytest.yield_fixture`` decorator
-  which accepts exactly the same parameters as pytest.fixture but
+- experimentally introduce a new ``testrunner.yield_fixture`` decorator
+  which accepts exactly the same parameters as testrunner.fixture but
   mandates a ``yield`` statement instead of a ``return statement`` from
   fixture functions.  This allows direct integration with "with-style"
   context managers in fixture functions and generally avoids registering
@@ -98,15 +98,15 @@ new features:
   Theunert.
 
 - make "import pdb ; pdb.set_trace()" work natively wrt capturing (no
-  "-s" needed anymore), making ``pytest.set_trace()`` a mere shortcut.
+  "-s" needed anymore), making ``testrunner.set_trace()`` a mere shortcut.
 
 - fix issue181: --pdb now also works on collect errors (and
   on internal errors) .  This was implemented by a slight internal
   refactoring and the introduction of a new hook
-  ``pytest_exception_interact`` hook (see next item).
+  ``testrunner_exception_interact`` hook (see next item).
 
 - fix issue341: introduce new experimental hook for IDEs/terminals to
-  intercept debugging: ``pytest_exception_interact(node, call, report)``.
+  intercept debugging: ``testrunner_exception_interact(node, call, report)``.
 
 - new monkeypatch.setattr() variant to provide a shorter
   invocation for patching out classes/functions from modules:
@@ -116,17 +116,17 @@ new features:
   will replace the "get" function of the "requests" module with ``myfunc``.
 
 - fix issue322: tearDownClass is not run if setUpClass failed. Thanks
-  Mathieu Agopian for the initial fix.  Also make all of pytest/nose
+  Mathieu Agopian for the initial fix.  Also make all of testrunner/nose
   finalizer mimic the same generic behaviour: if a setupX exists and
   fails, don't run teardownX.  This internally introduces a new method
   "node.addfinalizer()" helper which can only be called during the setup
   phase of a node.
 
-- simplify pytest.mark.parametrize() signature: allow to pass a
+- simplify testrunner.mark.parametrize() signature: allow to pass a
   CSV-separated string to specify argnames.  For example:
-  ``pytest.mark.parametrize("input,expected",  [(1,2), (2,3)])``
+  ``testrunner.mark.parametrize("input,expected",  [(1,2), (2,3)])``
   works as well as the previous:
-  ``pytest.mark.parametrize(("input", "expected"), ...)``.
+  ``testrunner.mark.parametrize(("input", "expected"), ...)``.
 
 - add support for setUpModule/tearDownModule detection, thanks Brian Okken.
 
@@ -134,7 +134,7 @@ new features:
   Thanks Anthon van der Neut for the PR.
 
 - change option names to be hyphen-separated long options but keep the
-  old spelling backward compatible.  py.test -h will only show the
+  old spelling backward compatible.  testrunner -h will only show the
   hyphenated version, for example "--collect-only" but "--collectonly"
   will remain valid as well (for backward-compat reasons).  Many thanks to
   Anthon van der Neut for the implementation and to Hynek Schlawack for
@@ -143,7 +143,7 @@ new features:
 - fix issue 308 - allow to mark/xfail/skip individual parameter sets
   when parametrizing.  Thanks Brianna Laugher.
 
-- call new experimental pytest_load_initial_conftests hook to allow
+- call new experimental testrunner_load_initial_conftests hook to allow
   3rd party plugins to do something before a conftest is loaded.
 
 Bug fixes:
@@ -151,16 +151,16 @@ Bug fixes:
 - fix issue358 - capturing options are now parsed more properly
   by using a new parser.parse_known_args method.
 
-- pytest now uses argparse instead of optparse (thanks Anthon) which
+- testrunner now uses argparse instead of optparse (thanks Anthon) which
   means that "argparse" is added as a dependency if installing into python2.6
   environments or below.
 
-- fix issue333: fix a case of bad unittest/pytest hook interaction.
+- fix issue333: fix a case of bad unittest/testrunner hook interaction.
 
 - PR27: correctly handle nose.SkipTest during collection.  Thanks
   Antonio Cuni, Ronny Pfannschmidt.
 
-- fix issue355: junitxml puts name="pytest" attribute to testsuite tag.
+- fix issue355: junitxml puts name="testrunner" attribute to testsuite tag.
 
 - fix issue336: autouse fixture in plugins should work again.
 
@@ -171,7 +171,7 @@ Bug fixes:
 - fix issue317: assertion rewriter support for the is_package method
 
 - fix issue335: document py.code.ExceptionInfo() object returned
-  from pytest.raises(), thanks Mathieu Agopian.
+  from testrunner.raises(), thanks Mathieu Agopian.
 
 - remove implicit distribute_setup support from setup.py.
 
@@ -186,14 +186,14 @@ Bug fixes:
 - you can specify "-q" or "-qq" to get different levels of "quieter"
   reporting (thanks Katarzyna Jachim)
 
-- fix issue300 - Fix order of conftest loading when starting py.test
+- fix issue300 - Fix order of conftest loading when starting testrunner
   in a subdirectory.
 
 - fix issue323 - sorting of many module-scoped arg parametrizations
 
 - make sessionfinish hooks execute with the same cwd-context as at
   session start (helps fix plugin behaviour which write output files
-  with relative path such as pytest-cov)
+  with relative path such as testrunner-cov)
 
 - fix issue316 - properly reference collection hooks in docs
 
@@ -218,6 +218,6 @@ Bug fixes:
 
 - better parametrize error messages, thanks Brianna Laugher
 
-- pytest_terminal_summary(terminalreporter) hooks can now use
+- testrunner_terminal_summary(terminalreporter) hooks can now use
   ".section(title)" and ".line(msg)" methods to print extra
   information at the end of a test run.

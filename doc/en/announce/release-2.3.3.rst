@@ -1,7 +1,7 @@
-pytest-2.3.3: integration fixes, py24 support, ``*/**`` shown in traceback
+testrunner-2.3.3: integration fixes, py24 support, ``*/**`` shown in traceback
 ===========================================================================
 
-pytest-2.3.3 is another stabilization release of the py.test tool
+testrunner-2.3.3 is another stabilization release of the testrunner tool
 which offers uebersimple assertions, scalable fixture mechanisms
 and deep customization for testing with Python.  Particularly,
 this release provides:
@@ -9,21 +9,21 @@ this release provides:
 - integration fixes and improvements related to flask, numpy, nose,
   unittest, mock
 
-- makes pytest work on py24 again (yes, people sometimes still need to use it)
+- makes testrunner work on py24 again (yes, people sometimes still need to use it)
 
-- show ``*,**`` args in pytest tracebacks
+- show ``*,**`` args in testrunner tracebacks
 
 Thanks to Manuel Jacob, Thomas Waldmann, Ronny Pfannschmidt, Pavel Repin
 and Andreas Taumoefolau for providing patches and all for the issues.
 
 See
 
-     http://pytest.org/
+     http://testrunner.org/
 
-for general information.  To install or upgrade pytest:
+for general information.  To install or upgrade testrunner:
 
-    pip install -U pytest # or
-    easy_install -U pytest
+    pip install -U testrunner # or
+    easy_install -U testrunner
 
 best,
 holger krekel
@@ -54,8 +54,8 @@ Changes between 2.3.2 and 2.3.3
 - in tracebacks *,** arg values are now shown next to normal arguments
   (thanks Manuel Jacob)
 
-- fix issue217 - support mock.patch with pytest's fixtures - note that
+- fix issue217 - support mock.patch with testrunner's fixtures - note that
   you need either mock-1.0.1 or the python3.3 builtin unittest.mock.
 
-- fix issue127 - improve documentation for pytest_addoption() and
+- fix issue127 - improve documentation for testrunner_addoption() and
   add a ``config.getoption(name)`` helper function for consistency.

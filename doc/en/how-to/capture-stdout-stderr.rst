@@ -4,7 +4,7 @@
 How to capture stdout/stderr output
 =========================================================
 
-Pytest intercepts stdout and stderr as configured by the :option:`--capture=`
+Testrunner intercepts stdout and stderr as configured by the :option:`--capture=`
 command-line argument or by using fixtures. The ``--capture=`` flag configures
 reporting, whereas the fixtures offer more granular control and allow
 inspection of output during testing. The reports can be customized with the
@@ -32,7 +32,7 @@ a test.
 Setting capturing methods or disabling capturing
 -------------------------------------------------
 
-There are three ways in which ``pytest`` can perform capturing:
+There are three ways in which ``testrunner`` can perform capturing:
 
 * ``fd`` (file descriptor) level capturing (default): All writes going to the
   operating system file descriptors 1 and 2 will be captured.
@@ -44,7 +44,7 @@ There are three ways in which ``pytest`` can perform capturing:
 * ``tee-sys`` capturing: Python writes to ``sys.stdout`` and ``sys.stderr``
   will be captured, however the writes will also be passed-through to
   the actual ``sys.stdout`` and ``sys.stderr``. This allows output to be
-  'live printed' and captured for plugin use, such as junitxml (new in pytest 5.4).
+  'live printed' and captured for plugin use, such as junitxml (new in testrunner 5.4).
 
 .. _`disable capturing`:
 
@@ -52,10 +52,10 @@ You can influence output capturing mechanisms from the command line:
 
 .. code-block:: bash
 
-    pytest -s                  # disable all capturing
-    pytest --capture=sys       # replace sys.stdout/stderr with in-mem files
-    pytest --capture=fd        # also point filedescriptors 1 and 2 to temp file
-    pytest --capture=tee-sys   # combines 'sys' and '-s', capturing sys.stdout/stderr
+    testrunner -s                  # disable all capturing
+    testrunner --capture=sys       # replace sys.stdout/stderr with in-mem files
+    testrunner --capture=fd        # also point filedescriptors 1 and 2 to temp file
+    testrunner --capture=tee-sys   # combines 'sys' and '-s', capturing sys.stdout/stderr
                                # and passing it along to the actual sys.stdout/stderr
 
 .. _printdebugging:
@@ -85,11 +85,11 @@ is that you can use print statements for debugging:
 and running this module will show you precisely the output
 of the failing function and hide the other one:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest
+    $ testrunner
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 2 items
 
@@ -136,7 +136,7 @@ and capturing will be continued.  After the test
 function finishes the original streams will
 be restored.  Using :fixture:`capsys` this way frees your
 test from having to care about setting/resetting
-output streams and also interacts well with pytest's
+output streams and also interacts well with testrunner's
 own per-test capturing.
 
 The return value of ``readouterr()`` is a ``namedtuple`` with two attributes, ``out`` and ``err``.

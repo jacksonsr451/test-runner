@@ -5,21 +5,21 @@ import os
 import sys
 import warnings
 
-from _pytest.config import ExitCode
-from _pytest.fixtures import FixtureRequest
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.config import ExitCode
+from _testrunner.fixtures import FixtureRequest
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
 WARNINGS_SUMMARY_HEADER = "warnings summary"
 
 
-@pytest.fixture
-def pyfile_with_warnings(pytester: Pytester, request: FixtureRequest) -> str:
+@testrunner.fixture
+def pyfile_with_warnings(testrunnerer: Testrunnerer, request: FixtureRequest) -> str:
     """Create a test file which calls a function in a module which generates warnings."""
-    pytester.syspathinsert()
+    testrunnerer.syspathinsert()
     module_name = request.function.__name__[len("test_") :] + "_module"
-    test_file = pytester.makepyfile(
+    test_file = testrunnerer.makepyfile(
         f"""
         import {module_name}
         def test_func():
@@ -38,10 +38,10 @@ def pyfile_with_warnings(pytester: Pytester, request: FixtureRequest) -> str:
     return str(test_file)
 
 
-@pytest.mark.filterwarnings("default::UserWarning", "default::RuntimeWarning")
-def test_normal_flow(pytester: Pytester, pyfile_with_warnings) -> None:
+@testrunner.mark.filterwarnings("default::UserWarning", "default::RuntimeWarning")
+def test_normal_flow(testrunnerer: Testrunnerer, pyfile_with_warnings) -> None:
     """Check that the warnings section is displayed."""
-    result = pytester.runpytest(pyfile_with_warnings)
+    result = testrunnerer.runtestrunner(pyfile_with_warnings)
     result.stdout.fnmatch_lines(
         [
             f"*== {WARNINGS_SUMMARY_HEADER} ==*",
@@ -55,14 +55,14 @@ def test_normal_flow(pytester: Pytester, pyfile_with_warnings) -> None:
     )
 
 
-@pytest.mark.filterwarnings("always::UserWarning")
-def test_setup_teardown_warnings(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("always::UserWarning")
+def test_setup_teardown_warnings(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         import warnings
-        import pytest
+        import testrunner
 
-        @pytest.fixture
+        @testrunner.fixture
         def fix():
             warnings.warn(UserWarning("warning during setup"))
             yield
@@ -72,7 +72,7 @@ def test_setup_teardown_warnings(pytester: Pytester) -> None:
             pass
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [
             f"*== {WARNINGS_SUMMARY_HEADER} ==*",
@@ -85,19 +85,19 @@ def test_setup_teardown_warnings(pytester: Pytester) -> None:
     )
 
 
-@pytest.mark.parametrize("method", ["cmdline", "ini"])
-def test_as_errors(pytester: Pytester, pyfile_with_warnings, method) -> None:
+@testrunner.mark.parametrize("method", ["cmdline", "ini"])
+def test_as_errors(testrunnerer: Testrunnerer, pyfile_with_warnings, method) -> None:
     args = ("-W", "error") if method == "cmdline" else ()
     if method == "ini":
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             filterwarnings=error
             """
         )
     # Use a subprocess, since changing logging level affects other threads
     # (xdist).
-    result = pytester.runpytest_subprocess(*args, pyfile_with_warnings)
+    result = testrunnerer.runtestrunner_subprocess(*args, pyfile_with_warnings)
     result.stdout.fnmatch_lines(
         [
             "E       UserWarning: user warning",
@@ -107,31 +107,31 @@ def test_as_errors(pytester: Pytester, pyfile_with_warnings, method) -> None:
     )
 
 
-@pytest.mark.parametrize("method", ["cmdline", "ini"])
-def test_ignore(pytester: Pytester, pyfile_with_warnings, method) -> None:
+@testrunner.mark.parametrize("method", ["cmdline", "ini"])
+def test_ignore(testrunnerer: Testrunnerer, pyfile_with_warnings, method) -> None:
     args = ("-W", "ignore") if method == "cmdline" else ()
     if method == "ini":
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-        [pytest]
+        [testrunner]
         filterwarnings= ignore
         """
         )
 
-    result = pytester.runpytest(*args, pyfile_with_warnings)
+    result = testrunnerer.runtestrunner(*args, pyfile_with_warnings)
     result.stdout.fnmatch_lines(["* 1 passed in *"])
     assert WARNINGS_SUMMARY_HEADER not in result.stdout.str()
 
 
-@pytest.mark.filterwarnings("always::UserWarning")
-def test_unicode(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("always::UserWarning")
+def test_unicode(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         import warnings
-        import pytest
+        import testrunner
 
 
-        @pytest.fixture
+        @testrunner.fixture
         def fix():
             warnings.warn("测试")
             yield
@@ -140,7 +140,7 @@ def test_unicode(pytester: Pytester) -> None:
             pass
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [
             f"*== {WARNINGS_SUMMARY_HEADER} ==*",
@@ -150,10 +150,10 @@ def test_unicode(pytester: Pytester) -> None:
     )
 
 
-@pytest.mark.skip("issue #13485")
-def test_works_with_filterwarnings(pytester: Pytester) -> None:
+@testrunner.mark.skip("issue #13485")
+def test_works_with_filterwarnings(testrunnerer: Testrunnerer) -> None:
     """Ensure our warnings capture does not mess with pre-installed filters (#2430)."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         import warnings
 
@@ -171,31 +171,31 @@ def test_works_with_filterwarnings(pytester: Pytester) -> None:
                     assert True
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(["*== 1 passed in *"])
 
 
-@pytest.mark.parametrize("default_config", ["ini", "cmdline"])
-def test_filterwarnings_mark(pytester: Pytester, default_config) -> None:
+@testrunner.mark.parametrize("default_config", ["ini", "cmdline"])
+def test_filterwarnings_mark(testrunnerer: Testrunnerer, default_config) -> None:
     """Test ``filterwarnings`` mark works and takes precedence over command
     line and ini options."""
     if default_config == "ini":
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             filterwarnings = always::RuntimeWarning
         """
         )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         import warnings
-        import pytest
+        import testrunner
 
-        @pytest.mark.filterwarnings('ignore::RuntimeWarning')
+        @testrunner.mark.filterwarnings('ignore::RuntimeWarning')
         def test_ignore_runtime_warning():
             warnings.warn(RuntimeWarning())
 
-        @pytest.mark.filterwarnings('error')
+        @testrunner.mark.filterwarnings('error')
         def test_warning_error():
             warnings.warn(RuntimeWarning())
 
@@ -203,57 +203,57 @@ def test_filterwarnings_mark(pytester: Pytester, default_config) -> None:
             warnings.warn(RuntimeWarning())
     """
     )
-    result = pytester.runpytest(
+    result = testrunnerer.runtestrunner(
         "-W always::RuntimeWarning" if default_config == "cmdline" else ""
     )
     result.stdout.fnmatch_lines(["*= 1 failed, 2 passed, 1 warning in *"])
 
 
-def test_non_string_warning_argument(pytester: Pytester) -> None:
-    """Non-str argument passed to warning breaks pytest (#2956)"""
-    pytester.makepyfile(
+def test_non_string_warning_argument(testrunnerer: Testrunnerer) -> None:
+    """Non-str argument passed to warning breaks testrunner (#2956)"""
+    testrunnerer.makepyfile(
         """\
         import warnings
-        import pytest
+        import testrunner
 
         def test():
             warnings.warn(UserWarning(1, 'foo'))
         """
     )
-    result = pytester.runpytest("-W", "always::UserWarning")
+    result = testrunnerer.runtestrunner("-W", "always::UserWarning")
     result.stdout.fnmatch_lines(["*= 1 passed, 1 warning in *"])
 
 
-def test_filterwarnings_mark_registration(pytester: Pytester) -> None:
+def test_filterwarnings_mark_registration(testrunnerer: Testrunnerer) -> None:
     """Ensure filterwarnings mark is registered"""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.mark.filterwarnings('error')
+        @testrunner.mark.filterwarnings('error')
         def test_func():
             pass
     """
     )
-    result = pytester.runpytest("--strict-markers")
+    result = testrunnerer.runtestrunner("--strict-markers")
     assert result.ret == 0
 
 
-@pytest.mark.filterwarnings("always::UserWarning")
-def test_warning_recorded_hook(pytester: Pytester) -> None:
-    pytester.makeconftest(
+@testrunner.mark.filterwarnings("always::UserWarning")
+def test_warning_recorded_hook(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest(
         """
-        def pytest_configure(config):
+        def testrunner_configure(config):
             config.issue_config_time_warning(UserWarning("config warning"), stacklevel=2)
     """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest, warnings
+        import testrunner, warnings
 
         warnings.warn(UserWarning("collect warning"))
 
-        @pytest.fixture
+        @testrunner.fixture
         def fix():
             warnings.warn(UserWarning("setup warning"))
             yield 1
@@ -268,10 +268,10 @@ def test_warning_recorded_hook(pytester: Pytester) -> None:
     collected = []
 
     class WarningCollector:
-        def pytest_warning_recorded(self, warning_message, when, nodeid, location):
+        def testrunner_warning_recorded(self, warning_message, when, nodeid, location):
             collected.append((str(warning_message.message), when, nodeid, location))
 
-    result = pytester.runpytest(plugins=[WarningCollector()])
+    result = testrunnerer.runtestrunner(plugins=[WarningCollector()])
     result.stdout.fnmatch_lines(["*1 passed*"])
 
     expected = [
@@ -297,10 +297,10 @@ def test_warning_recorded_hook(pytester: Pytester) -> None:
             assert collected_result[3] is None, str(collected)
 
 
-@pytest.mark.filterwarnings("always::UserWarning")
-def test_collection_warnings(pytester: Pytester) -> None:
+@testrunner.mark.filterwarnings("always::UserWarning")
+def test_collection_warnings(testrunnerer: Testrunnerer) -> None:
     """Check that we also capture warnings issued during test collection (#3251)."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         import warnings
 
@@ -310,7 +310,7 @@ def test_collection_warnings(pytester: Pytester) -> None:
             pass
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [
             f"*== {WARNINGS_SUMMARY_HEADER} ==*",
@@ -321,76 +321,76 @@ def test_collection_warnings(pytester: Pytester) -> None:
     )
 
 
-@pytest.mark.filterwarnings("always::UserWarning")
-def test_mark_regex_escape(pytester: Pytester) -> None:
-    """@pytest.mark.filterwarnings should not try to escape regex characters (#3936)"""
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("always::UserWarning")
+def test_mark_regex_escape(testrunnerer: Testrunnerer) -> None:
+    """@testrunner.mark.filterwarnings should not try to escape regex characters (#3936)"""
+    testrunnerer.makepyfile(
         r"""
-        import pytest, warnings
+        import testrunner, warnings
 
-        @pytest.mark.filterwarnings(r"ignore:some \(warning\)")
+        @testrunner.mark.filterwarnings(r"ignore:some \(warning\)")
         def test_foo():
             warnings.warn(UserWarning("some (warning)"))
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert WARNINGS_SUMMARY_HEADER not in result.stdout.str()
 
 
-@pytest.mark.filterwarnings("default::pytest.PytestWarning")
-@pytest.mark.parametrize("ignore_pytest_warnings", ["no", "ini", "cmdline"])
-def test_hide_pytest_internal_warnings(
-    pytester: Pytester, ignore_pytest_warnings
+@testrunner.mark.filterwarnings("default::testrunner.TestrunnerWarning")
+@testrunner.mark.parametrize("ignore_testrunner_warnings", ["no", "ini", "cmdline"])
+def test_hide_testrunner_internal_warnings(
+    testrunnerer: Testrunnerer, ignore_testrunner_warnings
 ) -> None:
-    """Make sure we can ignore internal pytest warnings using a warnings filter."""
-    pytester.makepyfile(
+    """Make sure we can ignore internal testrunner warnings using a warnings filter."""
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
         import warnings
 
-        warnings.warn(pytest.PytestWarning("some internal warning"))
+        warnings.warn(testrunner.TestrunnerWarning("some internal warning"))
 
         def test_bar():
             pass
     """
     )
-    if ignore_pytest_warnings == "ini":
-        pytester.makeini(
+    if ignore_testrunner_warnings == "ini":
+        testrunnerer.makeini(
             """
-            [pytest]
-            filterwarnings = ignore::pytest.PytestWarning
+            [testrunner]
+            filterwarnings = ignore::testrunner.TestrunnerWarning
         """
         )
     args = (
-        ["-W", "ignore::pytest.PytestWarning"]
-        if ignore_pytest_warnings == "cmdline"
+        ["-W", "ignore::testrunner.TestrunnerWarning"]
+        if ignore_testrunner_warnings == "cmdline"
         else []
     )
-    result = pytester.runpytest(*args)
-    if ignore_pytest_warnings != "no":
+    result = testrunnerer.runtestrunner(*args)
+    if ignore_testrunner_warnings != "no":
         assert WARNINGS_SUMMARY_HEADER not in result.stdout.str()
     else:
         result.stdout.fnmatch_lines(
             [
                 f"*== {WARNINGS_SUMMARY_HEADER} ==*",
-                "*test_hide_pytest_internal_warnings.py:4: PytestWarning: some internal warning",
+                "*test_hide_testrunner_internal_warnings.py:4: TestrunnerWarning: some internal warning",
                 "* 1 passed, 1 warning *",
             ]
         )
 
 
-@pytest.mark.parametrize("ignore_on_cmdline", [True, False])
+@testrunner.mark.parametrize("ignore_on_cmdline", [True, False])
 def test_option_precedence_cmdline_over_ini(
-    pytester: Pytester, ignore_on_cmdline
+    testrunnerer: Testrunnerer, ignore_on_cmdline
 ) -> None:
     """Filters defined in the command-line should take precedence over filters in config files (#3946)."""
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         filterwarnings = error::UserWarning
     """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         import warnings
         def test():
@@ -398,55 +398,55 @@ def test_option_precedence_cmdline_over_ini(
     """
     )
     args = ["-W", "ignore"] if ignore_on_cmdline else []
-    result = pytester.runpytest(*args)
+    result = testrunnerer.runtestrunner(*args)
     if ignore_on_cmdline:
         result.stdout.fnmatch_lines(["* 1 passed in*"])
     else:
         result.stdout.fnmatch_lines(["* 1 failed in*"])
 
 
-def test_option_precedence_mark(pytester: Pytester) -> None:
+def test_option_precedence_mark(testrunnerer: Testrunnerer) -> None:
     """Filters defined by marks should always take precedence (#3946)."""
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         filterwarnings = ignore
     """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest, warnings
-        @pytest.mark.filterwarnings('error')
+        import testrunner, warnings
+        @testrunner.mark.filterwarnings('error')
         def test():
             warnings.warn(UserWarning('hello'))
     """
     )
-    result = pytester.runpytest("-W", "ignore")
+    result = testrunnerer.runtestrunner("-W", "ignore")
     result.stdout.fnmatch_lines(["* 1 failed in*"])
 
 
-def test_accept_unknown_category(pytester: Pytester) -> None:
+def test_accept_unknown_category(testrunnerer: Testrunnerer) -> None:
     """Category types that can't be imported don't cause failure (#13732)."""
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         filterwarnings =
-            always:Failed to import filter module.*:pytest.PytestConfigWarning
+            always:Failed to import filter module.*:testrunner.TestrunnerConfigWarning
             ignore::foobar.Foobar
     """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def test():
             pass
     """
     )
-    result = pytester.runpytest_subprocess("-W", "ignore::bizbaz.Bizbaz")
+    result = testrunnerer.runtestrunner_subprocess("-W", "ignore::bizbaz.Bizbaz")
     result.stdout.fnmatch_lines(
         [
             f"*== {WARNINGS_SUMMARY_HEADER} ==*",
-            "*PytestConfigWarning: Failed to import filter module 'foobar': ignore::foobar.Foobar",
-            "*PytestConfigWarning: Failed to import filter module 'bizbaz': ignore::bizbaz.Bizbaz",
+            "*TestrunnerConfigWarning: Failed to import filter module 'foobar': ignore::foobar.Foobar",
+            "*TestrunnerConfigWarning: Failed to import filter module 'bizbaz': ignore::bizbaz.Bizbaz",
             "* 1 passed, * warning*",
         ]
     )
@@ -454,14 +454,14 @@ def test_accept_unknown_category(pytester: Pytester) -> None:
 
 class TestDeprecationWarningsByDefault:
     """
-    Note: all pytest runs are executed in a subprocess so we don't inherit warning filters
-    from pytest's own test suite
+    Note: all testrunner runs are executed in a subprocess so we don't inherit warning filters
+    from testrunner's own test suite
     """
 
-    def create_file(self, pytester: Pytester, mark="") -> None:
-        pytester.makepyfile(
+    def create_file(self, testrunnerer: Testrunnerer, mark="") -> None:
+        testrunnerer.makepyfile(
             f"""
-            import pytest, warnings
+            import testrunner, warnings
 
             warnings.warn(DeprecationWarning("collection"))
 
@@ -471,19 +471,19 @@ class TestDeprecationWarningsByDefault:
         """
         )
 
-    @pytest.mark.parametrize("customize_filters", [True, False])
-    def test_shown_by_default(self, pytester: Pytester, customize_filters) -> None:
+    @testrunner.mark.parametrize("customize_filters", [True, False])
+    def test_shown_by_default(self, testrunnerer: Testrunnerer, customize_filters) -> None:
         """Show deprecation warnings by default, even if user has customized the warnings filters (#4013)."""
-        self.create_file(pytester)
+        self.create_file(testrunnerer)
         if customize_filters:
-            pytester.makeini(
+            testrunnerer.makeini(
                 """
-                [pytest]
+                [testrunner]
                 filterwarnings =
                     once::UserWarning
             """
             )
-        result = pytester.runpytest_subprocess()
+        result = testrunnerer.runtestrunner_subprocess()
         result.stdout.fnmatch_lines(
             [
                 f"*== {WARNINGS_SUMMARY_HEADER} ==*",
@@ -493,28 +493,28 @@ class TestDeprecationWarningsByDefault:
             ]
         )
 
-    def test_hidden_by_ini(self, pytester: Pytester) -> None:
-        self.create_file(pytester)
-        pytester.makeini(
+    def test_hidden_by_ini(self, testrunnerer: Testrunnerer) -> None:
+        self.create_file(testrunnerer)
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             filterwarnings =
                 ignore::DeprecationWarning
                 ignore::PendingDeprecationWarning
         """
         )
-        result = pytester.runpytest_subprocess()
+        result = testrunnerer.runtestrunner_subprocess()
         assert WARNINGS_SUMMARY_HEADER not in result.stdout.str()
 
-    def test_hidden_by_mark(self, pytester: Pytester) -> None:
+    def test_hidden_by_mark(self, testrunnerer: Testrunnerer) -> None:
         """Should hide the deprecation warning from the function, but the warning during collection should
         be displayed normally.
         """
         self.create_file(
-            pytester,
-            mark='@pytest.mark.filterwarnings("ignore::PendingDeprecationWarning")',
+            testrunnerer,
+            mark='@testrunner.mark.filterwarnings("ignore::PendingDeprecationWarning")',
         )
-        result = pytester.runpytest_subprocess()
+        result = testrunnerer.runtestrunner_subprocess()
         result.stdout.fnmatch_lines(
             [
                 f"*== {WARNINGS_SUMMARY_HEADER} ==*",
@@ -523,9 +523,9 @@ class TestDeprecationWarningsByDefault:
             ]
         )
 
-    def test_hidden_by_cmdline(self, pytester: Pytester) -> None:
-        self.create_file(pytester)
-        result = pytester.runpytest_subprocess(
+    def test_hidden_by_cmdline(self, testrunnerer: Testrunnerer) -> None:
+        self.create_file(testrunnerer)
+        result = testrunnerer.runtestrunner_subprocess(
             "-W",
             "ignore::DeprecationWarning",
             "-W",
@@ -533,23 +533,23 @@ class TestDeprecationWarningsByDefault:
         )
         assert WARNINGS_SUMMARY_HEADER not in result.stdout.str()
 
-    def test_hidden_by_system(self, pytester: Pytester, monkeypatch) -> None:
-        self.create_file(pytester)
+    def test_hidden_by_system(self, testrunnerer: Testrunnerer, monkeypatch) -> None:
+        self.create_file(testrunnerer)
         monkeypatch.setenv("PYTHONWARNINGS", "once::UserWarning")
-        result = pytester.runpytest_subprocess()
+        result = testrunnerer.runtestrunner_subprocess()
         assert WARNINGS_SUMMARY_HEADER not in result.stdout.str()
 
-    def test_invalid_regex_in_filterwarning(self, pytester: Pytester) -> None:
-        self.create_file(pytester)
-        pytester.makeini(
+    def test_invalid_regex_in_filterwarning(self, testrunnerer: Testrunnerer) -> None:
+        self.create_file(testrunnerer)
+        testrunnerer.makeini(
             """
-                [pytest]
+                [testrunner]
                 filterwarnings =
                     ignore::DeprecationWarning:*
             """
         )
-        result = pytester.runpytest_subprocess()
-        assert result.ret == pytest.ExitCode.USAGE_ERROR
+        result = testrunnerer.runtestrunner_subprocess()
+        assert result.ret == testrunner.ExitCode.USAGE_ERROR
         result.stderr.fnmatch_lines(
             [
                 "ERROR: while parsing the following warning configuration:",
@@ -563,36 +563,36 @@ class TestDeprecationWarningsByDefault:
         )
 
 
-@pytest.mark.skip("not relevant until pytest 10.0")
-@pytest.mark.parametrize("change_default", [None, "ini", "cmdline"])
-def test_removed_in_x_warning_as_error(pytester: Pytester, change_default) -> None:
-    """This ensures that PytestRemovedInXWarnings raised by pytest are turned into errors.
+@testrunner.mark.skip("not relevant until testrunner 10.0")
+@testrunner.mark.parametrize("change_default", [None, "ini", "cmdline"])
+def test_removed_in_x_warning_as_error(testrunnerer: Testrunnerer, change_default) -> None:
+    """This ensures that TestrunnerRemovedInXWarnings raised by testrunner are turned into errors.
 
     This test should be enabled as part of each major release, and skipped again afterwards
     to ensure our deprecations are turning into warnings as expected.
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import warnings, pytest
+        import warnings, testrunner
         def test():
-            warnings.warn(pytest.PytestRemovedIn10Warning("some warning"))
+            warnings.warn(testrunner.TestrunnerRemovedIn10Warning("some warning"))
     """
     )
     if change_default == "ini":
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             filterwarnings =
-                ignore::pytest.PytestRemovedIn10Warning
+                ignore::testrunner.TestrunnerRemovedIn10Warning
         """
         )
 
     args = (
-        ("-Wignore::pytest.PytestRemovedIn10Warning",)
+        ("-Wignore::testrunner.TestrunnerRemovedIn10Warning",)
         if change_default == "cmdline"
         else ()
     )
-    result = pytester.runpytest(*args)
+    result = testrunnerer.runtestrunner(*args)
     if change_default is None:
         result.stdout.fnmatch_lines(["* 1 failed in *"])
     else:
@@ -603,16 +603,16 @@ def test_removed_in_x_warning_as_error(pytester: Pytester, change_default) -> No
 class TestAssertionWarnings:
     @staticmethod
     def assert_result_warns(result, msg) -> None:
-        result.stdout.fnmatch_lines([f"*PytestAssertRewriteWarning: {msg}*"])
+        result.stdout.fnmatch_lines([f"*TestrunnerAssertRewriteWarning: {msg}*"])
 
-    def test_tuple_warning(self, pytester: Pytester) -> None:
-        pytester.makepyfile(
+    def test_tuple_warning(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(
             """\
             def test_foo():
                 assert (1,2)
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         self.assert_result_warns(
             result, "assertion is always true, perhaps remove parentheses?"
         )
@@ -620,17 +620,17 @@ class TestAssertionWarnings:
 
 def test_warnings_checker_twice() -> None:
     """Issue #4617"""
-    expectation = pytest.warns(UserWarning)
+    expectation = testrunner.warns(UserWarning)
     with expectation:
         warnings.warn("Message A", UserWarning)
     with expectation:
         warnings.warn("Message B", UserWarning)
 
 
-@pytest.mark.filterwarnings("always::UserWarning")
-def test_group_warnings_by_message(pytester: Pytester) -> None:
-    pytester.copy_example("warnings/test_group_warnings_by_message.py")
-    result = pytester.runpytest()
+@testrunner.mark.filterwarnings("always::UserWarning")
+def test_group_warnings_by_message(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.copy_example("warnings/test_group_warnings_by_message.py")
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [
             f"*== {WARNINGS_SUMMARY_HEADER} ==*",
@@ -658,11 +658,11 @@ def test_group_warnings_by_message(pytester: Pytester) -> None:
     )
 
 
-@pytest.mark.filterwarnings("always::UserWarning")
-def test_group_warnings_by_message_summary(pytester: Pytester) -> None:
-    pytester.copy_example("warnings/test_group_warnings_by_message_summary")
-    pytester.syspathinsert()
-    result = pytester.runpytest()
+@testrunner.mark.filterwarnings("always::UserWarning")
+def test_group_warnings_by_message_summary(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.copy_example("warnings/test_group_warnings_by_message_summary")
+    testrunnerer.syspathinsert()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         [
             f"*== {WARNINGS_SUMMARY_HEADER} ==*",
@@ -682,55 +682,55 @@ def test_group_warnings_by_message_summary(pytester: Pytester) -> None:
     )
 
 
-def test_pytest_configure_warning(pytester: Pytester, recwarn) -> None:
+def test_testrunner_configure_warning(testrunnerer: Testrunnerer, recwarn) -> None:
     """Issue 5115."""
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-        def pytest_configure():
+        def testrunner_configure():
             import warnings
 
-            warnings.warn("from pytest_configure")
+            warnings.warn("from testrunner_configure")
         """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 5
     assert "INTERNALERROR" not in result.stderr.str()
     warning = recwarn.pop()
-    assert str(warning.message) == "from pytest_configure"
+    assert str(warning.message) == "from testrunner_configure"
 
 
-@pytest.mark.parametrize("tryfirst", [True, False])
-def test_pytest_configure_warning_filter(pytester: Pytester, tryfirst: bool) -> None:
+@testrunner.mark.parametrize("tryfirst", [True, False])
+def test_testrunner_configure_warning_filter(testrunnerer: Testrunnerer, tryfirst: bool) -> None:
     """Issue 10128.
 
     Parametrize over ``tryfirst`` to guard against hooks that run early
     from avoiding the filterwarnings configuration.
     """
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         filterwarnings =
             ignore::UserWarning
         """
     )
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         f"""
         import warnings
-        import pytest
+        import testrunner
 
-        @pytest.hookimpl(tryfirst={tryfirst})
-        def pytest_configure():
-            warnings.warn("from pytest_configure", UserWarning)
+        @testrunner.hookimpl(tryfirst={tryfirst})
+        def testrunner_configure():
+            warnings.warn("from testrunner_configure", UserWarning)
         """
     )
-    pytester.makepyfile("def test_it(): pass")
+    testrunnerer.makepyfile("def test_it(): pass")
 
-    result = pytester.runpytest_subprocess()
+    result = testrunnerer.runtestrunner_subprocess()
 
     result.assert_outcomes(passed=1)
-    result.stdout.no_fnmatch_line("*from pytest_configure*")
-    result.stderr.no_fnmatch_line("*from pytest_configure*")
+    result.stdout.no_fnmatch_line("*from testrunner_configure*")
+    result.stderr.no_fnmatch_line("*from testrunner_configure*")
 
 
 class TestPluginImportWarning:
@@ -740,8 +740,8 @@ class TestPluginImportWarning:
     """
 
     @staticmethod
-    def _make_plugin_with_import_warning(pytester: Pytester) -> None:
-        pytester.makepyfile(
+    def _make_plugin_with_import_warning(testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(
             warning_plugin="""
                 import warnings
                 warnings.warn("from plugin import", DeprecationWarning)
@@ -749,30 +749,30 @@ class TestPluginImportWarning:
             test_it="def test_it(): pass",
         )
 
-    def test_plugin_import_warning(self, pytester: Pytester) -> None:
-        self._make_plugin_with_import_warning(pytester)
-        pytester.plugins = ["warning_plugin"]
+    def test_plugin_import_warning(self, testrunnerer: Testrunnerer) -> None:
+        self._make_plugin_with_import_warning(testrunnerer)
+        testrunnerer.plugins = ["warning_plugin"]
 
-        result = pytester.runpytest_subprocess()
+        result = testrunnerer.runtestrunner_subprocess()
 
         result.assert_outcomes(passed=1, warnings=1)
         result.stdout.fnmatch_lines("*DeprecationWarning: from plugin import")
 
     def test_plugin_import_warning_without_warnings_plugin(
         self,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
     ) -> None:
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             filterwarnings =
                 error::DeprecationWarning
             """
         )
-        self._make_plugin_with_import_warning(pytester)
-        pytester.plugins = ["warning_plugin"]
+        self._make_plugin_with_import_warning(testrunnerer)
+        testrunnerer.plugins = ["warning_plugin"]
 
-        result = pytester.runpytest_subprocess("-p", "no:warnings")
+        result = testrunnerer.runtestrunner_subprocess("-p", "no:warnings")
 
         result.assert_outcomes(passed=1)
         result.stdout.no_fnmatch_line("*from plugin import*")
@@ -780,62 +780,62 @@ class TestPluginImportWarning:
 
     def test_plugin_import_warning_with_warnings_plugin_reenabled(
         self,
-        pytester: Pytester,
+        testrunnerer: Testrunnerer,
     ) -> None:
-        self._make_plugin_with_import_warning(pytester)
-        pytester.syspathinsert()
+        self._make_plugin_with_import_warning(testrunnerer)
+        testrunnerer.syspathinsert()
 
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "-p", "warning_plugin", "-p", "no:warnings", "-p", "warnings"
         )
 
         result.assert_outcomes(passed=1)
         result.stdout.fnmatch_lines("*DeprecationWarning: from plugin import")
 
-    def test_plugin_import_warning_from_pytest_plugins(
+    def test_plugin_import_warning_from_testrunner_plugins(
         self,
-        pytester: Pytester,
-        monkeypatch: pytest.MonkeyPatch,
+        testrunnerer: Testrunnerer,
+        monkeypatch: testrunner.MonkeyPatch,
     ) -> None:
-        self._make_plugin_with_import_warning(pytester)
-        monkeypatch.setenv("PYTEST_PLUGINS", "warning_plugin")
+        self._make_plugin_with_import_warning(testrunnerer)
+        monkeypatch.setenv("TESTRUNNER_PLUGINS", "warning_plugin")
 
-        result = pytester.runpytest_subprocess()
+        result = testrunnerer.runtestrunner_subprocess()
 
         result.assert_outcomes(passed=1, warnings=1)
         result.stdout.fnmatch_lines("*DeprecationWarning: from plugin import")
 
 
 class TestStackLevel:
-    @pytest.fixture
-    def capwarn(self, pytester: Pytester):
+    @testrunner.fixture
+    def capwarn(self, testrunnerer: Testrunnerer):
         class CapturedWarnings:
             captured: list[
                 tuple[warnings.WarningMessage, tuple[str, int, str] | None]
             ] = []
 
             @classmethod
-            def pytest_warning_recorded(cls, warning_message, when, nodeid, location):
+            def testrunner_warning_recorded(cls, warning_message, when, nodeid, location):
                 cls.captured.append((warning_message, location))
 
-        pytester.plugins = [CapturedWarnings()]
+        testrunnerer.plugins = [CapturedWarnings()]
 
         return CapturedWarnings
 
-    def test_issue4445_rewrite(self, pytester: Pytester, capwarn) -> None:
+    def test_issue4445_rewrite(self, testrunnerer: Testrunnerer, capwarn) -> None:
         """#4445: Make sure the warning points to a reasonable location
-        See origin of _issue_warning_captured at: _pytest.assertion.rewrite.py:241
+        See origin of _issue_warning_captured at: _testrunner.assertion.rewrite.py:241
         """
-        pytester.makepyfile(some_mod="")
-        conftest = pytester.makeconftest(
+        testrunnerer.makepyfile(some_mod="")
+        conftest = testrunnerer.makeconftest(
             """
                 import some_mod
-                import pytest
+                import testrunner
 
-                pytest.register_assert_rewrite("some_mod")
+                testrunner.register_assert_rewrite("some_mod")
             """
         )
-        pytester.parseconfig()
+        testrunnerer.parseconfig()
 
         # with stacklevel=5 the warning originates from register_assert_rewrite
         # function in the created conftest.py
@@ -848,14 +848,14 @@ class TestStackLevel:
         assert func == "<module>"  # the above conftest.py
         assert lineno == 4
 
-    def test_issue4445_initial_conftest(self, pytester: Pytester, capwarn) -> None:
+    def test_issue4445_initial_conftest(self, testrunnerer: Testrunnerer, capwarn) -> None:
         """#4445: Make sure the warning points to a reasonable location."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
             import nothing
             """
         )
-        pytester.parseconfig("--help")
+        testrunnerer.parseconfig("--help")
 
         # with stacklevel=2 the warning should originate from config._preparse and is
         # thrown by an erroneous conftest.py
@@ -867,33 +867,33 @@ class TestStackLevel:
         assert f"config{os.sep}__init__.py" in file
         assert func == "parse"
 
-    @pytest.mark.filterwarnings("default")
-    def test_conftest_warning_captured(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default")
+    def test_conftest_warning_captured(self, testrunnerer: Testrunnerer) -> None:
         """Warnings raised during importing of conftest.py files is captured (#2891)."""
-        pytester.makeconftest(
+        testrunnerer.makeconftest(
             """
             import warnings
             warnings.warn(UserWarning("my custom warning"))
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
             ["conftest.py:2", "*UserWarning: my custom warning*"]
         )
 
-    def test_issue4445_import_plugin(self, pytester: Pytester, capwarn) -> None:
+    def test_issue4445_import_plugin(self, testrunnerer: Testrunnerer, capwarn) -> None:
         """#4445: Make sure the warning points to a reasonable location"""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             some_plugin="""
-            import pytest
-            pytest.skip("thing", allow_module_level=True)
+            import testrunner
+            testrunner.skip("thing", allow_module_level=True)
             """
         )
-        pytester.syspathinsert()
-        pytester.parseconfig("-p", "some_plugin")
+        testrunnerer.syspathinsert()
+        testrunnerer.parseconfig("-p", "some_plugin")
 
         # with stacklevel=2 the warning should originate from
-        # config.PytestPluginManager.import_plugin is thrown by a skipped plugin
+        # config.TestrunnerPluginManager.import_plugin is thrown by a skipped plugin
 
         assert len(capwarn.captured) == 1
         warning, location = capwarn.captured.pop()
@@ -903,44 +903,44 @@ class TestStackLevel:
         assert f"config{os.sep}__init__.py" in file
         assert func == "_warn_about_skipped_plugins"
 
-    def test_issue4445_issue5928_mark_generator(self, pytester: Pytester) -> None:
+    def test_issue4445_issue5928_mark_generator(self, testrunnerer: Testrunnerer) -> None:
         """#4445 and #5928: Make sure the warning from an unknown mark points to
         the test file where this mark is used.
         """
-        testfile = pytester.makepyfile(
+        testfile = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
-            @pytest.mark.unknown
+            @testrunner.mark.unknown
             def test_it():
                 pass
             """
         )
-        result = pytester.runpytest_subprocess()
+        result = testrunnerer.runtestrunner_subprocess()
         # with stacklevel=2 the warning should originate from the above created test file
         result.stdout.fnmatch_lines_random(
             [
                 f"*{testfile}:3*",
-                "*Unknown pytest.mark.unknown*",
+                "*Unknown testrunner.mark.unknown*",
             ]
         )
 
 
-def test_warning_on_testpaths_not_found(pytester: Pytester) -> None:
+def test_warning_on_testpaths_not_found(testrunnerer: Testrunnerer) -> None:
     # Check for warning when testpaths set, but not found by glob
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         testpaths = absent
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         ["*ConfigWarning: No files were found in testpaths*", "*1 warning*"]
     )
 
 
-def test_resource_warning(pytester: Pytester, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_resource_warning(testrunnerer: Testrunnerer, monkeypatch: testrunner.MonkeyPatch) -> None:
     # Some platforms (notably PyPy) don't have tracemalloc.
     # We choose to explicitly not skip this in case tracemalloc is not
     # available, using `importorskip("tracemalloc")` for example,
@@ -952,11 +952,11 @@ def test_resource_warning(pytester: Pytester, monkeypatch: pytest.MonkeyPatch) -
     except ImportError:
         has_tracemalloc = False
 
-    # Explicitly disable PYTHONTRACEMALLOC in case pytest's test suite is running
+    # Explicitly disable PYTHONTRACEMALLOC in case testrunner's test suite is running
     # with it enabled.
     monkeypatch.delenv("PYTHONTRACEMALLOC", raising=False)
 
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         def open_file(p):
             f = p.open("r", encoding="utf-8")
@@ -968,7 +968,7 @@ def test_resource_warning(pytester: Pytester, monkeypatch: pytest.MonkeyPatch) -
             open_file(p)
         """
     )
-    result = pytester.run(sys.executable, "-Xdev", "-m", "pytest")
+    result = testrunnerer.run(sys.executable, "-Xdev", "-m", "testrunner")
     expected_extra = (
         [
             "*ResourceWarning* unclosed file*",
@@ -982,7 +982,7 @@ def test_resource_warning(pytester: Pytester, monkeypatch: pytest.MonkeyPatch) -
 
     monkeypatch.setenv("PYTHONTRACEMALLOC", "20")
 
-    result = pytester.run(sys.executable, "-Xdev", "-m", "pytest")
+    result = testrunnerer.run(sys.executable, "-Xdev", "-m", "testrunner")
     expected_extra = (
         [
             "*ResourceWarning* unclosed file*",
@@ -1005,87 +1005,87 @@ class TestMaxWarnings:
             warnings.warn(UserWarning("warning two"))
     """
 
-    @pytest.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_not_set(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default::UserWarning")
+    def test_max_warnings_not_set(self, testrunnerer: Testrunnerer) -> None:
         """Without --max-warnings, warnings don't affect exit code."""
-        pytester.makepyfile(self.PYFILE)
-        result = pytester.runpytest()
+        testrunnerer.makepyfile(self.PYFILE)
+        result = testrunnerer.runtestrunner()
         result.assert_outcomes(passed=2, warnings=2)
         assert result.ret == ExitCode.OK
 
-    @pytest.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_not_exceeded(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default::UserWarning")
+    def test_max_warnings_not_exceeded(self, testrunnerer: Testrunnerer) -> None:
         """When warning count is below the threshold, exit code is OK."""
-        pytester.makepyfile(self.PYFILE)
-        result = pytester.runpytest("--max-warnings", "10")
+        testrunnerer.makepyfile(self.PYFILE)
+        result = testrunnerer.runtestrunner("--max-warnings", "10")
         result.assert_outcomes(passed=2, warnings=2)
         assert result.ret == ExitCode.OK
 
-    @pytest.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_exceeded(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default::UserWarning")
+    def test_max_warnings_exceeded(self, testrunnerer: Testrunnerer) -> None:
         """When warning count exceeds threshold, exit code is MAX_WARNINGS_ERROR."""
-        pytester.makepyfile(self.PYFILE)
-        result = pytester.runpytest("--max-warnings", "1")
+        testrunnerer.makepyfile(self.PYFILE)
+        result = testrunnerer.runtestrunner("--max-warnings", "1")
         assert result.ret == ExitCode.MAX_WARNINGS_ERROR
 
-    @pytest.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_equal_to_count(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default::UserWarning")
+    def test_max_warnings_equal_to_count(self, testrunnerer: Testrunnerer) -> None:
         """When warning count equals threshold exactly, exit code is OK."""
-        pytester.makepyfile(self.PYFILE)
-        result = pytester.runpytest("--max-warnings", "2")
+        testrunnerer.makepyfile(self.PYFILE)
+        result = testrunnerer.runtestrunner("--max-warnings", "2")
         result.assert_outcomes(passed=2, warnings=2)
         assert result.ret == ExitCode.OK
 
-    @pytest.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_zero(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default::UserWarning")
+    def test_max_warnings_zero(self, testrunnerer: Testrunnerer) -> None:
         """--max-warnings 0 means no warnings are allowed."""
-        pytester.makepyfile(self.PYFILE)
-        result = pytester.runpytest("--max-warnings", "0")
+        testrunnerer.makepyfile(self.PYFILE)
+        result = testrunnerer.runtestrunner("--max-warnings", "0")
         assert result.ret == ExitCode.MAX_WARNINGS_ERROR
 
-    @pytest.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_exceeded_message(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default::UserWarning")
+    def test_max_warnings_exceeded_message(self, testrunnerer: Testrunnerer) -> None:
         """Verify the output message when max warnings is exceeded."""
-        pytester.makepyfile(self.PYFILE)
-        result = pytester.runpytest("--max-warnings", "1")
+        testrunnerer.makepyfile(self.PYFILE)
+        result = testrunnerer.runtestrunner("--max-warnings", "1")
         result.stdout.fnmatch_lines(
             ["*Tests pass, but maximum allowed warnings exceeded: 2 > 1*"]
         )
 
-    @pytest.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_ini_option(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default::UserWarning")
+    def test_max_warnings_ini_option(self, testrunnerer: Testrunnerer) -> None:
         """max_warnings can be set via INI configuration."""
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             max_warnings = 1
             """
         )
-        pytester.makepyfile(self.PYFILE)
-        result = pytester.runpytest()
+        testrunnerer.makepyfile(self.PYFILE)
+        result = testrunnerer.runtestrunner()
         assert result.ret == ExitCode.MAX_WARNINGS_ERROR
 
-    @pytest.mark.filterwarnings("default::UserWarning")
-    @pytest.mark.parametrize("value", ["1", '"1"'])
-    def test_max_warnings_toml_option(self, pytester: Pytester, value: str) -> None:
+    @testrunner.mark.filterwarnings("default::UserWarning")
+    @testrunner.mark.parametrize("value", ["1", '"1"'])
+    def test_max_warnings_toml_option(self, testrunnerer: Testrunnerer, value: str) -> None:
         """max_warnings can be set via TOML configuration.
 
         Supports both int and str (for backward compat).
         """
-        pytester.maketoml(
+        testrunnerer.maketoml(
             f"""
-            [pytest]
+            [testrunner]
             max_warnings = {value}
             """
         )
-        pytester.makepyfile(self.PYFILE)
-        result = pytester.runpytest()
+        testrunnerer.makepyfile(self.PYFILE)
+        result = testrunnerer.runtestrunner()
         assert result.ret == ExitCode.MAX_WARNINGS_ERROR
 
-    @pytest.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_with_test_failure(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default::UserWarning")
+    def test_max_warnings_with_test_failure(self, testrunnerer: Testrunnerer) -> None:
         """When tests fail AND warnings exceed max, TESTS_FAILED takes priority."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             import warnings
             def test_fail():
@@ -1093,13 +1093,13 @@ class TestMaxWarnings:
                 assert False
             """
         )
-        result = pytester.runpytest("--max-warnings", "0")
+        result = testrunnerer.runtestrunner("--max-warnings", "0")
         assert result.ret == ExitCode.TESTS_FAILED
 
-    @pytest.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_with_filterwarnings_ignore(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default::UserWarning")
+    def test_max_warnings_with_filterwarnings_ignore(self, testrunnerer: Testrunnerer) -> None:
         """Filtered (ignored) warnings don't count toward max_warnings."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             import warnings
             def test_one():
@@ -1107,7 +1107,7 @@ class TestMaxWarnings:
                 warnings.warn(RuntimeWarning("ignored"))
             """
         )
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--max-warnings",
             "1",
             "-W",
@@ -1116,10 +1116,10 @@ class TestMaxWarnings:
         result.assert_outcomes(passed=1, warnings=1)
         assert result.ret == ExitCode.OK
 
-    @pytest.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_with_filterwarnings_error(self, pytester: Pytester) -> None:
+    @testrunner.mark.filterwarnings("default::UserWarning")
+    def test_max_warnings_with_filterwarnings_error(self, testrunnerer: Testrunnerer) -> None:
         """Warnings turned into errors via filterwarnings don't count as warnings."""
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             import warnings
             def test_one():
@@ -1128,7 +1128,7 @@ class TestMaxWarnings:
                 warnings.warn(RuntimeWarning("becomes an error"))
             """
         )
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--max-warnings",
             "0",
             "-W",
@@ -1137,20 +1137,20 @@ class TestMaxWarnings:
         # The RuntimeWarning becomes a test error, so TESTS_FAILED takes priority.
         assert result.ret == ExitCode.TESTS_FAILED
 
-    @pytest.mark.filterwarnings("default::UserWarning")
+    @testrunner.mark.filterwarnings("default::UserWarning")
     def test_max_warnings_with_filterwarnings_ini_ignore(
-        self, pytester: Pytester
+        self, testrunnerer: Testrunnerer
     ) -> None:
         """Warnings ignored via ini filterwarnings don't count toward max_warnings."""
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             filterwarnings =
                 ignore::RuntimeWarning
             max_warnings = 1
             """
         )
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             """
             import warnings
             def test_one():
@@ -1158,15 +1158,15 @@ class TestMaxWarnings:
                 warnings.warn(RuntimeWarning("ignored by ini"))
             """
         )
-        result = pytester.runpytest()
+        result = testrunnerer.runtestrunner()
         result.assert_outcomes(passed=1, warnings=1)
         assert result.ret == ExitCode.OK
 
 
-def test_pythonwarnings_not_duplicated(pytester: Pytester) -> None:
+def test_pythonwarnings_not_duplicated(testrunnerer: Testrunnerer) -> None:
     """Regression test for #13484: -W values should not be duplicated in
     known_args_namespace due to the arg parser being called multiple times."""
-    config = pytester.parseconfig("-W", "error")
+    config = testrunnerer.parseconfig("-W", "error")
     warnings_list = config.known_args_namespace.pythonwarnings
     assert warnings_list is not None
     assert warnings_list == ["error"]

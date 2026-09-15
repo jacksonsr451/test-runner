@@ -1,20 +1,20 @@
-pytest-2.6.2: few fixes and cx_freeze support
+testrunner-2.6.2: few fixes and cx_freeze support
 ===========================================================================
 
-pytest is a mature Python testing tool with more than 1100 tests
+testrunner is a mature Python testing tool with more than 1100 tests
 against itself, passing on many different interpreters and platforms.
 This release is drop-in compatible to 2.5.2 and 2.6.X.  It also
-brings support for including pytest with cx_freeze or similar
+brings support for including testrunner with cx_freeze or similar
 freezing tools into your single-file app distribution.  For details
 see the CHANGELOG below.
 
 See docs at:
 
-    http://pytest.org
+    http://testrunner.org
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed, among them:
 
@@ -28,8 +28,8 @@ holger krekel
 2.6.2
 -----------
 
-- Added function pytest.freeze_includes(), which makes it easy to embed
-  pytest into executables using tools like cx_freeze.
+- Added function testrunner.freeze_includes(), which makes it easy to embed
+  testrunner into executables using tools like cx_freeze.
   See docs for examples and rationale. Thanks Bruno Oliveira.
 
 - Improve assertion rewriting cache invalidation precision.

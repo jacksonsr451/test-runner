@@ -9,9 +9,9 @@ Working with non-python tests
 A basic example for specifying tests in Yaml files
 --------------------------------------------------------------
 
-.. _`pytest-yamlwsgi`: https://pypi.org/project/pytest-yamlwsgi/
+.. _`testrunner-yamlwsgi`: https://pypi.org/project/testrunner-yamlwsgi/
 
-Here is an example ``conftest.py`` (extracted from Ali Afshar's special purpose `pytest-yamlwsgi`_ plugin).   This ``conftest.py`` will  collect ``test*.yaml`` files and will execute the yaml-formatted content as custom tests:
+Here is an example ``conftest.py`` (extracted from Ali Afshar's special purpose `testrunner-yamlwsgi`_ plugin).   This ``conftest.py`` will  collect ``test*.yaml`` files and will execute the yaml-formatted content as custom tests:
 
 .. include:: nonpython/conftest.py
     :literal:
@@ -24,11 +24,11 @@ You can create a simple example file:
 and if you installed :pypi:`PyYAML` or a compatible YAML-parser you can
 now execute the test specification:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    nonpython $ pytest test_simple.yaml
+    nonpython $ testrunner test_simple.yaml
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project/nonpython
     collected 2 items
 
@@ -65,12 +65,12 @@ consulted when reporting in ``verbose`` mode. It should return a tuple
 * ``lineno`` is the line number, or ``0`` when no specific line applies.
 * ``description`` is a short label shown for the collected item:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    nonpython $ pytest -v
+    nonpython $ testrunner -v
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python
-    cachedir: .pytest_cache
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python
+    cachedir: .testrunner_cache
     rootdir: /home/sweet/project/nonpython
     collecting ... collected 2 items
 
@@ -91,11 +91,11 @@ consulted when reporting in ``verbose`` mode. It should return a tuple
 While developing your custom test collection and execution it's also
 interesting to look at the collection tree:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    nonpython $ pytest --collect-only
+    nonpython $ testrunner --collect-only
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project/nonpython
     collected 2 items
 

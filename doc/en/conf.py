@@ -6,7 +6,7 @@ import shutil
 from textwrap import dedent
 from typing import TYPE_CHECKING
 
-from pytest import __version__ as full_version
+from testrunner import __version__ as full_version
 
 
 if TYPE_CHECKING:
@@ -17,8 +17,8 @@ PROJECT_ROOT_DIR = Path(__file__).parents[2].resolve()
 # -- Project information ---------------------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "pytest"
-copyright = "2015, holger krekel and pytest-dev team"
+project = "testrunner"
+copyright = "2015, holger krekel and testrunner-dev team"
 version = full_version.split("+")[0]
 release = ".".join(version.split(".")[:2])
 
@@ -27,7 +27,7 @@ release = ".".join(version.split(".")[:2])
 
 root_doc = "index"
 extensions = [
-    "pygments_pytest",
+    "pygments_testrunner",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
@@ -67,29 +67,29 @@ nitpick_ignore = [
     ("py:class", "HookCaller"),
     ("py:class", "HookspecMarker"),
     ("py:exc", "PluginValidationError"),
-    # Might want to expose/TODO (https://github.com/pytest-dev/pytest/issues/7469)
+    # Might want to expose/TODO (https://github.com/jacksonsr451/test-runner/issues/7469)
     ("py:class", "ExceptionRepr"),
     ("py:class", "Exit"),
     ("py:class", "SubRequest"),
     ("py:class", "SubRequest"),
     ("py:class", "TerminalReporter"),
-    ("py:class", "_pytest._code.code.TerminalRepr"),
+    ("py:class", "_testrunner._code.code.TerminalRepr"),
     ("py:class", "TerminalRepr"),
-    ("py:class", "_pytest.fixtures.FixtureFunctionMarker"),
-    ("py:class", "_pytest.fixtures.FixtureFunctionDefinition"),
-    ("py:class", "_pytest.logging.LogCaptureHandler"),
-    ("py:class", "_pytest.mark.structures.ParameterSet"),
+    ("py:class", "_testrunner.fixtures.FixtureFunctionMarker"),
+    ("py:class", "_testrunner.fixtures.FixtureFunctionDefinition"),
+    ("py:class", "_testrunner.logging.LogCaptureHandler"),
+    ("py:class", "_testrunner.mark.structures.ParameterSet"),
     # Intentionally undocumented/private
-    ("py:class", "_pytest._code.code.Traceback"),
-    ("py:class", "_pytest._py.path.LocalPath"),
-    ("py:class", "_pytest.capture.CaptureResult"),
-    ("py:class", "_pytest.compat.NotSetType"),
-    ("py:class", "_pytest.python.PyCollector"),
-    ("py:class", "_pytest.python.PyobjMixin"),
-    ("py:class", "_pytest.python_api.RaisesContext"),
-    ("py:class", "_pytest.recwarn.WarningsChecker"),
-    ("py:class", "_pytest.reports.BaseReport"),
-    ("py:class", "_pytest.nodeid.NodeId"),
+    ("py:class", "_testrunner._code.code.Traceback"),
+    ("py:class", "_testrunner._py.path.LocalPath"),
+    ("py:class", "_testrunner.capture.CaptureResult"),
+    ("py:class", "_testrunner.compat.NotSetType"),
+    ("py:class", "_testrunner.python.PyCollector"),
+    ("py:class", "_testrunner.python.PyobjMixin"),
+    ("py:class", "_testrunner.python_api.RaisesContext"),
+    ("py:class", "_testrunner.recwarn.WarningsChecker"),
+    ("py:class", "_testrunner.reports.BaseReport"),
+    ("py:class", "_testrunner.nodeid.NodeId"),
     # Sphinx bugs(?)
     ("py:class", "RewriteHook"),
     # Undocumented third parties
@@ -102,25 +102,25 @@ nitpick_ignore = [
     ("py:class", "_IniTypeArg"),
     ("py:class", "_PluggyPlugin"),
     # TypeVars
-    ("py:class", "_pytest._code.code.E"),
+    ("py:class", "_testrunner._code.code.E"),
     ("py:class", "E"),  # due to delayed annotation
     ("py:class", "T"),
     ("py:class", "P"),
     ("py:class", "P.args"),
     ("py:class", "P.kwargs"),
-    ("py:class", "_pytest.fixtures.FixtureFunction"),
-    ("py:class", "_pytest.nodes._NodeType"),
+    ("py:class", "_testrunner.fixtures.FixtureFunction"),
+    ("py:class", "_testrunner.nodes._NodeType"),
     ("py:class", "_NodeType"),  # due to delayed annotation
-    ("py:class", "_pytest.python_api.E"),
-    ("py:class", "_pytest.recwarn.T"),
-    ("py:class", "_pytest.runner.TResult"),
-    ("py:obj", "_pytest.fixtures.FixtureValue"),
-    ("py:obj", "_pytest.stash.T"),
+    ("py:class", "_testrunner.python_api.E"),
+    ("py:class", "_testrunner.recwarn.T"),
+    ("py:class", "_testrunner.runner.TResult"),
+    ("py:obj", "_testrunner.fixtures.FixtureValue"),
+    ("py:obj", "_testrunner.stash.T"),
     ("py:class", "ScopeName"),
     ("py:class", "BaseExcT_1"),
     ("py:class", "ExcT_1"),
     # Deprecated, intentionally not added to reference docs.
-    ("py:func", "pytest.console_main"),
+    ("py:func", "testrunner.console_main"),
 ]
 
 add_module_names = False
@@ -156,9 +156,9 @@ todo_include_todos = True
 
 linkcheck_ignore = [
     "https://blogs.msdn.microsoft.com/bharry/2017/06/28/testing-in-a-cloud-delivery-cadence/",
-    "http://pythontesting.net/framework/pytest-introduction/",
-    r"https://github.com/pytest-dev/pytest/issues/\d+",
-    r"https://github.com/pytest-dev/pytest/pull/\d+",
+    "http://pythontesting.net/framework/testrunner-introduction/",
+    r"https://github.com/jacksonsr451/test-runner/issues/\d+",
+    r"https://github.com/jacksonsr451/test-runner/pull/\d+",
 ]
 linkcheck_workers = 5
 
@@ -170,37 +170,37 @@ html_theme_options = {"sidebar_hide_name": True}
 
 html_static_path = ["_static"]
 html_css_files = [
-    "pytest-custom.css",
+    "testrunner-custom.css",
 ]
 
-html_title = "pytest documentation"
-html_short_title = f"pytest-{release}"
+html_title = "testrunner documentation"
+html_short_title = f"testrunner-{release}"
 
-html_logo = "_static/pytest1.png"
+html_logo = "_static/testrunner1.png"
 html_favicon = "img/favicon.png"
 
 html_use_index = False
 html_show_sourcelink = False
 
-html_baseurl = "https://docs.pytest.org/en/stable/"
+html_baseurl = "https://github.com/jacksonsr451/test-runner/tree/main/doc/en/"
 
 # -- Options for HTML Help output -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-help-output
 
-htmlhelp_basename = "pytestdoc"
+htmlhelp_basename = "testrunnerdoc"
 
 
 # -- Options for manual page output ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-manual-page-output
 
 man_pages = [
-    ("how-to/usage", "pytest", "pytest usage", ["holger krekel at merlinux eu"], 1)
+    ("how-to/usage", "testrunner", "testrunner usage", ["holger krekel at merlinux eu"], 1)
 ]
 
 # -- Options for epub output ----------------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-epub-output
 
-epub_title = "pytest"
+epub_title = "testrunner"
 epub_author = "holger krekel at merlinux eu"
 epub_publisher = "holger krekel at merlinux eu"
 epub_copyright = "2013, holger krekel et alii"
@@ -211,8 +211,8 @@ epub_copyright = "2013, holger krekel et alii"
 latex_documents = [
     (
         "contents",
-        "pytest.tex",
-        "pytest Documentation",
+        "testrunner.tex",
+        "testrunner Documentation",
         "holger krekel, trainer and consultant, https://merlinux.eu/",
         "manual",
     )
@@ -240,13 +240,13 @@ latex_elements = {
 texinfo_documents = [
     (
         root_doc,
-        "pytest",
-        "pytest Documentation",
+        "testrunner",
+        "testrunner Documentation",
         (
             "Holger Krekel@*Benjamin Peterson@*Ronny Pfannschmidt@*"
             "Floris Bruynooghe@*others"
         ),
-        "pytest",
+        "testrunner",
         "simple powerful testing with Python",
         "Programming",
         1,
@@ -264,7 +264,7 @@ towncrier_draft_config_path = "pyproject.toml"  # relative to cwd
 # -- Options for sphinx_issues extension -----------------------------------
 # https://github.com/sloria/sphinx-issues#installation-and-configuration
 
-issues_github_path = "pytest-dev/pytest"
+issues_github_path = "jacksonsr451/test-runner"
 
 # -- Custom Read the Docs build configuration -----------------------------------------
 # https://docs.readthedocs.io/en/stable/reference/environment-variables.html#environment-variable-reference
@@ -294,18 +294,18 @@ def setup(app: sphinx.application.Sphinx) -> None:
     app.add_object_type(
         "globalvar",
         "globalvar",
-        objname="global variable interpreted by pytest",
-        indextemplate="pair: %s; global variable interpreted by pytest",
+        objname="global variable interpreted by testrunner",
+        indextemplate="pair: %s; global variable interpreted by testrunner",
     )
 
     app.add_crossref_type(
         directivename="hook",
         rolename="hook",
-        objname="pytest hook",
+        objname="testrunner hook",
         indextemplate="pair: %s; hook",
     )
 
-    # legacypath.py monkey-patches pytest.Testdir in. Import the file so
+    # legacypath.py monkey-patches testrunner.Testdir in. Import the file so
     # that autodoc can discover references to it.
     # Workaround for Sphinx bug with Python 3.14:
     # inspect.getsource() returns '\n' instead of raising OSError for classes
@@ -314,7 +314,7 @@ def setup(app: sphinx.application.Sphinx) -> None:
     # See: https://github.com/sphinx-doc/sphinx/issues/14345
     import sys
 
-    import _pytest.legacypath  # noqa: F401
+    import _testrunner.legacypath  # noqa: F401
 
     if sys.version_info >= (3, 14):
         from sphinx.ext.autodoc._dynamic import _type_comments

@@ -7,19 +7,19 @@ import shutil
 import subprocess
 import textwrap
 
-import pytest
+import testrunner
 
 
 pythonlist = ["python3.11", "python3.12", "python3.13"]
 
 
-@pytest.fixture(params=pythonlist)
+@testrunner.fixture(params=pythonlist)
 def python1(request, tmp_path):
     picklefile = tmp_path / "data.pickle"
     return Python(request.param, picklefile)
 
 
-@pytest.fixture(params=pythonlist)
+@testrunner.fixture(params=pythonlist)
 def python2(request, python1):
     return Python(request.param, python1.picklefile)
 
@@ -28,7 +28,7 @@ class Python:
     def __init__(self, version, picklefile):
         self.pythonpath = shutil.which(version)
         if not self.pythonpath:
-            pytest.skip(f"{version!r} not found")
+            testrunner.skip(f"{version!r} not found")
         self.picklefile = picklefile
 
     def dumps(self, obj):
@@ -64,7 +64,7 @@ class Python:
         subprocess.run((self.pythonpath, str(loadfile)), check=True)
 
 
-@pytest.mark.parametrize("obj", [42, {}, {1: 3}])
+@testrunner.mark.parametrize("obj", [42, {}, {1: 3}])
 def test_basic_objects(python1, python2, obj):
     python1.dumps(obj)
     python2.load_and_is_true(f"obj == {obj}")

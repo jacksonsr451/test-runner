@@ -2,11 +2,11 @@
 from __future__ import annotations
 
 
-def pytest_configure(config):
-    import pytest
+def testrunner_configure(config):
+    import testrunner
 
-    raise pytest.UsageError("hello")
+    raise testrunner.UsageError("hello")
 
 
-def pytest_unconfigure(config):
-    print("pytest_unconfigure_called")
+def testrunner_unconfigure(config):
+    print("testrunner_unconfigure_called")

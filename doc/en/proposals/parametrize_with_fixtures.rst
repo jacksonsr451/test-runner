@@ -33,15 +33,15 @@ This is how a functional test could look like:
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def default_context():
         return {"extra_context": {}}
 
 
-    @pytest.fixture(
+    @testrunner.fixture(
         params=[
             {"author": "alice"},
             {"project_slug": "helloworld"},
@@ -52,7 +52,7 @@ This is how a functional test could look like:
         return {"extra_context": request.param}
 
 
-    @pytest.fixture(params=["default", "extra"])
+    @testrunner.fixture(params=["default", "extra"])
     def context(request):
         if request.param == "default":
             return request.getfuncargvalue("default_context")
@@ -81,7 +81,7 @@ Issues
 * This is very inconvenient if you wish to extend an existing test suite by
   certain parameters for fixtures that are already used by tests
 
-pytest version 3.0 reports an error if you try to run above code::
+testrunner version 3.0 reports an error if you try to run above code::
 
     Failed: The requested fixture has no parameter defined for the current
     test.
@@ -97,7 +97,7 @@ fixtures from existing ones.
 
 .. code-block:: python
 
-    pytest.define_combined_fixture(
+    testrunner.define_combined_fixture(
         name="context", fixtures=["default_context", "extra_context"]
     )
 
@@ -115,20 +115,20 @@ the following values.
 Alternative approach
 --------------------
 
-A new helper function named ``fixture_request`` would tell pytest to yield
+A new helper function named ``fixture_request`` would tell testrunner to yield
 all parameters marked as a fixture.
 
 .. note::
 
-    The :pypi:`pytest-lazy-fixture` plugin implements a very
+    The :pypi:`testrunner-lazy-fixture` plugin implements a very
     similar solution to the proposal below, make sure to check it out.
 
 .. code-block:: python
 
-    @pytest.fixture(
+    @testrunner.fixture(
         params=[
-            pytest.fixture_request("default_context"),
-            pytest.fixture_request("extra_context"),
+            testrunner.fixture_request("default_context"),
+            testrunner.fixture_request("extra_context"),
         ]
     )
     def context(request):
@@ -143,16 +143,16 @@ all parameters marked as a fixture.
         """
         return request.param
 
-The same helper can be used in combination with ``pytest.mark.parametrize``.
+The same helper can be used in combination with ``testrunner.mark.parametrize``.
 
 .. code-block:: python
 
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         "context, expected_response_code",
         [
-            (pytest.fixture_request("default_context"), 0),
-            (pytest.fixture_request("extra_context"), 0),
+            (testrunner.fixture_request("default_context"), 0),
+            (testrunner.fixture_request("extra_context"), 0),
         ],
     )
     def test_generate_project(cookies, context, exit_code):

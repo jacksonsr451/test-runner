@@ -1,16 +1,16 @@
-pytest-2.9.0
+testrunner-2.9.0
 ============
 
-pytest is a mature Python testing tool with more than 1100 tests
+testrunner is a mature Python testing tool with more than 1100 tests
 against itself, passing on many different interpreters and platforms.
 
 See below for the changes and see docs at:
 
-    http://pytest.org
+    http://testrunner.org
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed to this release, among them:
 
@@ -36,7 +36,7 @@ Thanks to all who contributed to this release, among them:
 
 
 Happy testing,
-The py.test Development Team
+The testrunner Development Team
 
 
 2.9.0 (compared to 2.8.7)
@@ -44,7 +44,7 @@ The py.test Development Team
 
 **New Features**
 
-* New ``pytest.mark.skip`` mark, which unconditionally skips marked tests.
+* New ``testrunner.mark.skip`` mark, which unconditionally skips marked tests.
   Thanks :user:`MichaelAquilina` for the complete PR (:pr:`1040`).
 
 * ``--doctest-glob`` may now be passed multiple times in the command-line.
@@ -53,7 +53,7 @@ The py.test Development Team
 * New ``-rp`` and ``-rP`` reporting options give the summary and full output
   of passing tests, respectively. Thanks to :user:`codewarrior0` for the PR.
 
-* ``pytest.mark.xfail`` now has a ``strict`` option which makes ``XPASS``
+* ``testrunner.mark.xfail`` now has a ``strict`` option which makes ``XPASS``
   tests to fail the test suite, defaulting to ``False``. There's also a
   ``xfail_strict`` ini option that can be used to configure it project-wise.
   Thanks :user:`rabbbit` for the request and :user:`nicoddemus` for the PR (:issue:`1355`).
@@ -70,31 +70,31 @@ The py.test Development Team
   Thanks to :user:`hpk42` for the report and :user:`RonnyPfannschmidt` for the PR.
 
 * catch IndexError exceptions when getting exception source location. This fixes
-  pytest internal error for dynamically generated code (fixtures and tests)
+  testrunner internal error for dynamically generated code (fixtures and tests)
   where source lines are fake by intention
 
 **Changes**
 
 * **Important**: `py.code <https://pylib.readthedocs.io/en/stable/code.html>`_ has been
-  merged into the ``pytest`` repository as ``pytest._code``. This decision
-  was made because ``py.code`` had very few uses outside ``pytest`` and the
+  merged into the ``testrunner`` repository as ``testrunner._code``. This decision
+  was made because ``py.code`` had very few uses outside ``testrunner`` and the
   fact that it was in a different repository made it difficult to fix bugs on
   its code in a timely manner. The team hopes with this to be able to better
   refactor out and improve that code.
   This change shouldn't affect users, but it is useful to let users aware
   if they encounter any strange behavior.
 
-  Keep in mind that the code for ``pytest._code`` is **private** and
+  Keep in mind that the code for ``testrunner._code`` is **private** and
   **experimental**, so you definitely should not import it explicitly!
 
   Please note that the original ``py.code`` is still available in
   `pylib <https://pylib.readthedocs.io/en/stable/>`_.
 
-* ``pytest_enter_pdb`` now optionally receives the pytest config object.
+* ``testrunner_enter_pdb`` now optionally receives the testrunner config object.
   Thanks :user:`nicoddemus` for the PR.
 
 * Removed code and documentation for Python 2.5 or lower versions,
-  including removal of the obsolete ``_pytest.assertion.oldinterpret`` module.
+  including removal of the obsolete ``_testrunner.assertion.oldinterpret`` module.
   Thanks :user:`nicoddemus` for the PR (:issue:`1226`).
 
 * Comparisons now always show up in full when ``CI`` or ``BUILD_NUMBER`` is
@@ -105,7 +105,7 @@ The py.test Development Team
   ``--failed-first`` respectively.
   Thanks :user:`MichaelAquilina` for the PR.
 
-* Added expected exceptions to pytest.raises fail message
+* Added expected exceptions to testrunner.raises fail message
 
 * Collection only displays progress ("collecting X items") when in a terminal.
   This avoids cluttering the output when using ``--color=yes`` to obtain
@@ -131,4 +131,4 @@ The py.test Development Team
   with same name.
 
 
-.. _`traceback style docs`: https://pytest.org/en/stable/how-to/output.html#modifying-python-traceback-printing
+.. _`traceback style docs`: https://testrunner.org/en/stable/how-to/output.html#modifying-python-traceback-printing

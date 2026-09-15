@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
-@pytest.mark.filterwarnings("default::pytest.PytestUnhandledThreadExceptionWarning")
-def test_unhandled_thread_exception(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+def test_unhandled_thread_exception(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
         import threading
 
@@ -21,31 +21,31 @@ def test_unhandled_thread_exception(pytester: Pytester) -> None:
         def test_2(): pass
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
     result.assert_outcomes(passed=2, warnings=1)
     result.stdout.fnmatch_lines(
         [
             "*= warnings summary =*",
             "test_it.py::test_it",
-            "  * PytestUnhandledThreadExceptionWarning: Exception in thread MyThread",
+            "  * TestrunnerUnhandledThreadExceptionWarning: Exception in thread MyThread",
             "  ",
             "  Traceback (most recent call last):",
             "  ValueError: Oops",
             "  ",
-            "    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))",
+            "    warnings.warn(testrunner.TestrunnerUnhandledThreadExceptionWarning(msg))",
         ]
     )
 
 
-@pytest.mark.filterwarnings("default::pytest.PytestUnhandledThreadExceptionWarning")
-def test_unhandled_thread_exception_in_setup(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+def test_unhandled_thread_exception_in_setup(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
         import threading
-        import pytest
+        import testrunner
 
-        @pytest.fixture
+        @testrunner.fixture
         def threadexc():
             def oops():
                 raise ValueError("Oops")
@@ -57,31 +57,31 @@ def test_unhandled_thread_exception_in_setup(pytester: Pytester) -> None:
         def test_2(): pass
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
     result.assert_outcomes(passed=2, warnings=1)
     result.stdout.fnmatch_lines(
         [
             "*= warnings summary =*",
             "test_it.py::test_it",
-            "  * PytestUnhandledThreadExceptionWarning: Exception in thread MyThread",
+            "  * TestrunnerUnhandledThreadExceptionWarning: Exception in thread MyThread",
             "  ",
             "  Traceback (most recent call last):",
             "  ValueError: Oops",
             "  ",
-            "    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))",
+            "    warnings.warn(testrunner.TestrunnerUnhandledThreadExceptionWarning(msg))",
         ]
     )
 
 
-@pytest.mark.filterwarnings("default::pytest.PytestUnhandledThreadExceptionWarning")
-def test_unhandled_thread_exception_in_teardown(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+def test_unhandled_thread_exception_in_teardown(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
         import threading
-        import pytest
+        import testrunner
 
-        @pytest.fixture
+        @testrunner.fixture
         def threadexc():
             def oops():
                 raise ValueError("Oops")
@@ -94,29 +94,29 @@ def test_unhandled_thread_exception_in_teardown(pytester: Pytester) -> None:
         def test_2(): pass
         """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 0
     result.assert_outcomes(passed=2, warnings=1)
     result.stdout.fnmatch_lines(
         [
             "*= warnings summary =*",
             "test_it.py::test_it",
-            "  * PytestUnhandledThreadExceptionWarning: Exception in thread MyThread",
+            "  * TestrunnerUnhandledThreadExceptionWarning: Exception in thread MyThread",
             "  ",
             "  Traceback (most recent call last):",
             "  ValueError: Oops",
             "  ",
-            "    warnings.warn(pytest.PytestUnhandledThreadExceptionWarning(msg))",
+            "    warnings.warn(testrunner.TestrunnerUnhandledThreadExceptionWarning(msg))",
         ]
     )
 
 
-@pytest.mark.filterwarnings("error::pytest.PytestUnhandledThreadExceptionWarning")
-def test_unhandled_thread_exception_warning_error(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+def test_unhandled_thread_exception_warning_error(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
         import threading
-        import pytest
+        import testrunner
 
         def test_it():
             def oops():
@@ -128,14 +128,14 @@ def test_unhandled_thread_exception_warning_error(pytester: Pytester) -> None:
         def test_2(): pass
         """
     )
-    result = pytester.runpytest()
-    assert result.ret == pytest.ExitCode.TESTS_FAILED
+    result = testrunnerer.runtestrunner()
+    assert result.ret == testrunner.ExitCode.TESTS_FAILED
     result.assert_outcomes(passed=1, failed=1)
 
 
-@pytest.mark.filterwarnings("error::pytest.PytestUnhandledThreadExceptionWarning")
-def test_threadexception_warning_multiple_errors(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+def test_threadexception_warning_multiple_errors(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
         import threading
 
@@ -154,16 +154,16 @@ def test_threadexception_warning_multiple_errors(pytester: Pytester) -> None:
         def test_2(): pass
         """
     )
-    result = pytester.runpytest()
-    assert result.ret == pytest.ExitCode.TESTS_FAILED
+    result = testrunnerer.runtestrunner()
+    assert result.ret == testrunner.ExitCode.TESTS_FAILED
     result.assert_outcomes(passed=1, failed=1)
     result.stdout.fnmatch_lines(
         ["  | *ExceptionGroup: multiple thread exception warnings (2 sub-exceptions)"]
     )
 
 
-def test_unraisable_collection_failure(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_unraisable_collection_failure(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
         import threading
 
@@ -184,7 +184,7 @@ def test_unraisable_collection_failure(pytester: Pytester) -> None:
         """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     assert result.ret == 1
     result.assert_outcomes(passed=1, failed=1)
     result.stdout.fnmatch_lines(
@@ -192,11 +192,11 @@ def test_unraisable_collection_failure(pytester: Pytester) -> None:
     )
 
 
-def test_unhandled_thread_exception_after_teardown(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_unhandled_thread_exception_after_teardown(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
         import threading
-        import pytest
+        import testrunner
 
         def thread():
             def oops():
@@ -211,18 +211,18 @@ def test_unhandled_thread_exception_after_teardown(pytester: Pytester) -> None:
         """
     )
 
-    result = pytester.runpytest("-Werror")
+    result = testrunnerer.runtestrunner("-Werror")
 
     # TODO: should be a test failure or error
-    assert result.ret == pytest.ExitCode.INTERNAL_ERROR
+    assert result.ret == testrunner.ExitCode.INTERNAL_ERROR
 
     result.assert_outcomes(passed=1)
     result.stderr.fnmatch_lines("ValueError: Oops")
 
 
-@pytest.mark.filterwarnings("error::pytest.PytestUnhandledThreadExceptionWarning")
-def test_possibly_none_excinfo(pytester: Pytester) -> None:
-    pytester.makepyfile(
+@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+def test_possibly_none_excinfo(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_it="""
         import threading
         import types
@@ -239,15 +239,15 @@ def test_possibly_none_excinfo(pytester: Pytester) -> None:
         """
     )
 
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
 
     # TODO: should be a test failure or error
-    assert result.ret == pytest.ExitCode.TESTS_FAILED
+    assert result.ret == testrunner.ExitCode.TESTS_FAILED
 
     result.assert_outcomes(failed=1)
     result.stdout.fnmatch_lines(
         [
-            "E                   pytest.PytestUnhandledThreadExceptionWarning:"
+            "E                   testrunner.TestrunnerUnhandledThreadExceptionWarning:"
             " Exception in thread <unknown>",
             "E                   ",
             "E                   NoneType: None",

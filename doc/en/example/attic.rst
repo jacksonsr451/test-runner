@@ -7,21 +7,21 @@ example: specifying and selecting acceptance tests
 .. sourcecode:: python
 
     # ./conftest.py
-    def pytest_option(parser):
+    def testrunner_option(parser):
         group = parser.getgroup("myproject")
         group.addoption(
             "-A", dest="acceptance", action="store_true", help="run (slow) acceptance tests"
         )
 
 
-    def pytest_funcarg__accept(request):
+    def testrunner_funcarg__accept(request):
         return AcceptFixture(request)
 
 
     class AcceptFixture:
         def __init__(self, request):
             if not request.config.getoption("acceptance"):
-                pytest.skip("specify -A to run acceptance tests")
+                testrunner.skip("specify -A to run acceptance tests")
             self.tmpdir = request.config.mktemp(request.function.__name__, numbered=True)
 
         def run(self, *cmd):
@@ -57,7 +57,7 @@ extend the `accept example`_ by putting this in our test module:
 
 .. sourcecode:: python
 
-    def pytest_funcarg__accept(request):
+    def testrunner_funcarg__accept(request):
         # call the next factory (living in our conftest.py)
         arg = request.getfuncargvalue("accept")
         # create a special layout in our tempdir

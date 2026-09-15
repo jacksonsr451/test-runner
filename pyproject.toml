@@ -6,8 +6,8 @@ requires = [
 ]
 
 [project]
-name = "pytest"
-description = "pytest: simple powerful testing with Python"
+name = "testrunner"
+description = "testrunner: simple powerful testing with Python"
 readme = "README.rst"
 keywords = [
     "test",
@@ -21,8 +21,12 @@ authors = [
     { name = "Floris Bruynooghe" },
     { name = "Freya Bruhin" },
     { name = "Holger Krekel" },
+    { name = "Jackson Severino da Rocha" },
     { name = "Others (See AUTHORS)" },
     { name = "Ronny Pfannschmidt" },
+]
+maintainers = [
+    { name = "Jackson Severino da Rocha" },
 ]
 requires-python = ">=3.10"
 classifiers = [
@@ -56,8 +60,8 @@ dependencies = [
     "tomli>=2; python_version<'3.11'",
 ]
 # Kept as a published extra because many external repos still install
-# `pytest[dev]` / `.[dev]`. Prefer the `dev` dependency group for local
-# development of pytest itself (see CONTRIBUTING.rst).
+# `testrunner[dev]` / `.[dev]`. Prefer the `dev` dependency group for local
+# development of testrunner itself (see CONTRIBUTING.rst).
 optional-dependencies.dev = [
     # Core test dependencies
     "argcomplete",
@@ -76,32 +80,31 @@ optional-dependencies.dev = [
     "setuptools",
     "xmlschema",
 ]
-urls.Changelog = "https://docs.pytest.org/en/stable/changelog.html"
-urls.Contact = "https://docs.pytest.org/en/stable/contact.html"
-urls.Funding = "https://docs.pytest.org/en/stable/sponsor.html"
-urls.Homepage = "https://docs.pytest.org/en/latest/"
-urls.Source = "https://github.com/pytest-dev/pytest"
-urls.Tracker = "https://github.com/pytest-dev/pytest/issues"
-scripts."py.test" = "_pytest.config:_console_main"
-scripts.pytest = "_pytest.config:_console_main"
+urls.Changelog = "https://github.com/jacksonsr451/test-runner/tree/main/doc/en/changelog.html"
+urls.Contact = "https://github.com/jacksonsr451/test-runner/tree/main/doc/en/contact.html"
+urls.Funding = "https://github.com/jacksonsr451/test-runner/tree/main/doc/en/sponsor.html"
+urls.Homepage = "https://github.com/jacksonsr451/test-runner/tree/main/doc/en/"
+urls.Source = "https://github.com/jacksonsr451/test-runner"
+urls.Tracker = "https://github.com/jacksonsr451/test-runner/issues"
+scripts.testrunner = "_testrunner.config:_console_main"
 
 [dependency-groups]
-# Preferred entry point for developing pytest; pulls from optional-dependencies.dev.
+# Preferred entry point for developing testrunner; pulls from optional-dependencies.dev.
 dev = [
-    "pytest[dev]",
+    "testrunner[dev]",
 ]
 
 [tool.setuptools.package-data]
-"_pytest" = [
+"_testrunner" = [
     "py.typed",
 ]
-"pytest" = [
+"testrunner" = [
     "py.typed",
 ]
 
 [tool.setuptools_scm]
-version_file = "src/_pytest/_version.py"
-# keep writing _version.py into the checkout: running pytest from a source
+version_file = "src/_testrunner/_version.py"
+# keep writing _version.py into the checkout: running testrunner from a source
 # tree relies on it. The setuptools-scm default flips in a future major.
 write_to_source = true
 
@@ -168,7 +171,7 @@ lint.ignore = [
     # flake8-datetimez ignore
     "DTZ001", # `datetime.datetime()` called without a `tzinfo` argument
     "DTZ005", # `datetime.datetime.now()` called without a `tz` argument
-    # pytest can do weird low-level things, and we usually know
+    # testrunner can do weird low-level things, and we usually know
     # what we're doing when we use type(..) is ...
     "E721", # Do not compare types, use `isinstance()`
     # flynt ignore
@@ -196,15 +199,15 @@ lint.ignore = [
     "PLW0603", # Using the global statement
     "PLW1641", # Does not implement the __hash__ method
     "PLW2901", # for loop variable overwritten by assignment target
-    # flake8-pytest-style ignore
-    "PT020", # `@pytest.yield_fixture` is deprecated, use `@pytest.fixture`
-    "PT025", # `pytest.mark.usefixtures` has no effect on fixtures
-    "PT031", # `pytest.warns()` block should contain a single simple statement
+    # flake8-testrunner-style ignore
+    "PT020", # `@testrunner.yield_fixture` is deprecated, use `@testrunner.fixture`
+    "PT025", # `testrunner.mark.usefixtures` has no effect on fixtures
+    "PT031", # `testrunner.warns()` block should contain a single simple statement
     # flake8-use-pathlib ignore
     "PTH124", # `py.path` is in maintenance mode, use `pathlib` instead
     # ruff ignore
     "RUF012", # Mutable class attributes should be annotated with `typing.ClassVar`
-    "RUF061", # Use context-manager form of `pytest.raises()`
+    "RUF061", # Use context-manager form of `testrunner.raises()`
     # flake8-bandit ignore
     "S102", # Use of `exec` detected
     "S110", # `try`-`except`-`pass` detected, consider logging the exception
@@ -226,11 +229,11 @@ lint.per-file-ignores."doc/**/*.py" = [
     "S102",    # Use of `exec` detected
     "TRY002",  # Create your own exception
 ]
-lint.per-file-ignores."src/_pytest/_py/**/*.py" = [
+lint.per-file-ignores."src/_testrunner/_py/**/*.py" = [
     "B",
     "PYI",
 ]
-lint.per-file-ignores."src/_pytest/_version.py" = [
+lint.per-file-ignores."src/_testrunner/_version.py" = [
     "I001",
 ]
 lint.per-file-ignores."testing/**/*.py" = [
@@ -251,8 +254,8 @@ lint.isort.combine-as-imports = true
 lint.isort.force-single-line = true
 lint.isort.force-sort-within-sections = true
 lint.isort.known-local-folder = [
-    "pytest",
-    "_pytest",
+    "testrunner",
+    "_testrunner",
 ]
 lint.isort.lines-after-imports = 2
 lint.isort.order-by-type = false
@@ -342,9 +345,9 @@ disable = [
     "no-self-use",
     "not-an-iterable",
     "not-callable",
-    "pointless-exception-statement",          # https://github.com/pytest-dev/pytest/pull/12379
-    "pointless-statement",                    # https://github.com/pytest-dev/pytest/pull/12379
-    "pointless-string-statement",             # https://github.com/pytest-dev/pytest/pull/12379
+    "pointless-exception-statement",          # https://github.com/jacksonsr451/test-runner/pull/12379
+    "pointless-statement",                    # https://github.com/jacksonsr451/test-runner/pull/12379
+    "pointless-string-statement",             # https://github.com/jacksonsr451/test-runner/pull/12379
     "possibly-used-before-assignment",
     "protected-access",
     "raise-missing-from",
@@ -419,9 +422,9 @@ ignore = "W009"
 indent = 4
 max_supported_python = "3.15"
 
-[tool.pytest]
+[tool.testrunner]
 minversion = "2.0"
-addopts = [ "-rfEX", "-p", "pytester" ]
+addopts = [ "-rfEX", "-p", "testrunnerer" ]
 python_files = [
     "test_*.py",
     "*_test.py",
@@ -454,32 +457,32 @@ filterwarnings = [
     'default:the imp module is deprecated in favour of importlib:DeprecationWarning:nose.*',
     # distutils is deprecated in 3.10, scheduled for removal in 3.12
     'ignore:The distutils package is deprecated:DeprecationWarning',
-    # produced by pytest-xdist
+    # produced by testrunner-xdist
     'ignore:.*type argument to addoption.*:DeprecationWarning',
-    # produced on execnet (pytest-xdist)
+    # produced on execnet (testrunner-xdist)
     'ignore:.*inspect.getargspec.*deprecated, use inspect.signature.*:DeprecationWarning',
-    # pytest's own futurewarnings
-    'ignore::pytest.PytestExperimentalApiWarning',
+    # testrunner's own futurewarnings
+    'ignore::testrunner.TestrunnerExperimentalApiWarning',
     # Do not cause SyntaxError for invalid escape sequences in py37.
     # Those are caught/handled by pyupgrade, and not easy to filter with the
     # module being the filename (with .py removed).
     'default:invalid escape sequence:DeprecationWarning',
     # ignore not yet fixed warnings for hook markers
-    'default:.*not marked using pytest.hook.*',
-    'ignore:.*not marked using pytest.hook.*::xdist.*',
+    'default:.*not marked using testrunner.hook.*',
+    'ignore:.*not marked using testrunner.hook.*::xdist.*',
     # ignore use of unregistered marks, because we use many to test the implementation
-    'ignore::_pytest.warning_types.PytestUnknownMarkWarning',
+    'ignore::_testrunner.warning_types.TestrunnerUnknownMarkWarning',
     # https://github.com/benjaminp/six/issues/341
     'ignore:_SixMetaPathImporter\.exec_module\(\) not found; falling back to load_module\(\):ImportWarning',
     # https://github.com/benjaminp/six/pull/352
     'ignore:_SixMetaPathImporter\.find_spec\(\) not found; falling back to find_module\(\):ImportWarning',
     # https://github.com/pypa/setuptools/pull/2517
     'ignore:VendorImporter\.find_spec\(\) not found; falling back to find_module\(\):ImportWarning',
-    # https://github.com/pytest-dev/execnet/pull/127
+    # https://github.com/testrunner-dev/execnet/pull/127
     'ignore:isSet\(\) is deprecated, use is_set\(\) instead:DeprecationWarning',
-    # https://github.com/pytest-dev/pytest/issues/2366
-    # https://github.com/pytest-dev/pytest/pull/13057
-    'default::pytest.PytestFDWarning',
+    # https://github.com/jacksonsr451/test-runner/issues/2366
+    # https://github.com/jacksonsr451/test-runner/pull/13057
+    'default::testrunner.TestrunnerFDWarning',
     # https://github.com/pexpect/pexpect/issues/827
     # CPython emits this from os.forkpty() with stacklevel=1, so it is attributed
     # to stdlib pty (caller of os.forkpty via pty.fork), not ptyprocess. Match on
@@ -489,7 +492,7 @@ filterwarnings = [
     # because Mach task_threads counts extra runtime threads.
     'ignore:.*use of forkpty\(\) may lead to deadlocks in the child:DeprecationWarning',
 ]
-pytester_example_dir = "testing/example_scripts"
+testrunnerer_example_dir = "testing/example_scripts"
 markers = [
     # dummy markers for testing
     "foo",
@@ -529,19 +532,19 @@ exclude_lines = [
     '^\s*(el)?if TYPE_CHECKING:',
     '^\s*@overload( |$)',
     '^\s*def .+: \.\.\.$',
-    '^\s*@pytest\.mark\.xfail',
+    '^\s*@testrunner\.mark\.xfail',
 ]
 
 [tool.coverage.run]
 include = [
     'src/*',
     'testing/*',
-    '*/lib/python*/site-packages/_pytest/*',
-    '*/lib/python*/site-packages/pytest.py',
-    '*/pypy*/site-packages/_pytest/*',
-    '*/pypy*/site-packages/pytest.py',
-    '*\Lib\site-packages\_pytest\*',
-    '*\Lib\site-packages\pytest.py',
+    '*/lib/python*/site-packages/_testrunner/*',
+    '*/lib/python*/site-packages/testrunner.py',
+    '*/pypy*/site-packages/_testrunner/*',
+    '*/pypy*/site-packages/testrunner.py',
+    '*\Lib\site-packages\_testrunner\*',
+    '*\Lib\site-packages\testrunner.py',
 ]
 parallel = true
 branch = true
@@ -551,11 +554,11 @@ patch = [ "subprocess" ]
 core = "ctrace"
 
 [tool.towncrier]
-package = "pytest"
+package = "testrunner"
 package_dir = "src"
 filename = "doc/en/changelog.rst"
 directory = "changelog/"
-title_format = "pytest {version} ({project_date})"
+title_format = "testrunner {version} ({project_date})"
 template = "changelog/_template.rst"
 
 # NOTE: The types are declared because:

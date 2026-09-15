@@ -1,2 +1,2 @@
-Exposed :class:`pytest.Approx` as the type of the return value of :func:`pytest.approx()`.
+Exposed :class:`testrunner.Approx` as the type of the return value of :func:`testrunner.approx()`.
 This can be used in type annotations and ``isinstance`` checks.

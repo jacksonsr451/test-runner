@@ -1,7 +1,7 @@
-pytest-2.3.2: some fixes and more traceback-printing speed
+testrunner-2.3.2: some fixes and more traceback-printing speed
 ===========================================================================
 
-pytest-2.3.2 is another stabilization release:
+testrunner-2.3.2 is another stabilization release:
 
 - issue 205: fixes a regression with conftest detection
 - issue 208/29: fixes traceback-printing speed in some bad cases
@@ -12,12 +12,12 @@ pytest-2.3.2 is another stabilization release:
 
 See
 
-     http://pytest.org/
+     http://testrunner.org/
 
-for general information.  To install or upgrade pytest:
+for general information.  To install or upgrade testrunner:
 
-    pip install -U pytest # or
-    easy_install -U pytest
+    pip install -U testrunner # or
+    easy_install -U testrunner
 
 best,
 holger krekel
@@ -30,12 +30,12 @@ Changes between 2.3.1 and 2.3.2
   when printing tracebacks in long modules
 
 - fix issue205 - conftests in subdirs customizing
-  pytest_pycollect_makemodule and pytest_pycollect_makeitem
+  testrunner_pycollect_makemodule and testrunner_pycollect_makeitem
   now work properly
 
 - fix teardown-ordering for parametrized setups
 
-- fix issue127 - better documentation for pytest_addoption
+- fix issue127 - better documentation for testrunner_addoption
   and related objects.
 
 - fix unittest behaviour: TestCase.runtest only called if there are
@@ -44,7 +44,7 @@ Changes between 2.3.1 and 2.3.2
 - improve trial support: don't collect its empty
   unittest.TestCase.runTest() method
 
-- "python setup.py test" now works with pytest itself
+- "python setup.py test" now works with testrunner itself
 
 - fix/improve internal/packaging related bits:
 
@@ -53,5 +53,5 @@ Changes between 2.3.1 and 2.3.2
   - issue206 - fix test_assertrewrite.py to work when a global
     PYTHONDONTWRITEBYTECODE=1 is present
 
-  - add tox.ini to pytest distribution so that ignore-dirs and others config
-    bits are properly distributed for maintainers who run pytest-own tests
+  - add tox.ini to testrunner distribution so that ignore-dirs and others config
+    bits are properly distributed for maintainers who run testrunner-own tests

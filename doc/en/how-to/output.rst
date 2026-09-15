@@ -1,6 +1,6 @@
 .. _how-to-manage-output:
 
-Managing pytest's output
+Managing testrunner's output
 =========================
 
 .. _how-to-modifying-python-tb-printing:
@@ -12,30 +12,30 @@ Examples for modifying traceback printing:
 
 .. code-block:: bash
 
-    pytest --showlocals     # show local variables in tracebacks
-    pytest -l               # show local variables (shortcut)
-    pytest --no-showlocals  # hide local variables (if addopts enables them)
+    testrunner --showlocals     # show local variables in tracebacks
+    testrunner -l               # show local variables (shortcut)
+    testrunner --no-showlocals  # hide local variables (if addopts enables them)
 
-    pytest --capture=fd  # default, capture at the file descriptor level
-    pytest --capture=sys # capture at the sys level
-    pytest --capture=no  # don't capture
-    pytest -s            # don't capture (shortcut)
-    pytest --capture=tee-sys # capture to logs but also output to sys level streams
+    testrunner --capture=fd  # default, capture at the file descriptor level
+    testrunner --capture=sys # capture at the sys level
+    testrunner --capture=no  # don't capture
+    testrunner -s            # don't capture (shortcut)
+    testrunner --capture=tee-sys # capture to logs but also output to sys level streams
 
-    pytest --tb=auto    # (default) 'long' tracebacks for the first and last
+    testrunner --tb=auto    # (default) 'long' tracebacks for the first and last
                          # entry, but 'short' style for the other entries
-    pytest --tb=long    # exhaustive, informative traceback formatting
-    pytest --tb=short   # shorter traceback format
-    pytest --tb=line    # only one line per failure
-    pytest --tb=native  # Python standard library formatting
-    pytest --tb=no      # no traceback at all
+    testrunner --tb=long    # exhaustive, informative traceback formatting
+    testrunner --tb=short   # shorter traceback format
+    testrunner --tb=line    # only one line per failure
+    testrunner --tb=native  # Python standard library formatting
+    testrunner --tb=no      # no traceback at all
 
 The :option:`--full-trace` causes very long traces to be printed on error (longer
 than :option:`--tb=long`). It also ensures that a stack trace is printed on
 **KeyboardInterrupt** (Ctrl+C).
 This is very useful if the tests are taking too long and you interrupt them
 with Ctrl+C to find out where the tests are *hanging*. By default no output
-will be shown (because KeyboardInterrupt is caught by pytest). By using this
+will be shown (because KeyboardInterrupt is caught by testrunner). By using this
 option you make sure a trace is shown.
 
 
@@ -46,13 +46,13 @@ Examples for modifying printing verbosity:
 
 .. code-block:: bash
 
-    pytest --quiet          # quiet - less verbose - mode
-    pytest -q               # quiet - less verbose - mode (shortcut)
-    pytest -v               # increase verbosity, display individual test names
-    pytest -vv              # more verbose, display more details from the test output
-    pytest -vvv             # not a standard , but may be used for even more detail in certain setups
+    testrunner --quiet          # quiet - less verbose - mode
+    testrunner -q               # quiet - less verbose - mode (shortcut)
+    testrunner -v               # increase verbosity, display individual test names
+    testrunner -vv              # more verbose, display more details from the test output
+    testrunner -vvv             # not a standard , but may be used for even more detail in certain setups
 
-The :option:`-v` flag controls the verbosity of pytest output in various aspects: test session progress, assertion
+The :option:`-v` flag controls the verbosity of testrunner output in various aspects: test session progress, assertion
 details when tests fail, fixtures details with :option:`--fixtures`, etc.
 
 .. regendoc:wipe
@@ -82,11 +82,11 @@ Consider this simple file:
         long_text = "Lorem ipsum dolor sit amet " * 10
         assert "hello world" in long_text
 
-Executing pytest normally gives us this output (we are skipping the header to focus on the rest):
+Executing testrunner normally gives us this output (we are skipping the header to focus on the rest):
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest --no-header
+    $ testrunner --no-header
     =========================== test session starts ============================
     collected 4 items
 
@@ -143,11 +143,11 @@ Notice that:
 * ``test_long_text_fail`` failed, and the right hand side of the ``in`` statement is truncated using ``...```
   because it is longer than an internal threshold (240 characters currently).
 
-Now we can increase pytest's verbosity:
+Now we can increase testrunner's verbosity:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest --no-header -v
+    $ testrunner --no-header -v
     =========================== test session starts ============================
     collecting ... collected 4 items
 
@@ -217,9 +217,9 @@ Notice now that:
 
 Now if we increase verbosity even more:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest --no-header -vv
+    $ testrunner --no-header -vv
     =========================== test session starts ============================
     collecting ... collected 4 items
 
@@ -342,16 +342,16 @@ Notice now that:
 * Each test inside the file gets its own line in the output.
 * ``test_words_fail`` gives the same output as before in this case.
 * ``test_numbers_fail`` now shows a full text diff of the two dictionaries.
-* ``test_long_text_fail`` also doesn't truncate on the right hand side as before, but now pytest won't truncate any
+* ``test_long_text_fail`` also doesn't truncate on the right hand side as before, but now testrunner won't truncate any
   text at all, regardless of its size.
 
 Those were examples of how verbosity affects normal test session output, but verbosity also is used in other
-situations, for example you are shown even fixtures that start with ``_`` if you use ``pytest --fixtures -v``.
+situations, for example you are shown even fixtures that start with ``_`` if you use ``testrunner --fixtures -v``.
 
-Using higher verbosity levels (``-vvv``, ``-vvvv``, ...) is supported, but has no effect in pytest itself at the moment,
+Using higher verbosity levels (``-vvv``, ``-vvvv``, ...) is supported, but has no effect in testrunner itself at the moment,
 however some plugins might make use of higher verbosity.
 
-.. _`pytest.fine_grained_verbosity`:
+.. _`testrunner.fine_grained_verbosity`:
 
 Fine-grained verbosity
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -359,22 +359,22 @@ Fine-grained verbosity
 In addition to specifying the application wide verbosity level, it is possible to control specific aspects independently.
 This is done by setting a verbosity level in the configuration file for the specific aspect of the output.
 
-:confval:`verbosity_assertions`: Controls how verbose the assertion output should be when pytest is executed. Running
-``pytest --no-header`` with a value of ``2`` would have the same output as the previous example, but each test inside
+:confval:`verbosity_assertions`: Controls how verbose the assertion output should be when testrunner is executed. Running
+``testrunner --no-header`` with a value of ``2`` would have the same output as the previous example, but each test inside
 the file is shown by a single character in the output.
 
-:confval:`assertion_text_diff_style`: Controls how pytest renders ``str == str`` failures.
+:confval:`assertion_text_diff_style`: Controls how testrunner renders ``str == str`` failures.
 
   * ``ndiff`` (the default) outputs the differences using inline diff markers.
   * ``block`` prints string comparisons as separate ``Left:`` and ``Right:`` blocks, which can be easier to read when whitespace or indentation differences dominate.
 
   Note that it is possible to set this option (as any other configuration option) directly in the command line using ``-o assertion_text_diff_style=block``.
 
-:confval:`verbosity_test_cases`: Controls how verbose the test execution output should be when pytest is executed.
-Running ``pytest --no-header`` with a value of ``2`` would have the same output as the first verbosity example, but each
+:confval:`verbosity_test_cases`: Controls how verbose the test execution output should be when testrunner is executed.
+Running ``testrunner --no-header`` with a value of ``2`` would have the same output as the first verbosity example, but each
 test inside the file gets its own line in the output.
 
-.. _`pytest.detailed_failed_tests_usage`:
+.. _`testrunner.detailed_failed_tests_usage`:
 
 Producing a detailed summary report
 --------------------------------------------------
@@ -391,10 +391,10 @@ Example:
 .. code-block:: python
 
     # content of test_example.py
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def error_fixture():
         assert 0
 
@@ -412,23 +412,23 @@ Example:
 
 
     def test_skip():
-        pytest.skip("skipping this test")
+        testrunner.skip("skipping this test")
 
 
     def test_xfail():
-        pytest.xfail("xfailing this test")
+        testrunner.xfail("xfailing this test")
 
 
-    @pytest.mark.xfail(reason="always xfail")
+    @testrunner.mark.xfail(reason="always xfail")
     def test_xpass():
         pass
 
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -ra
+    $ testrunner -ra
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 6 items
 
@@ -437,7 +437,7 @@ Example:
     ================================== ERRORS ==================================
     _______________________ ERROR at setup of test_error _______________________
 
-        @pytest.fixture
+        @testrunner.fixture
         def error_fixture():
     >       assert 0
     E       assert 0
@@ -481,11 +481,11 @@ Special characters for (de)selection of groups:
 
 More than one character can be used, so for example to only see failed and skipped tests, you can execute:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -rfs
+    $ testrunner -rfs
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 6 items
 
@@ -494,7 +494,7 @@ More than one character can be used, so for example to only see failed and skipp
     ================================== ERRORS ==================================
     _______________________ ERROR at setup of test_error _______________________
 
-        @pytest.fixture
+        @testrunner.fixture
         def error_fixture():
     >       assert 0
     E       assert 0
@@ -516,11 +516,11 @@ More than one character can be used, so for example to only see failed and skipp
 Using ``p`` lists the passing tests, whilst ``P`` adds an extra section "PASSES" with those tests that passed but had
 captured output:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -rpP
+    $ testrunner -rpP
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 6 items
 
@@ -529,7 +529,7 @@ captured output:
     ================================== ERRORS ==================================
     _______________________ ERROR at setup of test_error _______________________
 
-        @pytest.fixture
+        @testrunner.fixture
         def error_fixture():
     >       assert 0
     E       assert 0
@@ -571,7 +571,7 @@ To set custom truncation limits you can use the following configuration file opt
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         truncation_limit_lines = 10
         truncation_limit_chars = 90
 
@@ -579,11 +579,11 @@ To set custom truncation limits you can use the following configuration file opt
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         truncation_limit_lines = 10
         truncation_limit_chars = 90
 
-That will cause pytest to truncate the assertions to 10 lines or 90 characters, whichever comes first.
+That will cause testrunner to truncate the assertions to 10 lines or 90 characters, whichever comes first.
 
 Setting both :confval:`truncation_limit_lines` and :confval:`truncation_limit_chars` to ``0`` will disable the truncation.
 However, setting only one of those values will disable one truncation mode, but will leave the other one intact.
@@ -597,7 +597,7 @@ integration servers, use this invocation:
 
 .. code-block:: bash
 
-    pytest --junit-xml=path
+    testrunner --junit-xml=path
 
 to create an XML file at ``path``.
 
@@ -609,14 +609,14 @@ To set the name of the root test suite xml item, you can configure the ``junit_s
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         junit_suite_name = "my_suite"
 
 .. tab:: ini
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         junit_suite_name = my_suite
 
 .. versionadded:: 4.0
@@ -625,21 +625,21 @@ JUnit XML specification seems to indicate that ``"time"`` attribute
 should report total test execution times, including setup and teardown
 (`1 <https://github.com/windyroad/JUnit-Schema/blob/master/JUnit.xsd>`_, `2
 <https://www.ibm.com/support/knowledgecenter/en/SSQ2R2_14.1.0/com.ibm.rsar.analysis.codereview.cobol.doc/topics/cac_useresults_junit.html>`_).
-It is the default pytest behavior. To report just call durations
+It is the default testrunner behavior. To report just call durations
 instead, configure the ``junit_duration_report`` option like this:
 
 .. tab:: toml
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         junit_duration_report = "call"
 
 .. tab:: ini
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         junit_duration_report = call
 
 .. _record_property example:
@@ -674,7 +674,7 @@ Alternatively, you can integrate this functionality with custom markers:
     # content of conftest.py
 
 
-    def pytest_collection_modifyitems(session, config, items):
+    def testrunner_collection_modifyitems(session, config, items):
         for item in items:
             for marker in item.iter_markers(name="test_id"):
                 test_id = marker.args[0]
@@ -685,10 +685,10 @@ And in your tests:
 .. code-block:: python
 
     # content of test_function.py
-    import pytest
+    import testrunner
 
 
-    @pytest.mark.test_id(1501)
+    @testrunner.mark.test_id(1501)
     def test_function():
         assert True
 
@@ -786,10 +786,10 @@ to all tests.
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture(scope="session", autouse=True)
+    @testrunner.fixture(scope="session", autouse=True)
     def log_global_env_facts(record_testsuite_property):
         record_testsuite_property("ARCH", "PPC")
         record_testsuite_property("STORAGE_TYPE", "CEPH")
@@ -804,7 +804,7 @@ added at the test-suite level of the generated xml:
 
 .. code-block:: xml
 
-    <testsuite errors="0" failures="0" name="pytest" skipped="0" tests="1" time="0.006">
+    <testsuite errors="0" failures="0" name="testrunner" skipped="0" tests="1" time="0.006">
       <properties>
         <property name="ARCH" value="PPC"/>
         <property name="STORAGE_TYPE" value="CEPH"/>
@@ -825,7 +825,7 @@ Sending test report to an online pastebin service
 
 .. code-block:: bash
 
-    pytest --pastebin=failed
+    testrunner --pastebin=failed
 
 This will submit test run information to a remote Paste service and
 provide a URL for each failure.  You may select tests as usual or add
@@ -835,7 +835,7 @@ for example :option:`-x` if you only want to send one particular failure.
 
 .. code-block:: bash
 
-    pytest --pastebin=all
+    testrunner --pastebin=all
 
 Currently only pasting to the https://bpaste.net/ service is implemented.
 

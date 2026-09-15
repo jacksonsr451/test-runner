@@ -2,7 +2,7 @@
 Tidelift
 ========
 
-pytest is a member of `Tidelift`_. This document describes how the core team manages
+testrunner is a member of `Tidelift`_. This document describes how the core team manages
 Tidelift-related activities.
 
 What is it
@@ -31,7 +31,7 @@ Contributors interested in receiving a part of the funds just need to submit a P
 name to the list. Contributors that want to stop receiving the funds should also submit a PR
 in the same way.
 
-The PR should mention `@pytest-dev/tidelift-admins`_ so appropriate changes
+The PR should mention `@testrunner-dev/tidelift-admins`_ so appropriate changes
 can be made in the Tidelift platform.
 
 After the PR has been accepted and merged, the contributor should register in the `Tidelift`_
@@ -41,18 +41,18 @@ Admins
 ======
 
 A few people have admin access to the Tidelift dashboard to make changes. Those people
-are part of the `@pytest-dev/tidelift-admins`_ team.
+are part of the `@testrunner-dev/tidelift-admins`_ team.
 
 `Core contributors`_ interested in helping out with Tidelift maintenance are welcome! We don't
 expect much work here other than the occasional adding/removal of a contributor from receiving
-funds. Just drop a line to one of the `@pytest-dev/tidelift-admins`_ or use the mailing list.
+funds. Just drop a line to one of the `@testrunner-dev/tidelift-admins`_ or use the mailing list.
 
 
 .. _`Tidelift`: https://tidelift.com
-.. _`mailing list`: https://mail.python.org/pipermail/pytest-dev/2019-May/004716.html
-.. _`contributors team`: https://github.com/orgs/pytest-dev/teams/contributors
-.. _`core contributors`: https://github.com/orgs/pytest-dev/teams/core/members
-.. _`@pytest-dev/tidelift-admins`: https://github.com/orgs/pytest-dev/teams/tidelift-admins/members
+.. _`mailing list`: https://mail.python.org/pipermail/testrunner-dev/2019-May/004716.html
+.. _`contributors team`: https://github.com/orgs/testrunner-dev/teams/contributors
+.. _`core contributors`: https://github.com/orgs/testrunner-dev/teams/core/members
+.. _`@testrunner-dev/tidelift-admins`: https://github.com/orgs/testrunner-dev/teams/tidelift-admins/members
 .. _`agreement`: https://tidelift.com/docs/lifting/agreement
 
 .. _`@nicoddemus`: https://github.com/nicoddemus

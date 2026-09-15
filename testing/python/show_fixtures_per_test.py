@@ -1,22 +1,22 @@
 from __future__ import annotations
 
-from _pytest.pytester import Pytester
+from _testrunner.testrunnerer import Testrunnerer
 
 
-def test_should_show_no_output_when_zero_items(pytester: Pytester) -> None:
-    result = pytester.runpytest("--fixtures-per-test")
+def test_should_show_no_output_when_zero_items(testrunnerer: Testrunnerer) -> None:
+    result = testrunnerer.runtestrunner("--fixtures-per-test")
     result.stdout.no_fnmatch_line("*fixtures used by*")
     assert result.ret == 0
 
 
-def test_fixtures_in_module(pytester: Pytester) -> None:
-    p = pytester.makepyfile(
+def test_fixtures_in_module(testrunnerer: Testrunnerer) -> None:
+    p = testrunnerer.makepyfile(
         '''
-        import pytest
-        @pytest.fixture
+        import testrunner
+        @testrunner.fixture
         def _arg0():
             """hidden arg0 fixture"""
-        @pytest.fixture
+        @testrunner.fixture
         def arg1():
             """arg1 docstring"""
         def test_arg1(arg1):
@@ -24,7 +24,7 @@ def test_fixtures_in_module(pytester: Pytester) -> None:
     '''
     )
 
-    result = pytester.runpytest("--fixtures-per-test", p)
+    result = testrunnerer.runtestrunner("--fixtures-per-test", p)
     assert result.ret == 0
 
     result.stdout.fnmatch_lines(
@@ -38,24 +38,24 @@ def test_fixtures_in_module(pytester: Pytester) -> None:
     result.stdout.no_fnmatch_line("*_arg0*")
 
 
-def test_fixtures_in_conftest(pytester: Pytester) -> None:
-    pytester.makeconftest(
+def test_fixtures_in_conftest(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest(
         '''
-        import pytest
-        @pytest.fixture
+        import testrunner
+        @testrunner.fixture
         def arg1():
             """arg1 docstring"""
-        @pytest.fixture
+        @testrunner.fixture
         def arg2():
             """arg2 docstring"""
-        @pytest.fixture
+        @testrunner.fixture
         def arg3(arg1, arg2):
             """arg3
             docstring
             """
     '''
     )
-    p = pytester.makepyfile(
+    p = testrunnerer.makepyfile(
         """
         def test_arg2(arg2):
             pass
@@ -63,7 +63,7 @@ def test_fixtures_in_conftest(pytester: Pytester) -> None:
             pass
     """
     )
-    result = pytester.runpytest("--fixtures-per-test", p)
+    result = testrunnerer.runtestrunner("--fixtures-per-test", p)
     assert result.ret == 0
 
     result.stdout.fnmatch_lines(
@@ -84,29 +84,29 @@ def test_fixtures_in_conftest(pytester: Pytester) -> None:
     )
 
 
-def test_should_show_fixtures_used_by_test(pytester: Pytester) -> None:
-    pytester.makeconftest(
+def test_should_show_fixtures_used_by_test(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest(
         '''
-        import pytest
-        @pytest.fixture
+        import testrunner
+        @testrunner.fixture
         def arg1():
             """arg1 from conftest"""
-        @pytest.fixture
+        @testrunner.fixture
         def arg2():
             """arg2 from conftest"""
     '''
     )
-    p = pytester.makepyfile(
+    p = testrunnerer.makepyfile(
         '''
-        import pytest
-        @pytest.fixture
+        import testrunner
+        @testrunner.fixture
         def arg1():
             """arg1 from testmodule"""
         def test_args(arg1, arg2):
             pass
     '''
     )
-    result = pytester.runpytest("--fixtures-per-test", p)
+    result = testrunnerer.runtestrunner("--fixtures-per-test", p)
     assert result.ret == 0
 
     result.stdout.fnmatch_lines(
@@ -121,29 +121,29 @@ def test_should_show_fixtures_used_by_test(pytester: Pytester) -> None:
     )
 
 
-def test_verbose_include_private_fixtures_and_loc(pytester: Pytester) -> None:
-    pytester.makeconftest(
+def test_verbose_include_private_fixtures_and_loc(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest(
         '''
-        import pytest
-        @pytest.fixture
+        import testrunner
+        @testrunner.fixture
         def _arg1():
             """_arg1 from conftest"""
-        @pytest.fixture
+        @testrunner.fixture
         def arg2(_arg1):
             """arg2 from conftest"""
     '''
     )
-    p = pytester.makepyfile(
+    p = testrunnerer.makepyfile(
         '''
-        import pytest
-        @pytest.fixture
+        import testrunner
+        @testrunner.fixture
         def arg3():
             """arg3 from testmodule"""
         def test_args(arg2, arg3):
             pass
     '''
     )
-    result = pytester.runpytest("--fixtures-per-test", "-v", p)
+    result = testrunnerer.runtestrunner("--fixtures-per-test", "-v", p)
     assert result.ret == 0
 
     result.stdout.fnmatch_lines(
@@ -160,8 +160,8 @@ def test_verbose_include_private_fixtures_and_loc(pytester: Pytester) -> None:
     )
 
 
-def test_doctest_items(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_doctest_items(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         '''
         def foo():
             """
@@ -170,13 +170,13 @@ def test_doctest_items(pytester: Pytester) -> None:
             """
     '''
     )
-    pytester.maketxtfile(
+    testrunnerer.maketxtfile(
         """
         >>> 1 + 1
         2
     """
     )
-    result = pytester.runpytest(
+    result = testrunnerer.runtestrunner(
         "--fixtures-per-test", "--doctest-modules", "--doctest-glob=*.txt", "-v"
     )
     assert result.ret == 0
@@ -184,11 +184,11 @@ def test_doctest_items(pytester: Pytester) -> None:
     result.stdout.fnmatch_lines(["*collected 2 items*"])
 
 
-def test_multiline_docstring_in_module(pytester: Pytester) -> None:
-    p = pytester.makepyfile(
+def test_multiline_docstring_in_module(testrunnerer: Testrunnerer) -> None:
+    p = testrunnerer.makepyfile(
         '''
-        import pytest
-        @pytest.fixture
+        import testrunner
+        @testrunner.fixture
         def arg1():
             """Docstring content that spans across multiple lines,
             through second line,
@@ -203,7 +203,7 @@ def test_multiline_docstring_in_module(pytester: Pytester) -> None:
     '''
     )
 
-    result = pytester.runpytest("--fixtures-per-test", p)
+    result = testrunnerer.runtestrunner("--fixtures-per-test", p)
     assert result.ret == 0
 
     result.stdout.fnmatch_lines(
@@ -218,11 +218,11 @@ def test_multiline_docstring_in_module(pytester: Pytester) -> None:
     )
 
 
-def test_verbose_include_multiline_docstring(pytester: Pytester) -> None:
-    p = pytester.makepyfile(
+def test_verbose_include_multiline_docstring(testrunnerer: Testrunnerer) -> None:
+    p = testrunnerer.makepyfile(
         '''
-        import pytest
-        @pytest.fixture
+        import testrunner
+        @testrunner.fixture
         def arg1():
             """Docstring content that spans across multiple lines,
             through second line,
@@ -237,7 +237,7 @@ def test_verbose_include_multiline_docstring(pytester: Pytester) -> None:
     '''
     )
 
-    result = pytester.runpytest("--fixtures-per-test", "-v", p)
+    result = testrunnerer.runtestrunner("--fixtures-per-test", "-v", p)
     assert result.ret == 0
 
     result.stdout.fnmatch_lines(
@@ -256,41 +256,41 @@ def test_verbose_include_multiline_docstring(pytester: Pytester) -> None:
     )
 
 
-def test_should_not_show_direct_param_fixtures(pytester: Pytester) -> None:
+def test_should_not_show_direct_param_fixtures(testrunnerer: Testrunnerer) -> None:
     """A direct-param fixture is a helper fixture created as an implementation
     detail of direct parametrization.
 
     These fixtures should not be included in the output because they don't
     satisfy user expectations for how fixtures are created and used (#11295).
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
-        @pytest.mark.parametrize("x", [1])
+        @testrunner.mark.parametrize("x", [1])
         def test_pseudo_fixture(x):
             pass
         """
     )
-    result = pytester.runpytest("--fixtures-per-test")
+    result = testrunnerer.runtestrunner("--fixtures-per-test")
     result.stdout.no_fnmatch_line("*fixtures used by*")
     assert result.ret == 0
 
 
-def test_should_show_parametrized_fixtures_used_by_test(pytester: Pytester) -> None:
+def test_should_show_parametrized_fixtures_used_by_test(testrunnerer: Testrunnerer) -> None:
     """A fixture with parameters should be included if it was created using
-    the @pytest.fixture decorator, including those that are indirectly
+    the @testrunner.fixture decorator, including those that are indirectly
     parametrized."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         '''
-        import pytest
+        import testrunner
 
-        @pytest.fixture(params=['a', 'b'])
+        @testrunner.fixture(params=['a', 'b'])
         def directly(request):
             """parametrized fixture"""
             return request.param
 
-        @pytest.fixture
+        @testrunner.fixture
         def indirectly(request):
             """indirectly parametrized fixture"""
             return request.param
@@ -298,12 +298,12 @@ def test_should_show_parametrized_fixtures_used_by_test(pytester: Pytester) -> N
         def test_directly_parametrized_fixture(directly):
             pass
 
-        @pytest.mark.parametrize("indirectly", ["a", "b"], indirect=True)
+        @testrunner.mark.parametrize("indirectly", ["a", "b"], indirect=True)
         def test_indirectly_parametrized_fixture(indirectly):
             pass
         '''
     )
-    result = pytester.runpytest("--fixtures-per-test")
+    result = testrunnerer.runtestrunner("--fixtures-per-test")
     assert result.ret == 0
 
     result.stdout.fnmatch_lines(

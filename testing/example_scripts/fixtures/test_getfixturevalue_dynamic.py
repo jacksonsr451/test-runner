@@ -1,20 +1,20 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-@pytest.fixture
+@testrunner.fixture
 def dynamic():
     pass
 
 
-@pytest.fixture
+@testrunner.fixture
 def a(request):
     request.getfixturevalue("dynamic")
 
 
-@pytest.fixture
+@testrunner.fixture
 def b(a):
     pass
 

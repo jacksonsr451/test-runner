@@ -3,19 +3,19 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from _pytest.compat import LEGACY_PATH
-from _pytest.fixtures import TopRequest
-from _pytest.legacypath import TempdirFactory
-from _pytest.legacypath import Testdir
-import pytest
+from _testrunner.compat import LEGACY_PATH
+from _testrunner.fixtures import TopRequest
+from _testrunner.legacypath import TempdirFactory
+from _testrunner.legacypath import Testdir
+import testrunner
 
 
-def test_item_fspath(pytester: pytest.Pytester) -> None:
-    pytester.makepyfile("def test_func(): pass")
-    items, _hookrec = pytester.inline_genitems()
+def test_item_fspath(testrunnerer: testrunner.Testrunnerer) -> None:
+    testrunnerer.makepyfile("def test_func(): pass")
+    items, _hookrec = testrunnerer.inline_genitems()
     assert len(items) == 1
     (item,) = items
-    items2, _hookrec = pytester.inline_genitems(item.nodeid)
+    items2, _hookrec = testrunnerer.inline_genitems(item.nodeid)
     (item2,) = items2
     assert item2.name == item.name
     assert item2.fspath == item.fspath
@@ -37,7 +37,7 @@ def test_testdir_makefile_dot_prefixes_extension_silently(
 
 def test_testdir_makefile_ext_none_raises_type_error(testdir: Testdir) -> None:
     """For backwards compat #8192"""
-    with pytest.raises(TypeError):
+    with testrunner.raises(TypeError):
         testdir.makefile(None, "")
 
 
@@ -53,12 +53,12 @@ def attempt_symlink_to(path: str, to_path: str) -> None:
     try:
         Path(path).symlink_to(Path(to_path))
     except OSError:
-        pytest.skip("could not create symbolic link")
+        testrunner.skip("could not create symbolic link")
 
 
 def test_tmpdir_factory(
     tmpdir_factory: TempdirFactory,
-    tmp_path_factory: pytest.TempPathFactory,
+    tmp_path_factory: testrunner.TempPathFactory,
 ) -> None:
     assert str(tmpdir_factory.getbasetemp()) == str(tmp_path_factory.getbasetemp())
     dir = tmpdir_factory.mktemp("foo")
@@ -69,119 +69,119 @@ def test_tmpdir_equals_tmp_path(tmpdir: LEGACY_PATH, tmp_path: Path) -> None:
     assert Path(tmpdir) == tmp_path
 
 
-def test_tmpdir_always_is_realpath(pytester: pytest.Pytester) -> None:
+def test_tmpdir_always_is_realpath(testrunnerer: testrunner.Testrunnerer) -> None:
     # See test_tmp_path_always_is_realpath.
-    realtemp = pytester.mkdir("myrealtemp")
-    linktemp = pytester.path.joinpath("symlinktemp")
+    realtemp = testrunnerer.mkdir("myrealtemp")
+    linktemp = testrunnerer.path.joinpath("symlinktemp")
     attempt_symlink_to(str(linktemp), str(realtemp))
-    p = pytester.makepyfile(
+    p = testrunnerer.makepyfile(
         """
         def test_1(tmpdir):
             import os
             assert os.path.realpath(str(tmpdir)) == str(tmpdir)
     """
     )
-    result = pytester.runpytest("-s", p, f"--basetemp={linktemp}/bt")
+    result = testrunnerer.runtestrunner("-s", p, f"--basetemp={linktemp}/bt")
     assert not result.ret
 
 
-def test_cache_makedir(cache: pytest.Cache) -> None:
+def test_cache_makedir(cache: testrunner.Cache) -> None:
     dir = cache.makedir("foo")  # type: ignore[attr-defined]
     assert dir.exists()
     dir.remove()
 
 
-def test_fixturerequest_getmodulepath(pytester: pytest.Pytester) -> None:
-    modcol = pytester.getmodulecol("def test_somefunc(): pass")
-    (item,) = pytester.genitems([modcol])
-    assert isinstance(item, pytest.Function)
-    req = TopRequest(item, _ispytest=True)
+def test_fixturerequest_getmodulepath(testrunnerer: testrunner.Testrunnerer) -> None:
+    modcol = testrunnerer.getmodulecol("def test_somefunc(): pass")
+    (item,) = testrunnerer.genitems([modcol])
+    assert isinstance(item, testrunner.Function)
+    req = TopRequest(item, _istestrunner=True)
     assert req.path == modcol.path
     assert req.fspath == modcol.fspath  # type: ignore[attr-defined]
 
 
 class TestFixtureRequestSessionScoped:
-    @pytest.fixture(scope="session")
+    @testrunner.fixture(scope="session")
     @staticmethod
     def session_request(request):
         return request
 
     def test_session_scoped_unavailable_attributes(self, session_request):
-        with pytest.raises(
+        with testrunner.raises(
             AttributeError,
             match="path not available in session-scoped context",
         ):
             _ = session_request.fspath
 
 
-@pytest.mark.parametrize("config_type", ["ini", "toml"])
-def test_addini_paths(pytester: pytest.Pytester, config_type: str) -> None:
-    pytester.makeconftest(
+@testrunner.mark.parametrize("config_type", ["ini", "toml"])
+def test_addini_paths(testrunnerer: testrunner.Testrunnerer, config_type: str) -> None:
+    testrunnerer.makeconftest(
         """
-        def pytest_addoption(parser):
+        def testrunner_addoption(parser):
             parser.addini("paths", "my new ini value", type="pathlist")
             parser.addini("abc", "abc value")
     """
     )
     if config_type == "ini":
-        inipath = pytester.makeini(
+        inipath = testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             paths = hello world/sub.py
             """
         )
     else:
-        inipath = pytester.maketoml(
+        inipath = testrunnerer.maketoml(
             """
-            [pytest]
+            [testrunner]
             paths = ["hello", "world/sub.py"]
             """
         )
-    config = pytester.parseconfig()
+    config = testrunnerer.parseconfig()
     values = config.getini("paths")
     assert len(values) == 2
     assert values[0] == inipath.parent.joinpath("hello")
     assert values[1] == inipath.parent.joinpath("world/sub.py")
-    with pytest.raises(ValueError):
+    with testrunner.raises(ValueError):
         config.getini("other")
 
 
-def test_override_ini_paths(pytester: pytest.Pytester) -> None:
-    pytester.makeconftest(
+def test_override_ini_paths(testrunnerer: testrunner.Testrunnerer) -> None:
+    testrunnerer.makeconftest(
         """
-        def pytest_addoption(parser):
+        def testrunner_addoption(parser):
             parser.addini("paths", "my new ini value", type="pathlist")"""
     )
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         paths=blah.py"""
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         r"""
-        def test_overridden(pytestconfig):
-            config_paths = pytestconfig.getini("paths")
+        def test_overridden(testrunnerconfig):
+            config_paths = testrunnerconfig.getini("paths")
             print(config_paths)
             for cpf in config_paths:
                 print('\nuser_path:%s' % cpf.basename)
         """
     )
-    result = pytester.runpytest("--override-ini", "paths=foo/bar1.py foo/bar2.py", "-s")
+    result = testrunnerer.runtestrunner("--override-ini", "paths=foo/bar1.py foo/bar2.py", "-s")
     result.stdout.fnmatch_lines(["user_path:bar1.py", "user_path:bar2.py"])
 
 
-def test_inifile_from_cmdline_main_hook(pytester: pytest.Pytester) -> None:
-    """Ensure Config.inifile is available during pytest_cmdline_main (#9396)."""
-    p = pytester.makeini(
+def test_inifile_from_cmdline_main_hook(testrunnerer: testrunner.Testrunnerer) -> None:
+    """Ensure Config.inifile is available during testrunner_cmdline_main (#9396)."""
+    p = testrunnerer.makeini(
         """
-        [pytest]
-        """
-    )
-    pytester.makeconftest(
-        """
-        def pytest_cmdline_main(config):
-            print("pytest_cmdline_main inifile =", config.inifile)
+        [testrunner]
         """
     )
-    result = pytester.runpytest_subprocess("-s")
-    result.stdout.fnmatch_lines(f"*pytest_cmdline_main inifile = {p}")
+    testrunnerer.makeconftest(
+        """
+        def testrunner_cmdline_main(config):
+            print("testrunner_cmdline_main inifile =", config.inifile)
+        """
+    )
+    result = testrunnerer.runtestrunner_subprocess("-s")
+    result.stdout.fnmatch_lines(f"*testrunner_cmdline_main inifile = {p}")

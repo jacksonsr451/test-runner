@@ -1,17 +1,17 @@
-pytest-2.8.6
+testrunner-2.8.6
 ============
 
-pytest is a mature Python testing tool with more than 1100 tests
+testrunner is a mature Python testing tool with more than 1100 tests
 against itself, passing on many different interpreters and platforms.
 This release is supposed to be drop-in compatible to 2.8.5.
 
 See below for the changes and see docs at:
 
-    http://pytest.org
+    http://testrunner.org
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed to this release, among them:
 
@@ -32,7 +32,7 @@ Thanks to all who contributed to this release, among them:
 
 
 Happy testing,
-The py.test Development Team
+The testrunner Development Team
 
 
 2.8.6 (compared to 2.8.5)
@@ -40,7 +40,7 @@ The py.test Development Team
 
 - fix #1259: allow for double nodeids in junitxml,
   this was a regression failing plugins combinations
-  like pytest-pep8 + pytest-flakes
+  like testrunner-pep8 + testrunner-flakes
 
 - Workaround for exception that occurs in pyreadline when using
   ``--pdb`` with standard I/O capture enabled.
@@ -56,7 +56,7 @@ The py.test Development Team
   entering pdb when ``--pdb`` is used instead of being thrown away.
   Thanks Cal Leeming for the PR.
 
-- fix #1305: pytest warnings emitted during ``pytest_terminal_summary`` are now
+- fix #1305: testrunner warnings emitted during ``testrunner_terminal_summary`` are now
   properly displayed.
   Thanks Ionel Maries Cristian for the report and Bruno Oliveira for the PR.
 

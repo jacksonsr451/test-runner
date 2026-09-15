@@ -1,17 +1,17 @@
-pytest-2.8.3: bug fixes
+testrunner-2.8.3: bug fixes
 =======================
 
-pytest is a mature Python testing tool with more than 1100 tests
+testrunner is a mature Python testing tool with more than 1100 tests
 against itself, passing on many different interpreters and platforms.
 This release is supposed to be drop-in compatible to 2.8.2.
 
 See below for the changes and see docs at:
 
-    http://pytest.org
+    http://testrunner.org
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed to this release, among them:
 
@@ -28,7 +28,7 @@ Thanks to all who contributed to this release, among them:
         William Martin Stewart
 
 Happy testing,
-The py.test Development Team
+The testrunner Development Team
 
 
 2.8.3 (compared to 2.8.2)
@@ -54,5 +54,5 @@ The py.test Development Team
 
 - add more talks to the documentation
 - extend documentation on the --ignore cli option
-- use pytest-runner for setuptools integration
+- use testrunner-runner for setuptools integration
 - minor fixes for interaction with OS X El Capitan system integrity protection (thanks Florian)

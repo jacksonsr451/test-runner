@@ -11,9 +11,9 @@ import shutil
 import sys
 from unittest import mock
 
-from _pytest._io import terminalwriter
-from _pytest.monkeypatch import MonkeyPatch
-import pytest
+from _testrunner._io import terminalwriter
+from _testrunner.monkeypatch import MonkeyPatch
+import testrunner
 
 
 # These tests were initially copied from py 1.8.1.
@@ -67,7 +67,7 @@ win32 = int(sys.platform == "win32")
 
 
 class TestTerminalWriter:
-    @pytest.fixture(params=["path", "stringio"])
+    @testrunner.fixture(params=["path", "stringio"])
     def tw(self, request, tmp_path: Path) -> Generator[terminalwriter.TerminalWriter]:
         f: io.TextIOWrapper | StringIO
         if request.param == "path":
@@ -124,17 +124,17 @@ class TestTerminalWriter:
         # even though the string is wider than the line, still have a separator
         assert line == "- aaaaaaaaaa -\n"
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="win32 has no native ansi")
-    @pytest.mark.parametrize("bold", (True, False))
-    @pytest.mark.parametrize("color", ("red", "green"))
+    @testrunner.mark.skipif(sys.platform == "win32", reason="win32 has no native ansi")
+    @testrunner.mark.parametrize("bold", (True, False))
+    @testrunner.mark.parametrize("color", ("red", "green"))
     def test_markup(self, tw, bold: bool, color: str) -> None:
         text = tw.markup("hello", **{color: True, "bold": bold})
         assert "hello" in text
 
     def test_markup_bad(self, tw) -> None:
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             tw.markup("x", wronkw=3)
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             tw.markup("x", wronkw=0)
 
     def test_line_write_markup(self, tw) -> None:
@@ -154,7 +154,7 @@ class TestTerminalWriter:
         assert len(lines[0]) == len(lines[1])
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="win32 has no native ansi")
+@testrunner.mark.skipif(sys.platform == "win32", reason="win32 has no native ansi")
 def test_attr_hasmarkup() -> None:
     file = io.StringIO()
     tw = terminalwriter.TerminalWriter(file)
@@ -204,7 +204,7 @@ def test_should_do_markup_FORCE_COLOR(monkeypatch: MonkeyPatch) -> None:
     assert_color(True)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ["NO_COLOR", "FORCE_COLOR", "expected"],
     [
         ("1", "1", False),
@@ -266,28 +266,28 @@ class TestTerminalWriterLineWidth:
         assert tw.width_of_current_line == 9
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("has_markup", "code_highlight", "expected"),
     [
-        pytest.param(
+        testrunner.param(
             True,
             True,
             "{reset}{kw}assert{hl-reset} {number}0{hl-reset}{endline}\n",
             id="with markup and code_highlight",
         ),
-        pytest.param(
+        testrunner.param(
             True,
             False,
             "assert 0\n",
             id="with markup but no code_highlight",
         ),
-        pytest.param(
+        testrunner.param(
             False,
             True,
             "assert 0\n",
             id="without markup but with code_highlight",
         ),
-        pytest.param(
+        testrunner.param(
             False,
             False,
             "assert 0\n",
@@ -304,7 +304,7 @@ def test_code_highlight(has_markup, code_highlight, expected, color_mapping):
 
     assert f.getvalue().splitlines(keepends=True) == color_mapping.format([expected])
 
-    with pytest.raises(
+    with testrunner.raises(
         ValueError,
         match=re.escape("indents size (2) should have same size as lines (1)"),
     ):

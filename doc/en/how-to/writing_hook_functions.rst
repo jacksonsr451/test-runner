@@ -9,35 +9,35 @@ Writing hook functions
 hook function validation and execution
 --------------------------------------
 
-pytest calls hook functions from registered plugins for any
+testrunner calls hook functions from registered plugins for any
 given hook specification.  Let's look at a typical hook function
-for the ``pytest_collection_modifyitems(session, config,
-items)`` hook which pytest calls after collection of all test items is
+for the ``testrunner_collection_modifyitems(session, config,
+items)`` hook which testrunner calls after collection of all test items is
 completed.
 
-When we implement a ``pytest_collection_modifyitems`` function in our plugin
-pytest will during registration verify that you use argument
+When we implement a ``testrunner_collection_modifyitems`` function in our plugin
+testrunner will during registration verify that you use argument
 names which match the specification and bail out if not.
 
 Let's look at a possible implementation:
 
 .. code-block:: python
 
-    def pytest_collection_modifyitems(config, items):
+    def testrunner_collection_modifyitems(config, items):
         # called after collection is completed
         # you can modify the ``items`` list
         ...
 
-Here, ``pytest`` will pass in ``config`` (the pytest config object)
+Here, ``testrunner`` will pass in ``config`` (the testrunner config object)
 and ``items`` (the list of collected test items) but will not pass
 in the ``session`` argument because we didn't list it in the function
-signature.  This dynamic "pruning" of arguments allows ``pytest`` to
+signature.  This dynamic "pruning" of arguments allows ``testrunner`` to
 be "future-compatible": we can introduce new hook named parameters without
 breaking the signatures of existing hook implementations.  It is one of
-the reasons for the general long-lived compatibility of pytest plugins.
+the reasons for the general long-lived compatibility of testrunner plugins.
 
-Note that hook functions other than ``pytest_runtest_*`` are not
-allowed to raise exceptions.  Doing so will break the pytest run.
+Note that hook functions other than ``testrunner_runtest_*`` are not
+allowed to raise exceptions.  Doing so will break the testrunner run.
 
 
 
@@ -46,7 +46,7 @@ allowed to raise exceptions.  Doing so will break the pytest run.
 firstresult: stop at first non-None result
 -------------------------------------------
 
-Most calls to ``pytest`` hooks result in a **list of results** which contains
+Most calls to ``testrunner`` hooks result in a **list of results** which contains
 all non-None results of the called hook functions.
 
 Some hook specifications use the ``firstresult=True`` option so that the hook
@@ -59,12 +59,12 @@ The remaining hook functions will not be called in this case.
 hook wrappers: executing around other hooks
 -------------------------------------------------
 
-pytest plugins can implement hook wrappers which wrap the execution
+testrunner plugins can implement hook wrappers which wrap the execution
 of other hook implementations.  A hook wrapper is a generator function
-which yields exactly once. When pytest invokes hooks it first executes
+which yields exactly once. When testrunner invokes hooks it first executes
 hook wrappers and passes the same arguments as to the regular hooks.
 
-At the yield point of the hook wrapper pytest will execute the next hook
+At the yield point of the hook wrapper testrunner will execute the next hook
 implementations and return their result to the yield point, or will
 propagate an exception if they raised.
 
@@ -72,11 +72,11 @@ Here is an example definition of a hook wrapper:
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
-    @pytest.hookimpl(wrapper=True)
-    def pytest_pyfunc_call(pyfuncitem):
+    @testrunner.hookimpl(wrapper=True)
+    def testrunner_pyfunc_call(pyfuncitem):
         do_something_before_next_hook_executes()
 
         # If the outcome is an exception, will raise the exception.
@@ -119,22 +119,22 @@ after others, i.e.  the position in the ``N``-sized list of functions:
 .. code-block:: python
 
     # Plugin 1
-    @pytest.hookimpl(tryfirst=True)
-    def pytest_collection_modifyitems(items):
+    @testrunner.hookimpl(tryfirst=True)
+    def testrunner_collection_modifyitems(items):
         # will execute as early as possible
         ...
 
 
     # Plugin 2
-    @pytest.hookimpl(trylast=True)
-    def pytest_collection_modifyitems(items):
+    @testrunner.hookimpl(trylast=True)
+    def testrunner_collection_modifyitems(items):
         # will execute as late as possible
         ...
 
 
     # Plugin 3
-    @pytest.hookimpl(wrapper=True)
-    def pytest_collection_modifyitems(items):
+    @testrunner.hookimpl(wrapper=True)
+    def testrunner_collection_modifyitems(items):
         # will execute even before the tryfirst one above!
         try:
             return (yield)
@@ -144,17 +144,17 @@ after others, i.e.  the position in the ``N``-sized list of functions:
 
 Here is the order of execution:
 
-1. Plugin3's pytest_collection_modifyitems called until the yield point
+1. Plugin3's testrunner_collection_modifyitems called until the yield point
    because it is a hook wrapper.
 
-2. Plugin1's pytest_collection_modifyitems is called because it is marked
+2. Plugin1's testrunner_collection_modifyitems is called because it is marked
    with ``tryfirst=True``.
 
-3. Plugin2's pytest_collection_modifyitems is called because it is marked
+3. Plugin2's testrunner_collection_modifyitems is called because it is marked
    with ``trylast=True`` (but even without this mark it would come after
    Plugin1).
 
-4. Plugin3's pytest_collection_modifyitems then executing the code after the yield
+4. Plugin3's testrunner_collection_modifyitems then executing the code after the yield
    point.  The yield receives the result from calling the non-wrappers, or raises
    an exception if the non-wrappers raised.
 
@@ -163,13 +163,13 @@ in which case it will influence the ordering of hook wrappers among each other.
 
 .. note::
 
-    pytest only searches for hook implementations whose names start with
-    ``pytest_``.  The ``specname`` argument to ``@pytest.hookimpl`` can be used
+    testrunner only searches for hook implementations whose names start with
+    ``testrunner_``.  The ``specname`` argument to ``@testrunner.hookimpl`` can be used
     to give an implementation a different suffix, for example
-    ``pytest_collection_modifyitems_tryfirst``, but the function name still
-    needs to start with ``pytest_``.  A hook implementation named
+    ``testrunner_collection_modifyitems_tryfirst``, but the function name still
+    needs to start with ``testrunner_``.  A hook implementation named
     ``my_collection_modifyitems`` is ignored even if it is decorated with
-    ``@pytest.hookimpl(specname="pytest_collection_modifyitems")``.
+    ``@testrunner.hookimpl(specname="testrunner_collection_modifyitems")``.
 
 .. _`declaringhooks`:
 
@@ -185,61 +185,61 @@ Plugins and ``conftest.py`` files may declare new hooks that can then be
 implemented by other plugins in order to alter behaviour or interact with
 the new plugin:
 
-.. autofunction:: _pytest.hookspec.pytest_addhooks
+.. autofunction:: _testrunner.hookspec.testrunner_addhooks
     :noindex:
 
 Hooks are usually declared as do-nothing functions that contain only
 documentation describing when the hook will be called and what return values
-are expected. The names of the functions must start with `pytest_` otherwise pytest won't recognize them.
+are expected. The names of the functions must start with `testrunner_` otherwise testrunner won't recognize them.
 
 Here's an example. Let's assume this code is in the ``sample_hook.py`` module.
 
 .. code-block:: python
 
-    def pytest_my_hook(config):
+    def testrunner_my_hook(config):
         """
-        Receives the pytest config and does things with it
+        Receives the testrunner config and does things with it
         """
 
-To register the hooks with pytest they need to be structured in their own module or class. This
-class or module can then be passed to the ``pluginmanager`` using the ``pytest_addhooks`` function
-(which itself is a hook exposed by pytest).
+To register the hooks with testrunner they need to be structured in their own module or class. This
+class or module can then be passed to the ``pluginmanager`` using the ``testrunner_addhooks`` function
+(which itself is a hook exposed by testrunner).
 
 .. code-block:: python
 
-    def pytest_addhooks(pluginmanager):
+    def testrunner_addhooks(pluginmanager):
         """This example assumes the hooks are grouped in the 'sample_hook' module."""
         from my_app.tests import sample_hook
 
         pluginmanager.add_hookspecs(sample_hook)
 
-For a real world example, see `newhooks.py`_ from `xdist <https://github.com/pytest-dev/pytest-xdist>`_.
+For a real world example, see `newhooks.py`_ from `xdist <https://github.com/jacksonsr451/test-runner-xdist>`_.
 
-.. _`newhooks.py`: https://github.com/pytest-dev/pytest-xdist/blob/v3.8.0/src/xdist/newhooks.py
+.. _`newhooks.py`: https://github.com/jacksonsr451/test-runner-xdist/blob/v3.8.0/src/xdist/newhooks.py
 
 Hooks may be called both from fixtures or from other hooks. In both cases, hooks are called
 through the ``hook`` object, available in the ``config`` object. Most hooks receive a
-``config`` object directly, while fixtures may use the ``pytestconfig`` fixture which provides the same object.
+``config`` object directly, while fixtures may use the ``testrunnerconfig`` fixture which provides the same object.
 
 .. code-block:: python
 
-    @pytest.fixture()
-    def my_fixture(pytestconfig):
-        # call the hook called "pytest_my_hook"
+    @testrunner.fixture()
+    def my_fixture(testrunnerconfig):
+        # call the hook called "testrunner_my_hook"
         # 'result' will be a list of return values from all registered functions.
-        result = pytestconfig.hook.pytest_my_hook(config=pytestconfig)
+        result = testrunnerconfig.hook.testrunner_my_hook(config=testrunnerconfig)
 
 .. note::
     Hooks receive parameters using only keyword arguments.
 
 Now your hook is ready to be used. To register a function at the hook, other plugins or users must
-now simply define the function ``pytest_my_hook`` with the correct signature in their ``conftest.py``.
+now simply define the function ``testrunner_my_hook`` with the correct signature in their ``conftest.py``.
 
 Example:
 
 .. code-block:: python
 
-    def pytest_my_hook(config):
+    def testrunner_my_hook(config):
         """
         Print all active hooks to the screen.
         """
@@ -247,7 +247,7 @@ Example:
 
 .. note::
 
-    Unlike other hooks, the :hook:`pytest_generate_tests` hook is also discovered when
+    Unlike other hooks, the :hook:`testrunner_generate_tests` hook is also discovered when
     defined inside a test module or test class. Other hooks must live in
     :ref:`conftest.py plugins <localplugin>` or external plugins.
     See :ref:`parametrize-basics` and the :ref:`hook-reference`.
@@ -255,7 +255,7 @@ Example:
 .. _`addoptionhooks`:
 
 
-Using hooks in pytest_addoption
+Using hooks in testrunner_addoption
 -------------------------------
 
 Occasionally, it is necessary to change the way in which command line options
@@ -263,7 +263,7 @@ are defined by one plugin based on hooks in another plugin. For example,
 a plugin may expose a command line option for which another plugin needs
 to define the default value. The pluginmanager can be used to install and
 use hooks to accomplish this. The plugin would define and add the hooks
-and use pytest_addoption as follows:
+and use testrunner_addoption as follows:
 
 .. code-block:: python
 
@@ -273,22 +273,22 @@ and use pytest_addoption as follows:
    # Use firstresult=True because we only want one plugin to define this
    # default value
    @hookspec(firstresult=True)
-   def pytest_config_file_default_value():
+   def testrunner_config_file_default_value():
        """Return the default value for the config file command line option."""
 
 
    # contents of myplugin.py
 
 
-   def pytest_addhooks(pluginmanager):
+   def testrunner_addhooks(pluginmanager):
        """This example assumes the hooks are grouped in the 'hooks' module."""
        from . import hooks
 
        pluginmanager.add_hookspecs(hooks)
 
 
-   def pytest_addoption(parser, pluginmanager):
-       default_value = pluginmanager.hook.pytest_config_file_default_value()
+   def testrunner_addoption(parser, pluginmanager):
+       default_value = pluginmanager.hook.testrunner_config_file_default_value()
        parser.addoption(
            "--config-file",
            help="Config file to use, defaults to %(default)s",
@@ -303,28 +303,28 @@ option) could then define the hook implementation to provide the default value:
     # contents of third_party_plugin.py
 
 
-    def pytest_config_file_default_value():
+    def testrunner_config_file_default_value():
         return "config.yaml"
 
 .. note::
 
     **Hook implementations in conftest.py files are not available to other plugins during**
-    **their** ``pytest_addoption()`` **execution**. This is because conftest.py files are
+    **their** ``testrunner_addoption()`` **execution**. This is because conftest.py files are
     discovered and loaded *after* builtin plugins, third-party plugins, and command-line
     plugins have already been initialized (including the execution of their
-    ``pytest_addoption()`` hooks).
+    ``testrunner_addoption()`` hooks).
 
     However, :ref:`initial conftest files <pluginorder>` themselves *can* implement
-    ``pytest_addoption()`` to add their own command-line options. When an initial conftest
-    is loaded, its ``pytest_addoption()`` hook will be called immediately.
+    ``testrunner_addoption()`` to add their own command-line options. When an initial conftest
+    is loaded, its ``testrunner_addoption()`` hook will be called immediately.
 
-    During a plugin's ``pytest_addoption()`` execution, only hook implementations from
+    During a plugin's ``testrunner_addoption()`` execution, only hook implementations from
     plugins that were loaded earlier will be available. These include:
 
     * builtin plugins
     * plugins explicitly loaded with ``-p`` on the command line
     * installed third-party plugins (via setuptools entry points)
-    * plugins specified via the ``PYTEST_PLUGINS`` environment variable
+    * plugins specified via the ``TESTRUNNER_PLUGINS`` environment variable
 
     See :ref:`pluginorder` for the complete plugin discovery order.
 
@@ -346,13 +346,13 @@ declaring the hook functions directly in your plugin module, for example:
 
 
     class DeferPlugin:
-        """Simple plugin to defer pytest-xdist hook functions."""
+        """Simple plugin to defer testrunner-xdist hook functions."""
 
-        def pytest_testnodedown(self, node, error):
+        def testrunner_testnodedown(self, node, error):
             """standard xdist hook function."""
 
 
-    def pytest_configure(config):
+    def testrunner_configure(config):
         if config.pluginmanager.hasplugin("xdist"):
             config.pluginmanager.register(DeferPlugin())
 
@@ -364,25 +364,25 @@ depending on which plugins are installed.
 Storing data on items across hook functions
 -------------------------------------------
 
-Plugins often need to store data on :class:`~pytest.Item`\s in one hook
+Plugins often need to store data on :class:`~testrunner.Item`\s in one hook
 implementation, and access it in another. One common solution is to just
 assign some private attribute directly on the item, but type-checkers like
 mypy frown upon this, and it may also cause conflicts with other plugins.
-So pytest offers a better way to do this, :attr:`item.stash <_pytest.nodes.Node.stash>`.
+So testrunner offers a better way to do this, :attr:`item.stash <_testrunner.nodes.Node.stash>`.
 
 To use the "stash" in your plugins, first create "stash keys" somewhere at the
 top level of your plugin:
 
 .. code-block:: python
 
-    been_there_key = pytest.StashKey[bool]()
-    done_that_key = pytest.StashKey[str]()
+    been_there_key = testrunner.StashKey[bool]()
+    done_that_key = testrunner.StashKey[str]()
 
 then use the keys to stash your data at some point:
 
 .. code-block:: python
 
-    def pytest_runtest_setup(item: pytest.Item) -> None:
+    def testrunner_runtest_setup(item: testrunner.Item) -> None:
         item.stash[been_there_key] = True
         item.stash[done_that_key] = "no"
 
@@ -390,10 +390,10 @@ and retrieve them at another point:
 
 .. code-block:: python
 
-    def pytest_runtest_teardown(item: pytest.Item) -> None:
+    def testrunner_runtest_teardown(item: testrunner.Item) -> None:
         if not item.stash[been_there_key]:
             print("Oh?")
         item.stash[done_that_key] = "yes!"
 
-Stashes are available on all node types (like :class:`~pytest.Class`,
-:class:`~pytest.Session`) and also on :class:`~pytest.Config`, if needed.
+Stashes are available on all node types (like :class:`~testrunner.Class`,
+:class:`~testrunner.Session`) and also on :class:`~testrunner.Config`, if needed.

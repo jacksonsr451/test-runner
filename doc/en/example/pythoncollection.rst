@@ -5,7 +5,7 @@ Ignore paths during test collection
 -----------------------------------
 
 You can easily ignore certain test directories and modules during collection
-by passing the :option:`--ignore=path` option on the cli. ``pytest`` allows multiple
+by passing the :option:`--ignore=path` option on the cli. ``testrunner`` allows multiple
 ``--ignore`` options. Example:
 
 .. code-block:: text
@@ -25,13 +25,13 @@ by passing the :option:`--ignore=path` option on the cli. ``pytest`` allows mult
             |-- test_world_02.py
             '-- test_world_03.py
 
-Now if you invoke ``pytest`` with ``--ignore=tests/foobar/test_foobar_03.py --ignore=tests/hello/``,
-you will see that ``pytest`` only collects test-modules, which do not match the patterns specified:
+Now if you invoke ``testrunner`` with ``--ignore=tests/foobar/test_foobar_03.py --ignore=tests/hello/``,
+you will see that ``testrunner`` only collects test-modules, which do not match the patterns specified:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-5.x.y, py-1.x.y, pluggy-0.x.y
+    platform linux -- Python 3.x.y, testrunner-5.x.y, py-1.x.y, pluggy-0.x.y
     rootdir: $REGENDOC_TMPDIR, inifile:
     collected 5 items
 
@@ -44,7 +44,7 @@ you will see that ``pytest`` only collects test-modules, which do not match the 
     ========================= 5 passed in 0.02 seconds =========================
 
 The :option:`--ignore-glob` option allows to ignore test file paths based on Unix shell-style wildcards.
-If you want to exclude test-modules that end with ``_01.py``, execute ``pytest`` with :option:`--ignore-glob='*_01.py'`.
+If you want to exclude test-modules that end with ``_01.py``, execute ``testrunner`` with :option:`--ignore-glob='*_01.py'`.
 
 Deselect tests during test collection
 -------------------------------------
@@ -52,20 +52,20 @@ Deselect tests during test collection
 Tests can individually be deselected during collection by passing the :option:`--deselect=item` option.
 For example, say ``tests/foobar/test_foobar_01.py`` contains ``test_a`` and ``test_b``.
 You can run all of the tests within ``tests/`` *except* for ``tests/foobar/test_foobar_01.py::test_a``
-by invoking ``pytest`` with ``--deselect=tests/foobar/test_foobar_01.py::test_a``.
-``pytest`` allows multiple ``--deselect`` options.
+by invoking ``testrunner`` with ``--deselect=tests/foobar/test_foobar_01.py::test_a``.
+``testrunner`` allows multiple ``--deselect`` options.
 
 .. _duplicate-paths:
 
 Keeping duplicate paths specified from command line
 ----------------------------------------------------
 
-Default behavior of ``pytest`` is to ignore duplicate paths specified from the command line.
+Default behavior of ``testrunner`` is to ignore duplicate paths specified from the command line.
 Example:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    pytest path_a path_a
+    testrunner path_a path_a
 
     ...
     collected 1 item
@@ -76,9 +76,9 @@ Just collect tests once.
 To collect duplicate tests, use the :option:`--keep-duplicates` option on the cli.
 Example:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    pytest --keep-duplicates path_a path_a
+    testrunner --keep-duplicates path_a path_a
 
     ...
     collected 2 items
@@ -92,11 +92,11 @@ You can set the :confval:`norecursedirs` option in a configuration file:
 
 .. code-block:: toml
 
-    # content of pytest.toml
-    [pytest]
+    # content of testrunner.toml
+    [testrunner]
     norecursedirs = [".svn", "_build", "tmp*"]
 
-This would tell ``pytest`` to not recurse into typical subversion or sphinx-build directories or into any ``tmp`` prefixed directory.
+This would tell ``testrunner`` to not recurse into typical subversion or sphinx-build directories or into any ``tmp`` prefixed directory.
 
 .. _`change naming conventions`:
 
@@ -110,14 +110,14 @@ Here is an example:
 
 .. code-block:: toml
 
-    # content of pytest.toml
-    # Example 1: have pytest look for "check" instead of "test"
-    [pytest]
+    # content of testrunner.toml
+    # Example 1: have testrunner look for "check" instead of "test"
+    [testrunner]
     python_files = ["check_*.py"]
     python_classes = ["Check"]
     python_functions = ["*_check"]
 
-This would make ``pytest`` look for tests in files that match the ``check_*
+This would make ``testrunner`` look for tests in files that match the ``check_*
 .py`` glob-pattern, ``Check`` prefixes in classes, and functions and methods
 that match ``*_check``. For example, if we have:
 
@@ -133,13 +133,13 @@ that match ``*_check``. For example, if we have:
 
 The test collection would look like this:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest --collect-only
+    $ testrunner --collect-only
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
-    configfile: pytest.toml
+    configfile: testrunner.toml
     collected 2 items
 
     <Dir pythoncollection.rst-216>
@@ -154,28 +154,28 @@ You can check for multiple glob patterns by adding a space between the patterns:
 
 .. code-block:: toml
 
-    # content of pytest.toml
-    # Example 2: have pytest look for files with "test" and "example"
-    [pytest]
+    # content of testrunner.toml
+    # Example 2: have testrunner look for files with "test" and "example"
+    [testrunner]
     python_files = ["test_*.py", "example_*.py"]
 
 .. note::
 
    the ``python_functions`` and ``python_classes`` options have no effect
-   for ``unittest.TestCase`` test discovery because pytest delegates
+   for ``unittest.TestCase`` test discovery because testrunner delegates
    discovery of test case methods to unittest code.
 
 Interpreting cmdline arguments as Python packages
 -----------------------------------------------------
 
-You can use the :option:`--pyargs` option to make ``pytest`` try
+You can use the :option:`--pyargs` option to make ``testrunner`` try
 interpreting arguments as python package names, deriving
 their file system path and then running the test. For
 example if you have unittest2 installed you can type:
 
 .. code-block:: bash
 
-    pytest --pyargs unittest2.test.test_skipping -q
+    testrunner --pyargs unittest2.test.test_skipping -q
 
 which would run the respective test module.  Like with
 other options, through a configuration file and the :confval:`addopts` option you
@@ -183,11 +183,11 @@ can make this change more permanently:
 
 .. code-block:: toml
 
-    # content of pytest.toml
-    [pytest]
+    # content of testrunner.toml
+    [testrunner]
     addopts = ["--pyargs"]
 
-Now a simple invocation of ``pytest NAME`` will check
+Now a simple invocation of ``testrunner NAME`` will check
 if NAME exists as an importable package/module and otherwise
 treat it as a filesystem path.
 
@@ -196,13 +196,13 @@ Finding out what is collected
 
 You can always peek at the collection tree without running tests like this:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    . $ pytest --collect-only pythoncollection.py
+    . $ testrunner --collect-only pythoncollection.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
-    configfile: pytest.toml
+    configfile: testrunner.toml
     collected 3 items
 
     <Dir pythoncollection.rst-216>
@@ -222,12 +222,12 @@ Customizing test collection
 
 .. regendoc:wipe
 
-You can easily instruct ``pytest`` to discover tests from every Python file:
+You can easily instruct ``testrunner`` to discover tests from every Python file:
 
 .. code-block:: toml
 
-    # content of pytest.toml
-    [pytest]
+    # content of testrunner.toml
+    [testrunner]
     python_files = ["*.py"]
 
 However, many projects will have a ``setup.py`` which they don't want to be
@@ -265,12 +265,12 @@ and a ``setup.py`` dummy file like this:
 If you run with a Python 2 interpreter then you will find the one test and will
 leave out the ``setup.py`` file:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    #$ pytest --collect-only
+    #$ testrunner --collect-only
     ====== test session starts ======
-    platform linux2 -- Python 2.7.10, pytest-2.9.1, py-1.4.31, pluggy-0.3.1
-    rootdir: $REGENDOC_TMPDIR, inifile: pytest.ini
+    platform linux2 -- Python 2.7.10, testrunner-2.9.1, py-1.4.31, pluggy-0.3.1
+    rootdir: $REGENDOC_TMPDIR, inifile: testrunner.ini
     collected 1 items
     <Module 'pkg/module_py2.py'>
       <Function 'test_only_on_python2'>
@@ -280,13 +280,13 @@ leave out the ``setup.py`` file:
 If you run with a Python 3 interpreter both the one test and the ``setup.py``
 file will be left out:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest --collect-only
+    $ testrunner --collect-only
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
-    configfile: pytest.toml
+    configfile: testrunner.toml
     collected 0 items
 
     ======================= no tests collected in 0.12s ========================
@@ -307,7 +307,7 @@ interpreter:
     if sys.version_info[0] > 2:
         collect_ignore_glob = ["*_py2.py"]
 
-Since Pytest 2.6, users can prevent pytest from discovering classes that start
+Since Testrunner 2.6, users can prevent testrunner from discovering classes that start
 with ``Test`` by setting a boolean ``__test__`` attribute to ``False``.
 
 .. code-block:: python

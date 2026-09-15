@@ -1,16 +1,16 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-from _pytest.config import ExitCode
-from _pytest.config.exceptions import UsageError
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.config import ExitCode
+from _testrunner.config.exceptions import UsageError
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
 class SessionTests:
-    def test_basic_testitem_events(self, pytester: Pytester) -> None:
-        tfile = pytester.makepyfile(
+    def test_basic_testitem_events(self, testrunnerer: Testrunnerer) -> None:
+        tfile = testrunnerer.makepyfile(
             """
             def test_one():
                 pass
@@ -23,7 +23,7 @@ class SessionTests:
                     pass
         """
         )
-        reprec = pytester.inline_run(tfile)
+        reprec = testrunnerer.inline_run(tfile)
         passed, skipped, failed = reprec.listoutcomes()
         assert len(skipped) == 0
         assert len(passed) == 1
@@ -34,15 +34,15 @@ class SessionTests:
 
         assert end(failed[0]) == "test_one_one"
         assert end(failed[1]) == "test_other"
-        itemstarted = reprec.getcalls("pytest_itemcollected")
+        itemstarted = reprec.getcalls("testrunner_itemcollected")
         assert len(itemstarted) == 4
         # XXX check for failing funcarg setup
-        # colreports = reprec.getcalls("pytest_collectreport")
+        # colreports = reprec.getcalls("testrunner_collectreport")
         # assert len(colreports) == 4
         # assert colreports[1].report.failed
 
-    def test_nested_import_error(self, pytester: Pytester) -> None:
-        tfile = pytester.makepyfile(
+    def test_nested_import_error(self, testrunnerer: Testrunnerer) -> None:
+        tfile = testrunnerer.makepyfile(
             """
             import import_fails
             def test_this():
@@ -53,18 +53,18 @@ class SessionTests:
             a = 1
         """,
         )
-        reprec = pytester.inline_run(tfile)
+        reprec = testrunnerer.inline_run(tfile)
         values = reprec.getfailedcollections()
         assert len(values) == 1
         out = str(values[0].longrepr)
         assert out.find("does_not_work") != -1
 
-    def test_raises_output(self, pytester: Pytester) -> None:
-        reprec = pytester.inline_runsource(
+    def test_raises_output(self, testrunnerer: Testrunnerer) -> None:
+        reprec = testrunnerer.inline_runsource(
             """
-            import pytest
+            import testrunner
             def test_raises_doesnt():
-                with pytest.raises(ValueError):
+                with testrunner.raises(ValueError):
                     int("3")
         """
         )
@@ -73,15 +73,15 @@ class SessionTests:
         out = failed[0].longrepr.reprcrash.message  # type: ignore[union-attr]
         assert "DID NOT RAISE" in out
 
-    def test_syntax_error_module(self, pytester: Pytester) -> None:
-        reprec = pytester.inline_runsource("this is really not python")
+    def test_syntax_error_module(self, testrunnerer: Testrunnerer) -> None:
+        reprec = testrunnerer.inline_runsource("this is really not python")
         values = reprec.getfailedcollections()
         assert len(values) == 1
         out = str(values[0].longrepr)
         assert out.find("not python") != -1
 
-    def test_exit_first_problem(self, pytester: Pytester) -> None:
-        reprec = pytester.inline_runsource(
+    def test_exit_first_problem(self, testrunnerer: Testrunnerer) -> None:
+        reprec = testrunnerer.inline_runsource(
             """
             def test_one(): assert 0
             def test_two(): assert 0
@@ -92,8 +92,8 @@ class SessionTests:
         assert failed == 1
         assert passed == skipped == 0
 
-    def test_maxfail(self, pytester: Pytester) -> None:
-        reprec = pytester.inline_runsource(
+    def test_maxfail(self, testrunnerer: Testrunnerer) -> None:
+        reprec = testrunnerer.inline_runsource(
             """
             def test_one(): assert 0
             def test_two(): assert 0
@@ -105,10 +105,10 @@ class SessionTests:
         assert failed == 2
         assert passed == skipped == 0
 
-    def test_broken_repr(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_broken_repr(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
 
             class reprexc(BaseException):
                 def __str__(self):
@@ -122,7 +122,7 @@ class SessionTests:
             class TestBrokenClass(object):
                 def test_explicit_bad_repr(self):
                     t = BrokenRepr1()
-                    with pytest.raises(BaseException, match="broken repr"):
+                    with testrunner.raises(BaseException, match="broken repr"):
                         repr(t)
 
                 def test_implicit_bad_repr1(self):
@@ -131,14 +131,14 @@ class SessionTests:
 
         """
         )
-        reprec = pytester.inline_run(p)
+        reprec = testrunnerer.inline_run(p)
         passed, skipped, failed = reprec.listoutcomes()
         assert (len(passed), len(skipped), len(failed)) == (1, 0, 1)
         out = failed[0].longrepr.reprcrash.message  # type: ignore[union-attr]
         assert out.find("<[reprexc() raised in repr()] BrokenRepr1") != -1
 
-    def test_broken_repr_with_showlocals_verbose(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_broken_repr_with_showlocals_verbose(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             """
             class ObjWithErrorInRepr:
                 def __repr__(self):
@@ -149,7 +149,7 @@ class SessionTests:
                 assert x == "value"
         """
         )
-        reprec = pytester.inline_run("--showlocals", "-vv", p)
+        reprec = testrunnerer.inline_run("--showlocals", "-vv", p)
         passed, skipped, failed = reprec.listoutcomes()
         assert (len(passed), len(skipped), len(failed)) == (0, 0, 1)
         entries = failed[0].longrepr.reprtraceback.reprentries  # type: ignore[union-attr]
@@ -161,30 +161,30 @@ class SessionTests:
             "x          = <[NotImplementedError() raised in repr()] ObjWithErrorInRepr"
         )
 
-    def test_skip_file_by_conftest(self, pytester: Pytester) -> None:
-        pytester.makepyfile(
+    def test_skip_file_by_conftest(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(
             conftest="""
-            import pytest
-            def pytest_collect_file():
-                pytest.skip("intentional")
+            import testrunner
+            def testrunner_collect_file():
+                testrunner.skip("intentional")
         """,
             test_file="""
             def test_one(): pass
         """,
         )
         try:
-            reprec = pytester.inline_run(pytester.path)
-        except pytest.skip.Exception:  # pragma: no cover
-            pytest.fail("wrong skipped caught")
-        reports = reprec.getreports("pytest_collectreport")
+            reprec = testrunnerer.inline_run(testrunnerer.path)
+        except testrunner.skip.Exception:  # pragma: no cover
+            testrunner.fail("wrong skipped caught")
+        reports = reprec.getreports("testrunner_collectreport")
         # Session, Dir
         assert len(reports) == 2
         assert reports[1].skipped
 
 
 class TestNewSession(SessionTests):
-    def test_order_of_execution(self, pytester: Pytester) -> None:
-        reprec = pytester.inline_runsource(
+    def test_order_of_execution(self, testrunnerer: Testrunnerer) -> None:
+        reprec = testrunnerer.inline_runsource(
             """
             values = []
             def test_1():
@@ -209,8 +209,8 @@ class TestNewSession(SessionTests):
         assert failed == skipped == 0
         assert passed == 7
 
-    def test_collect_only_with_various_situations(self, pytester: Pytester) -> None:
-        p = pytester.makepyfile(
+    def test_collect_only_with_various_situations(self, testrunnerer: Testrunnerer) -> None:
+        p = testrunnerer.makepyfile(
             test_one="""
                 def test_one():
                     raise ValueError()
@@ -225,84 +225,84 @@ class TestNewSession(SessionTests):
             test_three="xxxdsadsadsadsa",
             __init__="",
         )
-        reprec = pytester.inline_run("--collect-only", p.parent)
+        reprec = testrunnerer.inline_run("--collect-only", p.parent)
 
-        itemstarted = reprec.getcalls("pytest_itemcollected")
+        itemstarted = reprec.getcalls("testrunner_itemcollected")
         assert len(itemstarted) == 3
-        assert not reprec.getreports("pytest_runtest_logreport")
-        started = reprec.getcalls("pytest_collectstart")
-        finished = reprec.getreports("pytest_collectreport")
+        assert not reprec.getreports("testrunner_runtest_logreport")
+        started = reprec.getcalls("testrunner_collectstart")
+        finished = reprec.getreports("testrunner_collectreport")
         assert len(started) == len(finished)
         assert len(started) == 6
         colfail = [x for x in finished if x.failed]
         assert len(colfail) == 1
 
-    def test_minus_x_import_error(self, pytester: Pytester) -> None:
-        pytester.makepyfile(__init__="")
-        pytester.makepyfile(test_one="xxxx", test_two="yyyy")
-        reprec = pytester.inline_run("-x", pytester.path)
-        finished = reprec.getreports("pytest_collectreport")
+    def test_minus_x_import_error(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(__init__="")
+        testrunnerer.makepyfile(test_one="xxxx", test_two="yyyy")
+        reprec = testrunnerer.inline_run("-x", testrunnerer.path)
+        finished = reprec.getreports("testrunner_collectreport")
         colfail = [x for x in finished if x.failed]
         assert len(colfail) == 1
 
-    def test_minus_x_overridden_by_maxfail(self, pytester: Pytester) -> None:
-        pytester.makepyfile(__init__="")
-        pytester.makepyfile(test_one="xxxx", test_two="yyyy", test_third="zzz")
-        reprec = pytester.inline_run("-x", "--maxfail=2", pytester.path)
-        finished = reprec.getreports("pytest_collectreport")
+    def test_minus_x_overridden_by_maxfail(self, testrunnerer: Testrunnerer) -> None:
+        testrunnerer.makepyfile(__init__="")
+        testrunnerer.makepyfile(test_one="xxxx", test_two="yyyy", test_third="zzz")
+        reprec = testrunnerer.inline_run("-x", "--maxfail=2", testrunnerer.path)
+        finished = reprec.getreports("testrunner_collectreport")
         colfail = [x for x in finished if x.failed]
         assert len(colfail) == 2
 
 
-def test_plugin_specify(pytester: Pytester) -> None:
-    with pytest.raises(UsageError):
-        pytester.parseconfig("-p", "nqweotexistent")
-    # pytest.raises(ImportError,
+def test_plugin_specify(testrunnerer: Testrunnerer) -> None:
+    with testrunner.raises(UsageError):
+        testrunnerer.parseconfig("-p", "nqweotexistent")
+    # testrunner.raises(ImportError,
     #    "config.do_configure(config)"
     # )
 
 
-def test_plugin_already_exists(pytester: Pytester) -> None:
-    config = pytester.parseconfig("-p", "terminal")
+def test_plugin_already_exists(testrunnerer: Testrunnerer) -> None:
+    config = testrunnerer.parseconfig("-p", "terminal")
     assert config.option.plugins == ["terminal"]
     config._do_configure()
     config._ensure_unconfigure()
 
 
-def test_exclude(pytester: Pytester) -> None:
-    hellodir = pytester.mkdir("hello")
+def test_exclude(testrunnerer: Testrunnerer) -> None:
+    hellodir = testrunnerer.mkdir("hello")
     hellodir.joinpath("test_hello.py").write_text("x y syntaxerror", encoding="utf-8")
-    hello2dir = pytester.mkdir("hello2")
+    hello2dir = testrunnerer.mkdir("hello2")
     hello2dir.joinpath("test_hello2.py").write_text("x y syntaxerror", encoding="utf-8")
-    pytester.makepyfile(test_ok="def test_pass(): pass")
-    result = pytester.runpytest("--ignore=hello", "--ignore=hello2")
+    testrunnerer.makepyfile(test_ok="def test_pass(): pass")
+    result = testrunnerer.runtestrunner("--ignore=hello", "--ignore=hello2")
     assert result.ret == 0
     result.stdout.fnmatch_lines(["*1 passed*"])
 
 
-def test_exclude_glob(pytester: Pytester) -> None:
-    hellodir = pytester.mkdir("hello")
+def test_exclude_glob(testrunnerer: Testrunnerer) -> None:
+    hellodir = testrunnerer.mkdir("hello")
     hellodir.joinpath("test_hello.py").write_text("x y syntaxerror", encoding="utf-8")
-    hello2dir = pytester.mkdir("hello2")
+    hello2dir = testrunnerer.mkdir("hello2")
     hello2dir.joinpath("test_hello2.py").write_text("x y syntaxerror", encoding="utf-8")
-    hello3dir = pytester.mkdir("hallo3")
+    hello3dir = testrunnerer.mkdir("hallo3")
     hello3dir.joinpath("test_hello3.py").write_text("x y syntaxerror", encoding="utf-8")
-    subdir = pytester.mkdir("sub")
+    subdir = testrunnerer.mkdir("sub")
     subdir.joinpath("test_hello4.py").write_text("x y syntaxerror", encoding="utf-8")
-    pytester.makepyfile(test_ok="def test_pass(): pass")
-    result = pytester.runpytest("--ignore-glob=*h[ea]llo*")
+    testrunnerer.makepyfile(test_ok="def test_pass(): pass")
+    result = testrunnerer.runtestrunner("--ignore-glob=*h[ea]llo*")
     assert result.ret == 0
     result.stdout.fnmatch_lines(["*1 passed*"])
 
 
-def test_deselect(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_deselect(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         test_a="""
-        import pytest
+        import testrunner
 
         def test_a1(): pass
 
-        @pytest.mark.parametrize('b', range(3))
+        @testrunner.mark.parametrize('b', range(3))
         def test_a2(b): pass
 
         class TestClass:
@@ -311,7 +311,7 @@ def test_deselect(pytester: Pytester) -> None:
             def test_c2(self): pass
     """
     )
-    result = pytester.runpytest(
+    result = testrunnerer.runtestrunner(
         "-v",
         "--deselect=test_a.py::test_a2[1]",
         "--deselect=test_a.py::test_a2[2]",
@@ -323,31 +323,31 @@ def test_deselect(pytester: Pytester) -> None:
         assert not line.startswith(("test_a.py::test_a2[1]", "test_a.py::test_a2[2]"))
 
 
-def test_sessionfinish_with_start(pytester: Pytester) -> None:
-    pytester.makeconftest(
+def test_sessionfinish_with_start(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makeconftest(
         """
         import os
         values = []
-        def pytest_sessionstart():
+        def testrunner_sessionstart():
             values.append(os.getcwd())
             os.chdir("..")
 
-        def pytest_sessionfinish():
+        def testrunner_sessionfinish():
             assert values[0] == os.getcwd()
 
     """
     )
-    res = pytester.runpytest("--collect-only")
+    res = testrunnerer.runtestrunner("--collect-only")
     assert res.ret == ExitCode.NO_TESTS_COLLECTED
 
 
-def test_collection_args_do_not_duplicate_modules(pytester: Pytester) -> None:
+def test_collection_args_do_not_duplicate_modules(testrunnerer: Testrunnerer) -> None:
     """Test that when multiple collection args are specified on the command line
     for the same module, only a single Module collector is created.
 
     Regression test for #723, #3358.
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         **{
             "d/test_it": """
                 def test_1(): pass
@@ -356,7 +356,7 @@ def test_collection_args_do_not_duplicate_modules(pytester: Pytester) -> None:
         }
     )
 
-    result = pytester.runpytest(
+    result = testrunnerer.runtestrunner(
         "--collect-only",
         "d/test_it.py::test_1",
         "d/test_it.py::test_2",
@@ -372,7 +372,7 @@ def test_collection_args_do_not_duplicate_modules(pytester: Pytester) -> None:
     )
 
     # Different, but related case.
-    result = pytester.runpytest(
+    result = testrunnerer.runtestrunner(
         "--collect-only",
         "--keep-duplicates",
         "d",
@@ -391,16 +391,16 @@ def test_collection_args_do_not_duplicate_modules(pytester: Pytester) -> None:
     )
 
 
-@pytest.mark.parametrize("path", ["root", "{relative}/root", "{environment}/root"])
+@testrunner.mark.parametrize("path", ["root", "{relative}/root", "{environment}/root"])
 def test_rootdir_option_arg(
-    pytester: Pytester, monkeypatch: MonkeyPatch, path: str
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch, path: str
 ) -> None:
-    monkeypatch.setenv("PY_ROOTDIR_PATH", str(pytester.path))
-    path = path.format(relative=str(pytester.path), environment="$PY_ROOTDIR_PATH")
+    monkeypatch.setenv("PY_ROOTDIR_PATH", str(testrunnerer.path))
+    path = path.format(relative=str(testrunnerer.path), environment="$PY_ROOTDIR_PATH")
 
-    rootdir = pytester.path / "root" / "tests"
+    rootdir = testrunnerer.path / "root" / "tests"
     rootdir.mkdir(parents=True)
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
         import os
         def test_one():
@@ -408,78 +408,78 @@ def test_rootdir_option_arg(
     """
     )
 
-    result = pytester.runpytest(f"--rootdir={path}")
+    result = testrunnerer.runtestrunner(f"--rootdir={path}")
     result.stdout.fnmatch_lines(
         [
-            f"*rootdir: {pytester.path}/root",
+            f"*rootdir: {testrunnerer.path}/root",
             "root/test_rootdir_option_arg.py *",
             "*1 passed*",
         ]
     )
 
 
-def test_rootdir_wrong_option_arg(pytester: Pytester) -> None:
-    result = pytester.runpytest("--rootdir=wrong_dir")
+def test_rootdir_wrong_option_arg(testrunnerer: Testrunnerer) -> None:
+    result = testrunnerer.runtestrunner("--rootdir=wrong_dir")
     result.stderr.fnmatch_lines(
         ["*Directory *wrong_dir* not found. Check your '--rootdir' option.*"]
     )
 
 
-def test_shouldfail_is_sticky(pytester: Pytester) -> None:
+def test_shouldfail_is_sticky(testrunnerer: Testrunnerer) -> None:
     """Test that session.shouldfail cannot be reset to False after being set.
 
     Issue #11706.
     """
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-        def pytest_sessionfinish(session):
+        def testrunner_sessionfinish(session):
             assert session.shouldfail
             session.shouldfail = False
             assert session.shouldfail
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
         def test_foo():
-            pytest.fail("This is a failing test")
+            testrunner.fail("This is a failing test")
 
         def test_bar(): pass
         """
     )
 
-    result = pytester.runpytest("--maxfail=1", "-Wall")
+    result = testrunnerer.runtestrunner("--maxfail=1", "-Wall")
 
     result.assert_outcomes(failed=1, warnings=1)
     result.stdout.fnmatch_lines("*session.shouldfail cannot be unset*")
 
 
-def test_shouldstop_is_sticky(pytester: Pytester) -> None:
+def test_shouldstop_is_sticky(testrunnerer: Testrunnerer) -> None:
     """Test that session.shouldstop cannot be reset to False after being set.
 
     Issue #11706.
     """
-    pytester.makeconftest(
+    testrunnerer.makeconftest(
         """
-        def pytest_sessionfinish(session):
+        def testrunner_sessionfinish(session):
             assert session.shouldstop
             session.shouldstop = False
             assert session.shouldstop
         """
     )
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
+        import testrunner
 
         def test_foo():
-            pytest.fail("This is a failing test")
+            testrunner.fail("This is a failing test")
 
         def test_bar(): pass
         """
     )
 
-    result = pytester.runpytest("--stepwise", "-Wall")
+    result = testrunnerer.runtestrunner("--stepwise", "-Wall")
 
     result.assert_outcomes(failed=1, warnings=1)
     result.stdout.fnmatch_lines("*session.shouldstop cannot be unset*")

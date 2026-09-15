@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from _pytest.mark import MarkMatcher
-from _pytest.mark.expression import Expression
-from _pytest.mark.expression import ExpressionMatcher
-import pytest
+from _testrunner.mark import MarkMatcher
+from _testrunner.mark.expression import Expression
+from _testrunner.mark.expression import ExpressionMatcher
+import testrunner
 
 
 def evaluate(input: str, matcher: ExpressionMatcher) -> bool:
@@ -17,7 +17,7 @@ def test_empty_is_false() -> None:
     assert not evaluate("\t", lambda ident, /, **kwargs: False)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("expr", "expected"),
     (
         ("true", True),
@@ -52,7 +52,7 @@ def test_basic(expr: str, expected: bool) -> None:
     assert evaluate(expr, matcher) is expected
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("expr", "expected"),
     (
         ("               true           ", True),
@@ -82,7 +82,7 @@ def test_backslash_not_treated_specially() -> None:
 
     assert evaluate(r"\nfoo\n", matcher)
     assert not evaluate(r"foo", matcher)
-    with pytest.raises(SyntaxError):
+    with testrunner.raises(SyntaxError):
         evaluate("\nfoo\n", matcher)
 
 
@@ -100,7 +100,7 @@ def test_backslash_in_identifier_with_string_literal() -> None:
     assert evaluate(r'test\case and mark(x="y")', matcher)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("expr", "column", "message"),
     (
         ("(", 2, "expected not OR left parenthesis OR identifier; got end of input"),
@@ -149,13 +149,13 @@ def test_backslash_in_identifier_with_string_literal() -> None:
     ),
 )
 def test_syntax_errors(expr: str, column: int, message: str) -> None:
-    with pytest.raises(SyntaxError) as excinfo:
+    with testrunner.raises(SyntaxError) as excinfo:
         evaluate(expr, lambda ident, /, **kwargs: True)
     assert excinfo.value.offset == column
     assert excinfo.value.msg == message
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "ident",
     (
         ".",
@@ -193,7 +193,7 @@ def test_valid_idents(ident: str) -> None:
     assert evaluate(ident, matcher)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "ident",
     (
         "^",
@@ -216,11 +216,11 @@ def test_valid_idents(ident: str) -> None:
     ),
 )
 def test_invalid_idents(ident: str) -> None:
-    with pytest.raises(SyntaxError):
+    with testrunner.raises(SyntaxError):
         evaluate(ident, lambda ident, /, **kwargs: True)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "expr, expected_error_msg",
     (
         ("mark()", "expected identifier; got right parenthesis"),
@@ -253,16 +253,16 @@ def test_invalid_idents(ident: str) -> None:
 def test_invalid_kwarg_name_or_value(
     expr: str, expected_error_msg: str, mark_matcher: MarkMatcher
 ) -> None:
-    with pytest.raises(SyntaxError, match=expected_error_msg):
+    with testrunner.raises(SyntaxError, match=expected_error_msg):
         assert evaluate(expr, mark_matcher)
 
 
-@pytest.fixture(scope="session")
+@testrunner.fixture(scope="session")
 def mark_matcher() -> MarkMatcher:
     markers = [
-        pytest.mark.number_mark(a=1, b=2, c=3, d=999_999).mark,
-        pytest.mark.builtin_matchers_mark(x=True, y=False, z=None).mark,
-        pytest.mark.str_mark(  # pylint: disable-next=non-ascii-name
+        testrunner.mark.number_mark(a=1, b=2, c=3, d=999_999).mark,
+        testrunner.mark.builtin_matchers_mark(x=True, y=False, z=None).mark,
+        testrunner.mark.str_mark(  # pylint: disable-next=non-ascii-name
             m="M", space="with space", empty="", aaאבגדcc="aaאבגדcc", אבגד="אבגד"
         ).mark,
     ]
@@ -270,7 +270,7 @@ def mark_matcher() -> MarkMatcher:
     return MarkMatcher.from_markers(markers)
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "expr, expected",
     (
         # happy cases
@@ -295,7 +295,7 @@ def test_keyword_expressions_with_numbers(
     assert evaluate(expr, mark_matcher) is expected
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "expr, expected",
     (
         ("builtin_matchers_mark(x=True)", True),
@@ -315,7 +315,7 @@ def test_builtin_matchers_keyword_expressions(
     assert evaluate(expr, mark_matcher) is expected
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "expr, expected",
     (
         ("str_mark(m='M')", True),
@@ -338,7 +338,7 @@ def test_str_keyword_expressions(
     assert evaluate(expr, mark_matcher) is expected
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     ("expr", "expected_idents"),
     (
         ("", frozenset()),

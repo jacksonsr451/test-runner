@@ -3,18 +3,18 @@
 How to manage logging
 ---------------------
 
-pytest captures log messages of level ``WARNING`` or above automatically and displays them in their own section
+testrunner captures log messages of level ``WARNING`` or above automatically and displays them in their own section
 for each failed test in the same manner as captured stdout and stderr.
 
 Running without options:
 
 .. code-block:: bash
 
-    pytest
+    testrunner
 
 Shows failed tests like so:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
     ----------------------- Captured stdlog call ----------------------
     test_reporting.py    26 WARNING  text going to logger
@@ -32,12 +32,12 @@ anything that the logging module supports by passing specific formatting options
 
 .. code-block:: bash
 
-    pytest --log-format="%(asctime)s %(levelname)s %(message)s" \
+    testrunner --log-format="%(asctime)s %(levelname)s %(message)s" \
             --log-date-format="%Y-%m-%d %H:%M:%S"
 
 Shows failed tests like so:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
     ----------------------- Captured stdlog call ----------------------
     2010-04-10 14:48:44 WARNING text going to logger
@@ -53,7 +53,7 @@ These options can also be customized through a configuration file:
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         log_format = "%(asctime)s %(levelname)s %(message)s"
         log_date_format = "%Y-%m-%d %H:%M:%S"
 
@@ -61,7 +61,7 @@ These options can also be customized through a configuration file:
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         log_format = %(asctime)s %(levelname)s %(message)s
         log_date_format = %Y-%m-%d %H:%M:%S
 
@@ -70,14 +70,14 @@ This argument can be passed multiple times:
 
 .. code-block:: bash
 
-    pytest --log-disable=main --log-disable=testing
+    testrunner --log-disable=main --log-disable=testing
 
 Further it is possible to disable reporting of captured content (stdout,
 stderr and logs) on failed tests completely with:
 
 .. code-block:: bash
 
-    pytest --show-capture=no
+    testrunner --show-capture=no
 
 
 caplog fixture
@@ -167,7 +167,7 @@ the records for the ``setup`` and ``call`` stages during teardown like so:
 
 .. code-block:: python
 
-    @pytest.fixture
+    @testrunner.fixture
     def window(caplog):
         window = create_window()
         yield window
@@ -176,11 +176,11 @@ the records for the ``setup`` and ``call`` stages during teardown like so:
                 x.message for x in caplog.get_records(when) if x.levelno == logging.WARNING
             ]
             if messages:
-                pytest.fail(f"warning messages encountered during testing: {messages}")
+                testrunner.fail(f"warning messages encountered during testing: {messages}")
 
 
 
-The full API is available at :class:`pytest.LogCaptureFixture`.
+The full API is available at :class:`testrunner.LogCaptureFixture`.
 
 .. warning::
 
@@ -195,7 +195,7 @@ The full API is available at :class:`pytest.LogCaptureFixture`.
 Live Logs
 ^^^^^^^^^
 
-By setting the :confval:`log_cli` configuration option to ``true``, pytest will output
+By setting the :confval:`log_cli` configuration option to ``true``, testrunner will output
 logging records as they are emitted directly into the console.
 
 You can specify the logging level for which log records with equal or higher
@@ -253,8 +253,8 @@ through ``add_color_level()``. Example:
 
 .. code-block:: python
 
-    @pytest.hookimpl(trylast=True)
-    def pytest_configure(config):
+    @testrunner.hookimpl(trylast=True)
+    def testrunner_configure(config):
         logging_plugin = config.pluginmanager.get_plugin("logging-plugin")
 
         # Change color on existing log level
@@ -272,30 +272,30 @@ Release notes
 ^^^^^^^^^^^^^
 
 This feature was introduced as a drop-in replacement for the
-:pypi:`pytest-catchlog` plugin and they conflict
-with each other. The backward compatibility API with ``pytest-capturelog``
+:pypi:`testrunner-catchlog` plugin and they conflict
+with each other. The backward compatibility API with ``testrunner-capturelog``
 has been dropped when this feature was introduced, so if for that reason you
-still need ``pytest-catchlog`` you can disable the internal feature by
+still need ``testrunner-catchlog`` you can disable the internal feature by
 adding to your configuration file:
 
 .. tab:: toml
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         addopts = ["-p", "no:logging"]
 
 .. tab:: ini
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         addopts = -p no:logging
 
 
 .. _log_changes_3_4:
 
-Incompatible changes in pytest 3.4
+Incompatible changes in testrunner 3.4
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 This feature was introduced in ``3.3`` and some **incompatible changes** have been
@@ -319,7 +319,7 @@ file:
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         log_cli = true
         log_level = "NOTSET"
 
@@ -327,7 +327,7 @@ file:
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         log_cli = true
         log_level = NOTSET
 

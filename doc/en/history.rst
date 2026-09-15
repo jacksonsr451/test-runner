@@ -1,17 +1,17 @@
 History
 =======
 
-pytest has a long and interesting history. The `first commit
-<https://github.com/pytest-dev/pytest/commit/5992a8ef21424d7571305a8d7e2a3431ee7e1e23>`__
+testrunner has a long and interesting history. The `first commit
+<https://github.com/jacksonsr451/test-runner/commit/5992a8ef21424d7571305a8d7e2a3431ee7e1e23>`__
 in this repository is from January 2007, and even that commit alone already
 tells a lot: The repository originally was from the :pypi:`py`
-library (later split off to pytest), and it
+library (later split off to testrunner), and it
 originally was a SVN revision, migrated to Mercurial, and finally migrated to
 git.
 
 However, the commit says “create the new development trunk” and is
 already quite big: *435 files changed, 58640 insertions(+)*. This is because
-pytest originally was born as part of `PyPy <https://www.pypy.org/>`__, to make
+testrunner originally was born as part of `PyPy <https://www.pypy.org/>`__, to make
 it easier to write tests for it. Here's how it evolved from there to its own
 project:
 
@@ -23,14 +23,14 @@ project:
    unittest.py, and as early as June 2003, Holger Krekel (:user:`hpk42`)
    `refactored <https://mail.python.org/pipermail/pypy-dev/2003-June/000787.html>`__
    its test framework to clean things up (``pypy.tool.test``, but still
-   on top of ``unittest.py``, with nothing pytest-like yet).
+   on top of ``unittest.py``, with nothing testrunner-like yet).
 -  In December 2003, there was `another
    iteration <https://foss.heptapod.net/pypy/pypy/-/commit/02752373e1b29d89c6bb0a97e5f940caa22bdd63>`__
    at improving their testing situation, by Stefan Schwarzer, called
    ``pypy.tool.newtest``.
 -  However, it didn’t seem to be around for long, as around June/July
    2004, efforts started on a thing called ``utest``, offering plain
-   assertions. This seems like the start of something pytest-like, but
+   assertions. This seems like the start of something testrunner-like, but
    unfortunately, it's unclear where the test runner's code was at the time.
    The closest thing still around is `this
    file <https://foss.heptapod.net/pypy/pypy/-/commit/0735f9ed287ec20950a7dd0a16fc10810d4f6847>`__,
@@ -43,7 +43,7 @@ project:
    project <http://web.archive.org/web/20041020215353/http://codespeak.net/svn/user/hpk/talks/std-talk.txt>`__
    originally called “std”, intended to be a “complementary standard
    library” - already laying out the principles behind what later became
-   pytest:
+   testrunner:
 
        -  current “batteries included” are very useful, but
 
@@ -72,17 +72,17 @@ project:
           and offers detailed information about underlying values
 
 -  In September 2004, the ``py-dev`` mailinglist gets born, which `is
-   now <https://mail.python.org/pipermail/pytest-dev/>`__ ``pytest-dev``,
+   now <https://mail.python.org/pipermail/testrunner-dev/>`__ ``testrunner-dev``,
    but thankfully with all the original archives still intact.
 
 -  Around September/October 2004, the ``std`` project `was renamed
    <https://mail.python.org/pipermail/pypy-dev/2004-September/001565.html>`__ to
-   ``py`` and ``std.utest`` became ``py.test``. This is also the first time the
+   ``py`` and ``std.utest`` became ``testrunner``. This is also the first time the
    `entire source
    code <https://foss.heptapod.net/pypy/pypy/-/commit/42cf50c412026028e20acd23d518bd92e623ac11>`__,
    seems to be available, with much of the API still being around today:
 
-   -  ``py.path.local``, which is being phased out of pytest (in favour of
+   -  ``py.path.local``, which is being phased out of testrunner (in favour of
       pathlib) some 16-17 years later
    -  The idea of the collection tree, including ``Collector``,
       ``FSCollector``, ``Directory``, ``PyCollector``, ``Module``,
@@ -98,15 +98,15 @@ project:
 
 -  It seemed to get rather quiet for a while, and little seemed to happen
    between October 2004 (removing ``py`` from PyPy) and January
-   2007 (first commit in the now-pytest repository). However, there were
+   2007 (first commit in the now-testrunner repository). However, there were
    various discussions about features/ideas on the mailinglist, and
    :pypi:`a couple of releases <py/0.8.0-alpha2/#history>` every
    couple of months:
 
    -  March 2006: py 0.8.0-alpha2
    -  May 2007: py 0.9.0
-   -  March 2008: py 0.9.1 (first release to be found `in the pytest
-      changelog <https://github.com/pytest-dev/pytest/blob/main/doc/en/changelog.rst#091>`__!)
+   -  March 2008: py 0.9.1 (first release to be found `in the testrunner
+      changelog <https://github.com/jacksonsr451/test-runner/blob/main/doc/en/changelog.rst#091>`__!)
    -  August 2008: py 0.9.2
 
 -  In August 2009, py 1.0.0 was released, `introducing a lot of
@@ -131,15 +131,15 @@ project:
        project name change and possibly a split up into different projects
        sometime.
 
-   and that finally happened in November 2010, when pytest 2.0.0 `was
-   released <https://mail.python.org/pipermail/pytest-dev/2010-November/001687.html>`__
-   as a package separate from ``py`` (but still called ``py.test``).
+   and that finally happened in November 2010, when testrunner 2.0.0 `was
+   released <https://mail.python.org/pipermail/testrunner-dev/2010-November/001687.html>`__
+   as a package separate from ``py`` (but still called ``testrunner``).
 
--  In August 2016, pytest 3.0.0 :std:ref:`was released <release-3.0.0>`,
-   which adds ``pytest`` (rather than ``py.test``) as the recommended
+-  In August 2016, testrunner 3.0.0 :std:ref:`was released <release-3.0.0>`,
+   which adds ``testrunner`` (rather than ``testrunner``) as the recommended
    command-line entry point
 
-Due to this history, it's difficult to answer the question when pytest was started.
+Due to this history, it's difficult to answer the question when testrunner was started.
 It depends what point should really be seen as the start of it all. One
 possible interpretation is to  pick Europython 2004, i.e. around June/July
 2004.

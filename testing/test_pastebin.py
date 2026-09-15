@@ -5,53 +5,53 @@ import email.message
 import io
 from unittest import mock
 
-from _pytest.config import ExitCode
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.config import ExitCode
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
 class TestPasteCapture:
-    @pytest.fixture
+    @testrunner.fixture
     def pastebinlist(self, monkeypatch, request) -> list[str | bytes]:
         pastebinlist: list[str | bytes] = []
         plugin = request.config.pluginmanager.getplugin("pastebin")
         monkeypatch.setattr(plugin, "create_new_paste", pastebinlist.append)
         return pastebinlist
 
-    def test_failed(self, pytester: Pytester, pastebinlist) -> None:
-        testpath = pytester.makepyfile(
+    def test_failed(self, testrunnerer: Testrunnerer, pastebinlist) -> None:
+        testpath = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
             def test_pass() -> None:
                 pass
             def test_fail():
                 assert 0
             def test_skip():
-                pytest.skip("")
+                testrunner.skip("")
         """
         )
-        reprec = pytester.inline_run(testpath, "--pastebin=failed")
+        reprec = testrunnerer.inline_run(testpath, "--pastebin=failed")
         assert len(pastebinlist) == 1
         s = pastebinlist[0]
         assert s.find("def test_fail") != -1
         assert reprec.countoutcomes() == [1, 1, 1]
 
-    def test_all(self, pytester: Pytester, pastebinlist) -> None:
-        from _pytest.pytester import LineMatcher
+    def test_all(self, testrunnerer: Testrunnerer, pastebinlist) -> None:
+        from _testrunner.testrunnerer import LineMatcher
 
-        testpath = pytester.makepyfile(
+        testpath = testrunnerer.makepyfile(
             """
-            import pytest
+            import testrunner
             def test_pass():
                 pass
             def test_fail():
                 assert 0
             def test_skip():
-                pytest.skip("")
+                testrunner.skip("")
         """
         )
-        reprec = pytester.inline_run(
+        reprec = testrunnerer.inline_run(
             testpath,
             "--pastebin=all",
             "-v",
@@ -71,17 +71,17 @@ class TestPasteCapture:
             ]
         )
 
-    def test_non_ascii_paste_text(self, pytester: Pytester, pastebinlist) -> None:
+    def test_non_ascii_paste_text(self, testrunnerer: Testrunnerer, pastebinlist) -> None:
         """Make sure that text which contains non-ascii characters is pasted
         correctly. See #1219.
         """
-        pytester.makepyfile(
+        testrunnerer.makepyfile(
             test_unicode="""\
             def test():
                 assert '☺' == 1
             """
         )
-        result = pytester.runpytest(
+        result = testrunnerer.runtestrunner(
             "--pastebin=all",
             "-W",
             "ignore:The --pastebin:DeprecationWarning",
@@ -96,19 +96,19 @@ class TestPasteCapture:
         )
         assert len(pastebinlist) == 1
 
-    def test_deprecated(self, pytester: Pytester, pastebinlist) -> None:
-        result = pytester.runpytest("--pastebin=failed")
+    def test_deprecated(self, testrunnerer: Testrunnerer, pastebinlist) -> None:
+        result = testrunnerer.runtestrunner("--pastebin=failed")
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
         result.assert_outcomes()
         result.stdout.fnmatch_lines(["*The --pastebin option is deprecated*"])
 
 
 class TestPaste:
-    @pytest.fixture
+    @testrunner.fixture
     def pastebin(self, request):
         return request.config.pluginmanager.getplugin("pastebin")
 
-    @pytest.fixture
+    @testrunner.fixture
     def mocked_urlopen_invalid(self, monkeypatch: MonkeyPatch):
         """Monkeypatch the actual urlopen calls done by the internal plugin
         function that connects to bpaste service, but return a url in an
@@ -130,7 +130,7 @@ class TestPaste:
         monkeypatch.setattr(urllib.request, "urlopen", mocked)
         return calls
 
-    @pytest.fixture
+    @testrunner.fixture
     def mocked_urlopen(self, monkeypatch: MonkeyPatch):
         """Monkeypatch the actual urlopen calls done by the internal plugin
         function that connects to bpaste service."""

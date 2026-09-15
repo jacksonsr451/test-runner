@@ -2,16 +2,16 @@ from __future__ import annotations
 
 import os.path
 
-import pytest
+import testrunner
 
 
 mydir = os.path.dirname(__file__)
 
 
-def pytest_runtest_setup(item):
-    if isinstance(item, pytest.Function):
+def testrunner_runtest_setup(item):
+    if isinstance(item, testrunner.Function):
         if not item.fspath.relto(mydir):
             return
-        mod = item.getparent(pytest.Module).obj
+        mod = item.getparent(testrunner.Module).obj
         if hasattr(mod, "hello"):
             print(f"mod.hello {mod.hello!r}")

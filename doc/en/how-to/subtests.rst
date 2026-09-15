@@ -9,7 +9,7 @@ How to use subtests
 
     This feature is experimental. Its behavior, particularly how failures are reported, may evolve in future releases. However, the core functionality and usage are considered stable.
 
-pytest allows for grouping assertions within a normal test, known as *subtests*.
+testrunner allows for grouping assertions within a normal test, known as *subtests*.
 
 Subtests are an alternative to parametrization, particularly useful when the exact parametrization values are not known at collection time.
 
@@ -28,12 +28,12 @@ Each assertion failure or error is caught by the context manager and reported in
 
 .. code-block:: text
 
-    $ pytest -q test_subtest.py
+    $ testrunner -q test_subtest.py
     uuuuuF                                                               [100%]
     ================================= FAILURES =================================
     _______________________ test [custom message] (i=1) ________________________
 
-    subtests = <_pytest.subtests.Subtests object at 0xdeadbeef0001>
+    subtests = <_testrunner.subtests.Subtests object at 0xdeadbeef0001>
 
         def test(subtests):
             for i in range(5):
@@ -44,7 +44,7 @@ Each assertion failure or error is caught by the context manager and reported in
     test_subtest.py:6: AssertionError
     _______________________ test [custom message] (i=3) ________________________
 
-    subtests = <_pytest.subtests.Subtests object at 0xdeadbeef0001>
+    subtests = <_testrunner.subtests.Subtests object at 0xdeadbeef0001>
 
         def test(subtests):
             for i in range(5):
@@ -100,18 +100,18 @@ It is possible to control the verbosity of subtests by setting :confval:`verbosi
 Typing
 ------
 
-:class:`pytest.Subtests` is exported so it can be used in type annotations:
+:class:`testrunner.Subtests` is exported so it can be used in type annotations:
 
 .. code-block:: python
 
-    def test(subtests: pytest.Subtests) -> None: ...
+    def test(subtests: testrunner.Subtests) -> None: ...
 
 .. _parametrize_vs_subtests:
 
 Parametrization vs Subtests
 ---------------------------
 
-While :ref:`traditional pytest parametrization <parametrize>` and ``subtests`` are similar, they have important differences and use cases.
+While :ref:`traditional testrunner parametrization <parametrize>` and ``subtests`` are similar, they have important differences and use cases.
 
 
 Parametrization
@@ -136,6 +136,6 @@ Subtests
 
 .. note::
 
-    This feature was originally implemented as a separate plugin in `pytest-subtests <https://github.com/pytest-dev/pytest-subtests>`__, but since ``9.0`` has been merged into the core.
+    This feature was originally implemented as a separate plugin in `testrunner-subtests <https://github.com/jacksonsr451/test-runner-subtests>`__, but since ``9.0`` has been merged into the core.
 
     The core implementation should be compatible with the plugin implementation, except it does not contain custom command-line options to control subtest output.

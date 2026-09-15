@@ -68,10 +68,10 @@ color = "bfd4f2"
 description = "related to the pastebin builtin plugin"
 name = "plugin: pastebin"
 
-["plugin: pytester"]
+["plugin: testrunnerer"]
 color = "c5def5"
-description = "related to the pytester builtin plugin"
-name = "plugin: pytester"
+description = "related to the testrunnerer builtin plugin"
+name = "plugin: testrunnerer"
 
 ["plugin: tmpdir"]
 color = "bfd4f2"
@@ -135,7 +135,7 @@ name = "topic: marks"
 
 ["topic: parametrize"]
 color = "fbca04"
-description = "related to @pytest.mark.parametrize"
+description = "related to @testrunner.mark.parametrize"
 name = "topic: parametrize"
 
 ["topic: reporting"]

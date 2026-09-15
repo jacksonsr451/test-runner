@@ -38,7 +38,7 @@ def announce(version: str, template_name: str, doc_version: str) -> None:
     contributors = {
         name
         for name in authors + co_authors
-        if not name.endswith("[bot]") and name != "pytest bot"
+        if not name.endswith("[bot]") and name != "testrunner bot"
     }
 
     template_text = (
@@ -77,11 +77,11 @@ def announce(version: str, template_name: str, doc_version: str) -> None:
 
 
 def regen(version: str) -> None:
-    """Call regendoc tool to update examples and pytest output in the docs."""
+    """Call regendoc tool to update examples and testrunner output in the docs."""
     print(f"{Fore.CYAN}[generate.regen] {Fore.RESET}Updating docs")
     check_call(
         ["tox", "-e", "regen"],
-        env={**os.environ, "SETUPTOOLS_SCM_PRETEND_VERSION_FOR_PYTEST": version},
+        env={**os.environ, "SETUPTOOLS_SCM_PRETEND_VERSION_FOR_TESTRUNNER": version},
     )
 
 

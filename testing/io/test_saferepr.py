@@ -1,11 +1,11 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-from _pytest._io.saferepr import DEFAULT_REPR_MAX_SIZE
-from _pytest._io.saferepr import SafeRepr
-from _pytest._io.saferepr import saferepr
-from _pytest._io.saferepr import saferepr_unlimited
-import pytest
+from _testrunner._io.saferepr import DEFAULT_REPR_MAX_SIZE
+from _testrunner._io.saferepr import SafeRepr
+from _testrunner._io.saferepr import saferepr
+from _testrunner._io.saferepr import saferepr_unlimited
+import testrunner
 
 
 def test_simple_repr():
@@ -67,7 +67,7 @@ def test_exceptions() -> None:
 
 
 def test_baseexception():
-    """Test saferepr() with BaseExceptions, which includes pytest outcomes."""
+    """Test saferepr() with BaseExceptions, which includes testrunner outcomes."""
 
     class RaisingOnStrRepr(BaseException):
         def __init__(self, exc_types):
@@ -108,22 +108,22 @@ def test_baseexception():
         f"<[{baseexc_str!r} raised in repr()] BrokenObj object at 0x{id(obj):x}>"
     )
 
-    with pytest.raises(KeyboardInterrupt):
+    with testrunner.raises(KeyboardInterrupt):
         saferepr(BrokenObj(KeyboardInterrupt()))
 
-    with pytest.raises(SystemExit):
+    with testrunner.raises(SystemExit):
         saferepr(BrokenObj(SystemExit()))
 
-    with pytest.raises(KeyboardInterrupt):
+    with testrunner.raises(KeyboardInterrupt):
         saferepr(BrokenObj(RaisingOnStrRepr([KeyboardInterrupt])))
 
-    with pytest.raises(SystemExit):
+    with testrunner.raises(SystemExit):
         saferepr(BrokenObj(RaisingOnStrRepr([SystemExit])))
 
-    with pytest.raises(KeyboardInterrupt):
+    with testrunner.raises(KeyboardInterrupt):
         print(saferepr(BrokenObj(RaisingOnStrRepr([BaseException, KeyboardInterrupt]))))
 
-    with pytest.raises(SystemExit):
+    with testrunner.raises(SystemExit):
         saferepr(BrokenObj(RaisingOnStrRepr([BaseException, SystemExit])))
 
 
@@ -139,7 +139,7 @@ def test_buggy_builtin_repr():
 
 
 def test_big_repr():
-    from _pytest._io.saferepr import SafeRepr
+    from _testrunner._io.saferepr import SafeRepr
 
     assert len(saferepr(range(1000))) <= len("[" + SafeRepr(0).maxlist * "1000" + "]")
 

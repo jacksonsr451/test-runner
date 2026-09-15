@@ -1,16 +1,16 @@
-pytest-2.9.2
+testrunner-2.9.2
 ============
 
-pytest is a mature Python testing tool with more than 1100 tests
+testrunner is a mature Python testing tool with more than 1100 tests
 against itself, passing on many different interpreters and platforms.
 
 See below for the changes and see docs at:
 
-    http://pytest.org
+    http://testrunner.org
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 Thanks to all who contributed to this release, among them:
 
@@ -31,7 +31,7 @@ Thanks to all who contributed to this release, among them:
 
 
 Happy testing,
-The py.test Development Team
+The testrunner Development Team
 
 
 2.9.2 (compared to 2.9.1)
@@ -47,13 +47,13 @@ The py.test Development Team
   for PR the (:pr:`1524`).
 
 * Fix win32 path issue when putting custom config file with absolute path
-  in ``pytest.main("-c your_absolute_path")``.
+  in ``testrunner.main("-c your_absolute_path")``.
 
 * Fix maximum recursion depth detection when raised error class is not aware
   of unicode/encoded bytes.
   Thanks :user:`prusse-martin` for the PR (:pr:`1506`).
 
-* Fix ``pytest.mark.skip`` mark when used in strict mode.
+* Fix ``testrunner.mark.skip`` mark when used in strict mode.
   Thanks :user:`pquentin` for the PR and :user:`RonnyPfannschmidt` for
   showing how to fix the bug.
 

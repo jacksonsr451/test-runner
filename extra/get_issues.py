@@ -7,7 +7,7 @@ import sys
 import requests
 
 
-issues_url = "https://api.github.com/repos/pytest-dev/pytest/issues"
+issues_url = "https://api.github.com/repos/jacksonsr451/test-runner/issues"
 
 
 def get_issues():
@@ -63,7 +63,7 @@ def report(issues):
         kind = _get_kind(issue)
         status = issue["state"]
         number = issue["number"]
-        link = f"https://github.com/pytest-dev/pytest/issues/{number}/"
+        link = f"https://github.com/jacksonsr451/test-runner/issues/{number}/"
         print("----")
         print(status, kind, link)
         print(title)

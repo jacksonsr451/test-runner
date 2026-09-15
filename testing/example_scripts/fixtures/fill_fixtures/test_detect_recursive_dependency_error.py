@@ -1,15 +1,15 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-@pytest.fixture
+@testrunner.fixture
 def fix1(fix2):
     return 1
 
 
-@pytest.fixture
+@testrunner.fixture
 def fix2(fix1):
     return 1
 

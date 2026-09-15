@@ -1,14 +1,14 @@
 """Show what assertion rewriting does to a snippet, as a diff.
 
 Each side is one of ``plain`` (the source as written), ``worktree`` (this
-checkout's ``src/``) or a released pytest version, which is fetched on demand
-with ``uv run --with pytest==VERSION``.  Sides are dumped as rewritten source
+checkout's ``src/``) or a released testrunner version, which is fetched on demand
+with ``uv run --with testrunner==VERSION``.  Sides are dumped as rewritten source
 (``ast.unparse``) or as an AST, then diffed.
 
 Every side runs on one interpreter -- the one running this script, or the one
-``--python`` names.  Pin it whenever the comparison is about pytest versions:
+``--python`` names.  Pin it whenever the comparison is about testrunner versions:
 an unpinned ``uv run`` is free to pick a different Python for a released
-pytest than the worktree runs on, and the grammar differences between the two
+testrunner than the worktree runs on, and the grammar differences between the two
 then show up in the diff as if the rewriter had changed.
 
 Usage::
@@ -39,7 +39,7 @@ import sys
 import tempfile
 
 
-# Runs inside the environment of the pytest version under inspection: reads
+# Runs inside the environment of the testrunner version under inspection: reads
 # the source file named on its command line, writes the dump to stdout.
 _WORKER = """
 import ast, sys
@@ -47,7 +47,7 @@ fmt, mode, path = sys.argv[1:4]
 source = open(path, "rb").read()
 tree = ast.parse(source)
 if mode == "rewrite":
-    from _pytest.assertion.rewrite import rewrite_asserts
+    from _testrunner.assertion.rewrite import rewrite_asserts
     rewrite_asserts(tree, source)
     ast.fix_missing_locations(tree)
 print(ast.unparse(tree) if fmt == "source" else ast.dump(tree, indent=2))
@@ -70,10 +70,10 @@ def spawn(
         cmd = ["uv", "run"]
         if python is not None:
             cmd += ["--python", python]
-        # The worktree needs pytest's dependencies; the other sides need none.
+        # The worktree needs testrunner's dependencies; the other sides need none.
         cmd += ["--project", str(repo)] if spec == "worktree" else ["--no-project"]
         if spec not in ("plain", "worktree"):
-            cmd += ["--with", f"pytest=={spec}"]
+            cmd += ["--with", f"testrunner=={spec}"]
         cmd += ["--", "python", "-c", _WORKER, *args]
     try:
         return subprocess.Popen(
@@ -107,7 +107,7 @@ def main(argv: list[str] | None = None) -> None:
         "--left",
         default="plain",
         metavar="SPEC",
-        help="'plain', 'worktree' or a pytest version",
+        help="'plain', 'worktree' or a testrunner version",
     )
     parser.add_argument(
         "--right", default="worktree", metavar="SPEC", help="the same, other side"

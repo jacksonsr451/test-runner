@@ -1,27 +1,27 @@
-py.test 2.1.0: perfected assertions and bug fixes
+testrunner 2.1.0: perfected assertions and bug fixes
 ===========================================================================
 
-Welcome to the release of pytest-2.1, a mature testing tool for Python,
+Welcome to the release of testrunner-2.1, a mature testing tool for Python,
 supporting CPython 2.4-3.2, Jython and latest PyPy interpreters.  See
 the improved extensive docs (now also as PDF!) with tested examples here:
 
-     http://pytest.org/
+     http://testrunner.org/
 
 The single biggest news about this release are **perfected assertions**
 courtesy of Benjamin Peterson.  You can now safely use ``assert``
 statements in test modules without having to worry about side effects
 or python optimization ("-OO") options.  This is achieved by rewriting
 assert statements in test modules upon import, using a PEP302 hook.
-See https://docs.pytest.org/en/stable/how-to/assert.html for
+See https://github.com/jacksonsr451/test-runner/tree/main/doc/en/how-to/assert.html for
 detailed information.  The work has been partly sponsored by my company,
 merlinux GmbH.
 
 For further details on bug fixes and smaller enhancements see below.
 
-If you want to install or upgrade pytest, just type one of::
+If you want to install or upgrade testrunner, just type one of::
 
-    pip install -U pytest # or
-    easy_install -U pytest
+    pip install -U testrunner # or
+    easy_install -U testrunner
 
 best,
 holger krekel / https://merlinux.eu/

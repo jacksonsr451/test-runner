@@ -1,7 +1,7 @@
-pytest-2.4.1: fixing three regressions compared to 2.3.5
+testrunner-2.4.1: fixing three regressions compared to 2.3.5
 ===========================================================================
 
-pytest-2.4.1 is a quick follow up release to fix three regressions
+testrunner-2.4.1 is a quick follow up release to fix three regressions
 compared to 2.3.5 before they hit more people:
 
 - When using parser.addoption() unicode arguments to the
@@ -17,9 +17,9 @@ compared to 2.3.5 before they hit more people:
 
 - also merge doc typo fixes, thanks Andy Dirnberger
 
-as usual, docs at http://pytest.org and upgrades via::
+as usual, docs at http://testrunner.org and upgrades via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 have fun,
 holger krekel

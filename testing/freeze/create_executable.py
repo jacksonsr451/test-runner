@@ -1,4 +1,4 @@
-"""Generate an executable with pytest runner embedded using PyInstaller."""
+"""Generate an executable with testrunner runner embedded using PyInstaller."""
 
 from __future__ import annotations
 
@@ -6,10 +6,10 @@ from __future__ import annotations
 if __name__ == "__main__":
     import subprocess
 
-    import pytest
+    import testrunner
 
     hidden = []
-    for x in pytest.freeze_includes():
+    for x in testrunner.freeze_includes():
         hidden.extend(["--hidden-import", x])
     hidden.extend(["--hidden-import", "distutils"])
     args = ["pyinstaller", "--noconfirm", *hidden, "runtests_script.py"]

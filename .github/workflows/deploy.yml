@@ -16,7 +16,7 @@ jobs:
   package:
     runs-on: ubuntu-latest
     env:
-      SETUPTOOLS_SCM_PRETEND_VERSION_FOR_PYTEST: ${{ github.event.inputs.version }}
+      SETUPTOOLS_SCM_PRETEND_VERSION_FOR_TESTRUNNER: ${{ github.event.inputs.version }}
     timeout-minutes: 10
 
     # Required by attest-build-provenance-github.
@@ -66,7 +66,7 @@ jobs:
         retention-days: 1
 
   publish-to-pypi:
-    if: github.repository == 'pytest-dev/pytest'
+    if: github.repository == 'jacksonsr451/test-runner'
     # Need generate-gh-release-notes only for ordering.
     # Don't want to release to PyPI if generating GitHub release notes fails.
     needs: [package, generate-gh-release-notes]
@@ -103,8 +103,8 @@ jobs:
       env:
           VERSION: ${{ github.event.inputs.version }}
       run: |
-        git config user.name "pytest bot"
-        git config user.email "pytestbot@gmail.com"
+        git config user.name "testrunner bot"
+        git config user.email "testrunnerbot@gmail.com"
         git tag --annotate --message=v"$VERSION" "$VERSION" ${{ github.sha }}
         git push origin "$VERSION"
 

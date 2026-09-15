@@ -2,12 +2,12 @@
 
 .. sidebar:: **Next Open Trainings and Events**
 
-    - `pytest development sprint <https://github.com/pytest-dev/sprint>`_, **July 20th -- 24th**, Klaus (AT), sign-up open until June 15th
+    - `testrunner development sprint <https://github.com/testrunner-dev/sprint>`_, **July 20th -- 24th**, Klaus (AT), sign-up open until June 15th
     - `Professional Testing with Python <https://python-academy.com/courses/python_course_testing.html>`_, via `Python Academy <https://www.python-academy.com/>`_ (3 day in-depth training), **March 9th -- 11th 2027**, Leipzig (DE) / Remote
 
     Also see :doc:`previous talks and blogposts <talks>`
 
-pytest: helps you write better programs
+testrunner: helps you write better programs
 =======================================
 
 .. toctree::
@@ -35,18 +35,18 @@ pytest: helps you write better programs
     :caption: Useful links
     :hidden:
 
-    pytest @ PyPI <https://pypi.org/project/pytest/>
-    pytest @ GitHub <https://github.com/pytest-dev/pytest/>
-    Issue Tracker <https://github.com/pytest-dev/pytest/issues>
-    PDF Documentation <https://media.readthedocs.org/pdf/pytest/latest/pytest.pdf>
+    testrunner @ PyPI <https://pypi.org/project/testrunner/>
+    testrunner @ GitHub <https://github.com/jacksonsr451/test-runner/>
+    Issue Tracker <https://github.com/jacksonsr451/test-runner/issues>
+    PDF Documentation <https://media.readthedocs.org/pdf/testrunner/latest/testrunner.pdf>
 
-.. module:: pytest
+.. module:: testrunner
 
-The ``pytest`` framework makes it easy to write small, readable tests, and can
+The ``testrunner`` framework makes it easy to write small, readable tests, and can
 scale to support complex functional testing for applications and libraries.
 
 
-**PyPI package name**: :pypi:`pytest`
+**PyPI package name**: :pypi:`testrunner`
 
 A quick example
 ---------------
@@ -64,11 +64,11 @@ A quick example
 
 To execute it:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest
+    $ testrunner
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 1 item
 
@@ -87,8 +87,8 @@ To execute it:
     FAILED test_sample.py::test_answer - assert 4 == 5
     ============================ 1 failed in 0.12s =============================
 
-Due to ``pytest``'s detailed assertion introspection, only plain ``assert`` statements are used.
-See :ref:`Get started <getstarted>` for a basic introduction to using pytest.
+Due to ``testrunner``'s detailed assertion introspection, only plain ``assert`` statements are used.
+See :ref:`Get started <getstarted>` for a basic introduction to using testrunner.
 
 
 Features
@@ -110,19 +110,19 @@ Features
 Documentation
 -------------
 
-* :ref:`Get started <get-started>` - install pytest and grasp its basics in just twenty minutes
+* :ref:`Get started <get-started>` - install testrunner and grasp its basics in just twenty minutes
 * :ref:`How-to guides <how-to>` - step-by-step guides, covering a vast range of use-cases and needs
-* :ref:`Reference guides <reference>` - includes the complete pytest API reference, lists of plugins and more
+* :ref:`Reference guides <reference>` - includes the complete testrunner API reference, lists of plugins and more
 * :ref:`Explanation <explanation>` - background, discussion of key topics, answers to higher-level questions
 
 
 Bugs/Requests
 -------------
 
-Please use the `GitHub issue tracker <https://github.com/pytest-dev/pytest/issues>`_ to submit bugs or request features.
+Please use the `GitHub issue tracker <https://github.com/jacksonsr451/test-runner/issues>`_ to submit bugs or request features.
 
 
-Support pytest
+Support testrunner
 --------------
 
 `Open Collective`_ is an online funding platform for open and transparent communities.
@@ -131,24 +131,24 @@ It provides tools to raise money and share your finances in full transparency.
 It is the platform of choice for individuals and companies that want to make one-time or
 monthly donations directly to the project.
 
-See more details in the `pytest collective`_.
+See more details in the `testrunner collective`_.
 
 .. _Open Collective: https://opencollective.com
-.. _pytest collective: https://opencollective.com/pytest
+.. _testrunner collective: https://opencollective.com/testrunner
 
 
-pytest for enterprise
+testrunner for enterprise
 ---------------------
 
 Available as part of the Tidelift Subscription.
 
-The maintainers of pytest and thousands of other packages are working with Tidelift to deliver commercial support and
+The maintainers of testrunner and thousands of other packages are working with Tidelift to deliver commercial support and
 maintenance for the open source dependencies you use to build your applications.
 Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use.
 
-`Learn more. <https://tidelift.com/subscription/pkg/pypi-pytest?utm_source=pypi-pytest&utm_medium=referral&utm_campaign=enterprise&utm_term=repo>`_
+`Learn more. <https://tidelift.com/subscription/pkg/pypi-testrunner?utm_source=pypi-testrunner&utm_medium=referral&utm_campaign=enterprise&utm_term=repo>`_
 
 Security
 ~~~~~~~~
 
-If you have found an issue that you believe is a security vulnerability, please do not create an issue -- instead, report it via a `new security advisory <https://github.com/pytest-dev/pytest/security/advisories/new>`__.
+If you have found an issue that you believe is a security vulnerability, please do not create an issue -- instead, report it via a `new security advisory <https://github.com/jacksonsr451/test-runner/security/advisories/new>`__.

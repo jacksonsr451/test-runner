@@ -11,7 +11,7 @@ Usage
 ---------
 
 The plugin provides two command line options to rerun failures from the
-last ``pytest`` invocation:
+last ``testrunner`` invocation:
 
 * :option:`--lf, --last-failed <--lf>` - to only re-run the failures.
 * :option:`--ff, --failed-first <--ff>` - to run the failures first and then the rest of
@@ -21,7 +21,7 @@ For cleanup (usually not needed), a :option:`--cache-clear` option allows to rem
 all cross-session cache contents ahead of a test run.
 
 Other plugins may access the `config.cache`_ object to set/get
-**json encodable** values between ``pytest`` invocations.
+**json encodable** values between ``testrunner`` invocations.
 
 .. note::
 
@@ -38,29 +38,29 @@ First, let's create 50 test invocations of which only 2 fail:
 .. code-block:: python
 
     # content of test_50.py
-    import pytest
+    import testrunner
 
 
-    @pytest.mark.parametrize("i", range(50))
+    @testrunner.mark.parametrize("i", range(50))
     def test_num(i):
         if i in (17, 25):
-            pytest.fail("bad luck")
+            testrunner.fail("bad luck")
 
 If you run this for the first time you will see two failures:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q
+    $ testrunner -q
     .................F.......F........................                   [100%]
     ================================= FAILURES =================================
     _______________________________ test_num[17] _______________________________
 
     i = 17
 
-        @pytest.mark.parametrize("i", range(50))
+        @testrunner.mark.parametrize("i", range(50))
         def test_num(i):
             if i in (17, 25):
-    >           pytest.fail("bad luck")
+    >           testrunner.fail("bad luck")
     E           Failed: bad luck
 
     test_50.py:7: Failed
@@ -68,10 +68,10 @@ If you run this for the first time you will see two failures:
 
     i = 25
 
-        @pytest.mark.parametrize("i", range(50))
+        @testrunner.mark.parametrize("i", range(50))
         def test_num(i):
             if i in (17, 25):
-    >           pytest.fail("bad luck")
+    >           testrunner.fail("bad luck")
     E           Failed: bad luck
 
     test_50.py:7: Failed
@@ -82,11 +82,11 @@ If you run this for the first time you will see two failures:
 
 If you then run it with :option:`--lf`:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest --lf
+    $ testrunner --lf
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 2 items
     run-last-failure: rerun previous 2 failures
@@ -98,10 +98,10 @@ If you then run it with :option:`--lf`:
 
     i = 17
 
-        @pytest.mark.parametrize("i", range(50))
+        @testrunner.mark.parametrize("i", range(50))
         def test_num(i):
             if i in (17, 25):
-    >           pytest.fail("bad luck")
+    >           testrunner.fail("bad luck")
     E           Failed: bad luck
 
     test_50.py:7: Failed
@@ -109,10 +109,10 @@ If you then run it with :option:`--lf`:
 
     i = 25
 
-        @pytest.mark.parametrize("i", range(50))
+        @testrunner.mark.parametrize("i", range(50))
         def test_num(i):
             if i in (17, 25):
-    >           pytest.fail("bad luck")
+    >           testrunner.fail("bad luck")
     E           Failed: bad luck
 
     test_50.py:7: Failed
@@ -128,11 +128,11 @@ Now, if you run with the :option:`--ff` option, all tests will be run but the fi
 previous failures will be executed first (as can be seen from the series
 of ``FF`` and dots):
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest --ff
+    $ testrunner --ff
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 50 items
     run-last-failure: rerun previous 2 failures first
@@ -144,10 +144,10 @@ of ``FF`` and dots):
 
     i = 17
 
-        @pytest.mark.parametrize("i", range(50))
+        @testrunner.mark.parametrize("i", range(50))
         def test_num(i):
             if i in (17, 25):
-    >           pytest.fail("bad luck")
+    >           testrunner.fail("bad luck")
     E           Failed: bad luck
 
     test_50.py:7: Failed
@@ -155,10 +155,10 @@ of ``FF`` and dots):
 
     i = 25
 
-        @pytest.mark.parametrize("i", range(50))
+        @testrunner.mark.parametrize("i", range(50))
         def test_num(i):
             if i in (17, 25):
-    >           pytest.fail("bad luck")
+    >           testrunner.fail("bad luck")
     E           Failed: bad luck
 
     test_50.py:7: Failed
@@ -189,8 +189,8 @@ Example:
 
 .. code-block:: bash
 
-    pytest --last-failed --last-failed-no-failures all    # runs the full test suite (default behavior)
-    pytest --last-failed --last-failed-no-failures none   # runs no tests and exits successfully
+    testrunner --last-failed --last-failed-no-failures all    # runs the full test suite (default behavior)
+    testrunner --last-failed --last-failed-no-failures none   # runs no tests and exits successfully
 
 The new config.cache object
 --------------------------------
@@ -198,25 +198,25 @@ The new config.cache object
 .. regendoc:wipe
 
 Plugins or conftest.py support code can get a cached value using the
-pytest ``config`` object.  Here is a basic example plugin which
+testrunner ``config`` object.  Here is a basic example plugin which
 implements a :ref:`fixture <fixture>` which reuses previously created state
-across pytest invocations:
+across testrunner invocations:
 
 .. code-block:: python
 
     # content of test_caching.py
-    import pytest
+    import testrunner
 
 
     def expensive_computation():
         print("running expensive computation...")
 
 
-    @pytest.fixture
-    def mydata(pytestconfig):
-        cache = getattr(pytestconfig, "cache", None)
+    @testrunner.fixture
+    def mydata(testrunnerconfig):
+        cache = getattr(testrunnerconfig, "cache", None)
         if cache is None:
-            # pytestconfig not having the cache attribute means the
+            # testrunnerconfig not having the cache attribute means the
             # cache plugin is disabled.
             expensive_computation()
             return 42
@@ -234,9 +234,9 @@ across pytest invocations:
 
 If you run this command for the first time, you can see the print statement:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q
+    $ testrunner -q
     F                                                                    [100%]
     ================================= FAILURES =================================
     ______________________________ test_function _______________________________
@@ -257,9 +257,9 @@ If you run this command for the first time, you can see the print statement:
 If you run it a second time, the value will be retrieved from
 the cache and nothing will be printed:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q
+    $ testrunner -q
     F                                                                    [100%]
     ================================= FAILURES =================================
     ______________________________ test_function _______________________________
@@ -284,13 +284,13 @@ Inspecting Cache content
 You can always peek at the content of the cache using the
 :option:`--cache-show` command line option:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest --cache-show
+    $ testrunner --cache-show
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
-    cachedir: /home/sweet/project/.pytest_cache
+    cachedir: /home/sweet/project/.testrunner_cache
     --------------------------- cache values for '*' ---------------------------
     cache/lastfailed contains:
       {'test_caching.py::test_function': True}
@@ -304,13 +304,13 @@ You can always peek at the content of the cache using the
 :option:`--cache-show` takes an optional argument to specify a glob pattern for
 filtering:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest --cache-show example/*
+    $ testrunner --cache-show example/*
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
-    cachedir: /home/sweet/project/.pytest_cache
+    cachedir: /home/sweet/project/.testrunner_cache
     ----------------------- cache values for 'example/*' -----------------------
     example/value contains:
       42
@@ -320,12 +320,12 @@ filtering:
 Clearing Cache content
 ----------------------
 
-You can instruct pytest to clear all cache files and values
+You can instruct testrunner to clear all cache files and values
 by adding the :option:`--cache-clear` option like this:
 
 .. code-block:: bash
 
-    pytest --cache-clear
+    testrunner --cache-clear
 
 This is recommended for invocations from Continuous Integration
 servers where isolation and correctness is more important

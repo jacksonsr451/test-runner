@@ -8,14 +8,14 @@ taking a lot of time to make a new one.
 The git commands assume the following remotes are setup:
 
 * ``origin``: your own fork of the repository.
-* ``upstream``: the ``pytest-dev/pytest`` official repository.
+* ``upstream``: the ``jacksonsr451/test-runner`` official repository.
 
 Preparing: Automatic Method
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We have developed an automated workflow for releases, that uses GitHub workflows and is triggered
 by `manually running <https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow>`__
-the `prepare-release-pr workflow <https://github.com/pytest-dev/pytest/actions/workflows/prepare-release-pr.yml>`__
+the `prepare-release-pr workflow <https://github.com/jacksonsr451/test-runner/actions/workflows/prepare-release-pr.yml>`__
 on GitHub Actions.
 
 The automation will decide the new version number based on the following criteria:
@@ -107,7 +107,7 @@ to avoid introducing big changes at this stage.
 Preparing: Manual Method
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Important**: pytest releases must be prepared on **Linux** because the docs and examples expect
+**Important**: testrunner releases must be prepared on **Linux** because the docs and examples expect
 to be executed on that platform.
 
 To release a version ``MAJOR.MINOR.PATCH``, follow these steps:
@@ -134,20 +134,20 @@ Releasing
 Both automatic and manual processes described above follow the same steps from this point onward.
 
 #. After all tests pass and the PR has been approved, trigger the ``deploy`` workflow
-   in https://github.com/pytest-dev/pytest/actions/workflows/deploy.yml, using the ``release-MAJOR.MINOR.PATCH`` branch
+   in https://github.com/jacksonsr451/test-runner/actions/workflows/deploy.yml, using the ``release-MAJOR.MINOR.PATCH`` branch
    as source.
 
    Using the command-line::
 
-     $ gh workflow run deploy.yml -R pytest-dev/pytest --ref=release-{VERSION} -f version={VERSION}
+     $ gh workflow run deploy.yml -R jacksonsr451/test-runner --ref=release-{VERSION} -f version={VERSION}
 
-   This job will require approval from ``pytest-dev/core``, after which it will publish to PyPI
+   This job will require approval from ``testrunner-dev/core``, after which it will publish to PyPI
    and tag the repository.
 
 #. Merge the PR. **Make sure it's not squash-merged**, so that the tagged commit ends up in the main branch.
 
 #. For major and minor releases (or the first prerelease of it),
-   in the `ReadTheDocs admin page <https://app.readthedocs.org/projects/pytest/>`__, click "Add Version" on the top right,
+   in the `ReadTheDocs admin page <https://app.readthedocs.org/projects/testrunner/>`__, click "Add Version" on the top right,
    choose the new branch, then set the new version as active.
 
 #. Cherry-pick the CHANGELOG / announce files to the ``main`` branch::
@@ -174,7 +174,7 @@ Both automatic and manual processes described above follow the same steps from t
 
    * python-announce-list@python.org
 
-   And announce it with the ``#pytest`` hashtag on:
+   And announce it with the ``#testrunner`` hashtag on:
 
    * `Bluesky <https://bsky.app>`_
    * `Fosstodon <https://fosstodon.org>`_

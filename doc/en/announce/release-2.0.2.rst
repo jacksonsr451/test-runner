@@ -1,16 +1,16 @@
-py.test 2.0.2: bug fixes, improved xfail/skip expressions, speed ups
+testrunner 2.0.2: bug fixes, improved xfail/skip expressions, speed ups
 ===========================================================================
 
-Welcome to pytest-2.0.2, a maintenance and bug fix release of pytest,
+Welcome to testrunner-2.0.2, a maintenance and bug fix release of testrunner,
 a mature testing tool for Python, supporting CPython 2.4-3.2, Jython
 and latest PyPy interpreters.  See the extensive docs with tested examples here:
 
-    http://pytest.org/
+    http://testrunner.org/
 
-If you want to install or upgrade pytest, just type one of::
+If you want to install or upgrade testrunner, just type one of::
 
-    pip install -U pytest # or
-    easy_install -U pytest
+    pip install -U testrunner # or
+    easy_install -U testrunner
 
 Many thanks to all issue reporters and people asking questions
 or complaining, particularly Jurko for his insistence,
@@ -33,26 +33,26 @@ Changes between 2.0.1 and 2.0.2
   Also you can now access module globals from xfail/skipif
   expressions so that this for example works now::
 
-    import pytest
+    import testrunner
     import mymodule
-    @pytest.mark.skipif("mymodule.__version__[0] == "1")
+    @testrunner.mark.skipif("mymodule.__version__[0] == "1")
     def test_function():
         pass
 
   This will not run the test function if the module's version string
   does not start with a "1".  Note that specifying a string instead
-  of a boolean expressions allows py.test to report meaningful information
+  of a boolean expressions allows testrunner to report meaningful information
   when summarizing a test run as to what conditions lead to skipping
   (or xfail-ing) tests.
 
-- fix issue28 - setup_method and pytest_generate_tests work together
+- fix issue28 - setup_method and testrunner_generate_tests work together
   The setup_method fixture method now gets called also for
-  test function invocations generated from the pytest_generate_tests
+  test function invocations generated from the testrunner_generate_tests
   hook.
 
 - fix issue27 - collectonly and keyword-selection (-k) now work together
-  Also, if you do "py.test --collectonly -q" you now get a flat list
-  of test ids that you can use to paste to the py.test commandline
+  Also, if you do "testrunner --collectonly -q" you now get a flat list
+  of test ids that you can use to paste to the testrunner commandline
   in order to execute a particular test.
 
 - fix issue25 avoid reported problems with --pdb and python3.2/encodings output

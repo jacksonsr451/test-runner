@@ -4,7 +4,7 @@
 How to set up bash completion
 =============================
 
-When using bash as your shell, ``pytest`` can use argcomplete
+When using bash as your shell, ``testrunner`` can use argcomplete
 (https://kislyuk.github.io/argcomplete/) for auto-completion.
 For this ``argcomplete`` needs to be installed **and** enabled.
 
@@ -20,14 +20,14 @@ For global activation of all argcomplete enabled python applications run:
 
     sudo activate-global-python-argcomplete
 
-For permanent (but not global) ``pytest`` activation, use:
+For permanent (but not global) ``testrunner`` activation, use:
 
 .. code-block:: bash
 
-    register-python-argcomplete pytest >> ~/.bashrc
+    register-python-argcomplete testrunner >> ~/.bashrc
 
-For one-time activation of argcomplete for ``pytest`` only, use:
+For one-time activation of argcomplete for ``testrunner`` only, use:
 
 .. code-block:: bash
 
-    eval "$(register-python-argcomplete pytest)"
+    eval "$(register-python-argcomplete testrunner)"

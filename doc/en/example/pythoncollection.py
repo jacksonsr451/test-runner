@@ -1,4 +1,4 @@
-# run this with $ pytest --collect-only test_collectonly.py
+# run this with $ testrunner --collect-only test_collectonly.py
 #
 from __future__ import annotations
 

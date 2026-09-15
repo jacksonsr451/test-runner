@@ -13,9 +13,9 @@ How to use fixtures
 At a basic level, test functions request fixtures they require by declaring
 them as arguments.
 
-When pytest goes to run a test, it looks at the parameters in that test
+When testrunner goes to run a test, it looks at the parameters in that test
 function's signature, and then searches for fixtures that have the same names as
-those parameters. Once pytest finds them, it runs those fixtures, captures what
+those parameters. Once testrunner finds them, it runs those fixtures, captures what
 they returned (if anything), and passes those objects into the test function as
 arguments.
 
@@ -25,7 +25,7 @@ Quick example
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
     class Fruit:
@@ -48,7 +48,7 @@ Quick example
 
 
     # Arrange
-    @pytest.fixture
+    @testrunner.fixture
     def fruit_bowl():
         return [Fruit("apple"), Fruit("banana")]
 
@@ -61,7 +61,7 @@ Quick example
         assert all(fruit.cubed for fruit in fruit_salad.fruit)
 
 In this example, ``test_fruit_salad`` "**requests**" ``fruit_bowl`` (i.e.
-``def test_fruit_salad(fruit_bowl):``), and when pytest sees this, it will
+``def test_fruit_salad(fruit_bowl):``), and when testrunner sees this, it will
 execute the ``fruit_bowl`` fixture function and pass the object it returns into
 ``test_fruit_salad`` as the ``fruit_bowl`` argument.
 
@@ -90,7 +90,7 @@ what's happening if we were to do it by hand:
 Fixtures can **request** other fixtures
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-One of pytest's greatest strengths is its extremely flexible fixture system. It
+One of testrunner's greatest strengths is its extremely flexible fixture system. It
 allows us to boil down complex requirements for tests into more simple and
 organized functions, where we only need to have each one describe the things
 they are dependent on. We'll get more into this further down, but for now,
@@ -99,17 +99,17 @@ here's a quick example to demonstrate how fixtures can use other fixtures:
 .. code-block:: python
 
     # contents of test_append.py
-    import pytest
+    import testrunner
 
 
     # Arrange
-    @pytest.fixture
+    @testrunner.fixture
     def first_entry():
         return "a"
 
 
     # Arrange
-    @pytest.fixture
+    @testrunner.fixture
     def order(first_entry):
         return [first_entry]
 
@@ -123,7 +123,7 @@ here's a quick example to demonstrate how fixtures can use other fixtures:
 
 
 Notice that this is the same example from above, but very little changed. The
-fixtures in pytest **request** fixtures just like tests. All the same
+fixtures in testrunner **request** fixtures just like tests. All the same
 **requesting** rules apply to fixtures that do for tests. Here's how this
 example would work if we did it by hand:
 
@@ -152,10 +152,10 @@ example would work if we did it by hand:
 Fixtures are reusable
 ^^^^^^^^^^^^^^^^^^^^^
 
-One of the things that makes pytest's fixture system so powerful, is that it
+One of the things that makes testrunner's fixture system so powerful, is that it
 gives us the ability to define a generic setup step that can be reused over and
 over, just like a normal function would be used. Two different tests can request
-the same fixture and have pytest give each test their own result from that
+the same fixture and have testrunner give each test their own result from that
 fixture.
 
 This is extremely useful for making sure tests aren't affected by each other. We
@@ -167,17 +167,17 @@ Here's an example of how this can come in handy:
 .. code-block:: python
 
     # contents of test_append.py
-    import pytest
+    import testrunner
 
 
     # Arrange
-    @pytest.fixture
+    @testrunner.fixture
     def first_entry():
         return "a"
 
 
     # Arrange
-    @pytest.fixture
+    @testrunner.fixture
     def order(first_entry):
         return [first_entry]
 
@@ -247,29 +247,29 @@ demonstrate:
 .. code-block:: python
 
     # contents of test_append.py
-    import pytest
+    import testrunner
 
 
     # Arrange
-    @pytest.fixture
+    @testrunner.fixture
     def first_entry():
         return "a"
 
 
     # Arrange
-    @pytest.fixture
+    @testrunner.fixture
     def second_entry():
         return 2
 
 
     # Arrange
-    @pytest.fixture
+    @testrunner.fixture
     def order(first_entry, second_entry):
         return [first_entry, second_entry]
 
 
     # Arrange
-    @pytest.fixture
+    @testrunner.fixture
     def expected_list():
         return ["a", 2, 3.0]
 
@@ -285,30 +285,30 @@ Fixtures can be **requested** more than once per test (return values are cached)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Fixtures can also be **requested** more than once during the same test, and
-pytest won't execute them again for that test. This means we can **request**
+testrunner won't execute them again for that test. This means we can **request**
 fixtures in multiple fixtures that are dependent on them (and even again in the
 test itself) without those fixtures being executed more than once.
 
 .. code-block:: python
 
     # contents of test_append.py
-    import pytest
+    import testrunner
 
 
     # Arrange
-    @pytest.fixture
+    @testrunner.fixture
     def first_entry():
         return "a"
 
 
     # Arrange
-    @pytest.fixture
+    @testrunner.fixture
     def order():
         return []
 
 
     # Act
-    @pytest.fixture
+    @testrunner.fixture
     def append_first(order, first_entry):
         return order.append(first_entry)
 
@@ -343,20 +343,20 @@ fixture's decorator. Here's a simple example for how they can be used:
 .. code-block:: python
 
     # contents of test_append.py
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def first_entry():
         return "a"
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def order(first_entry):
         return []
 
 
-    @pytest.fixture(autouse=True)
+    @testrunner.fixture(autouse=True)
     def append_first(order, first_entry):
         return order.append(first_entry)
 
@@ -384,7 +384,7 @@ Scope: sharing fixtures across classes, modules, packages or session
 Fixtures requiring network access depend on connectivity and are
 usually time-expensive to create.  Extending the previous example, we
 can add a ``scope="module"`` parameter to the
-:py:func:`@pytest.fixture <pytest.fixture>` invocation
+:py:func:`@testrunner.fixture <testrunner.fixture>` invocation
 to cause a ``smtp_connection`` fixture function, responsible to create a connection to a preexisting SMTP server, to only be invoked
 once per test *module* (the default is to invoke once per test *function*).
 Multiple test functions in a test module will thus
@@ -400,10 +400,10 @@ access the fixture function:
     # content of conftest.py
     import smtplib
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture(scope="module")
+    @testrunner.fixture(scope="module")
     def smtp_connection():
         return smtplib.SMTP("smtp.gmail.com", 587, timeout=5)
 
@@ -425,15 +425,15 @@ access the fixture function:
         assert response == 250
         assert 0  # for demo purposes
 
-Here, the ``test_ehlo`` needs the ``smtp_connection`` fixture value.  pytest
-will discover and call the :py:func:`@pytest.fixture <pytest.fixture>`
+Here, the ``test_ehlo`` needs the ``smtp_connection`` fixture value.  testrunner
+will discover and call the :py:func:`@testrunner.fixture <testrunner.fixture>`
 marked ``smtp_connection`` fixture function.  Running the test looks like this:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest test_module.py
+    $ testrunner test_module.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 2 items
 
@@ -472,7 +472,7 @@ marked ``smtp_connection`` fixture function.  Running the test looks like this:
 
 You see the two ``assert 0`` failing and more importantly you can also see
 that the **exact same** ``smtp_connection`` object was passed into the
-two test functions because pytest shows the incoming argument values in the
+two test functions because testrunner shows the incoming argument values in the
 traceback.  As a result, the two test functions using ``smtp_connection`` run
 as quick as a single one because they reuse the same instance.
 
@@ -481,7 +481,7 @@ instance, you can simply declare it:
 
 .. code-block:: python
 
-    @pytest.fixture(scope="session")
+    @testrunner.fixture(scope="session")
     def smtp_connection():
         # the returned fixture value will be shared for
         # all tests requesting it
@@ -501,8 +501,8 @@ Fixtures are created when first requested by a test, and are destroyed based on 
 
 .. note::
 
-    Pytest only caches one instance of a fixture at a time, which
-    means that when using a parametrized fixture, pytest may invoke a fixture more than once in
+    Testrunner only caches one instance of a fixture at a time, which
+    means that when using a parametrized fixture, testrunner may invoke a fixture more than once in
     the given scope.
 
 .. _dynamic scope:
@@ -529,7 +529,7 @@ containers for different environments. See the example below.
         return "function"
 
 
-    @pytest.fixture(scope=determine_scope)
+    @testrunner.fixture(scope=determine_scope)
     def docker_container():
         yield spawn_container()
 
@@ -542,7 +542,7 @@ Teardown/Cleanup (AKA Fixture finalization)
 
 When we run our tests, we'll want to make sure they clean up after themselves so
 they don't mess with any other tests (and also so that we don't leave behind a
-mountain of test data to bloat the system). Fixtures in pytest offer a very
+mountain of test data to bloat the system). Fixtures in testrunner offer a very
 useful teardown system, which allows us to define the specific steps necessary
 for each fixture to clean up after itself.
 
@@ -562,11 +562,11 @@ fixture/test, just like with the other fixtures. The only differences are:
 1. ``return`` is swapped out for ``yield``.
 2. Any teardown code for that fixture is placed *after* the ``yield``.
 
-Once pytest figures out a linear order for the fixtures, it will run each one up
+Once testrunner figures out a linear order for the fixtures, it will run each one up
 until it returns or yields, and then move on to the next fixture in the list to
 do the same thing.
 
-Once the test is finished, pytest will go back down the list of fixtures, but in
+Once the test is finished, testrunner will go back down the list of fixtures, but in
 the *reverse order*, taking each one that yielded, and running the code inside
 it that was *after* the ``yield`` statement.
 
@@ -614,22 +614,22 @@ Here's what that might look like:
     # content of test_emaillib.py
     from emaillib import Email, MailAdminClient
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def mail_admin():
         return MailAdminClient()
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def sending_user(mail_admin):
         user = mail_admin.create_user()
         yield user
         mail_admin.delete_user(user)
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def receiving_user(mail_admin):
         user = mail_admin.create_user()
         yield user
@@ -649,18 +649,18 @@ There is a risk that even having the order right on the teardown side of things
 doesn't guarantee a safe cleanup. That's covered in a bit more detail in
 :ref:`safe teardowns`.
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-   $ pytest -q test_emaillib.py
+   $ testrunner -q test_emaillib.py
    .                                                                    [100%]
    1 passed in 0.12s
 
 Handling errors for yield fixture
 """""""""""""""""""""""""""""""""
 
-If a yield fixture raises an exception before yielding, pytest won't try to run
+If a yield fixture raises an exception before yielding, testrunner won't try to run
 the teardown code after that yield fixture's ``yield`` statement. But, for every
-fixture that has already run successfully for that test, pytest will still
+fixture that has already run successfully for that test, testrunner will still
 attempt to tear them down as it normally would.
 
 2. Adding finalizers directly
@@ -676,7 +676,7 @@ In order to use this approach, we have to request the `request-context`_ object
 teardown code for, and then pass a callable, containing that teardown code, to
 its ``addfinalizer`` method.
 
-We have to be careful though, because pytest will run that finalizer once it's
+We have to be careful though, because testrunner will run that finalizer once it's
 been added, even if that fixture raises an exception after adding the finalizer.
 So to make sure we don't run the finalizer code when we wouldn't need to, we
 would only add the finalizer once the fixture would have done something that
@@ -689,22 +689,22 @@ Here's how the previous example would look using the ``addfinalizer`` method:
     # content of test_emaillib.py
     from emaillib import Email, MailAdminClient
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def mail_admin():
         return MailAdminClient()
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def sending_user(mail_admin):
         user = mail_admin.create_user()
         yield user
         mail_admin.delete_user(user)
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def receiving_user(mail_admin, request):
         user = mail_admin.create_user()
 
@@ -715,7 +715,7 @@ Here's how the previous example would look using the ``addfinalizer`` method:
         return user
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def email(sending_user, receiving_user, request):
         _email = Email(subject="Hey!", body="How's it going?")
         sending_user.send_email(_email, receiving_user)
@@ -734,9 +734,9 @@ Here's how the previous example would look using the ``addfinalizer`` method:
 It's a bit longer than yield fixtures and a bit more complex, but it
 does offer some nuances for when you're in a pinch.
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-   $ pytest -q test_emaillib.py
+   $ testrunner -q test_emaillib.py
    .                                                                    [100%]
    1 passed in 0.12s
 
@@ -750,30 +750,30 @@ For yield fixtures, the first teardown code to run is from the right-most fixtur
 .. code-block:: python
 
     # content of test_finalizers.py
-    import pytest
+    import testrunner
 
 
     def test_bar(fix_w_yield1, fix_w_yield2):
         print("test_bar")
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def fix_w_yield1():
         yield
         print("after_yield_1")
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def fix_w_yield2():
         yield
         print("after_yield_2")
 
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -s test_finalizers.py
+    $ testrunner -s test_finalizers.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 1 item
 
@@ -790,10 +790,10 @@ For finalizers, the first fixture to run is last call to `request.addfinalizer`.
 
     # content of test_finalizers.py
     from functools import partial
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def fix_w_finalizers(request):
         request.addfinalizer(partial(print, "finalizer_2"))
         request.addfinalizer(partial(print, "finalizer_1"))
@@ -803,11 +803,11 @@ For finalizers, the first fixture to run is last call to `request.addfinalizer`.
         print("test_bar")
 
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -s test_finalizers.py
+    $ testrunner -s test_finalizers.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 1 item
 
@@ -826,7 +826,7 @@ This is so because yield fixtures use `addfinalizer` behind the scenes: when the
 Safe teardowns
 --------------
 
-The fixture system of pytest is *very* powerful, but it's still being run by a
+The fixture system of testrunner is *very* powerful, but it's still being run by a
 computer, so it isn't able to figure out how to safely teardown everything we
 throw at it. If we aren't careful, an error in the wrong spot might leave stuff
 from our tests behind, and that can cause further issues pretty quickly.
@@ -839,10 +839,10 @@ above):
     # content of test_emaillib.py
     from emaillib import Email, MailAdminClient
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def setup():
         mail_admin = MailAdminClient()
         sending_user = mail_admin.create_user()
@@ -869,9 +869,9 @@ One option might be to go with the ``addfinalizer`` method instead of yield
 fixtures, but that might get pretty complex and difficult to maintain (and it
 wouldn't be compact anymore).
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-   $ pytest -q test_emaillib.py
+   $ testrunner -q test_emaillib.py
    .                                                                    [100%]
    1 passed in 0.12s
 
@@ -920,19 +920,19 @@ Here's what that might look like:
     from urllib.parse import urljoin
 
     from selenium.webdriver import Chrome
-    import pytest
+    import testrunner
 
     from src.utils.pages import LoginPage, LandingPage
     from src.utils import AdminApiClient
     from src.utils.data_types import User
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def admin_client(base_url, admin_credentials):
         return AdminApiClient(base_url, **admin_credentials)
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def user(admin_client):
         _user = User(name="Susan", username=f"testuser-{uuid4()}", password="P4$$word")
         admin_client.create_user(_user)
@@ -940,21 +940,21 @@ Here's what that might look like:
         admin_client.delete_user(_user)
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def driver():
         _driver = Chrome()
         yield _driver
         _driver.quit()
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def login(driver, base_url, user):
         driver.get(urljoin(base_url, "/login"))
         page = LoginPage(driver)
         page.login(user)
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def landing_page(driver, login):
         return LandingPage(driver)
 
@@ -988,7 +988,7 @@ Running multiple ``assert`` statements safely
 
 Sometimes you may want to run multiple asserts after doing all that setup, which
 makes sense as, in more complex systems, a single action can kick off multiple
-behaviors. pytest has a convenient way of handling this and it combines a bunch
+behaviors. testrunner has a convenient way of handling this and it combines a bunch
 of what we've gone over so far.
 
 All that's needed is stepping up to a larger scope, then having the **act**
@@ -1015,19 +1015,19 @@ without having to repeat all those steps again.
     from urllib.parse import urljoin
 
     from selenium.webdriver import Chrome
-    import pytest
+    import testrunner
 
     from src.utils.pages import LoginPage, LandingPage
     from src.utils import AdminApiClient
     from src.utils.data_types import User
 
 
-    @pytest.fixture(scope="class")
+    @testrunner.fixture(scope="class")
     def admin_client(base_url, admin_credentials):
         return AdminApiClient(base_url, **admin_credentials)
 
 
-    @pytest.fixture(scope="class")
+    @testrunner.fixture(scope="class")
     def user(admin_client):
         _user = User(name="Susan", username=f"testuser-{uuid4()}", password="P4$$word")
         admin_client.create_user(_user)
@@ -1035,20 +1035,20 @@ without having to repeat all those steps again.
         admin_client.delete_user(_user)
 
 
-    @pytest.fixture(scope="class")
+    @testrunner.fixture(scope="class")
     def driver():
         _driver = Chrome()
         yield _driver
         _driver.quit()
 
 
-    @pytest.fixture(scope="class")
+    @testrunner.fixture(scope="class")
     def landing_page(driver, login):
         return LandingPage(driver)
 
 
     class TestLandingPageSuccess:
-        @pytest.fixture(scope="class", autouse=True)
+        @testrunner.fixture(scope="class", autouse=True)
         @classmethod
         def login(cls, driver, base_url, user):
             driver.get(urljoin(base_url, "/login"))
@@ -1067,7 +1067,7 @@ without having to repeat all those steps again.
 
 Notice that the methods are only referencing ``self`` in the signature as a
 formality. No state is tied to the actual test class as it might be in the
-``unittest.TestCase`` framework. Everything is managed by the pytest fixture
+``unittest.TestCase`` framework. Everything is managed by the testrunner fixture
 system.
 
 Each method only has to request the fixtures that it actually needs without
@@ -1092,7 +1092,7 @@ could handle it by adding something like this to the test file:
 .. code-block:: python
 
     class TestLandingPageBadCredentials:
-        @pytest.fixture(scope="class")
+        @testrunner.fixture(scope="class")
         @classmethod
         def faux_user(cls, user):
             _user = deepcopy(user)
@@ -1100,7 +1100,7 @@ could handle it by adding something like this to the test file:
             return _user
 
         def test_raises_bad_credentials_exception(self, login_page, faux_user):
-            with pytest.raises(BadCredentialsException):
+            with testrunner.raises(BadCredentialsException):
                 login_page.login(faux_user)
 
 
@@ -1109,7 +1109,7 @@ could handle it by adding something like this to the test file:
 Fixtures can introspect the requesting test context
 -------------------------------------------------------------
 
-Fixture functions can accept the :py:class:`request <_pytest.fixtures.FixtureRequest>` object
+Fixture functions can accept the :py:class:`request <_testrunner.fixtures.FixtureRequest>` object
 to introspect the "requesting" test function, class or module context.
 Further extending the previous ``smtp_connection`` fixture example, let's
 read an optional server URL from the test module which uses our fixture:
@@ -1119,10 +1119,10 @@ read an optional server URL from the test module which uses our fixture:
     # content of conftest.py
     import smtplib
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture(scope="module")
+    @testrunner.fixture(scope="module")
     def smtp_connection(request):
         server = getattr(request.module, "smtpserver", "smtp.gmail.com")
         smtp_connection = smtplib.SMTP(server, 587, timeout=5)
@@ -1134,9 +1134,9 @@ We use the ``request.module`` attribute to optionally obtain an
 ``smtpserver`` attribute from the test module.  If we just execute
 again, nothing much has changed:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -s -q --tb=no test_module.py
+    $ testrunner -s -q --tb=no test_module.py
     FFfinalizing <smtplib.SMTP object at 0xdeadbeef0002> (smtp.gmail.com)
 
     ========================= short test summary info ==========================
@@ -1159,9 +1159,9 @@ server URL in its module namespace:
 
 Running it:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -qq --tb=short test_anothersmtp.py
+    $ testrunner -qq --tb=short test_anothersmtp.py
     F                                                                    [100%]
     ================================= FAILURES =================================
     ______________________________ test_showhelo _______________________________
@@ -1182,16 +1182,16 @@ from the module namespace.
 Using markers to pass data to fixtures
 -------------------------------------------------------------
 
-Using the :py:class:`request <_pytest.fixtures.FixtureRequest>` object, a fixture can also access
+Using the :py:class:`request <_testrunner.fixtures.FixtureRequest>` object, a fixture can also access
 markers which are applied to a test function. This can be useful to pass data
 into a fixture from a test:
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def fixt(request):
         marker = request.node.get_closest_marker("fixt_data")
         if marker is None:
@@ -1204,7 +1204,7 @@ into a fixture from a test:
         return data
 
 
-    @pytest.mark.fixt_data(42)
+    @testrunner.mark.fixt_data(42)
     def test_fixt(fixt):
         assert fixt == 42
 
@@ -1222,7 +1222,7 @@ Factories can have parameters as needed:
 
 .. code-block:: python
 
-    @pytest.fixture
+    @testrunner.fixture
     def make_customer_record():
         def _make_customer_record(name):
             return {"name": name, "orders": []}
@@ -1239,7 +1239,7 @@ If the data created by the factory requires managing, the fixture can take care 
 
 .. code-block:: python
 
-    @pytest.fixture
+    @testrunner.fixture
     def make_customer_record():
         created_records = []
 
@@ -1275,17 +1275,17 @@ configured in multiple ways.
 Extending the previous example, we can flag the fixture to create two
 ``smtp_connection`` fixture instances which will cause all tests using the fixture
 to run twice.  The fixture function gets access to each parameter
-through the special :py:class:`request <pytest.FixtureRequest>` object:
+through the special :py:class:`request <testrunner.FixtureRequest>` object:
 
 .. code-block:: python
 
     # content of conftest.py
     import smtplib
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture(scope="module", params=["smtp.gmail.com", "mail.python.org"])
+    @testrunner.fixture(scope="module", params=["smtp.gmail.com", "mail.python.org"])
     def smtp_connection(request):
         smtp_connection = smtplib.SMTP(request.param, 587, timeout=5)
         yield smtp_connection
@@ -1293,14 +1293,14 @@ through the special :py:class:`request <pytest.FixtureRequest>` object:
         smtp_connection.close()
 
 The main change is the declaration of ``params`` with
-:py:func:`@pytest.fixture <pytest.fixture>`, a list of values
+:py:func:`@testrunner.fixture <testrunner.fixture>`, a list of values
 for each of which the fixture function will execute and can access
 a value via ``request.param``.  No test function code needs to change.
 So let's just do another run:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q test_module.py
+    $ testrunner -q test_module.py
     FFFF                                                                 [100%]
     ================================= FAILURES =================================
     ________________________ test_ehlo[smtp.gmail.com] _________________________
@@ -1367,15 +1367,15 @@ We see that our two test functions each ran twice, against the different
 connection the second test fails in ``test_ehlo`` because a
 different server string is expected than what arrived.
 
-pytest will build a string that is the test ID for each fixture value
+testrunner will build a string that is the test ID for each fixture value
 in a parametrized fixture, e.g. ``test_ehlo[smtp.gmail.com]`` and
 ``test_ehlo[mail.python.org]`` in the above examples.  These IDs can
 be used with :option:`-k` to select specific cases to run, and they will
-also identify the specific case when one is failing.  Running pytest
+also identify the specific case when one is failing.  Running testrunner
 with :option:`--collect-only` will show the generated IDs.
 
 Numbers, strings, booleans and ``None`` will have their usual string
-representation used in the test ID. For other objects, pytest will
+representation used in the test ID. For other objects, testrunner will
 make a string based on the argument name.  It is possible to customise
 the string used in a test ID for a certain fixture value by using the
 ``ids`` keyword argument:
@@ -1383,10 +1383,10 @@ the string used in a test ID for a certain fixture value by using the
 .. code-block:: python
 
    # content of test_ids.py
-   import pytest
+   import testrunner
 
 
-   @pytest.fixture(params=[0, 1], ids=["spam", "ham"])
+   @testrunner.fixture(params=[0, 1], ids=["spam", "ham"])
    def a(request):
        return request.param
 
@@ -1402,7 +1402,7 @@ the string used in a test ID for a certain fixture value by using the
            return None
 
 
-   @pytest.fixture(params=[0, 1], ids=idfn)
+   @testrunner.fixture(params=[0, 1], ids=idfn)
    def b(request):
        return request.param
 
@@ -1413,15 +1413,15 @@ the string used in a test ID for a certain fixture value by using the
 The above shows how ``ids`` can be either a list of strings to use or
 a function which will be called with the fixture value and then
 has to return a string to use.  In the latter case if the function
-returns ``None`` then pytest's auto-generated ID will be used.
+returns ``None`` then testrunner's auto-generated ID will be used.
 
 Running the above tests results in the following test IDs being used:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-   $ pytest --collect-only
+   $ testrunner --collect-only
    =========================== test session starts ============================
-   platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+   platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
    rootdir: /home/sweet/project
    collected 12 items
 
@@ -1451,18 +1451,18 @@ Running the above tests results in the following test IDs being used:
 Using marks with parametrized fixtures
 --------------------------------------
 
-:func:`pytest.param` can be used to apply marks in values sets of parametrized fixtures in the same way
-that they can be used with :ref:`@pytest.mark.parametrize <@pytest.mark.parametrize>`.
+:func:`testrunner.param` can be used to apply marks in values sets of parametrized fixtures in the same way
+that they can be used with :ref:`@testrunner.mark.parametrize <@testrunner.mark.parametrize>`.
 
 Example:
 
 .. code-block:: python
 
     # content of test_fixture_marks.py
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture(params=[0, 1, pytest.param(2, marks=pytest.mark.skip)])
+    @testrunner.fixture(params=[0, 1, testrunner.param(2, marks=testrunner.mark.skip)])
     def data_set(request):
         return request.param
 
@@ -1472,12 +1472,12 @@ Example:
 
 Running this test will *skip* the invocation of ``data_set`` with value ``2``:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest test_fixture_marks.py -v
+    $ testrunner test_fixture_marks.py -v
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python
-    cachedir: .pytest_cache
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python
+    cachedir: .testrunner_cache
     rootdir: /home/sweet/project
     collecting ... collected 3 items
 
@@ -1503,7 +1503,7 @@ and instantiate an object ``app`` where we stick the already defined
 
     # content of test_appsetup.py
 
-    import pytest
+    import testrunner
 
 
     class App:
@@ -1511,7 +1511,7 @@ and instantiate an object ``app`` where we stick the already defined
             self.smtp_connection = smtp_connection
 
 
-    @pytest.fixture(scope="module")
+    @testrunner.fixture(scope="module")
     def app(smtp_connection):
         return App(smtp_connection)
 
@@ -1522,12 +1522,12 @@ and instantiate an object ``app`` where we stick the already defined
 Here we declare an ``app`` fixture which receives the previously defined
 ``smtp_connection`` fixture and instantiates an ``App`` object with it.  Let's run it:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -v test_appsetup.py
+    $ testrunner -v test_appsetup.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python
-    cachedir: .pytest_cache
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python
+    cachedir: .testrunner_cache
     rootdir: /home/sweet/project
     collecting ... collected 2 items
 
@@ -1539,7 +1539,7 @@ Here we declare an ``app`` fixture which receives the previously defined
 Due to the parametrization of ``smtp_connection``, the test will run twice with two
 different ``App`` instances and respective smtp servers.  There is no
 need for the ``app`` fixture to be aware of the ``smtp_connection``
-parametrization because pytest will fully analyse the fixture dependency graph.
+parametrization because testrunner will fully analyse the fixture dependency graph.
 
 Note that the ``app`` fixture has a scope of ``module`` and uses a
 module-scoped ``smtp_connection`` fixture.  The example would still work if
@@ -1556,7 +1556,7 @@ Automatic grouping of tests by fixture instances
 
 .. regendoc: wipe
 
-pytest minimizes the number of active fixtures during test runs.
+testrunner minimizes the number of active fixtures during test runs.
 If you have a parametrized fixture, then all the tests using it will
 first execute with one instance and then finalizers are called
 before the next fixture instance is created.  Among other things,
@@ -1569,10 +1569,10 @@ to show the setup/teardown flow:
 .. code-block:: python
 
     # content of test_module.py
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture(scope="module", params=["mod1", "mod2"])
+    @testrunner.fixture(scope="module", params=["mod1", "mod2"])
     def modarg(request):
         param = request.param
         print("  SETUP modarg", param)
@@ -1580,7 +1580,7 @@ to show the setup/teardown flow:
         print("  TEARDOWN modarg", param)
 
 
-    @pytest.fixture(scope="function", params=[1, 2])
+    @testrunner.fixture(scope="function", params=[1, 2])
     def otherarg(request):
         param = request.param
         print("  SETUP otherarg", param)
@@ -1602,12 +1602,12 @@ to show the setup/teardown flow:
 
 Let's run the tests in verbose mode and with looking at the print-output:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -v -s test_module.py
+    $ testrunner -v -s test_module.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python
-    cachedir: .pytest_cache
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python
+    cachedir: .testrunner_cache
     rootdir: /home/sweet/project
     collecting ... collected 8 items
 
@@ -1670,7 +1670,7 @@ Sometimes test functions do not directly need access to a fixture object.
 For example, tests may require to operate with an empty directory as the
 current working directory but otherwise do not care for the concrete
 directory.  Here is how you can use the standard :mod:`tempfile`
-and pytest fixtures to
+and testrunner fixtures to
 achieve it.  We separate the creation of the fixture into a :file:`conftest.py`
 file:
 
@@ -1681,10 +1681,10 @@ file:
     import os
     import tempfile
 
-    import pytest
+    import testrunner
 
 
-    @pytest.fixture
+    @testrunner.fixture
     def cleandir():
         with tempfile.TemporaryDirectory() as newpath:
             old_cwd = os.getcwd()
@@ -1699,10 +1699,10 @@ and declare its use in a test module via a ``usefixtures`` marker:
     # content of test_setenv.py
     import os
 
-    import pytest
+    import testrunner
 
 
-    @pytest.mark.usefixtures("cleandir")
+    @testrunner.mark.usefixtures("cleandir")
     class TestDirectoryInit:
         def test_cwd_starts_empty(self):
             assert os.listdir(os.getcwd()) == []
@@ -1717,9 +1717,9 @@ will be required for the execution of each test method, just as if
 you specified a "cleandir" function argument to each of them.  Let's run it
 to verify our fixture is activated and the tests pass:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest -q
+    $ testrunner -q
     ..                                                                   [100%]
     2 passed in 0.12s
 
@@ -1727,14 +1727,14 @@ You can specify multiple fixtures like this:
 
 .. code-block:: python
 
-    @pytest.mark.usefixtures("cleandir", "anotherfixture")
+    @testrunner.mark.usefixtures("cleandir", "anotherfixture")
     def test(): ...
 
-and you may specify fixture usage at the test module level using :globalvar:`pytestmark`:
+and you may specify fixture usage at the test module level using :globalvar:`_testrunner_mark`:
 
 .. code-block:: python
 
-    pytestmark = pytest.mark.usefixtures("cleandir")
+    _testrunner_mark = testrunner.mark.usefixtures("cleandir")
 
 
 It is also possible to put fixtures required by all tests in your project
@@ -1742,19 +1742,19 @@ into a configuration file:
 
 .. code-block:: toml
 
-    # content of pytest.toml
-    [pytest]
+    # content of testrunner.toml
+    [testrunner]
     usefixtures = ["cleandir"]
 
 .. warning::
 
-    ``@pytest.mark.usefixtures`` cannot be used on **fixture functions**. For example,
+    ``@testrunner.mark.usefixtures`` cannot be used on **fixture functions**. For example,
     this is an error:
 
     .. code-block:: python
 
-        @pytest.mark.usefixtures("my_other_fixture")
-        @pytest.fixture
+        @testrunner.mark.usefixtures("my_other_fixture")
+        @testrunner.fixture
         def my_fixture_that_sadly_wont_use_my_other_fixture(): ...
 
 .. _`override fixtures`:
@@ -1775,9 +1775,9 @@ Given the tests file structure is:
     tests/
         conftest.py
             # content of tests/conftest.py
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def username():
                 return 'username'
 
@@ -1789,9 +1789,9 @@ Given the tests file structure is:
         subdir/
             conftest.py
                 # content of tests/subdir/conftest.py
-                import pytest
+                import testrunner
 
-                @pytest.fixture
+                @testrunner.fixture
                 def username(username):
                     return 'overridden-' + username
 
@@ -1814,17 +1814,17 @@ Given the tests file structure is:
     tests/
         conftest.py
             # content of tests/conftest.py
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def username():
                 return 'username'
 
         test_something.py
             # content of tests/test_something.py
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def username(username):
                 return 'overridden-' + username
 
@@ -1833,9 +1833,9 @@ Given the tests file structure is:
 
         test_something_else.py
             # content of tests/test_something_else.py
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def username(username):
                 return 'overridden-else-' + username
 
@@ -1855,25 +1855,25 @@ Given the tests file structure is:
     tests/
         conftest.py
             # content of tests/conftest.py
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def username():
                 return 'username'
 
-            @pytest.fixture
+            @testrunner.fixture
             def other_username(username):
                 return 'other-' + username
 
         test_something.py
             # content of tests/test_something.py
-            import pytest
+            import testrunner
 
-            @pytest.mark.parametrize('username', ['directly-overridden-username'])
+            @testrunner.mark.parametrize('username', ['directly-overridden-username'])
             def test_username(username):
                 assert username == 'directly-overridden-username'
 
-            @pytest.mark.parametrize('username', ['directly-overridden-username-other'])
+            @testrunner.mark.parametrize('username', ['directly-overridden-username-other'])
             def test_username_other(other_username):
                 assert other_username == 'other-directly-overridden-username-other'
 
@@ -1891,25 +1891,25 @@ Given the tests file structure is:
     tests/
         conftest.py
             # content of tests/conftest.py
-            import pytest
+            import testrunner
 
-            @pytest.fixture(params=['one', 'two', 'three'])
+            @testrunner.fixture(params=['one', 'two', 'three'])
             def parametrized_username(request):
                 return request.param
 
-            @pytest.fixture
+            @testrunner.fixture
             def non_parametrized_username(request):
                 return 'username'
 
         test_something.py
             # content of tests/test_something.py
-            import pytest
+            import testrunner
 
-            @pytest.fixture
+            @testrunner.fixture
             def parametrized_username():
                 return 'overridden-username'
 
-            @pytest.fixture(params=['one', 'two', 'three'])
+            @testrunner.fixture(params=['one', 'two', 'three'])
             def non_parametrized_username(request):
                 return request.param
 
@@ -1935,22 +1935,22 @@ The same applies for the test directory level obviously.
 Using fixtures from other projects
 ----------------------------------
 
-Usually projects that provide pytest support will use :ref:`entry points <pip-installable plugins>`,
+Usually projects that provide testrunner support will use :ref:`entry points <pip-installable plugins>`,
 so just installing those projects into an environment will make those fixtures available for use.
 
 In case you want to use fixtures from a project that does not use entry points, you can
-define :globalvar:`pytest_plugins` in your top ``conftest.py`` file to register that module
+define :globalvar:`testrunner_plugins` in your top ``conftest.py`` file to register that module
 as a plugin.
 
 Suppose you have some fixtures in ``mylibrary.fixtures`` and you want to reuse them into your
 ``app/tests`` directory.
 
-All you need to do is to define :globalvar:`pytest_plugins` in ``app/tests/conftest.py``
+All you need to do is to define :globalvar:`testrunner_plugins` in ``app/tests/conftest.py``
 pointing to that module.
 
 .. code-block:: python
 
-    pytest_plugins = "mylibrary.fixtures"
+    testrunner_plugins = "mylibrary.fixtures"
 
 This effectively registers ``mylibrary.fixtures`` as a plugin, making all its fixtures and
 hooks available to tests in ``app/tests``.
@@ -1958,9 +1958,9 @@ hooks available to tests in ``app/tests``.
 .. note::
 
     Sometimes users will *import* fixtures from other projects for use, however this is not
-    recommended: importing fixtures into a module will register them in pytest
+    recommended: importing fixtures into a module will register them in testrunner
     as *defined* in that module.
 
-    This has minor consequences, such as appearing multiple times in ``pytest --help``,
+    This has minor consequences, such as appearing multiple times in ``testrunner --help``,
     but it is not **recommended** because this behavior might change/stop working
     in future versions.

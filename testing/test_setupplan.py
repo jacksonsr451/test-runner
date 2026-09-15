@@ -1,16 +1,16 @@
 from __future__ import annotations
 
-from _pytest.pytester import Pytester
+from _testrunner.testrunnerer import Testrunnerer
 
 
 def test_show_fixtures_and_test(
-    pytester: Pytester, dummy_yaml_custom_test: None
+    testrunnerer: Testrunnerer, dummy_yaml_custom_test: None
 ) -> None:
     """Verify that fixtures are not executed."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
-        @pytest.fixture
+        import testrunner
+        @testrunner.fixture
         def arg():
             assert False
         def test_arg(arg):
@@ -18,7 +18,7 @@ def test_show_fixtures_and_test(
     """
     )
 
-    result = pytester.runpytest("--setup-plan")
+    result = testrunnerer.runtestrunner("--setup-plan")
     assert result.ret == 0
 
     result.stdout.fnmatch_lines(
@@ -27,12 +27,12 @@ def test_show_fixtures_and_test(
 
 
 def test_show_multi_test_fixture_setup_and_teardown_correctly_simple(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
     """Verify that when a fixture lives for longer than a single test, --setup-plan
     correctly displays the SETUP/TEARDOWN indicators the right number of times.
 
-    As reported in https://github.com/pytest-dev/pytest/issues/2049
+    As reported in https://github.com/jacksonsr451/test-runner/issues/2049
     --setup-plan was showing SETUP/TEARDOWN on every test, even when the fixture
     should persist through multiple tests.
 
@@ -40,10 +40,10 @@ def test_show_multi_test_fixture_setup_and_teardown_correctly_simple(
     correct fixture lifetimes. It was purely a display bug for --setup-plan, and
     did not affect the related --setup-show or --setup-only.)
     """
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
-        @pytest.fixture(scope = 'class')
+        import testrunner
+        @testrunner.fixture(scope = 'class')
         def fix():
             return object()
         class TestClass:
@@ -54,7 +54,7 @@ def test_show_multi_test_fixture_setup_and_teardown_correctly_simple(
     """
     )
 
-    result = pytester.runpytest("--setup-plan")
+    result = testrunnerer.runtestrunner("--setup-plan")
     assert result.ret == 0
 
     setup_fragment = "SETUP    C fix"
@@ -76,22 +76,22 @@ def test_show_multi_test_fixture_setup_and_teardown_correctly_simple(
 
 
 def test_show_multi_test_fixture_setup_and_teardown_same_as_setup_show(
-    pytester: Pytester,
+    testrunnerer: Testrunnerer,
 ) -> None:
     """Verify that SETUP/TEARDOWN messages match what comes out of --setup-show."""
-    pytester.makepyfile(
+    testrunnerer.makepyfile(
         """
-        import pytest
-        @pytest.fixture(scope = 'session')
+        import testrunner
+        @testrunner.fixture(scope = 'session')
         def sess():
             return True
-        @pytest.fixture(scope = 'module')
+        @testrunner.fixture(scope = 'module')
         def mod():
             return True
-        @pytest.fixture(scope = 'class')
+        @testrunner.fixture(scope = 'class')
         def cls():
             return True
-        @pytest.fixture(scope = 'function')
+        @testrunner.fixture(scope = 'function')
         def func():
             return True
         def test_outside(sess, mod, cls, func):
@@ -104,8 +104,8 @@ def test_show_multi_test_fixture_setup_and_teardown_same_as_setup_show(
     """
     )
 
-    plan_result = pytester.runpytest("--setup-plan")
-    show_result = pytester.runpytest("--setup-show")
+    plan_result = testrunnerer.runtestrunner("--setup-plan")
+    show_result = testrunnerer.runtestrunner("--setup-show")
 
     # the number and text of these lines should be identical
     plan_lines = [

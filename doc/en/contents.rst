@@ -2,12 +2,12 @@
 
 .. _toc:
 
-Full pytest documentation
+Full testrunner documentation
 ===========================
 
-`Download latest version as PDF <https://media.readthedocs.org/pdf/pytest/latest/pytest.pdf>`_
+`Download latest version as PDF <https://media.readthedocs.org/pdf/testrunner/latest/testrunner.pdf>`_
 
-.. `Download latest version as EPUB <http://media.readthedocs.org/epub/pytest/latest/pytest.epub>`_
+.. `Download latest version as EPUB <http://media.readthedocs.org/epub/testrunner/latest/testrunner.epub>`_
 
 
 Start here

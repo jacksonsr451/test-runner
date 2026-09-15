@@ -1,13 +1,13 @@
-pytest-3.2.5
+testrunner-3.2.5
 =======================================
 
-pytest 3.2.5 has just been released to PyPI.
+testrunner 3.2.5 has just been released to PyPI.
 
 This is a bug-fix release, being a drop-in replacement. To upgrade::
 
-  pip install --upgrade pytest
+  pip install --upgrade testrunner
 
-The full changelog is available at http://doc.pytest.org/en/stable/changelog.html.
+The full changelog is available at http://doc.testrunner.org/en/stable/changelog.html.
 
 Thanks to all who contributed to this release, among them:
 
@@ -15,4 +15,4 @@ Thanks to all who contributed to this release, among them:
 
 
 Happy testing,
-The pytest Development Team
+The testrunner Development Team

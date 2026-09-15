@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from _pytest.stash import Stash
-from _pytest.stash import StashKey
-import pytest
+from _testrunner.stash import Stash
+from _testrunner.stash import StashKey
+import testrunner
 
 
 def test_stash() -> None:
@@ -30,18 +30,18 @@ def test_stash() -> None:
     # No interaction with another key.
     assert key2 not in stash
     assert stash.get(key2, None) is None
-    with pytest.raises(KeyError):
+    with testrunner.raises(KeyError):
         stash[key2]
-    with pytest.raises(KeyError):
+    with testrunner.raises(KeyError):
         del stash[key2]
     stash[key2] = 1
     assert stash[key2] == 1
     # Has correct type (no mypy error).
     stash[key2] + 20
     del stash[key1]
-    with pytest.raises(KeyError):
+    with testrunner.raises(KeyError):
         del stash[key1]
-    with pytest.raises(KeyError):
+    with testrunner.raises(KeyError):
         stash[key1]
 
     # setdefault
@@ -55,7 +55,7 @@ def test_stash() -> None:
     assert stash
 
     # Can't accidentally add attributes to stash object itself.
-    with pytest.raises(AttributeError):
+    with testrunner.raises(AttributeError):
         stash.foo = "nope"  # type: ignore[attr-defined]
 
     # No interaction with another stash.

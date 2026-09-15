@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import textwrap
 
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
-def setup_files(pytester: Pytester) -> None:
-    src_dir = pytester.mkdir("src")
-    tests_dir = pytester.mkdir("tests")
+def setup_files(testrunnerer: Testrunnerer) -> None:
+    src_dir = testrunnerer.mkdir("src")
+    tests_dir = testrunnerer.mkdir("tests")
     src_file = src_dir / "foo.py"
 
     src_file.write_text(
@@ -37,24 +37,24 @@ def setup_files(pytester: Pytester) -> None:
         encoding="utf-8",
     )
 
-    pytester.syspathinsert(src_dir)
+    testrunnerer.syspathinsert(src_dir)
 
 
-def test_collect_imports_disabled(pytester: Pytester) -> None:
+def test_collect_imports_disabled(testrunnerer: Testrunnerer) -> None:
     """
     When collect_imported_tests is disabled, only objects in the
     test modules are collected as tests, so the imported names (`Testament` and `test_testament`)
     are not collected.
     """
-    pytester.makeini(
+    testrunnerer.makeini(
         """
-        [pytest]
+        [testrunner]
         collect_imported_tests = false
         """
     )
 
-    setup_files(pytester)
-    result = pytester.runpytest("-v", "tests")
+    setup_files(testrunnerer)
+    result = testrunnerer.runtestrunner("-v", "tests")
     result.stdout.fnmatch_lines(
         [
             "tests/foo_test.py::TestDomain::test PASSED*",
@@ -63,9 +63,9 @@ def test_collect_imports_disabled(pytester: Pytester) -> None:
 
     # Ensure that the hooks were only called for the collected item.
     reprec = result.reprec  # type:ignore[attr-defined]
-    reports = reprec.getreports("pytest_collectreport")
-    [modified] = reprec.getcalls("pytest_collection_modifyitems")
-    [item_collected] = reprec.getcalls("pytest_itemcollected")
+    reports = reprec.getreports("testrunner_collectreport")
+    [modified] = reprec.getcalls("testrunner_collection_modifyitems")
+    [item_collected] = reprec.getcalls("testrunner_itemcollected")
 
     assert [x.nodeid for x in reports] == [
         "",
@@ -77,22 +77,22 @@ def test_collect_imports_disabled(pytester: Pytester) -> None:
     assert item_collected.item.nodeid == "tests/foo_test.py::TestDomain::test"
 
 
-@pytest.mark.parametrize("configure_ini", [False, True])
-def test_collect_imports_enabled(pytester: Pytester, configure_ini: bool) -> None:
+@testrunner.mark.parametrize("configure_ini", [False, True])
+def test_collect_imports_enabled(testrunnerer: Testrunnerer, configure_ini: bool) -> None:
     """
     When collect_imported_tests is enabled (the default), all names in the
     test modules are collected as tests.
     """
     if configure_ini:
-        pytester.makeini(
+        testrunnerer.makeini(
             """
-            [pytest]
+            [testrunner]
             collect_imported_tests = true
             """
         )
 
-    setup_files(pytester)
-    result = pytester.runpytest("-v", "tests")
+    setup_files(testrunnerer)
+    result = testrunnerer.runtestrunner("-v", "tests")
     result.stdout.fnmatch_lines(
         [
             "tests/foo_test.py::Testament::test_collections PASSED*",

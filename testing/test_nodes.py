@@ -5,27 +5,27 @@ from pathlib import Path
 import re
 import warnings
 
-from _pytest import nodes
-from _pytest.outcomes import OutcomeException
-from _pytest.pytester import Pytester
-from _pytest.warning_types import PytestWarning
-import pytest
+from _testrunner import nodes
+from _testrunner.outcomes import OutcomeException
+from _testrunner.testrunnerer import Testrunnerer
+from _testrunner.warning_types import TestrunnerWarning
+import testrunner
 
 
 def test_node_from_parent_disallowed_arguments() -> None:
-    with pytest.raises(TypeError, match="session is"):
+    with testrunner.raises(TypeError, match="session is"):
         nodes.Node.from_parent(None, session=None)  # type: ignore[arg-type]
-    with pytest.raises(TypeError, match="config is"):
+    with testrunner.raises(TypeError, match="config is"):
         nodes.Node.from_parent(None, config=None)  # type: ignore[arg-type]
 
 
 def test_node_direct_construction_deprecated() -> None:
-    with pytest.raises(
+    with testrunner.raises(
         OutcomeException,
         match=(
-            r"Direct construction of _pytest\.nodes\.Node has been deprecated, please "
-            r"use _pytest\.nodes\.Node\.from_parent.\nSee "
-            r"https://docs\.pytest\.org/en/stable/deprecations\.html#node-construction-changed-to-node-from-parent"
+            r"Direct construction of _testrunner\.nodes\.Node has been deprecated, please "
+            r"use _testrunner\.nodes\.Node\.from_parent.\nSee "
+            r"https://docs\.testrunner\.org/en/stable/deprecations\.html#node-construction-changed-to-node-from-parent"
             r" for more details\."
         ),
     ):
@@ -50,7 +50,7 @@ def test_subclassing_both_item_and_collector_deprecated(
             def runtest(self):
                 raise NotImplementedError()
 
-    with pytest.warns(PytestWarning) as rec:
+    with testrunner.warns(TestrunnerWarning) as rec:
         SoWrong.from_parent(request.session, path=tmp_path / "broken.txt")
     messages = [str(x.message) for x in rec]
     assert any(
@@ -62,30 +62,30 @@ def test_subclassing_both_item_and_collector_deprecated(
     )
 
 
-@pytest.mark.parametrize(
-    "warn_type, msg", [(DeprecationWarning, "deprecated"), (PytestWarning, "pytest")]
+@testrunner.mark.parametrize(
+    "warn_type, msg", [(DeprecationWarning, "deprecated"), (TestrunnerWarning, "testrunner")]
 )
-def test_node_warn_is_no_longer_only_pytest_warnings(
-    pytester: Pytester, warn_type: type[Warning], msg: str
+def test_node_warn_is_no_longer_only_testrunner_warnings(
+    testrunnerer: Testrunnerer, warn_type: type[Warning], msg: str
 ) -> None:
-    items = pytester.getitems(
+    items = testrunnerer.getitems(
         """
         def test():
             pass
     """
     )
-    with pytest.warns(warn_type, match=msg):
+    with testrunner.warns(warn_type, match=msg):
         items[0].warn(warn_type(msg))
 
 
-def test_node_warning_enforces_warning_types(pytester: Pytester) -> None:
-    items = pytester.getitems(
+def test_node_warning_enforces_warning_types(testrunnerer: Testrunnerer) -> None:
+    items = testrunnerer.getitems(
         """
         def test():
             pass
     """
     )
-    with pytest.raises(
+    with testrunner.raises(
         ValueError, match="warning must be an instance of Warning or subclass"
     ):
         items[0].warn(Exception("ok"))  # type: ignore[arg-type]
@@ -137,17 +137,17 @@ def test__check_initialpaths_for_relpath() -> None:
     assert nodes._check_initialpaths_for_relpath(initial_paths, outside) is None
 
 
-def test_failure_with_changed_cwd(pytester: Pytester) -> None:
+def test_failure_with_changed_cwd(testrunnerer: Testrunnerer) -> None:
     """
     Test failure lines should use absolute paths if cwd has changed since
     invocation, so the path is correct (#6428).
     """
-    p = pytester.makepyfile(
+    p = testrunnerer.makepyfile(
         """
         import os
-        import pytest
+        import testrunner
 
-        @pytest.fixture
+        @testrunner.fixture
         def private_dir():
             out_dir = 'ddd'
             os.mkdir(out_dir)
@@ -160,5 +160,5 @@ def test_failure_with_changed_cwd(pytester: Pytester) -> None:
             assert False
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines([str(p) + ":*: AssertionError", "*1 failed in *"])

@@ -1,15 +1,15 @@
 .. _existingtestsuite:
 
-How to use pytest with an existing test suite
+How to use testrunner with an existing test suite
 ==============================================
 
-Pytest can be used with most existing test suites, but its
+Testrunner can be used with most existing test suites, but its
 behavior differs from other test runners such as Python's
 default unittest framework.
 
-Before using this section you will want to :ref:`install pytest <getstarted>`.
+Before using this section you will want to :ref:`install testrunner <getstarted>`.
 
-Running an existing test suite with pytest
+Running an existing test suite with testrunner
 ---------------------------------------------
 
 Say you want to contribute to an existing repository somewhere.

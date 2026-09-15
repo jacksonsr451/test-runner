@@ -8,13 +8,13 @@ from functools import wraps
 from typing import Literal
 import warnings
 
-from _pytest.compat import assert_never
-from _pytest.compat import deprecated
-from _pytest.compat import get_real_func
-from _pytest.compat import safe_getattr
-from _pytest.compat import safe_isclass
-from _pytest.outcomes import OutcomeException
-import pytest
+from _testrunner.compat import assert_never
+from _testrunner.compat import deprecated
+from _testrunner.compat import get_real_func
+from _testrunner.compat import safe_getattr
+from _testrunner.compat import safe_isclass
+from _testrunner.outcomes import OutcomeException
+import testrunner
 
 
 def test_real_func_loop_limit() -> None:
@@ -33,7 +33,7 @@ def test_real_func_loop_limit() -> None:
 
     evil = Evil()
 
-    with pytest.raises(
+    with testrunner.raises(
         ValueError,
         match=("wrapper loop when unwrapping <Evil left=998>"),
     ):
@@ -59,8 +59,8 @@ def test_get_real_func() -> None:
     wrapped_func2 = decorator(decorator(wrapped_func))
     assert get_real_func(wrapped_func2) is func
 
-    # obtain the function up until the point a function was wrapped by pytest itself
-    @pytest.fixture
+    # obtain the function up until the point a function was wrapped by testrunner itself
+    @testrunner.fixture
     def wrapped_func3():
         pass  # pragma: no cover
 
@@ -89,14 +89,14 @@ class ErrorsHelper:
 
     @property
     def raise_fail_outcome(self):
-        pytest.fail("fail should be caught")
+        testrunner.fail("fail should be caught")
 
 
 def test_helper_failures() -> None:
     helper = ErrorsHelper()
-    with pytest.raises(Exception):  # noqa: B017
+    with testrunner.raises(Exception):  # noqa: B017
         _ = helper.raise_exception
-    with pytest.raises(OutcomeException):
+    with testrunner.raises(OutcomeException):
         _ = helper.raise_fail_outcome
 
 
@@ -104,7 +104,7 @@ def test_safe_getattr() -> None:
     helper = ErrorsHelper()
     assert safe_getattr(helper, "raise_exception", "default") == "default"
     assert safe_getattr(helper, "raise_fail_outcome", "default") == "default"
-    with pytest.raises(BaseException):  # noqa: B017
+    with testrunner.raises(BaseException):  # noqa: B017
         assert safe_getattr(helper, "raise_baseexception", "default")
 
 
@@ -146,7 +146,7 @@ def test_assert_never_union() -> None:
     if isinstance(x, int):
         pass
     else:
-        with pytest.raises(AssertionError):
+        with testrunner.raises(AssertionError):
             assert_never(x)  # type: ignore[arg-type]
 
     if isinstance(x, int):
@@ -164,7 +164,7 @@ def test_assert_never_enum() -> None:
     if x is E.a:
         pass
     else:
-        with pytest.raises(AssertionError):
+        with testrunner.raises(AssertionError):
             assert_never(x)  # type: ignore[arg-type]
 
     if x is E.a:
@@ -181,7 +181,7 @@ def test_assert_never_literal() -> None:
     if x == "a":
         pass
     else:
-        with pytest.raises(AssertionError):
+        with testrunner.raises(AssertionError):
             assert_never(x)  # type: ignore[arg-type]
 
     if x == "a":

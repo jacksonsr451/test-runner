@@ -9,7 +9,7 @@ can change the pattern by issuing:
 
 .. code-block:: bash
 
-    pytest --doctest-glob="*.rst"
+    testrunner --doctest-glob="*.rst"
 
 on the command line. :option:`--doctest-glob` can be given multiple times in the command-line.
 
@@ -24,13 +24,13 @@ If you then have a text file like this:
     >>> x
     3
 
-then you can just invoke ``pytest`` directly:
+then you can just invoke ``testrunner`` directly:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest
+    $ testrunner
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 1 item
 
@@ -38,7 +38,7 @@ then you can just invoke ``pytest`` directly:
 
     ============================ 1 passed in 0.12s =============================
 
-By default, pytest will collect ``test*.txt`` files looking for doctest directives, but you
+By default, testrunner will collect ``test*.txt`` files looking for doctest directives, but you
 can pass additional globs using the :option:`--doctest-glob` option (multi-allowed).
 
 In addition to text files, you can also execute doctests directly from docstrings of your classes
@@ -56,9 +56,9 @@ and functions, including from test modules, using the :option:`--doctest-modules
 
 .. code-block:: bash
 
-    $ pytest --doctest-modules
+    $ testrunner --doctest-modules
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project
     collected 2 items
 
@@ -72,8 +72,8 @@ putting them into a configuration file like this:
 
 .. code-block:: toml
 
-    # content of pytest.toml
-    [pytest]
+    # content of testrunner.toml
+    [testrunner]
     addopts = ["--doctest-modules"]
 
 Encoding
@@ -87,14 +87,14 @@ that will be used for those doctest files using the
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         doctest_encoding = "latin1"
 
 .. tab:: ini
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         doctest_encoding = latin1
 
 .. _using doctest options:
@@ -103,24 +103,24 @@ Using 'doctest' options
 -----------------------
 
 Python's standard :mod:`doctest` module provides some :ref:`options <python:option-flags-and-directives>`
-to configure the strictness of doctest tests. In pytest, you can enable those flags using the
+to configure the strictness of doctest tests. In testrunner, you can enable those flags using the
 configuration file.
 
-For example, to make pytest ignore trailing whitespaces and ignore
+For example, to make testrunner ignore trailing whitespaces and ignore
 lengthy exception stack traces you can just write:
 
 .. tab:: toml
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         doctest_optionflags = ["NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL"]
 
 .. tab:: ini
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         doctest_optionflags = NORMALIZE_WHITESPACE IGNORE_EXCEPTION_DETAIL
 
 Alternatively, options can be enabled by an inline comment in the doc test
@@ -132,7 +132,7 @@ itself:
     Traceback (most recent call last):
     ValueError: ...
 
-pytest also introduces new options:
+testrunner also introduces new options:
 
 * ``ALLOW_UNICODE``: when enabled, the ``u`` prefix is stripped from unicode
   strings in expected doctest output. This allows doctests to run in Python 2
@@ -143,10 +143,10 @@ pytest also introduces new options:
 
 * ``NUMBER``: when enabled, floating-point numbers only need to match as far as
   the precision you have written in the expected doctest output. The numbers are
-  compared using :func:`pytest.approx` with relative tolerance equal to the
+  compared using :func:`testrunner.approx` with relative tolerance equal to the
   precision. For example, the following output would only need to match to 2
   decimal places when comparing ``3.14`` to
-  ``pytest.approx(math.pi, rel=10**-2)``::
+  ``testrunner.approx(math.pi, rel=10**-2)``::
 
       >>> math.pi
       3.14
@@ -173,12 +173,12 @@ pytest also introduces new options:
 Continue on failure
 -------------------
 
-By default, pytest would report only the first failure for a given doctest. If
+By default, testrunner would report only the first failure for a given doctest. If
 you want to continue the test even when you have failures, do:
 
 .. code-block:: bash
 
-    pytest --doctest-modules --doctest-continue-on-failure
+    testrunner --doctest-modules --doctest-continue-on-failure
 
 
 Output format
@@ -191,14 +191,14 @@ by using one of the standard doctest module's format options
 
 .. code-block:: bash
 
-    pytest --doctest-modules --doctest-report none
-    pytest --doctest-modules --doctest-report udiff
-    pytest --doctest-modules --doctest-report cdiff
-    pytest --doctest-modules --doctest-report ndiff
-    pytest --doctest-modules --doctest-report only_first_failure
+    testrunner --doctest-modules --doctest-report none
+    testrunner --doctest-modules --doctest-report udiff
+    testrunner --doctest-modules --doctest-report cdiff
+    testrunner --doctest-modules --doctest-report ndiff
+    testrunner --doctest-modules --doctest-report only_first_failure
 
 
-pytest-specific features
+testrunner-specific features
 ------------------------
 
 Some features are provided to make writing doctests easier or with better integration with
@@ -217,7 +217,7 @@ It is possible to use fixtures using the ``getfixture`` helper:
     >>> ...
     >>>
 
-Note that the fixture needs to be defined in a place visible by pytest, for example, a `conftest.py`
+Note that the fixture needs to be defined in a place visible by testrunner, for example, a `conftest.py`
 file or plugin; normal python files containing docstrings are not normally scanned for fixtures
 unless explicitly configured by :confval:`python_files`.
 
@@ -249,11 +249,11 @@ place the objects you want to appear in the doctest namespace:
 .. code-block:: python
 
     # content of conftest.py
-    import pytest
+    import testrunner
     import numpy
 
 
-    @pytest.fixture(autouse=True)
+    @testrunner.fixture(autouse=True)
     def add_np(doctest_namespace):
         doctest_namespace["np"] = numpy
 
@@ -295,16 +295,16 @@ To skip a single check inside a doctest you can use the standard
 
 This will skip the first check, but not the second.
 
-pytest also allows using the standard pytest functions :func:`pytest.skip` and
-:func:`pytest.xfail` inside doctests, which might be useful because you can
+testrunner also allows using the standard testrunner functions :func:`testrunner.skip` and
+:func:`testrunner.xfail` inside doctests, which might be useful because you can
 then skip/xfail tests based on external conditions:
 
 
 .. code-block:: text
 
-    >>> import sys, pytest
+    >>> import sys, testrunner
     >>> if sys.platform.startswith('win'):
-    ...     pytest.skip('this doctest does not work on Windows')
+    ...     testrunner.skip('this doctest does not work on Windows')
     ...
     >>> import fcntl
     >>> ...
@@ -314,7 +314,7 @@ docstring.
 
 .. note::
 
-    :func:`pytest.skip` and :func:`pytest.xfail` behave differently depending
+    :func:`testrunner.skip` and :func:`testrunner.xfail` behave differently depending
     if the doctests are in a Python file (in docstrings) or a text file containing
     doctests intermingled with text:
 
@@ -328,11 +328,11 @@ docstring.
 Alternatives
 ------------
 
-While the built-in pytest support provides a good set of functionalities for using
+While the built-in testrunner support provides a good set of functionalities for using
 doctests, if you use them extensively you might be interested in those external packages
-which add many more features, and include pytest integration:
+which add many more features, and include testrunner integration:
 
-* `pytest-doctestplus <https://github.com/scientific-python/pytest-doctestplus>`__: provides
+* `testrunner-doctestplus <https://github.com/scientific-python/testrunner-doctestplus>`__: provides
   advanced doctest support and enables the testing of reStructuredText (".rst") files.
 
 * `Sybil <https://sybil.readthedocs.io>`__: provides a way to test examples in

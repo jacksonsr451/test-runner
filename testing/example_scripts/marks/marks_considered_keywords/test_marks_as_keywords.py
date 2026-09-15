@@ -1,9 +1,9 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-@pytest.mark.foo
+@testrunner.mark.foo
 def test_mark():
     pass

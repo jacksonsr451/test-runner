@@ -1,1 +1,1 @@
-Schedule *yield_fixture* decorator for removal in pytest 10.
+Schedule *yield_fixture* decorator for removal in testrunner 10.

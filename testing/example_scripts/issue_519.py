@@ -3,10 +3,10 @@ from __future__ import annotations
 
 import pprint
 
-import pytest
+import testrunner
 
 
-def pytest_generate_tests(metafunc):
+def testrunner_generate_tests(metafunc):
     if "arg1" in metafunc.fixturenames:
         metafunc.parametrize("arg1", ["arg1v1", "arg1v2"], scope="module")
 
@@ -14,7 +14,7 @@ def pytest_generate_tests(metafunc):
         metafunc.parametrize("arg2", ["arg2v1", "arg2v2"], scope="function")
 
 
-@pytest.fixture(scope="session")
+@testrunner.fixture(scope="session")
 def checked_order():
     order: list[tuple[str, str, str]] = []
 
@@ -34,13 +34,13 @@ def checked_order():
     ]
 
 
-@pytest.fixture(scope="module")
+@testrunner.fixture(scope="module")
 def fix1(request, arg1, checked_order):
     checked_order.append((request.node.name, "fix1", arg1))
     yield "fix1-" + arg1
 
 
-@pytest.fixture(scope="function")
+@testrunner.fixture(scope="function")
 def fix2(request, fix1, arg2, checked_order):
     checked_order.append((request.node.name, "fix2", arg2))
     yield "fix2-" + arg2 + fix1

@@ -12,7 +12,7 @@ permissions: {}
 
 jobs:
   update-plugin-list:
-    if: github.repository_owner == 'pytest-dev'
+    if: github.repository_owner == 'testrunner-dev'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -22,7 +22,7 @@ jobs:
       - name: Find current maintenance branch
         id: find-branch
         run: |
-          branch=$(git ls-remote --heads --sort=v:refname https://github.com/pytest-dev/pytest.git 'refs/heads/*.x' \
+          branch=$(git ls-remote --heads --sort=v:refname https://github.com/jacksonsr451/test-runner.git 'refs/heads/*.x' \
             | sed '$!d;s|.*\trefs/heads/||')
           if [ -z "$branch" ]; then
             echo "No maintenance branch matching *.x was found" >&2
@@ -39,7 +39,7 @@ jobs:
       - name: requests-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
-          path: ~/.cache/pytest-plugin-list/
+          path: ~/.cache/testrunner-plugin-list/
           key: plugins-http-cache-${{ github.run_id }} # Can use time based key as well
           restore-keys: plugins-http-cache-
 
@@ -56,7 +56,7 @@ jobs:
         uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1
         with:
           commit-message: '[automated] Update plugin list'
-          author: 'pytest bot <pytestbot@users.noreply.github.com>'
+          author: 'testrunner bot <testrunnerbot@users.noreply.github.com>'
           branch: update-plugin-list/patch
           delete-branch: true
           branch-suffix: short-commit-hash

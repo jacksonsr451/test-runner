@@ -1,7 +1,7 @@
-pytest-2.5.1: fixes and new home page styling
+testrunner-2.5.1: fixes and new home page styling
 ===========================================================================
 
-pytest is a mature Python testing tool with more than 1000 tests
+testrunner is a mature Python testing tool with more than 1000 tests
 against itself, passing on many different interpreters and platforms.
 
 The 2.5.1 release maintains the "zero-reported-bugs" promise by fixing
@@ -9,7 +9,7 @@ the three bugs reported since the last release a few days ago.  It also
 features a new home page styling implemented by Tobias Bieniek, based on
 the flask theme from Armin Ronacher:
 
-    http://pytest.org
+    http://testrunner.org
 
 If you have anything more to improve styling and docs,
 we'd be very happy to merge further pull requests.
@@ -21,7 +21,7 @@ this release go to Anatoly Bubenkoff and Ronny Pfannschmidt.
 
 As usual, you can upgrade from pypi via::
 
-    pip install -U pytest
+    pip install -U testrunner
 
 have fun and a nice remaining "bug-free" time of the year :)
 holger krekel
@@ -36,7 +36,7 @@ holger krekel
   and analysis.
 
 - Allow parameterized fixtures to specify the ID of the parameters by
-  adding an ids argument to pytest.fixture() and pytest.yield_fixture().
+  adding an ids argument to testrunner.fixture() and testrunner.yield_fixture().
   Thanks Floris Bruynooghe.
 
 - fix issue404 by always using the binary xml escape in the junitxml

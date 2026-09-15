@@ -3,10 +3,10 @@
 Using a custom directory collector
 ====================================================
 
-By default, pytest collects directories using :class:`pytest.Package`, for directories with ``__init__.py`` files,
-and :class:`pytest.Dir` for other directories.
-If you want to customize how a directory is collected, you can write your own :class:`pytest.Directory` collector,
-and use :hook:`pytest_collect_directory` to hook it up.
+By default, testrunner collects directories using :class:`testrunner.Package`, for directories with ``__init__.py`` files,
+and :class:`testrunner.Dir` for other directories.
+If you want to customize how a directory is collected, you can write your own :class:`testrunner.Directory` collector,
+and use :hook:`testrunner_collect_directory` to hook it up.
 
 .. _`directory manifest plugin`:
 
@@ -38,13 +38,13 @@ You can create a ``manifest.json`` file and some test files:
 
 And you can now execute the test specification:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    customdirectory $ pytest
+    customdirectory $ testrunner
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project/customdirectory
-    configfile: pytest.ini
+    configfile: testrunner.ini
     collected 2 items
 
     tests/test_first.py .                                                [ 50%]
@@ -58,13 +58,13 @@ Notice how ``test_three.py`` was not executed, because it is not listed in the m
 
 You can verify that your custom collector appears in the collection tree:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    customdirectory $ pytest --collect-only
+    customdirectory $ testrunner --collect-only
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project/customdirectory
-    configfile: pytest.ini
+    configfile: testrunner.ini
     collected 2 items
 
     <Dir customdirectory>

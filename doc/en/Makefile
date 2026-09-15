@@ -25,8 +25,8 @@ REGENDOC_ARGS := \
 	--normalize "~\$$REGENDOC_TMPDIR~/home/sweet/project~" \
 	--normalize "~/path/to/example~/home/sweet/project~" \
 	--normalize "/in \d.\d\ds/in 0.12s/" \
-	--normalize "@/tmp/pytest-of-.*/pytest-\d+@PYTEST_TMPDIR@" \
-	--normalize "@pytest-(\d+)\\.[^ ,]+@pytest-\1.x.y@" \
+	--normalize "@/tmp/testrunner-of-.*/testrunner-\d+@TESTRUNNER_TMPDIR@" \
+	--normalize "@testrunner-(\d+)\\.[^ ,]+@testrunner-\1.x.y@" \
 	--normalize "@py-(\d+)\\.[^ ,]+@py-\1.x.y@" \
 	--normalize "@pluggy-(\d+)\\.[.\d,]+@pluggy-\1.x.y@" \
 	--normalize "@hypothesis-(\d+)\\.[.\d,]+@hypothesis-\1.x.y@" \
@@ -36,7 +36,7 @@ regen: REGENDOC_FILES:=*.rst */*.rst
 regen:
 # need to reset cachedir to the non-tox default
 	PYTHONDONTWRITEBYTECODE=1 \
-	PYTEST_ADDOPTS="-pno:hypothesis -p no:hypothesispytest -Wignore::pytest.PytestUnknownMarkWarning -o cache_dir=.pytest_cache" \
+	TESTRUNNER_ADDOPTS="-pno:hypothesis -p no:hypothesistestrunner -Wignore::testrunner.TestrunnerUnknownMarkWarning -o cache_dir=.testrunner_cache" \
 	COLUMNS=76 \
 	regendoc --update ${REGENDOC_FILES} ${REGENDOC_ARGS}
 

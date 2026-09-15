@@ -5,13 +5,13 @@ from __future__ import annotations
 
 from unittest import mock
 
-import pytest
+import testrunner
 
 
 config = {"mykey": "ORIGINAL"}
 
 
-@pytest.fixture(scope="function")
+@testrunner.fixture(scope="function")
 @mock.patch.dict(config, {"mykey": "MOCKED"})
 def my_fixture():
     return config["mykey"]

@@ -16,7 +16,7 @@ with advance notice in the **Deprecations** section of releases.
     fix problems like typo corrections or such.
     To add a new change log entry, please see
     https://pip.pypa.io/en/latest/development/contributing/#news-entries
-    but note that in pytest the "news/" directory is named "changelog/".
+    but note that in testrunner the "news/" directory is named "changelog/".
 
 
 .. only:: not is_release
@@ -31,38 +31,38 @@ with advance notice in the **Deprecations** section of releases.
 
 .. towncrier release notes start
 
-pytest 9.1.1 (2026-06-19)
+testrunner 9.1.1 (2026-06-19)
 =========================
 
 Bug fixes
 ---------
 
-- `#14220 <https://github.com/pytest-dev/pytest/issues/14220>`_: Fixed a logic bug in :class:`pytest.RaisesGroup` which would might cause it to display incorrect "It matches `FooError()` which was paired with `BarError`" messages.
+- `#14220 <https://github.com/jacksonsr451/test-runner/issues/14220>`_: Fixed a logic bug in :class:`testrunner.RaisesGroup` which would might cause it to display incorrect "It matches `FooError()` which was paired with `BarError`" messages.
 
 
-- `#14591 <https://github.com/pytest-dev/pytest/issues/14591>`_: Fixed a regression in pytest 9.1.0 which caused overriding a parametrized fixture with an indirect `@pytest.mark.parametrize` to fail with "duplicate parametrization of '<fixture name>'".
+- `#14591 <https://github.com/jacksonsr451/test-runner/issues/14591>`_: Fixed a regression in testrunner 9.1.0 which caused overriding a parametrized fixture with an indirect `@testrunner.mark.parametrize` to fail with "duplicate parametrization of '<fixture name>'".
 
 
-- `#14606 <https://github.com/pytest-dev/pytest/issues/14606>`_: Fixed ``list-item`` typing errors from mypy in :ref:`@pytest.mark.parametrize <pytest.mark.parametrize ref>` ``argvalues`` parameter.
+- `#14606 <https://github.com/jacksonsr451/test-runner/issues/14606>`_: Fixed ``list-item`` typing errors from mypy in :ref:`@testrunner.mark.parametrize <testrunner.mark.parametrize ref>` ``argvalues`` parameter.
 
 
-- `#14608 <https://github.com/pytest-dev/pytest/issues/14608>`_: Fixed a regression in pytest 9.1.0 where ``conftest.py`` files located in ``<invocation dir>/test*`` were no longer loaded as initial conftests when invoked without arguments.
-  This could cause certain hooks (like :hook:`pytest_addoption`) in these files to not fire.
+- `#14608 <https://github.com/jacksonsr451/test-runner/issues/14608>`_: Fixed a regression in testrunner 9.1.0 where ``conftest.py`` files located in ``<invocation dir>/test*`` were no longer loaded as initial conftests when invoked without arguments.
+  This could cause certain hooks (like :hook:`testrunner_addoption`) in these files to not fire.
 
 
-pytest 9.1.0 (2026-06-13)
+testrunner 9.1.0 (2026-06-13)
 =========================
 
 Removals and backward incompatible breaking changes
 ---------------------------------------------------
 
-- `#14533 <https://github.com/pytest-dev/pytest/issues/14533>`_: When using :option:`--doctest-modules`, autouse fixtures with ``module``, ``package`` or ``session`` scope that are defined inline in Python test modules (not plugins or conftests) will now possibly execute twice.
+- `#14533 <https://github.com/jacksonsr451/test-runner/issues/14533>`_: When using :option:`--doctest-modules`, autouse fixtures with ``module``, ``package`` or ``session`` scope that are defined inline in Python test modules (not plugins or conftests) will now possibly execute twice.
 
   If this is undesirable, move the fixture definition to a ``conftest.py`` file if possible.
 
   Technical explanation for those interested:
-  When using `--doctest-modules`, pytest possibly collects Python modules twice, once as :class:`pytest.Module` and once as a ``DoctestModule`` (depending on the configuration).
-  Due to improvements in pytest's fixture implementation, if e.g. the ``DoctestModule`` collects a fixture, it is now visible to it only, and not to the ``Module``.
+  When using `--doctest-modules`, testrunner possibly collects Python modules twice, once as :class:`testrunner.Module` and once as a ``DoctestModule`` (depending on the configuration).
+  Due to improvements in testrunner's fixture implementation, if e.g. the ``DoctestModule`` collects a fixture, it is now visible to it only, and not to the ``Module``.
   This means that both need to register the fixtures independently.
 
 
@@ -70,250 +70,250 @@ Removals and backward incompatible breaking changes
 Deprecations (removal in next major release)
 --------------------------------------------
 
-- `#10819 <https://github.com/pytest-dev/pytest/issues/10819>`_: Added a deprecation warning for class-scoped fixtures defined as instance methods (without ``@classmethod``). Such fixtures set attributes on a different instance than the test methods use, leading to unexpected behavior. Use ``@classmethod`` decorator instead -- by :user:`yastcher`.
+- `#10819 <https://github.com/jacksonsr451/test-runner/issues/10819>`_: Added a deprecation warning for class-scoped fixtures defined as instance methods (without ``@classmethod``). Such fixtures set attributes on a different instance than the test methods use, leading to unexpected behavior. Use ``@classmethod`` decorator instead -- by :user:`yastcher`.
 
   See :issue:`10819` and :issue:`14011`.
 
 
-- `#12882 <https://github.com/pytest-dev/pytest/issues/12882>`_: Calling :meth:`request.getfixturevalue() <pytest.FixtureRequest.getfixturevalue>` during teardown to request a fixture that was not already requested is now deprecated and will become an error in pytest 10.
+- `#12882 <https://github.com/jacksonsr451/test-runner/issues/12882>`_: Calling :meth:`request.getfixturevalue() <testrunner.FixtureRequest.getfixturevalue>` during teardown to request a fixture that was not already requested is now deprecated and will become an error in testrunner 10.
 
   See :ref:`dynamic-fixture-request-during-teardown` for details.
 
 
-- `#13409 <https://github.com/pytest-dev/pytest/issues/13409>`_: Using non-:class:`~collections.abc.Collection` iterables (such as generators, iterators, or custom iterable objects) for the ``argvalues`` parameter in :ref:`@pytest.mark.parametrize <pytest.mark.parametrize ref>` and :meth:`metafunc.parametrize <pytest.Metafunc.parametrize>` is now deprecated.
+- `#13409 <https://github.com/jacksonsr451/test-runner/issues/13409>`_: Using non-:class:`~collections.abc.Collection` iterables (such as generators, iterators, or custom iterable objects) for the ``argvalues`` parameter in :ref:`@testrunner.mark.parametrize <testrunner.mark.parametrize ref>` and :meth:`metafunc.parametrize <testrunner.Metafunc.parametrize>` is now deprecated.
 
   These iterables get exhausted after the first iteration,
-  leading to tests getting unexpectedly skipped in cases such as running :func:`pytest.main()` multiple times,
+  leading to tests getting unexpectedly skipped in cases such as running :func:`testrunner.main()` multiple times,
   using class-level parametrize decorators,
   or collecting tests multiple times.
 
   See :ref:`parametrize-iterators` for details and suggestions.
 
 
-- `#13946 <https://github.com/pytest-dev/pytest/issues/13946>`_: The private ``config.inicfg`` attribute is now deprecated.
-  Use :meth:`config.getini() <pytest.Config.getini>` to access configuration values instead.
+- `#13946 <https://github.com/jacksonsr451/test-runner/issues/13946>`_: The private ``config.inicfg`` attribute is now deprecated.
+  Use :meth:`config.getini() <testrunner.Config.getini>` to access configuration values instead.
 
   See :ref:`config-inicfg` for more details.
 
 
-- `#14004 <https://github.com/pytest-dev/pytest/issues/14004>`_: Passing ``baseid`` to :class:`~pytest.FixtureDef` or ``nodeid`` strings to fixture registration APIs is now deprecated. These are internal pytest APIs that are used by some plugins.
+- `#14004 <https://github.com/jacksonsr451/test-runner/issues/14004>`_: Passing ``baseid`` to :class:`~testrunner.FixtureDef` or ``nodeid`` strings to fixture registration APIs is now deprecated. These are internal testrunner APIs that are used by some plugins.
 
   Use the ``node`` parameter instead for fixture scoping. This enables more robust node-based
   matching instead of string prefix matching.
   If you've used ``nodeid=None``, pass ``node=session`` instead.
 
-  This will be removed in pytest 10.
+  This will be removed in testrunner 10.
 
 
-- `#14335 <https://github.com/pytest-dev/pytest/issues/14335>`_: The method of configuring hooks using markers, deprecated since pytest 7.2, is now scheduled to be removed in pytest 10.
+- `#14335 <https://github.com/jacksonsr451/test-runner/issues/14335>`_: The method of configuring hooks using markers, deprecated since testrunner 7.2, is now scheduled to be removed in testrunner 10.
   See :ref:`hook-markers` for more details.
 
 
-- `#14434 <https://github.com/pytest-dev/pytest/issues/14434>`_: The :option:`--pastebin` option is now deprecated.
-  The same functionality is now available in an external plugin, :pypi:`pytest-pastebin`.
+- `#14434 <https://github.com/jacksonsr451/test-runner/issues/14434>`_: The :option:`--pastebin` option is now deprecated.
+  The same functionality is now available in an external plugin, :pypi:`testrunner-pastebin`.
   See :ref:`pastebin-deprecated` for more details.
 
 
-- `#14513 <https://github.com/pytest-dev/pytest/issues/14513>`_: The private ``FixtureDef.has_location`` attribute is now deprecated and will be removed in pytest 10.
+- `#14513 <https://github.com/jacksonsr451/test-runner/issues/14513>`_: The private ``FixtureDef.has_location`` attribute is now deprecated and will be removed in testrunner 10.
   See :ref:`fixturedef-has-location-deprecated` for details.
 
 
-- `#1764 <https://github.com/pytest-dev/pytest/issues/1764>`_: :func:`pytest.console_main` is now deprecated and will be removed in pytest 10.
-  It was never intended for programmatic use; use :func:`pytest.main` instead.
+- `#1764 <https://github.com/jacksonsr451/test-runner/issues/1764>`_: :func:`testrunner.console_main` is now deprecated and will be removed in testrunner 10.
+  It was never intended for programmatic use; use :func:`testrunner.main` instead.
 
 
 
 New features
 ------------
 
-- `#12376 <https://github.com/pytest-dev/pytest/issues/12376>`_: Added :func:`pytest.register_fixture()` to register fixtures using an imperative interface.
+- `#12376 <https://github.com/jacksonsr451/test-runner/issues/12376>`_: Added :func:`testrunner.register_fixture()` to register fixtures using an imperative interface.
 
   This is an advanced function intended for use by plugins.
 
-  Normally, fixtures should be registered declaratively using the :func:`@pytest.fixture <pytest.fixture>` decorator.
-  Pytest looks for these fixture definitions during the collection phase and registers them automatically.
+  Normally, fixtures should be registered declaratively using the :func:`@testrunner.fixture <testrunner.fixture>` decorator.
+  Testrunner looks for these fixture definitions during the collection phase and registers them automatically.
   For some plugin usecases the declarative interface can be cumbersome or unviable, in which case this imperative interface can be used.
 
 
-- `#14023 <https://github.com/pytest-dev/pytest/issues/14023>`_: Added `--report-chars` long CLI option.
+- `#14023 <https://github.com/jacksonsr451/test-runner/issues/14023>`_: Added `--report-chars` long CLI option.
 
 
-- `#14371 <https://github.com/pytest-dev/pytest/issues/14371>`_: Added :option:`--max-warnings` command-line option and :confval:`max_warnings` configuration option to fail the test run when the number of warnings exceeds a given threshold -- by :user:`miketheman`.
+- `#14371 <https://github.com/jacksonsr451/test-runner/issues/14371>`_: Added :option:`--max-warnings` command-line option and :confval:`max_warnings` configuration option to fail the test run when the number of warnings exceeds a given threshold -- by :user:`miketheman`.
 
 
-- `#6757 <https://github.com/pytest-dev/pytest/issues/6757>`_: Added the :confval:`assertion_text_diff_style` configuration option, allowing
+- `#6757 <https://github.com/jacksonsr451/test-runner/issues/6757>`_: Added the :confval:`assertion_text_diff_style` configuration option, allowing
   string equality failures to be rendered as separate ``Left:`` and ``Right:``
   blocks instead of ``ndiff`` output.
 
 
-- `#8395 <https://github.com/pytest-dev/pytest/issues/8395>`_: Added support for :class:`~datetime.datetime` and :class:`~datetime.timedelta` comparisons with :func:`pytest.approx`. An explicit ``abs`` or ``rel`` tolerance as a :class:`~datetime.timedelta` is required and relative tolerance is not supported for datetime comparisons -- by :user:`hamza-mobeen`.
+- `#8395 <https://github.com/jacksonsr451/test-runner/issues/8395>`_: Added support for :class:`~datetime.datetime` and :class:`~datetime.timedelta` comparisons with :func:`testrunner.approx`. An explicit ``abs`` or ``rel`` tolerance as a :class:`~datetime.timedelta` is required and relative tolerance is not supported for datetime comparisons -- by :user:`hamza-mobeen`.
 
 
 
 Improvements in existing functionality
 --------------------------------------
 
-- `#11225 <https://github.com/pytest-dev/pytest/issues/11225>`_: :func:`pytest.warns` now shows "Regex pattern did not match" instead of "DID NOT WARN" when warnings were emitted but the ``match`` pattern did not match.
+- `#11225 <https://github.com/jacksonsr451/test-runner/issues/11225>`_: :func:`testrunner.warns` now shows "Regex pattern did not match" instead of "DID NOT WARN" when warnings were emitted but the ``match`` pattern did not match.
 
 
-- `#11295 <https://github.com/pytest-dev/pytest/issues/11295>`_: Improved output of ``--fixtures-per-test`` by excluding internal-implementation fixtures generated by ``@pytest.mark.parametrize`` and similar.
+- `#11295 <https://github.com/jacksonsr451/test-runner/issues/11295>`_: Improved output of ``--fixtures-per-test`` by excluding internal-implementation fixtures generated by ``@testrunner.mark.parametrize`` and similar.
 
 
-- `#13241 <https://github.com/pytest-dev/pytest/issues/13241>`_: :func:`pytest.raises`, :func:`pytest.warns` and :func:`pytest.deprecated_call` now uses :class:`ParamSpec` for the type hint to the (old and not recommended) callable overload, instead of :class:`Any`. This allows type checkers to raise errors when passing incorrect function parameters.
+- `#13241 <https://github.com/jacksonsr451/test-runner/issues/13241>`_: :func:`testrunner.raises`, :func:`testrunner.warns` and :func:`testrunner.deprecated_call` now uses :class:`ParamSpec` for the type hint to the (old and not recommended) callable overload, instead of :class:`Any`. This allows type checkers to raise errors when passing incorrect function parameters.
   ``func`` can now also be passed as a kwarg, which the type hint previously showed as possible but didn't accept.
 
 
-- `#13862 <https://github.com/pytest-dev/pytest/issues/13862>`_: Improved the readability of "DID NOT RAISE" error messages by using the exception type's name instead of its `repr`.
+- `#13862 <https://github.com/jacksonsr451/test-runner/issues/13862>`_: Improved the readability of "DID NOT RAISE" error messages by using the exception type's name instead of its `repr`.
 
 
-- `#14026 <https://github.com/pytest-dev/pytest/issues/14026>`_: Added test coverage for compiled regex patterns in :func:`pytest.raises` match parameter.
+- `#14026 <https://github.com/jacksonsr451/test-runner/issues/14026>`_: Added test coverage for compiled regex patterns in :func:`testrunner.raises` match parameter.
 
 
-- `#14137 <https://github.com/pytest-dev/pytest/issues/14137>`_: `pytest.ScopeName` is now public to allow using it in function signatures.
+- `#14137 <https://github.com/jacksonsr451/test-runner/issues/14137>`_: `testrunner.ScopeName` is now public to allow using it in function signatures.
 
 
-- `#14342 <https://github.com/pytest-dev/pytest/issues/14342>`_: Marked ``yield_fixture`` as deprecated to type checkers using the ``deprecated`` decorator. Note it
-  :ref:`has originally been deprecated <yield-fixture-deprecated>` in pytest 6.2 already.
+- `#14342 <https://github.com/jacksonsr451/test-runner/issues/14342>`_: Marked ``yield_fixture`` as deprecated to type checkers using the ``deprecated`` decorator. Note it
+  :ref:`has originally been deprecated <yield-fixture-deprecated>` in testrunner 6.2 already.
 
 
-- `#14373 <https://github.com/pytest-dev/pytest/issues/14373>`_: Added type annotations for :func:`pytest.approx`.
+- `#14373 <https://github.com/jacksonsr451/test-runner/issues/14373>`_: Added type annotations for :func:`testrunner.approx`.
 
 
-- `#14430 <https://github.com/pytest-dev/pytest/issues/14430>`_: When using ``--setup-show``, a space is now printed after the test name (and possibly used fixtures), to separate it from the test result.
+- `#14430 <https://github.com/jacksonsr451/test-runner/issues/14430>`_: When using ``--setup-show``, a space is now printed after the test name (and possibly used fixtures), to separate it from the test result.
 
 
-- `#14441 <https://github.com/pytest-dev/pytest/issues/14441>`_: Reduced the default number of ``gc.collect()`` passes in the ``unraisableexception`` plugin from 5 to 1 on CPython, where reference counting makes a single pass sufficient. PyPy retains 5 passes due to object resurrection via ``__del__``. This can noticeably speed up test suites that trigger many pytester runs.
+- `#14441 <https://github.com/jacksonsr451/test-runner/issues/14441>`_: Reduced the default number of ``gc.collect()`` passes in the ``unraisableexception`` plugin from 5 to 1 on CPython, where reference counting makes a single pass sufficient. PyPy retains 5 passes due to object resurrection via ``__del__``. This can noticeably speed up test suites that trigger many testrunnerer runs.
 
 
-- `#14461 <https://github.com/pytest-dev/pytest/issues/14461>`_: Improved assertion failure explanations for equality comparisons between mapping objects that are not ``dict`` instances.
+- `#14461 <https://github.com/jacksonsr451/test-runner/issues/14461>`_: Improved assertion failure explanations for equality comparisons between mapping objects that are not ``dict`` instances.
 
 
-- `#14513 <https://github.com/pytest-dev/pytest/issues/14513>`_: The order in which fixture definitions overriding each other are resolved is now determined first by their *visibility* in the collection tree rather than by the order in which they are registered.
+- `#14513 <https://github.com/jacksonsr451/test-runner/issues/14513>`_: The order in which fixture definitions overriding each other are resolved is now determined first by their *visibility* in the collection tree rather than by the order in which they are registered.
 
   A fixture defined for a more specific node (e.g. a module or an item) now always takes precedence over one with the same name defined for a more general node (e.g. the session), even when the more general one was registered later.
   Fixtures with non-comparable visibility or the same visibility keep the existing behavior of "last registered wins".
   This change is supposed to only affect plugins which register multiple fixtures programmatically with the same name.
 
 
-- `#14524 <https://github.com/pytest-dev/pytest/issues/14524>`_: Add official Python 3.15 support.
+- `#14524 <https://github.com/jacksonsr451/test-runner/issues/14524>`_: Add official Python 3.15 support.
 
 
-- `#1764 <https://github.com/pytest-dev/pytest/issues/1764>`_: Improved argparse program name to show ``pytest``, ``python -m pytest``, or ``pytest.main()`` based on how pytest was invoked, making help and error messages clearer.
+- `#1764 <https://github.com/jacksonsr451/test-runner/issues/1764>`_: Improved argparse program name to show ``testrunner``, ``python -m testrunner``, or ``testrunner.main()`` based on how testrunner was invoked, making help and error messages clearer.
 
 
-- `#8265 <https://github.com/pytest-dev/pytest/issues/8265>`_: Emit a ``PytestCollectionWarning`` when a module-level ``__getattr__`` returns ``None`` for ``pytestmark`` instead of raising ``AttributeError``.
+- `#8265 <https://github.com/jacksonsr451/test-runner/issues/8265>`_: Emit a ``TestrunnerCollectionWarning`` when a module-level ``__getattr__`` returns ``None`` for ``_testrunner_mark`` instead of raising ``AttributeError``.
 
   Previously this caused a cryptic ``TypeError: got None instead of Mark`` error.
-  Now pytest issues a helpful warning and continues collecting the module normally.
+  Now testrunner issues a helpful warning and continues collecting the module normally.
 
 
 
 Bug fixes
 ---------
 
-- `#13192 <https://github.com/pytest-dev/pytest/issues/13192>`_: Fixed `|` (pipe) not being treated as a regex meta-character that needs escaping in :func:`pytest.raises(match=...) <pytest.raises>`.
+- `#13192 <https://github.com/jacksonsr451/test-runner/issues/13192>`_: Fixed `|` (pipe) not being treated as a regex meta-character that needs escaping in :func:`testrunner.raises(match=...) <testrunner.raises>`.
 
 
-- `#13484 <https://github.com/pytest-dev/pytest/issues/13484>`_: Fixed ``-W`` option values being duplicated in ``Config.known_args_namespace``.
+- `#13484 <https://github.com/jacksonsr451/test-runner/issues/13484>`_: Fixed ``-W`` option values being duplicated in ``Config.known_args_namespace``.
 
 
-- `#13626 <https://github.com/pytest-dev/pytest/issues/13626>`_: Fixed function-scoped fixture values being kept alive after a test was interrupted by ``KeyboardInterrupt`` or early exit,
+- `#13626 <https://github.com/jacksonsr451/test-runner/issues/13626>`_: Fixed function-scoped fixture values being kept alive after a test was interrupted by ``KeyboardInterrupt`` or early exit,
   allowing them to potentially be released more promptly.
 
 
-- `#13784 <https://github.com/pytest-dev/pytest/issues/13784>`_: Fixed ``capteesys`` producing doubled output when used with ``--capture=no`` (``-s``).
+- `#13784 <https://github.com/jacksonsr451/test-runner/issues/13784>`_: Fixed ``capteesys`` producing doubled output when used with ``--capture=no`` (``-s``).
 
 
-- `#13817 <https://github.com/pytest-dev/pytest/issues/13817>`_: Fixed a secondary `AttributeError` masking the original error when an option argument fails to initialize.
+- `#13817 <https://github.com/jacksonsr451/test-runner/issues/13817>`_: Fixed a secondary `AttributeError` masking the original error when an option argument fails to initialize.
 
 
-- `#13884 <https://github.com/pytest-dev/pytest/issues/13884>`_: Fixed rare internal IndexError caused by `builtins.compile` being overridden in client code.
+- `#13884 <https://github.com/jacksonsr451/test-runner/issues/13884>`_: Fixed rare internal IndexError caused by `builtins.compile` being overridden in client code.
 
 
-- `#13885 <https://github.com/pytest-dev/pytest/issues/13885>`_: Fixed autouse fixtures defined inside a :class:`unittest.TestCase` class running even when the class is decorated with :func:`unittest.skip` or :func:`unittest.skipIf` -- regression since pytest 8.1.0.
+- `#13885 <https://github.com/jacksonsr451/test-runner/issues/13885>`_: Fixed autouse fixtures defined inside a :class:`unittest.TestCase` class running even when the class is decorated with :func:`unittest.skip` or :func:`unittest.skipIf` -- regression since testrunner 8.1.0.
 
 
-- `#13917 <https://github.com/pytest-dev/pytest/issues/13917>`_: :class:`unittest.SkipTest` is no longer considered an interactive exception, i.e. :hook:`pytest_exception_interact` is no longer called for it.
+- `#13917 <https://github.com/jacksonsr451/test-runner/issues/13917>`_: :class:`unittest.SkipTest` is no longer considered an interactive exception, i.e. :hook:`testrunner_exception_interact` is no longer called for it.
 
 
-- `#13963 <https://github.com/pytest-dev/pytest/issues/13963>`_: Fixed subtests running with :pypi:`pytest-xdist` when their contexts contain objects that are not JSON-serializable.
+- `#13963 <https://github.com/jacksonsr451/test-runner/issues/13963>`_: Fixed subtests running with :pypi:`testrunner-xdist` when their contexts contain objects that are not JSON-serializable.
 
-  Fixes `pytest-dev/pytest-xdist#1273 <https://github.com/pytest-dev/pytest-xdist/issues/1273>`__.
+  Fixes `jacksonsr451/test-runner-xdist#1273 <https://github.com/jacksonsr451/test-runner-xdist/issues/1273>`__.
 
 
-- `#14004 <https://github.com/pytest-dev/pytest/issues/14004>`_: Fixed conftest.py fixture scoping when :confval:`testpaths` points outside of the :ref:`rootdir <rootdir>`.
+- `#14004 <https://github.com/jacksonsr451/test-runner/issues/14004>`_: Fixed conftest.py fixture scoping when :confval:`testpaths` points outside of the :ref:`rootdir <rootdir>`.
 
   Previously, fixtures from nested conftest.py files would incorrectly leak to sibling directories
   when using a relative ``testpaths`` like ``../tests/sdk``.
 
-  Conftest fixtures are now parsed during :class:`Directory <pytest.Directory>` collection, using the ``Directory`` node for proper scoping.
+  Conftest fixtures are now parsed during :class:`Directory <testrunner.Directory>` collection, using the ``Directory`` node for proper scoping.
 
 
-- `#14050 <https://github.com/pytest-dev/pytest/issues/14050>`_: Display dictionary differences in assertion failures using the original key insertion order instead of sorted order.
+- `#14050 <https://github.com/jacksonsr451/test-runner/issues/14050>`_: Display dictionary differences in assertion failures using the original key insertion order instead of sorted order.
 
 
-- `#14080 <https://github.com/pytest-dev/pytest/issues/14080>`_: fix missing type annotations on ``Pytester.makepyfile`` and ``Pytester.maketxtfile`` methods.
+- `#14080 <https://github.com/jacksonsr451/test-runner/issues/14080>`_: fix missing type annotations on ``Testrunnerer.makepyfile`` and ``Testrunnerer.maketxtfile`` methods.
 
 
-- `#14114 <https://github.com/pytest-dev/pytest/issues/14114>`_: An exception from :hook:`pytest_fixture_post_finalizer` no longer prevents fixtures from being torn down, causing additional errors in the following tests.
+- `#14114 <https://github.com/jacksonsr451/test-runner/issues/14114>`_: An exception from :hook:`testrunner_fixture_post_finalizer` no longer prevents fixtures from being torn down, causing additional errors in the following tests.
 
 
-- `#14161 <https://github.com/pytest-dev/pytest/issues/14161>`_: Fixed :meth:`monkeypatch.setattr() <pytest.MonkeyPatch.setattr>` leaving a stale entry on the undo stack when the underlying ``setattr()`` call fails (e.g. on immutable targets), causing an ``AttributeError`` crash during teardown.
+- `#14161 <https://github.com/jacksonsr451/test-runner/issues/14161>`_: Fixed :meth:`monkeypatch.setattr() <testrunner.MonkeyPatch.setattr>` leaving a stale entry on the undo stack when the underlying ``setattr()`` call fails (e.g. on immutable targets), causing an ``AttributeError`` crash during teardown.
 
 
-- `#14214 <https://github.com/pytest-dev/pytest/issues/14214>`_: Fixed ``-v`` hint in :func:`pytest.raises` match diff not working because assertion verbosity was not propagated.
+- `#14214 <https://github.com/jacksonsr451/test-runner/issues/14214>`_: Fixed ``-v`` hint in :func:`testrunner.raises` match diff not working because assertion verbosity was not propagated.
 
 
-- `#14234 <https://github.com/pytest-dev/pytest/issues/14234>`_: Allow :ref:`pytest.HIDDEN_PARAM <hidden-param>` in :ref:`@pytest.mark.parametrize(ids=...) <pytest.mark.parametrize ref>` typing.
+- `#14234 <https://github.com/jacksonsr451/test-runner/issues/14234>`_: Allow :ref:`testrunner.HIDDEN_PARAM <hidden-param>` in :ref:`@testrunner.mark.parametrize(ids=...) <testrunner.mark.parametrize ref>` typing.
 
 
-- `#14248 <https://github.com/pytest-dev/pytest/issues/14248>`_: Fixed direct parametrization causing the static fixture closure (as reflected in :data:`request.fixturenames <pytest.FixtureRequest.fixturenames>`) to omit fixtures that are requested transitively from overridden fixtures.
+- `#14248 <https://github.com/jacksonsr451/test-runner/issues/14248>`_: Fixed direct parametrization causing the static fixture closure (as reflected in :data:`request.fixturenames <testrunner.FixtureRequest.fixturenames>`) to omit fixtures that are requested transitively from overridden fixtures.
 
 
-- `#14263 <https://github.com/pytest-dev/pytest/issues/14263>`_: Unraisable exceptions from finalizers are now collected during ``pytest_unconfigure``, before pytest tears down the warning filters installed for the session. Previously the collection ran from a cleanup callback whose order relative to other plugins' cleanups was not guaranteed, so an active ``error`` filter could be removed before the exception surfaced and a late resource leak would pass silently. A ``-W error`` filter, or any filter matching :class:`pytest.PytestUnraisableExceptionWarning`, now promotes these exceptions to failures regardless of plugin cleanup order.
+- `#14263 <https://github.com/jacksonsr451/test-runner/issues/14263>`_: Unraisable exceptions from finalizers are now collected during ``testrunner_unconfigure``, before testrunner tears down the warning filters installed for the session. Previously the collection ran from a cleanup callback whose order relative to other plugins' cleanups was not guaranteed, so an active ``error`` filter could be removed before the exception surfaced and a late resource leak would pass silently. A ``-W error`` filter, or any filter matching :class:`testrunner.TestrunnerUnraisableExceptionWarning`, now promotes these exceptions to failures regardless of plugin cleanup order.
 
 
-- `#14377 <https://github.com/pytest-dev/pytest/issues/14377>`_: Fixed crash in `Config.get_terminal_writer` when an assertion fails with the ``terminalreporter`` plugin disabled.
+- `#14377 <https://github.com/jacksonsr451/test-runner/issues/14377>`_: Fixed crash in `Config.get_terminal_writer` when an assertion fails with the ``terminalreporter`` plugin disabled.
 
 
-- `#14381 <https://github.com/pytest-dev/pytest/issues/14381>`_: Fixed ``-V`` (short form of ``--version``) to properly display the current version.
+- `#14381 <https://github.com/jacksonsr451/test-runner/issues/14381>`_: Fixed ``-V`` (short form of ``--version``) to properly display the current version.
 
 
-- `#14389 <https://github.com/pytest-dev/pytest/issues/14389>`_: Improved :func:`pytest.raises(..., match=...) <pytest.raises>` failures to suppress the mismatched exception as a cause of the resulting ``AssertionError``.
+- `#14389 <https://github.com/jacksonsr451/test-runner/issues/14389>`_: Improved :func:`testrunner.raises(..., match=...) <testrunner.raises>` failures to suppress the mismatched exception as a cause of the resulting ``AssertionError``.
 
 
-- `#14392 <https://github.com/pytest-dev/pytest/issues/14392>`_: Fixed a bug in :func:`pytest.raises(match=...) <pytest.raises>` "fully escaped" detection, causing the regex diff display to be shown in some instances when the raw string diff display should be shown instead.
+- `#14392 <https://github.com/jacksonsr451/test-runner/issues/14392>`_: Fixed a bug in :func:`testrunner.raises(match=...) <testrunner.raises>` "fully escaped" detection, causing the regex diff display to be shown in some instances when the raw string diff display should be shown instead.
 
 
-- `#14442 <https://github.com/pytest-dev/pytest/issues/14442>`_: Fixed a regression in pytest 9.0 where :option:`--strict-markers` and :option:`--strict-config` specified through :confval:`addopts` were silently ignored.
+- `#14442 <https://github.com/jacksonsr451/test-runner/issues/14442>`_: Fixed a regression in testrunner 9.0 where :option:`--strict-markers` and :option:`--strict-config` specified through :confval:`addopts` were silently ignored.
 
-  Note that when targeting pytest >= 9.0, it's nicer to use :confval:`strict_markers` and :confval:`strict_config`, or :ref:`strict mode <strict mode>`.
-
-
-- `#14456 <https://github.com/pytest-dev/pytest/issues/14456>`_: Fixed :func:`pytest.approx` not recognizing types with ``__array_interface__`` as numpy-like arrays.
+  Note that when targeting testrunner >= 9.0, it's nicer to use :confval:`strict_markers` and :confval:`strict_config`, or :ref:`strict mode <strict mode>`.
 
 
-- `#14474 <https://github.com/pytest-dev/pytest/issues/14474>`_: Fixed a regression where ``-k`` and ``-m`` expressions containing both backslash characters in identifiers and string literal arguments would incorrectly raise a ``SyntaxError`` about escaping.
+- `#14456 <https://github.com/jacksonsr451/test-runner/issues/14456>`_: Fixed :func:`testrunner.approx` not recognizing types with ``__array_interface__`` as numpy-like arrays.
 
 
-- `#14483 <https://github.com/pytest-dev/pytest/issues/14483>`_: Fixed JUnit XML report incorrectly escaping high Unicode codepoints (supplementary plane characters like emoji) in test failure messages. -- by :user:`EternalRights`
+- `#14474 <https://github.com/jacksonsr451/test-runner/issues/14474>`_: Fixed a regression where ``-k`` and ``-m`` expressions containing both backslash characters in identifiers and string literal arguments would incorrectly raise a ``SyntaxError`` about escaping.
 
 
-- `#14492 <https://github.com/pytest-dev/pytest/issues/14492>`_: Fixed ``Code.getargs()`` incorrectly including local variable names in the returned argument tuple for functions with ``*args`` and/or ``**kwargs``. The method was using ``co_flags`` bitmask values (``4`` and ``8``) directly as counts instead of converting them to ``1`` via ``bool()``, and was not accounting for ``co_kwonlyargcount`` when ``var=True``.
+- `#14483 <https://github.com/jacksonsr451/test-runner/issues/14483>`_: Fixed JUnit XML report incorrectly escaping high Unicode codepoints (supplementary plane characters like emoji) in test failure messages. -- by :user:`EternalRights`
 
 
-- `#3697 <https://github.com/pytest-dev/pytest/issues/3697>`_: Logging capture now works for non-propagating loggers.
+- `#14492 <https://github.com/jacksonsr451/test-runner/issues/14492>`_: Fixed ``Code.getargs()`` incorrectly including local variable names in the returned argument tuple for functions with ``*args`` and/or ``**kwargs``. The method was using ``co_flags`` bitmask values (``4`` and ``8``) directly as counts instead of converting them to ``1`` via ``bool()``, and was not accounting for ``co_kwonlyargcount`` when ``var=True``.
+
+
+- `#3697 <https://github.com/jacksonsr451/test-runner/issues/3697>`_: Logging capture now works for non-propagating loggers.
   Previously only logs which reached the root logger were captured.
   This includes :fixture:`caplog` and the "Captured log calls" test reporting.
 
 
-- `#3850 <https://github.com/pytest-dev/pytest/issues/3850>`_: Fixed JUnit XML report: the ``tests`` attribute of the ``<testsuite>`` element now always matches the number of ``<testcase>`` elements in the file. In some cases (test passes but fails during teardown) the ``tests`` attribute would report an incorrect number of testcases in the XML file.
+- `#3850 <https://github.com/jacksonsr451/test-runner/issues/3850>`_: Fixed JUnit XML report: the ``tests`` attribute of the ``<testsuite>`` element now always matches the number of ``<testcase>`` elements in the file. In some cases (test passes but fails during teardown) the ``tests`` attribute would report an incorrect number of testcases in the XML file.
 
 
-- `#5848 <https://github.com/pytest-dev/pytest/issues/5848>`_: :hook:`pytest_fixture_post_finalizer` is no longer called extra times for the same fixture teardown in some cases.
+- `#5848 <https://github.com/jacksonsr451/test-runner/issues/5848>`_: :hook:`testrunner_fixture_post_finalizer` is no longer called extra times for the same fixture teardown in some cases.
 
 
-- `#719 <https://github.com/pytest-dev/pytest/issues/719>`_: Fixed :ref:`@pytest.mark.parametrize <pytest.mark.parametrize ref>` not unpacking single-element tuple values when using a string argnames with a trailing comma (e.g., ``"arg,"``).
+- `#719 <https://github.com/jacksonsr451/test-runner/issues/719>`_: Fixed :ref:`@testrunner.mark.parametrize <testrunner.mark.parametrize ref>` not unpacking single-element tuple values when using a string argnames with a trailing comma (e.g., ``"arg,"``).
 
   The trailing comma form now correctly behaves like the tuple form ``("arg",)``, treating argvalues as a list of tuples to unpack.
 
@@ -322,152 +322,152 @@ Bug fixes
 Improved documentation
 ----------------------
 
-- `#11022 <https://github.com/pytest-dev/pytest/issues/11022>`_: Document safer alternatives and scope guidance for monkeypatching standard library functions.
+- `#11022 <https://github.com/jacksonsr451/test-runner/issues/11022>`_: Document safer alternatives and scope guidance for monkeypatching standard library functions.
 
 
-- `#11307 <https://github.com/pytest-dev/pytest/issues/11307>`_: Document that ``@pytest.hookimpl(specname=...)`` only works for function names starting with ``pytest_``.
+- `#11307 <https://github.com/jacksonsr451/test-runner/issues/11307>`_: Document that ``@testrunner.hookimpl(specname=...)`` only works for function names starting with ``testrunner_``.
 
 
-- `#13038 <https://github.com/pytest-dev/pytest/issues/13038>`_: Document that doctests do not support parametrized fixtures, including parametrized autouse fixtures.
+- `#13038 <https://github.com/jacksonsr451/test-runner/issues/13038>`_: Document that doctests do not support parametrized fixtures, including parametrized autouse fixtures.
 
 
-- `#13155 <https://github.com/pytest-dev/pytest/issues/13155>`_: Clarified how the ``request`` fixture provides indirect parametrization values via ``request.param``.
+- `#13155 <https://github.com/jacksonsr451/test-runner/issues/13155>`_: Clarified how the ``request`` fixture provides indirect parametrization values via ``request.param``.
 
 
-- `#13304 <https://github.com/pytest-dev/pytest/issues/13304>`_: Clarified in the documentation that hook implementations defined in ``conftest.py`` files are not available to other plugins during their ``pytest_addoption()`` execution, as conftest files are discovered and loaded after builtin and third-party plugins have been initialized. However, initial conftest files themselves can implement ``pytest_addoption()`` to add their own command-line options.
+- `#13304 <https://github.com/jacksonsr451/test-runner/issues/13304>`_: Clarified in the documentation that hook implementations defined in ``conftest.py`` files are not available to other plugins during their ``testrunner_addoption()`` execution, as conftest files are discovered and loaded after builtin and third-party plugins have been initialized. However, initial conftest files themselves can implement ``testrunner_addoption()`` to add their own command-line options.
 
 
-- `#13902 <https://github.com/pytest-dev/pytest/issues/13902>`_: Clarified how subtest progress markers are shown in the documentation.
+- `#13902 <https://github.com/jacksonsr451/test-runner/issues/13902>`_: Clarified how subtest progress markers are shown in the documentation.
 
 
-- `#14012 <https://github.com/pytest-dev/pytest/issues/14012>`_: The :ref:`ini options ref` section of the API Reference now specified the type and default value of every configuration option.
+- `#14012 <https://github.com/jacksonsr451/test-runner/issues/14012>`_: The :ref:`ini options ref` section of the API Reference now specified the type and default value of every configuration option.
 
 
-- `#14148 <https://github.com/pytest-dev/pytest/issues/14148>`_: Documented a safe ``pytestconfig.cache`` access pattern when the
+- `#14148 <https://github.com/jacksonsr451/test-runner/issues/14148>`_: Documented a safe ``testrunnerconfig.cache`` access pattern when the
   ``cacheprovider`` plugin is disabled.
 
 
-- `#14303 <https://github.com/pytest-dev/pytest/issues/14303>`_: The documentation is now built with Sphinx >= 9.
+- `#14303 <https://github.com/jacksonsr451/test-runner/issues/14303>`_: The documentation is now built with Sphinx >= 9.
 
 
-- `#14465 <https://github.com/pytest-dev/pytest/issues/14465>`_: Updated the hooks how-to page to link the ``newhooks.py`` file in ``pytest-xdist`` at tag ``v3.8.0`` instead of an unrelated 2017-era commit under the old layout. Pointing at a tag keeps the example in sync with the version users actually install, while remaining stable when the project's main branch moves on.
+- `#14465 <https://github.com/jacksonsr451/test-runner/issues/14465>`_: Updated the hooks how-to page to link the ``newhooks.py`` file in ``testrunner-xdist`` at tag ``v3.8.0`` instead of an unrelated 2017-era commit under the old layout. Pointing at a tag keeps the example in sync with the version users actually install, while remaining stable when the project's main branch moves on.
 
 
 
 Miscellaneous internal changes
 ------------------------------
 
-- `#14582 <https://github.com/pytest-dev/pytest/issues/14582>`_: Improved the recursion traceback test to exercise all requested traceback styles.
+- `#14582 <https://github.com/jacksonsr451/test-runner/issues/14582>`_: Improved the recursion traceback test to exercise all requested traceback styles.
 
 
-pytest 9.0.3 (2026-04-07)
+testrunner 9.0.3 (2026-04-07)
 =========================
 
 Bug fixes
 ---------
 
-- `#12444 <https://github.com/pytest-dev/pytest/issues/12444>`_: Fixed :func:`pytest.approx` which now correctly takes into account :class:`~collections.abc.Mapping` keys order to compare them.
+- `#12444 <https://github.com/jacksonsr451/test-runner/issues/12444>`_: Fixed :func:`testrunner.approx` which now correctly takes into account :class:`~collections.abc.Mapping` keys order to compare them.
 
 
-- `#13634 <https://github.com/pytest-dev/pytest/issues/13634>`_: Blocking a ``conftest.py`` file using the ``-p no:`` option is now explicitly disallowed.
+- `#13634 <https://github.com/jacksonsr451/test-runner/issues/13634>`_: Blocking a ``conftest.py`` file using the ``-p no:`` option is now explicitly disallowed.
 
   Previously this resulted in an internal assertion failure during plugin loading.
 
-  Pytest now raises a clear ``UsageError`` explaining that conftest files are not plugins and cannot be disabled via ``-p``.
+  Testrunner now raises a clear ``UsageError`` explaining that conftest files are not plugins and cannot be disabled via ``-p``.
 
 
-- `#13734 <https://github.com/pytest-dev/pytest/issues/13734>`_: Fixed crash when a test raises an exceptiongroup with ``__tracebackhide__ = True``.
+- `#13734 <https://github.com/jacksonsr451/test-runner/issues/13734>`_: Fixed crash when a test raises an exceptiongroup with ``__tracebackhide__ = True``.
 
 
-- `#14195 <https://github.com/pytest-dev/pytest/issues/14195>`_: Fixed an issue where non-string messages passed to `unittest.TestCase.subTest()` were not printed.
+- `#14195 <https://github.com/jacksonsr451/test-runner/issues/14195>`_: Fixed an issue where non-string messages passed to `unittest.TestCase.subTest()` were not printed.
 
 
-- `#14343 <https://github.com/pytest-dev/pytest/issues/14343>`_: Fixed use of insecure temporary directory (CVE-2025-71176).
+- `#14343 <https://github.com/jacksonsr451/test-runner/issues/14343>`_: Fixed use of insecure temporary directory (CVE-2025-71176).
 
 
 
 Improved documentation
 ----------------------
 
-- `#13388 <https://github.com/pytest-dev/pytest/issues/13388>`_: Clarified documentation for ``-p`` vs ``PYTEST_PLUGINS`` plugin loading and fixed an incorrect ``-p`` example.
+- `#13388 <https://github.com/jacksonsr451/test-runner/issues/13388>`_: Clarified documentation for ``-p`` vs ``TESTRUNNER_PLUGINS`` plugin loading and fixed an incorrect ``-p`` example.
 
 
-- `#13731 <https://github.com/pytest-dev/pytest/issues/13731>`_: Clarified that capture fixtures (e.g. ``capsys`` and ``capfd``) take precedence over the ``-s`` / ``--capture=no`` command-line options in :ref:`Accessing captured output from a test function <accessing-captured-output>`.
+- `#13731 <https://github.com/jacksonsr451/test-runner/issues/13731>`_: Clarified that capture fixtures (e.g. ``capsys`` and ``capfd``) take precedence over the ``-s`` / ``--capture=no`` command-line options in :ref:`Accessing captured output from a test function <accessing-captured-output>`.
 
 
-- `#14088 <https://github.com/pytest-dev/pytest/issues/14088>`_: Clarified that the default :hook:`pytest_collection` hook sets ``session.items`` before it calls :hook:`pytest_collection_finish`, not after.
+- `#14088 <https://github.com/jacksonsr451/test-runner/issues/14088>`_: Clarified that the default :hook:`testrunner_collection` hook sets ``session.items`` before it calls :hook:`testrunner_collection_finish`, not after.
 
 
-- `#14255 <https://github.com/pytest-dev/pytest/issues/14255>`_: TOML integer log levels must be quoted: Updating reference documentation.
+- `#14255 <https://github.com/jacksonsr451/test-runner/issues/14255>`_: TOML integer log levels must be quoted: Updating reference documentation.
 
 
 
 Contributor-facing changes
 --------------------------
 
-- `#12689 <https://github.com/pytest-dev/pytest/issues/12689>`_: The test reports are now published to Codecov from GitHub Actions.
+- `#12689 <https://github.com/jacksonsr451/test-runner/issues/12689>`_: The test reports are now published to Codecov from GitHub Actions.
   The test statistics is visible `on the web interface
-  <https://app.codecov.io/gh/pytest-dev/pytest/tests>`__.
+  <https://app.codecov.io/gh/jacksonsr451/test-runner/tests>`__.
 
   -- by :user:`aleguy02`
 
 
-pytest 9.0.2 (2025-12-06)
+testrunner 9.0.2 (2025-12-06)
 =========================
 
 Bug fixes
 ---------
 
-- `#13896 <https://github.com/pytest-dev/pytest/issues/13896>`_: The terminal progress feature added in pytest 9.0.0 has been disabled by default, except on Windows, due to compatibility issues with some terminal emulators.
+- `#13896 <https://github.com/jacksonsr451/test-runner/issues/13896>`_: The terminal progress feature added in testrunner 9.0.0 has been disabled by default, except on Windows, due to compatibility issues with some terminal emulators.
 
   You may enable it again by passing ``-p terminalprogress``. We may enable it by default again once compatibility improves in the future.
 
   Additionally, when the environment variable ``TERM`` is ``dumb``, the escape codes are no longer emitted, even if the plugin is enabled.
 
 
-- `#13904 <https://github.com/pytest-dev/pytest/issues/13904>`_: Fixed the TOML type of the :confval:`tmp_path_retention_count` settings in the API reference from number to string.
+- `#13904 <https://github.com/jacksonsr451/test-runner/issues/13904>`_: Fixed the TOML type of the :confval:`tmp_path_retention_count` settings in the API reference from number to string.
 
 
-- `#13946 <https://github.com/pytest-dev/pytest/issues/13946>`_: The private ``config.inicfg`` attribute was changed in a breaking manner in pytest 9.0.0.
+- `#13946 <https://github.com/jacksonsr451/test-runner/issues/13946>`_: The private ``config.inicfg`` attribute was changed in a breaking manner in testrunner 9.0.0.
   Due to its usage in the ecosystem, it is now restored to working order using a compatibility shim.
-  It will be deprecated in pytest 9.1 and removed in pytest 10.
+  It will be deprecated in testrunner 9.1 and removed in testrunner 10.
 
 
-- `#13965 <https://github.com/pytest-dev/pytest/issues/13965>`_: Fixed quadratic-time behavior when handling ``unittest`` subtests in Python 3.10.
+- `#13965 <https://github.com/jacksonsr451/test-runner/issues/13965>`_: Fixed quadratic-time behavior when handling ``unittest`` subtests in Python 3.10.
 
 
 
 Improved documentation
 ----------------------
 
-- `#4492 <https://github.com/pytest-dev/pytest/issues/4492>`_: The API Reference now contains cross-reference-able documentation of :ref:`pytest's command-line flags <command-line-flags>`.
+- `#4492 <https://github.com/jacksonsr451/test-runner/issues/4492>`_: The API Reference now contains cross-reference-able documentation of :ref:`testrunner's command-line flags <command-line-flags>`.
 
 
-pytest 9.0.1 (2025-11-12)
+testrunner 9.0.1 (2025-11-12)
 =========================
 
 Bug fixes
 ---------
 
-- `#13895 <https://github.com/pytest-dev/pytest/issues/13895>`_: Restore support for skipping tests via ``raise unittest.SkipTest``.
+- `#13895 <https://github.com/jacksonsr451/test-runner/issues/13895>`_: Restore support for skipping tests via ``raise unittest.SkipTest``.
 
 
-- `#13896 <https://github.com/pytest-dev/pytest/issues/13896>`_: The terminal progress plugin added in pytest 9.0 is now automatically disabled when iTerm2 is detected, it generated desktop notifications instead of the desired functionality.
+- `#13896 <https://github.com/jacksonsr451/test-runner/issues/13896>`_: The terminal progress plugin added in testrunner 9.0 is now automatically disabled when iTerm2 is detected, it generated desktop notifications instead of the desired functionality.
 
 
-- `#13904 <https://github.com/pytest-dev/pytest/issues/13904>`_: Fixed the TOML type of the verbosity settings in the API reference from number to string.
+- `#13904 <https://github.com/jacksonsr451/test-runner/issues/13904>`_: Fixed the TOML type of the verbosity settings in the API reference from number to string.
 
 
-- `#13910 <https://github.com/pytest-dev/pytest/issues/13910>`_: Fixed `UserWarning: Do not expect file_or_dir` on some earlier Python 3.12 and 3.13 point versions.
+- `#13910 <https://github.com/jacksonsr451/test-runner/issues/13910>`_: Fixed `UserWarning: Do not expect file_or_dir` on some earlier Python 3.12 and 3.13 point versions.
 
 
 
 Packaging updates and notes for downstreams
 -------------------------------------------
 
-- `#13933 <https://github.com/pytest-dev/pytest/issues/13933>`_: The tox configuration has been adjusted to make sure the desired
+- `#13933 <https://github.com/jacksonsr451/test-runner/issues/13933>`_: The tox configuration has been adjusted to make sure the desired
   version string can be passed into its :external+tox:ref:`package_env` through
-  the ``SETUPTOOLS_SCM_PRETEND_VERSION_FOR_PYTEST`` environment
+  the ``SETUPTOOLS_SCM_PRETEND_VERSION_FOR_TESTRUNNER`` environment
   variable as a part of the release process -- by :user:`webknjaz`.
 
 
@@ -475,25 +475,25 @@ Packaging updates and notes for downstreams
 Contributor-facing changes
 --------------------------
 
-- `#13891 <https://github.com/pytest-dev/pytest/issues/13891>`_, `#13942 <https://github.com/pytest-dev/pytest/issues/13942>`_: The CI/CD part of the release automation is now capable of
+- `#13891 <https://github.com/jacksonsr451/test-runner/issues/13891>`_, `#13942 <https://github.com/jacksonsr451/test-runner/issues/13942>`_: The CI/CD part of the release automation is now capable of
   creating GitHub Releases without having a Git checkout on
   disk -- by :user:`bluetech` and :user:`webknjaz`.
 
 
-- `#13933 <https://github.com/pytest-dev/pytest/issues/13933>`_: The tox configuration has been adjusted to make sure the desired
+- `#13933 <https://github.com/jacksonsr451/test-runner/issues/13933>`_: The tox configuration has been adjusted to make sure the desired
   version string can be passed into its :external+tox:ref:`package_env` through
-  the ``SETUPTOOLS_SCM_PRETEND_VERSION_FOR_PYTEST`` environment
+  the ``SETUPTOOLS_SCM_PRETEND_VERSION_FOR_TESTRUNNER`` environment
   variable as a part of the release process -- by :user:`webknjaz`.
 
 
-pytest 9.0.0 (2025-11-05)
+testrunner 9.0.0 (2025-11-05)
 =========================
 
 New features
 ------------
 
 
-- `#1367 <https://github.com/pytest-dev/pytest/issues/1367>`_: **Support for subtests** has been added.
+- `#1367 <https://github.com/jacksonsr451/test-runner/issues/1367>`_: **Support for subtests** has been added.
 
   :ref:`subtests <subtests>` are an alternative to parametrization, useful in situations where the parametrization values are not all known at collection time.
 
@@ -506,7 +506,7 @@ New features
           ...
 
 
-      def test_py_files_contain_docstring(subtests: pytest.Subtests) -> None:
+      def test_py_files_contain_docstring(subtests: testrunner.Subtests) -> None:
           for path in Path.cwd().glob("*.py"):
               with subtests.test(path=str(path)):
                   assert contains_docstring(path)
@@ -516,25 +516,25 @@ New features
 
   In addition, :meth:`unittest.TestCase.subTest` is now also supported.
 
-  This feature was originally implemented as a separate plugin in `pytest-subtests <https://github.com/pytest-dev/pytest-subtests>`__, but since then has been merged into the core.
+  This feature was originally implemented as a separate plugin in `testrunner-subtests <https://github.com/jacksonsr451/test-runner-subtests>`__, but since then has been merged into the core.
 
   .. note::
 
       This feature is experimental and will likely evolve in future releases. By that we mean that we might change how subtests are reported on failure, but the functionality and how to use it are stable.
 
 
-- `#13743 <https://github.com/pytest-dev/pytest/issues/13743>`_: Added support for **native TOML configuration files**.
+- `#13743 <https://github.com/jacksonsr451/test-runner/issues/13743>`_: Added support for **native TOML configuration files**.
 
-  While pytest, since version 6, supports configuration in ``pyproject.toml`` files under ``[tool.pytest.ini_options]``,
+  While testrunner, since version 6, supports configuration in ``pyproject.toml`` files under ``[tool.testrunner.ini_options]``,
   it does so in an "INI compatibility mode", where all configuration values are treated as strings or list of strings.
-  Now, pytest supports the native TOML data model.
+  Now, testrunner supports the native TOML data model.
 
-  In ``pyproject.toml``, the native TOML configuration is under the ``[tool.pytest]`` table.
+  In ``pyproject.toml``, the native TOML configuration is under the ``[tool.testrunner]`` table.
 
   .. code-block:: toml
 
       # pyproject.toml
-      [tool.pytest]
+      [tool.testrunner]
       minversion = "9.0"
       addopts = ["-ra", "-q"]
       testpaths = [
@@ -542,14 +542,14 @@ New features
           "integration",
       ]
 
-  The ``[tool.pytest.ini_options]`` table remains supported, but both tables cannot be used at the same time.
+  The ``[tool.testrunner.ini_options]`` table remains supported, but both tables cannot be used at the same time.
 
-  If you prefer to use a separate configuration file, or don't use ``pyproject.toml``, you can use ``pytest.toml`` or ``.pytest.toml``:
+  If you prefer to use a separate configuration file, or don't use ``pyproject.toml``, you can use ``testrunner.toml`` or ``.testrunner.toml``:
 
   .. code-block:: toml
 
-      # pytest.toml or .pytest.toml
-      [pytest]
+      # testrunner.toml or .testrunner.toml
+      [testrunner]
       minversion = "9.0"
       addopts = ["-ra", "-q"]
       testpaths = [
@@ -562,7 +562,7 @@ New features
   See :ref:`config file formats` for full details.
 
 
-- `#13823 <https://github.com/pytest-dev/pytest/issues/13823>`_: Added a **"strict mode"** enabled by the :confval:`strict` configuration option.
+- `#13823 <https://github.com/jacksonsr451/test-runner/issues/13823>`_: Added a **"strict mode"** enabled by the :confval:`strict` configuration option.
 
   When set to ``true``, the :confval:`strict` option currently enables
 
@@ -575,47 +575,47 @@ New features
 
   The previously-deprecated ``--strict`` command-line flag now enables strict mode.
 
-  If pytest adds new strictness options in the future, they will also be enabled in strict mode.
-  Therefore, you should only enable strict mode if you use a pinned/locked version of pytest,
+  If testrunner adds new strictness options in the future, they will also be enabled in strict mode.
+  Therefore, you should only enable strict mode if you use a pinned/locked version of testrunner,
   or if you want to proactively adopt new strictness options as they are added.
 
   See :ref:`strict mode` for more details.
 
 
-- `#13737 <https://github.com/pytest-dev/pytest/issues/13737>`_: Added the :confval:`strict_parametrization_ids` configuration option.
+- `#13737 <https://github.com/jacksonsr451/test-runner/issues/13737>`_: Added the :confval:`strict_parametrization_ids` configuration option.
 
-  When set, pytest emits an error if it detects non-unique parameter set IDs,
+  When set, testrunner emits an error if it detects non-unique parameter set IDs,
   rather than automatically making the IDs unique by adding `0`, `1`, ... to them.
   This can be particularly useful for catching unintended duplicates.
 
 
-- `#13072 <https://github.com/pytest-dev/pytest/issues/13072>`_: Added support for displaying test session **progress in the terminal tab** using the `OSC 9;4; <https://conemu.github.io/en/AnsiEscapeCodes.html#ConEmu_specific_OSC>`_ ANSI sequence.
+- `#13072 <https://github.com/jacksonsr451/test-runner/issues/13072>`_: Added support for displaying test session **progress in the terminal tab** using the `OSC 9;4; <https://conemu.github.io/en/AnsiEscapeCodes.html#ConEmu_specific_OSC>`_ ANSI sequence.
 
   **Note**: *This feature has been disabled by default in version 9.0.2, except on Windows, due to compatibility issues with some terminal emulators.
   You may enable it again by passing* ``-p terminalprogress``. *We may enable it by default again once compatibility improves in the future.*
 
-  When pytest runs in a supported terminal emulator like ConEmu, Gnome Terminal, Ptyxis, Windows Terminal, Kitty or Ghostty,
+  When testrunner runs in a supported terminal emulator like ConEmu, Gnome Terminal, Ptyxis, Windows Terminal, Kitty or Ghostty,
   you'll see the progress in the terminal tab or window,
-  allowing you to monitor pytest's progress at a glance.
+  allowing you to monitor testrunner's progress at a glance.
 
   This feature is automatically enabled when running in a TTY. It is implemented as an internal plugin. If needed, it can be disabled as follows:
-  - On a user level, using ``-p no:terminalprogress`` on the command line or via an environment variable ``PYTEST_ADDOPTS='-p no:terminalprogress'``.
+  - On a user level, using ``-p no:terminalprogress`` on the command line or via an environment variable ``TESTRUNNER_ADDOPTS='-p no:terminalprogress'``.
   - On a project configuration level, using ``addopts = "-p no:terminalprogress"``.
 
 
-- `#478 <https://github.com/pytest-dev/pytest/issues/478>`_: Support PEP420 (implicit namespace packages) as `--pyargs` target when :confval:`consider_namespace_packages` is `true` in the config.
+- `#478 <https://github.com/jacksonsr451/test-runner/issues/478>`_: Support PEP420 (implicit namespace packages) as `--pyargs` target when :confval:`consider_namespace_packages` is `true` in the config.
 
   Previously, this option only impacted package imports, now it also impacts tests discovery.
 
 
-- `#13678 <https://github.com/pytest-dev/pytest/issues/13678>`_: Added a new :confval:`faulthandler_exit_on_timeout` configuration option set to "false" by default to let `faulthandler` interrupt the `pytest` process after a timeout in case of deadlock.
+- `#13678 <https://github.com/jacksonsr451/test-runner/issues/13678>`_: Added a new :confval:`faulthandler_exit_on_timeout` configuration option set to "false" by default to let `faulthandler` interrupt the `testrunner` process after a timeout in case of deadlock.
 
-  Previously, a `faulthandler` timeout would only dump the traceback of all threads to stderr, but would not interrupt the `pytest` process.
+  Previously, a `faulthandler` timeout would only dump the traceback of all threads to stderr, but would not interrupt the `testrunner` process.
 
   -- by :user:`ogrisel`.
 
 
-- `#13829 <https://github.com/pytest-dev/pytest/issues/13829>`_: Added support for configuration option aliases via the ``aliases`` parameter in :meth:`Parser.addini() <pytest.Parser.addini>`.
+- `#13829 <https://github.com/jacksonsr451/test-runner/issues/13829>`_: Added support for configuration option aliases via the ``aliases`` parameter in :meth:`Parser.addini() <testrunner.Parser.addini>`.
 
   Plugins can now register alternative names for configuration options,
   allowing for more flexibility in configuration naming and supporting backward compatibility when renaming options.
@@ -626,80 +626,80 @@ New features
 Improvements in existing functionality
 --------------------------------------
 
-- `#13330 <https://github.com/pytest-dev/pytest/issues/13330>`_: Having pytest configuration spread over more than one file (for example having both a ``pytest.ini`` file and ``pyproject.toml`` with a ``[tool.pytest.ini_options]`` table) will now print a warning to make it clearer to the user that only one of them is actually used.
+- `#13330 <https://github.com/jacksonsr451/test-runner/issues/13330>`_: Having testrunner configuration spread over more than one file (for example having both a ``testrunner.ini`` file and ``pyproject.toml`` with a ``[tool.testrunner.ini_options]`` table) will now print a warning to make it clearer to the user that only one of them is actually used.
 
   -- by :user:`sgaist`
 
 
-- `#13574 <https://github.com/pytest-dev/pytest/issues/13574>`_: The single argument ``--version`` no longer loads the entire plugin infrastructure, making it faster and more reliable when displaying only the pytest version.
+- `#13574 <https://github.com/jacksonsr451/test-runner/issues/13574>`_: The single argument ``--version`` no longer loads the entire plugin infrastructure, making it faster and more reliable when displaying only the testrunner version.
 
-  Passing ``--version`` twice (e.g., ``pytest --version --version``) retains the original behavior, showing both the pytest version and plugin information.
+  Passing ``--version`` twice (e.g., ``testrunner --version --version``) retains the original behavior, showing both the testrunner version and plugin information.
 
   .. note::
 
-      Since ``--version`` is now processed early, it only takes effect when passed directly via the command line. It will not work if set through other mechanisms, such as :envvar:`PYTEST_ADDOPTS` or :confval:`addopts`.
+      Since ``--version`` is now processed early, it only takes effect when passed directly via the command line. It will not work if set through other mechanisms, such as :envvar:`TESTRUNNER_ADDOPTS` or :confval:`addopts`.
 
 
-- `#13823 <https://github.com/pytest-dev/pytest/issues/13823>`_: Added :confval:`strict_xfail` as an alias to the ``xfail_strict`` option,
+- `#13823 <https://github.com/jacksonsr451/test-runner/issues/13823>`_: Added :confval:`strict_xfail` as an alias to the ``xfail_strict`` option,
   :confval:`strict_config` as an alias to the ``--strict-config`` flag,
   and :confval:`strict_markers` as an alias to the ``--strict-markers`` flag.
   This makes all strictness options consistently have configuration options with the prefix ``strict_``.
 
-- `#13700 <https://github.com/pytest-dev/pytest/issues/13700>`_: `--junitxml`  no longer prints the `generated xml file` summary at the end of the pytest session when `--quiet` is given.
+- `#13700 <https://github.com/jacksonsr451/test-runner/issues/13700>`_: `--junitxml`  no longer prints the `generated xml file` summary at the end of the testrunner session when `--quiet` is given.
 
 
-- `#13732 <https://github.com/pytest-dev/pytest/issues/13732>`_: Previously, when filtering warnings, pytest would fail if the filter referenced a class that could not be imported. Now, this only outputs a message indicating the problem.
+- `#13732 <https://github.com/jacksonsr451/test-runner/issues/13732>`_: Previously, when filtering warnings, testrunner would fail if the filter referenced a class that could not be imported. Now, this only outputs a message indicating the problem.
 
 
-- `#13859 <https://github.com/pytest-dev/pytest/issues/13859>`_: Clarify the error message for `pytest.raises()` when a regex `match` fails.
+- `#13859 <https://github.com/jacksonsr451/test-runner/issues/13859>`_: Clarify the error message for `testrunner.raises()` when a regex `match` fails.
 
 
-- `#13861 <https://github.com/pytest-dev/pytest/issues/13861>`_: Better sentence structure in a test's expected error message. Previously, the error message would be "expected exception must be <expected>, but got <actual>". Now, it is "Expected <expected>, but got <actual>".
+- `#13861 <https://github.com/jacksonsr451/test-runner/issues/13861>`_: Better sentence structure in a test's expected error message. Previously, the error message would be "expected exception must be <expected>, but got <actual>". Now, it is "Expected <expected>, but got <actual>".
 
 
 Removals and backward incompatible breaking changes
 ---------------------------------------------------
 
-- `#12083 <https://github.com/pytest-dev/pytest/issues/12083>`_: Fixed a bug where an invocation such as `pytest a/ a/b` would cause only tests from `a/b` to run, and not other tests under `a/`.
+- `#12083 <https://github.com/jacksonsr451/test-runner/issues/12083>`_: Fixed a bug where an invocation such as `testrunner a/ a/b` would cause only tests from `a/b` to run, and not other tests under `a/`.
 
   The fix entails a few breaking changes to how such overlapping arguments and duplicates are handled:
 
-  1. `pytest a/b a/` or `pytest a/ a/b` are equivalent to `pytest a`; if an argument overlaps another arguments, only the prefix remains.
+  1. `testrunner a/b a/` or `testrunner a/ a/b` are equivalent to `testrunner a`; if an argument overlaps another arguments, only the prefix remains.
 
-  2. `pytest x.py x.py` is equivalent to `pytest x.py`; previously such an invocation was taken as an explicit request to run the tests from the file twice.
+  2. `testrunner x.py x.py` is equivalent to `testrunner x.py`; previously such an invocation was taken as an explicit request to run the tests from the file twice.
 
   If you rely on these behaviors, consider using :ref:`--keep-duplicates <duplicate-paths>`, which retains its existing behavior (including the bug).
 
 
-- `#13719 <https://github.com/pytest-dev/pytest/issues/13719>`_: Support for Python 3.9 is dropped following its end of life.
+- `#13719 <https://github.com/jacksonsr451/test-runner/issues/13719>`_: Support for Python 3.9 is dropped following its end of life.
 
 
-- `#13766 <https://github.com/pytest-dev/pytest/issues/13766>`_: Previously, pytest would assume it was running in a CI/CD environment if either of the environment variables `$CI` or `$BUILD_NUMBER` was defined;
+- `#13766 <https://github.com/jacksonsr451/test-runner/issues/13766>`_: Previously, testrunner would assume it was running in a CI/CD environment if either of the environment variables `$CI` or `$BUILD_NUMBER` was defined;
   now, CI mode is only activated if at least one of those variables is defined and set to a *non-empty* value.
 
 
 - The non-public ``config.args`` attribute used to be able to contain ``pathlib.Path`` instances; now it can only contain strings.
 
 
-- `#13779 <https://github.com/pytest-dev/pytest/issues/13779>`_: **PytestRemovedIn9Warning deprecation warnings are now errors by default.**
+- `#13779 <https://github.com/jacksonsr451/test-runner/issues/13779>`_: **TestrunnerRemovedIn9Warning deprecation warnings are now errors by default.**
 
   Following our plan to remove deprecated features with as little disruption as
-  possible, all warnings of type ``PytestRemovedIn9Warning`` now generate errors
+  possible, all warnings of type ``TestrunnerRemovedIn9Warning`` now generate errors
   instead of warning messages by default.
 
-  **The affected features will be effectively removed in pytest 9.1**, so please consult the
+  **The affected features will be effectively removed in testrunner 9.1**, so please consult the
   :ref:`deprecations` section in the docs for directions on how to update existing code.
 
-  In the pytest ``9.0.X`` series, it is possible to change the errors back into warnings as a
-  stopgap measure by adding this to your ``pytest.ini`` file:
+  In the testrunner ``9.0.X`` series, it is possible to change the errors back into warnings as a
+  stopgap measure by adding this to your ``testrunner.ini`` file:
 
   .. code-block:: ini
 
-      [pytest]
+      [testrunner]
       filterwarnings =
-          ignore::pytest.PytestRemovedIn9Warning
+          ignore::testrunner.TestrunnerRemovedIn9Warning
 
-  But this will stop working when pytest ``9.1`` is released.
+  But this will stop working when testrunner ``9.1`` is released.
 
   **If you have concerns** about the removal of a specific feature, please add a
   comment to :issue:`13779`.
@@ -709,7 +709,7 @@ Removals and backward incompatible breaking changes
 Deprecations (removal in next major release)
 --------------------------------------------
 
-- `#13807 <https://github.com/pytest-dev/pytest/issues/13807>`_: :meth:`monkeypatch.syspath_prepend() <pytest.MonkeyPatch.syspath_prepend>` now issues a deprecation warning when the prepended path contains legacy namespace packages (those using ``pkg_resources.declare_namespace()``).
+- `#13807 <https://github.com/jacksonsr451/test-runner/issues/13807>`_: :meth:`monkeypatch.syspath_prepend() <testrunner.MonkeyPatch.syspath_prepend>` now issues a deprecation warning when the prepended path contains legacy namespace packages (those using ``pkg_resources.declare_namespace()``).
   Users should migrate to native namespace packages (:pep:`420`).
   See :ref:`monkeypatch-fixup-namespace-packages` for details.
 
@@ -717,170 +717,170 @@ Deprecations (removal in next major release)
 Bug fixes
 ---------
 
-- `#13445 <https://github.com/pytest-dev/pytest/issues/13445>`_: Made the type annotations of :func:`pytest.skip` and friends more spec-complaint to have them work across more type checkers.
+- `#13445 <https://github.com/jacksonsr451/test-runner/issues/13445>`_: Made the type annotations of :func:`testrunner.skip` and friends more spec-complaint to have them work across more type checkers.
 
 
-- `#13537 <https://github.com/pytest-dev/pytest/issues/13537>`_: Fixed a bug in which :class:`ExceptionGroup` with only ``Skipped`` exceptions in teardown was not handled correctly and showed as error.
+- `#13537 <https://github.com/jacksonsr451/test-runner/issues/13537>`_: Fixed a bug in which :class:`ExceptionGroup` with only ``Skipped`` exceptions in teardown was not handled correctly and showed as error.
 
 
-- `#13598 <https://github.com/pytest-dev/pytest/issues/13598>`_: Fixed possible collection confusion on Windows when short paths and symlinks are involved.
+- `#13598 <https://github.com/jacksonsr451/test-runner/issues/13598>`_: Fixed possible collection confusion on Windows when short paths and symlinks are involved.
 
 
-- `#13716 <https://github.com/pytest-dev/pytest/issues/13716>`_: Fixed a bug where a nonsensical invocation like ``pytest x.py[a]`` (a file cannot be parametrized) was silently treated as ``pytest x.py``. This is now a usage error.
+- `#13716 <https://github.com/jacksonsr451/test-runner/issues/13716>`_: Fixed a bug where a nonsensical invocation like ``testrunner x.py[a]`` (a file cannot be parametrized) was silently treated as ``testrunner x.py``. This is now a usage error.
 
 
-- `#13722 <https://github.com/pytest-dev/pytest/issues/13722>`_: Fixed a misleading assertion failure message when using :func:`pytest.approx` on mappings with differing lengths.
+- `#13722 <https://github.com/jacksonsr451/test-runner/issues/13722>`_: Fixed a misleading assertion failure message when using :func:`testrunner.approx` on mappings with differing lengths.
 
 
-- `#13773 <https://github.com/pytest-dev/pytest/issues/13773>`_: Fixed the static fixture closure calculation to properly consider transitive dependencies requested by overridden fixtures.
+- `#13773 <https://github.com/jacksonsr451/test-runner/issues/13773>`_: Fixed the static fixture closure calculation to properly consider transitive dependencies requested by overridden fixtures.
 
 
-- `#13816 <https://github.com/pytest-dev/pytest/issues/13816>`_: Fixed :func:`pytest.approx` which now returns a clearer error message when comparing mappings with different keys.
+- `#13816 <https://github.com/jacksonsr451/test-runner/issues/13816>`_: Fixed :func:`testrunner.approx` which now returns a clearer error message when comparing mappings with different keys.
 
 
-- `#13849 <https://github.com/pytest-dev/pytest/issues/13849>`_: Hidden ``.pytest.ini`` files are now picked up as the config file even if empty.
-  This was an inconsistency with non-hidden ``pytest.ini``.
+- `#13849 <https://github.com/jacksonsr451/test-runner/issues/13849>`_: Hidden ``.testrunner.ini`` files are now picked up as the config file even if empty.
+  This was an inconsistency with non-hidden ``testrunner.ini``.
 
 
-- `#13865 <https://github.com/pytest-dev/pytest/issues/13865>`_: Fixed `--show-capture` with `--tb=line`.
+- `#13865 <https://github.com/jacksonsr451/test-runner/issues/13865>`_: Fixed `--show-capture` with `--tb=line`.
 
 
-- `#13522 <https://github.com/pytest-dev/pytest/issues/13522>`_: Fixed :fixture:`pytester` in subprocess mode ignored all :attr:`pytester.plugins <pytest.Pytester.plugins>` except the first.
+- `#13522 <https://github.com/jacksonsr451/test-runner/issues/13522>`_: Fixed :fixture:`testrunnerer` in subprocess mode ignored all :attr:`testrunnerer.plugins <testrunner.Testrunnerer.plugins>` except the first.
 
-  Fixed :fixture:`pytester` in subprocess mode silently ignored non-str :attr:`pytester.plugins <pytest.Pytester.plugins>`.
+  Fixed :fixture:`testrunnerer` in subprocess mode silently ignored non-str :attr:`testrunnerer.plugins <testrunner.Testrunnerer.plugins>`.
   Now it errors instead.
-  If you are affected by this, specify the plugin by name, or switch the affected tests to use :func:`pytester.runpytest_inprocess <pytest.Pytester.runpytest_inprocess>` explicitly instead.
+  If you are affected by this, specify the plugin by name, or switch the affected tests to use :func:`testrunnerer.runtestrunner_inprocess <testrunner.Testrunnerer.runtestrunner_inprocess>` explicitly instead.
 
 
 
 Packaging updates and notes for downstreams
 -------------------------------------------
 
-- `#13791 <https://github.com/pytest-dev/pytest/issues/13791>`_: Minimum requirements on ``iniconfig`` and ``packaging`` were bumped to ``1.0.1`` and ``22.0.0``, respectively.
+- `#13791 <https://github.com/jacksonsr451/test-runner/issues/13791>`_: Minimum requirements on ``iniconfig`` and ``packaging`` were bumped to ``1.0.1`` and ``22.0.0``, respectively.
 
 
 
 Contributor-facing changes
 --------------------------
 
-- `#12244 <https://github.com/pytest-dev/pytest/issues/12244>`_: Fixed self-test failures when `TERM=dumb`.
+- `#12244 <https://github.com/jacksonsr451/test-runner/issues/12244>`_: Fixed self-test failures when `TERM=dumb`.
 
 
-- `#12474 <https://github.com/pytest-dev/pytest/issues/12474>`_: Added scheduled GitHub Action Workflow to run Sphinx linkchecks in repo documentation.
+- `#12474 <https://github.com/jacksonsr451/test-runner/issues/12474>`_: Added scheduled GitHub Action Workflow to run Sphinx linkchecks in repo documentation.
 
 
-- `#13621 <https://github.com/pytest-dev/pytest/issues/13621>`_: pytest's own testsuite now handles the ``lsof`` command hanging (e.g. due to unreachable network filesystems), with the affected selftests being skipped after 10 seconds.
+- `#13621 <https://github.com/jacksonsr451/test-runner/issues/13621>`_: testrunner's own testsuite now handles the ``lsof`` command hanging (e.g. due to unreachable network filesystems), with the affected selftests being skipped after 10 seconds.
 
 
-- `#13638 <https://github.com/pytest-dev/pytest/issues/13638>`_: Fixed deprecated :command:`gh pr new` command in :file:`scripts/prepare-release-pr.py`.
+- `#13638 <https://github.com/jacksonsr451/test-runner/issues/13638>`_: Fixed deprecated :command:`gh pr new` command in :file:`scripts/prepare-release-pr.py`.
   The script now uses :command:`gh pr create` which is compatible with GitHub CLI v2.0+.
 
 
-- `#13695 <https://github.com/pytest-dev/pytest/issues/13695>`_: Flush `stdout` and `stderr` in `Pytester.run` to avoid truncated outputs in `test_faulthandler.py::test_timeout` on CI -- by :user:`ogrisel`.
+- `#13695 <https://github.com/jacksonsr451/test-runner/issues/13695>`_: Flush `stdout` and `stderr` in `Testrunnerer.run` to avoid truncated outputs in `test_faulthandler.py::test_timeout` on CI -- by :user:`ogrisel`.
 
 
-- `#13771 <https://github.com/pytest-dev/pytest/issues/13771>`_: Skip `test_do_not_collect_symlink_siblings` on Windows environments without symlink support to avoid false negatives.
+- `#13771 <https://github.com/jacksonsr451/test-runner/issues/13771>`_: Skip `test_do_not_collect_symlink_siblings` on Windows environments without symlink support to avoid false negatives.
 
 
-- `#13841 <https://github.com/pytest-dev/pytest/issues/13841>`_: ``tox>=4`` is now required when contributing to pytest.
+- `#13841 <https://github.com/jacksonsr451/test-runner/issues/13841>`_: ``tox>=4`` is now required when contributing to testrunner.
 
-- `#13625 <https://github.com/pytest-dev/pytest/issues/13625>`_: Added missing docstrings to ``pytest_addoption()``, ``pytest_configure()``, and ``cacheshow()`` functions in ``cacheprovider.py``.
+- `#13625 <https://github.com/jacksonsr451/test-runner/issues/13625>`_: Added missing docstrings to ``testrunner_addoption()``, ``testrunner_configure()``, and ``cacheshow()`` functions in ``cacheprovider.py``.
 
 
 
 Miscellaneous internal changes
 ------------------------------
 
-- `#13830 <https://github.com/pytest-dev/pytest/issues/13830>`_: Configuration overrides (``-o``/``--override-ini``) are now processed during startup rather than during :func:`config.getini() <pytest.Config.getini>`.
+- `#13830 <https://github.com/jacksonsr451/test-runner/issues/13830>`_: Configuration overrides (``-o``/``--override-ini``) are now processed during startup rather than during :func:`config.getini() <testrunner.Config.getini>`.
 
 
-pytest 8.4.2 (2025-09-03)
+testrunner 8.4.2 (2025-09-03)
 =========================
 
 Bug fixes
 ---------
 
-- `#13478 <https://github.com/pytest-dev/pytest/issues/13478>`_: Fixed a crash when using :confval:`console_output_style` with ``times`` and a module is skipped.
+- `#13478 <https://github.com/jacksonsr451/test-runner/issues/13478>`_: Fixed a crash when using :confval:`console_output_style` with ``times`` and a module is skipped.
 
 
-- `#13530 <https://github.com/pytest-dev/pytest/issues/13530>`_: Fixed a crash when using :func:`pytest.approx` and :class:`decimal.Decimal` instances with the :class:`decimal.FloatOperation` trap set.
+- `#13530 <https://github.com/jacksonsr451/test-runner/issues/13530>`_: Fixed a crash when using :func:`testrunner.approx` and :class:`decimal.Decimal` instances with the :class:`decimal.FloatOperation` trap set.
 
 
-- `#13549 <https://github.com/pytest-dev/pytest/issues/13549>`_: No longer evaluate type annotations in Python ``3.14`` when inspecting function signatures.
+- `#13549 <https://github.com/jacksonsr451/test-runner/issues/13549>`_: No longer evaluate type annotations in Python ``3.14`` when inspecting function signatures.
 
   This prevents crashes during module collection when modules do not explicitly use ``from __future__ import annotations`` and import types for annotations within a ``if TYPE_CHECKING:`` block.
 
 
-- `#13559 <https://github.com/pytest-dev/pytest/issues/13559>`_: Added missing `int` and `float` variants to the `Literal` type annotation of the `type` parameter in :meth:`pytest.Parser.addini`.
+- `#13559 <https://github.com/jacksonsr451/test-runner/issues/13559>`_: Added missing `int` and `float` variants to the `Literal` type annotation of the `type` parameter in :meth:`testrunner.Parser.addini`.
 
 
-- `#13563 <https://github.com/pytest-dev/pytest/issues/13563>`_: :func:`pytest.approx` now only imports ``numpy`` if NumPy is already in ``sys.modules``. This fixes unconditional import behavior introduced in `8.4.0`.
+- `#13563 <https://github.com/jacksonsr451/test-runner/issues/13563>`_: :func:`testrunner.approx` now only imports ``numpy`` if NumPy is already in ``sys.modules``. This fixes unconditional import behavior introduced in `8.4.0`.
 
 
 
 Improved documentation
 ----------------------
 
-- `#13577 <https://github.com/pytest-dev/pytest/issues/13577>`_: Clarify that ``pytest_generate_tests`` is discovered in test modules/classes; other hooks must be in ``conftest.py`` or plugins.
+- `#13577 <https://github.com/jacksonsr451/test-runner/issues/13577>`_: Clarify that ``testrunner_generate_tests`` is discovered in test modules/classes; other hooks must be in ``conftest.py`` or plugins.
 
 
 
 Contributor-facing changes
 --------------------------
 
-- `#13480 <https://github.com/pytest-dev/pytest/issues/13480>`_: Self-testing: fixed a few test failures when run with ``-Wdefault`` or a similar override.
+- `#13480 <https://github.com/jacksonsr451/test-runner/issues/13480>`_: Self-testing: fixed a few test failures when run with ``-Wdefault`` or a similar override.
 
 
-- `#13547 <https://github.com/pytest-dev/pytest/issues/13547>`_: Self-testing: corrected expected message for ``test_doctest_unexpected_exception`` in Python ``3.14``.
+- `#13547 <https://github.com/jacksonsr451/test-runner/issues/13547>`_: Self-testing: corrected expected message for ``test_doctest_unexpected_exception`` in Python ``3.14``.
 
 
-- `#13684 <https://github.com/pytest-dev/pytest/issues/13684>`_: Make pytest's own testsuite insensitive to the presence of the ``CI`` environment variable -- by :user:`ogrisel`.
+- `#13684 <https://github.com/jacksonsr451/test-runner/issues/13684>`_: Make testrunner's own testsuite insensitive to the presence of the ``CI`` environment variable -- by :user:`ogrisel`.
 
 
-pytest 8.4.1 (2025-06-17)
+testrunner 8.4.1 (2025-06-17)
 =========================
 
 Bug fixes
 ---------
 
-- `#13461 <https://github.com/pytest-dev/pytest/issues/13461>`_: Corrected ``_pytest.terminal.TerminalReporter.isatty`` to support
+- `#13461 <https://github.com/jacksonsr451/test-runner/issues/13461>`_: Corrected ``_testrunner.terminal.TerminalReporter.isatty`` to support
   being called as a method. Before it was just a boolean which could
   break correct code when using ``-o log_cli=true``).
 
 
-- `#13477 <https://github.com/pytest-dev/pytest/issues/13477>`_: Reintroduced :class:`pytest.PytestReturnNotNoneWarning` which was removed by accident in pytest `8.4`.
+- `#13477 <https://github.com/jacksonsr451/test-runner/issues/13477>`_: Reintroduced :class:`testrunner.TestrunnerReturnNotNoneWarning` which was removed by accident in testrunner `8.4`.
 
   This warning is raised when a test functions returns a value other than ``None``, which is often a mistake made by beginners.
 
   See :ref:`return-not-none` for more information.
 
 
-- `#13497 <https://github.com/pytest-dev/pytest/issues/13497>`_: Fixed compatibility with ``Twisted 25+``.
+- `#13497 <https://github.com/jacksonsr451/test-runner/issues/13497>`_: Fixed compatibility with ``Twisted 25+``.
 
 
 
 Improved documentation
 ----------------------
 
-- `#13492 <https://github.com/pytest-dev/pytest/issues/13492>`_: Fixed outdated warning about ``faulthandler`` not working on Windows.
+- `#13492 <https://github.com/jacksonsr451/test-runner/issues/13492>`_: Fixed outdated warning about ``faulthandler`` not working on Windows.
 
 
-pytest 8.4.0 (2025-06-02)
+testrunner 8.4.0 (2025-06-02)
 =========================
 
 Removals and backward incompatible breaking changes
 ---------------------------------------------------
 
-- `#11372 <https://github.com/pytest-dev/pytest/issues/11372>`_: Async tests will now fail, instead of warning+skipping, if you don't have any suitable plugin installed.
+- `#11372 <https://github.com/jacksonsr451/test-runner/issues/11372>`_: Async tests will now fail, instead of warning+skipping, if you don't have any suitable plugin installed.
 
 
-- `#12346 <https://github.com/pytest-dev/pytest/issues/12346>`_: Tests will now fail, instead of raising a warning, if they return any value other than None.
+- `#12346 <https://github.com/jacksonsr451/test-runner/issues/12346>`_: Tests will now fail, instead of raising a warning, if they return any value other than None.
 
 
-- `#12874 <https://github.com/pytest-dev/pytest/issues/12874>`_: We dropped support for Python 3.8 following its end of life (2024-10-07).
+- `#12874 <https://github.com/jacksonsr451/test-runner/issues/12874>`_: We dropped support for Python 3.8 following its end of life (2024-10-07).
 
 
-- `#12960 <https://github.com/pytest-dev/pytest/issues/12960>`_: Test functions containing a yield now cause an explicit error. They have not been run since pytest 4.0, and were previously marked as an expected failure and deprecation warning.
+- `#12960 <https://github.com/jacksonsr451/test-runner/issues/12960>`_: Test functions containing a yield now cause an explicit error. They have not been run since testrunner 4.0, and were previously marked as an expected failure and deprecation warning.
 
   See :ref:`the docs <yield tests deprecated>` for more information.
 
@@ -889,28 +889,28 @@ Removals and backward incompatible breaking changes
 Deprecations (removal in next major release)
 --------------------------------------------
 
-- `#10839 <https://github.com/pytest-dev/pytest/issues/10839>`_: Requesting an asynchronous fixture without a `pytest_fixture_setup` hook that resolves it will now give a DeprecationWarning. This most commonly happens if a sync test requests an async fixture. This should have no effect on a majority of users with async tests or fixtures using async pytest plugins, but may affect non-standard hook setups or ``autouse=True``. For guidance on how to work around this warning see :ref:`sync-test-async-fixture`.
+- `#10839 <https://github.com/jacksonsr451/test-runner/issues/10839>`_: Requesting an asynchronous fixture without a `testrunner_fixture_setup` hook that resolves it will now give a DeprecationWarning. This most commonly happens if a sync test requests an async fixture. This should have no effect on a majority of users with async tests or fixtures using async testrunner plugins, but may affect non-standard hook setups or ``autouse=True``. For guidance on how to work around this warning see :ref:`sync-test-async-fixture`.
 
 
 
 New features
 ------------
 
-- `#11538 <https://github.com/pytest-dev/pytest/issues/11538>`_: Added :class:`pytest.RaisesGroup` as an equivalent to :func:`pytest.raises` for expecting :exc:`ExceptionGroup`. Also adds :class:`pytest.RaisesExc` which is now the logic behind :func:`pytest.raises` and used as parameter to :class:`pytest.RaisesGroup`. ``RaisesGroup`` includes the ability to specify multiple different expected exceptions, the structure of nested exception groups, and flags for emulating :ref:`except* <except_star>`. See :ref:`assert-matching-exception-groups` and docstrings for more information.
+- `#11538 <https://github.com/jacksonsr451/test-runner/issues/11538>`_: Added :class:`testrunner.RaisesGroup` as an equivalent to :func:`testrunner.raises` for expecting :exc:`ExceptionGroup`. Also adds :class:`testrunner.RaisesExc` which is now the logic behind :func:`testrunner.raises` and used as parameter to :class:`testrunner.RaisesGroup`. ``RaisesGroup`` includes the ability to specify multiple different expected exceptions, the structure of nested exception groups, and flags for emulating :ref:`except* <except_star>`. See :ref:`assert-matching-exception-groups` and docstrings for more information.
 
 
-- `#12081 <https://github.com/pytest-dev/pytest/issues/12081>`_: Added :fixture:`capteesys` to capture AND pass output to next handler set by ``--capture=``.
+- `#12081 <https://github.com/jacksonsr451/test-runner/issues/12081>`_: Added :fixture:`capteesys` to capture AND pass output to next handler set by ``--capture=``.
 
 
-- `#12504 <https://github.com/pytest-dev/pytest/issues/12504>`_: :func:`pytest.mark.xfail` now accepts :class:`pytest.RaisesGroup` for the ``raises`` parameter when you expect an exception group. You can also pass a :class:`pytest.RaisesExc` if you e.g. want to make use of the ``check`` parameter.
+- `#12504 <https://github.com/jacksonsr451/test-runner/issues/12504>`_: :func:`testrunner.mark.xfail` now accepts :class:`testrunner.RaisesGroup` for the ``raises`` parameter when you expect an exception group. You can also pass a :class:`testrunner.RaisesExc` if you e.g. want to make use of the ``check`` parameter.
 
 
-- `#12713 <https://github.com/pytest-dev/pytest/issues/12713>`_: New `--force-short-summary` option to force condensed summary output regardless of verbosity level.
+- `#12713 <https://github.com/jacksonsr451/test-runner/issues/12713>`_: New `--force-short-summary` option to force condensed summary output regardless of verbosity level.
 
   This lets users still see condensed summary output of failures for quick reference in log files from job outputs, being especially useful if non-condensed output is very verbose.
 
 
-- `#12749 <https://github.com/pytest-dev/pytest/issues/12749>`_: pytest traditionally collects classes/functions in the test module namespace even if they are imported from another file.
+- `#12749 <https://github.com/jacksonsr451/test-runner/issues/12749>`_: testrunner traditionally collects classes/functions in the test module namespace even if they are imported from another file.
 
   For example:
 
@@ -926,47 +926,47 @@ New features
 
       def test_testament(): ...
 
-  In this scenario with the default options, pytest will collect the class `Testament` from `tests/test_testament.py` because it starts with `Test`, even though in this case it is a production class being imported in the test module namespace.
+  In this scenario with the default options, testrunner will collect the class `Testament` from `tests/test_testament.py` because it starts with `Test`, even though in this case it is a production class being imported in the test module namespace.
 
-  This behavior can now be prevented by setting the new :confval:`collect_imported_tests` configuration option to ``false``, which will make pytest collect classes/functions from test files **only** if they are defined in that file.
+  This behavior can now be prevented by setting the new :confval:`collect_imported_tests` configuration option to ``false``, which will make testrunner collect classes/functions from test files **only** if they are defined in that file.
 
   -- by :user:`FreerGit`
 
 
-- `#12765 <https://github.com/pytest-dev/pytest/issues/12765>`_: Thresholds to trigger snippet truncation can now be set with :confval:`truncation_limit_lines` and :confval:`truncation_limit_chars`.
+- `#12765 <https://github.com/jacksonsr451/test-runner/issues/12765>`_: Thresholds to trigger snippet truncation can now be set with :confval:`truncation_limit_lines` and :confval:`truncation_limit_chars`.
 
   See :ref:`truncation-params` for more information.
 
 
-- `#13125 <https://github.com/pytest-dev/pytest/issues/13125>`_: :confval:`console_output_style` now supports ``times`` to show execution time of each test.
+- `#13125 <https://github.com/jacksonsr451/test-runner/issues/13125>`_: :confval:`console_output_style` now supports ``times`` to show execution time of each test.
 
 
-- `#13192 <https://github.com/pytest-dev/pytest/issues/13192>`_: :func:`pytest.raises` will now raise a warning when passing an empty string to ``match``, as this will match against any value. Use ``match="^$"`` if you want to check that an exception has no message.
+- `#13192 <https://github.com/jacksonsr451/test-runner/issues/13192>`_: :func:`testrunner.raises` will now raise a warning when passing an empty string to ``match``, as this will match against any value. Use ``match="^$"`` if you want to check that an exception has no message.
 
 
-- `#13192 <https://github.com/pytest-dev/pytest/issues/13192>`_: :func:`pytest.raises` will now print a helpful string diff if matching fails and the match parameter has ``^`` and ``$`` and is otherwise escaped.
+- `#13192 <https://github.com/jacksonsr451/test-runner/issues/13192>`_: :func:`testrunner.raises` will now print a helpful string diff if matching fails and the match parameter has ``^`` and ``$`` and is otherwise escaped.
 
 
-- `#13192 <https://github.com/pytest-dev/pytest/issues/13192>`_: You can now pass :func:`with pytest.raises(check=fn): <pytest.raises>`, where ``fn`` is a function which takes a raised exception and returns a boolean. The ``raises`` fails if no exception was raised (as usual), passes if an exception is raised and ``fn`` returns ``True`` (as well as ``match`` and the type matching, if specified, which are checked before), and propagates the exception if ``fn`` returns ``False`` (which likely also fails the test).
+- `#13192 <https://github.com/jacksonsr451/test-runner/issues/13192>`_: You can now pass :func:`with testrunner.raises(check=fn): <testrunner.raises>`, where ``fn`` is a function which takes a raised exception and returns a boolean. The ``raises`` fails if no exception was raised (as usual), passes if an exception is raised and ``fn`` returns ``True`` (as well as ``match`` and the type matching, if specified, which are checked before), and propagates the exception if ``fn`` returns ``False`` (which likely also fails the test).
 
 
-- `#13228 <https://github.com/pytest-dev/pytest/issues/13228>`_: :ref:`hidden-param` can now be used in ``id`` of :func:`pytest.param` or in
-  ``ids`` of :py:func:`Metafunc.parametrize <pytest.Metafunc.parametrize>`.
+- `#13228 <https://github.com/jacksonsr451/test-runner/issues/13228>`_: :ref:`hidden-param` can now be used in ``id`` of :func:`testrunner.param` or in
+  ``ids`` of :py:func:`Metafunc.parametrize <testrunner.Metafunc.parametrize>`.
   It hides the parameter set from the test name.
 
 
-- `#13253 <https://github.com/pytest-dev/pytest/issues/13253>`_: New flag: :ref:`--disable-plugin-autoload <disable_plugin_autoload>` which works as an alternative to :envvar:`PYTEST_DISABLE_PLUGIN_AUTOLOAD` when setting environment variables is inconvenient; and allows setting it in config files with :confval:`addopts`.
+- `#13253 <https://github.com/jacksonsr451/test-runner/issues/13253>`_: New flag: :ref:`--disable-plugin-autoload <disable_plugin_autoload>` which works as an alternative to :envvar:`TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD` when setting environment variables is inconvenient; and allows setting it in config files with :confval:`addopts`.
 
 
 
 Improvements in existing functionality
 --------------------------------------
 
-- `#10224 <https://github.com/pytest-dev/pytest/issues/10224>`_: pytest's ``short`` and ``long`` traceback styles (:ref:`how-to-modifying-python-tb-printing`)
+- `#10224 <https://github.com/jacksonsr451/test-runner/issues/10224>`_: testrunner's ``short`` and ``long`` traceback styles (:ref:`how-to-modifying-python-tb-printing`)
   now have partial :pep:`657` support and will show specific code segments in the
   traceback.
 
-  .. code-block:: pytest
+  .. code-block:: testrunner
 
       ================================= FAILURES =================================
       _______________________ test_gets_correct_tracebacks _______________________
@@ -982,129 +982,129 @@ Improvements in existing functionality
   -- by :user:`ammaraskar`
 
 
-- `#11118 <https://github.com/pytest-dev/pytest/issues/11118>`_: Now :confval:`pythonpath` configures `$PYTHONPATH` earlier than before during the initialization process, which now also affects plugins loaded via the `-p` command-line option.
+- `#11118 <https://github.com/jacksonsr451/test-runner/issues/11118>`_: Now :confval:`pythonpath` configures `$PYTHONPATH` earlier than before during the initialization process, which now also affects plugins loaded via the `-p` command-line option.
 
   -- by :user:`millerdev`
 
 
-- `#11381 <https://github.com/pytest-dev/pytest/issues/11381>`_: The ``type`` parameter of the ``parser.addini`` method now accepts `"int"` and ``"float"`` parameters, facilitating the parsing of configuration values in the configuration file.
+- `#11381 <https://github.com/jacksonsr451/test-runner/issues/11381>`_: The ``type`` parameter of the ``parser.addini`` method now accepts `"int"` and ``"float"`` parameters, facilitating the parsing of configuration values in the configuration file.
 
   Example:
 
   .. code-block:: python
 
-    def pytest_addoption(parser):
+    def testrunner_addoption(parser):
         parser.addini("int_value", type="int", default=2, help="my int value")
         parser.addini("float_value", type="float", default=4.2, help="my float value")
 
-  The `pytest.ini` file:
+  The `testrunner.ini` file:
 
   .. code-block:: ini
 
-    [pytest]
+    [testrunner]
     int_value = 3
     float_value = 5.4
 
 
-- `#11525 <https://github.com/pytest-dev/pytest/issues/11525>`_: Fixtures are now clearly represented in the output as a "fixture object", not as a normal function as before, making it easy for beginners to catch mistakes such as referencing a fixture declared in the same module but not requested in the test function.
+- `#11525 <https://github.com/jacksonsr451/test-runner/issues/11525>`_: Fixtures are now clearly represented in the output as a "fixture object", not as a normal function as before, making it easy for beginners to catch mistakes such as referencing a fixture declared in the same module but not requested in the test function.
 
   -- by :user:`the-compiler` and :user:`glyphack`
 
 
-- `#12426 <https://github.com/pytest-dev/pytest/issues/12426>`_: A warning is now issued when :ref:`pytest.mark.usefixtures ref` is used without specifying any fixtures. Previously, empty usefixtures markers were silently ignored.
+- `#12426 <https://github.com/jacksonsr451/test-runner/issues/12426>`_: A warning is now issued when :ref:`testrunner.mark.usefixtures ref` is used without specifying any fixtures. Previously, empty usefixtures markers were silently ignored.
 
 
-- `#12707 <https://github.com/pytest-dev/pytest/issues/12707>`_: Exception chains can be navigated when dropped into Pdb in Python 3.13+.
+- `#12707 <https://github.com/jacksonsr451/test-runner/issues/12707>`_: Exception chains can be navigated when dropped into Pdb in Python 3.13+.
 
 
-- `#12736 <https://github.com/pytest-dev/pytest/issues/12736>`_: Added a new attribute `name` with the fixed value `"pytest tests"` to the root tag `testsuites` of the junit-xml generated by pytest.
+- `#12736 <https://github.com/jacksonsr451/test-runner/issues/12736>`_: Added a new attribute `name` with the fixed value `"testrunner tests"` to the root tag `testsuites` of the junit-xml generated by testrunner.
 
-  This attribute is part of many junit-xml specifications and is even part of the `junit-10.xsd` specification that pytest's implementation is based on.
-
-
-- `#12943 <https://github.com/pytest-dev/pytest/issues/12943>`_: If a test fails with an exceptiongroup with a single exception, the contained exception will now be displayed in the short test summary info.
+  This attribute is part of many junit-xml specifications and is even part of the `junit-10.xsd` specification that testrunner's implementation is based on.
 
 
-- `#12958 <https://github.com/pytest-dev/pytest/issues/12958>`_: A number of :ref:`unraisable <unraisable>` enhancements:
+- `#12943 <https://github.com/jacksonsr451/test-runner/issues/12943>`_: If a test fails with an exceptiongroup with a single exception, the contained exception will now be displayed in the short test summary info.
+
+
+- `#12958 <https://github.com/jacksonsr451/test-runner/issues/12958>`_: A number of :ref:`unraisable <unraisable>` enhancements:
 
   * Set the unraisable hook as early as possible and unset it as late as possible, to collect the most possible number of unraisable exceptions.
   * Call the garbage collector just before unsetting the unraisable hook, to collect any straggling exceptions.
   * Collect multiple unraisable exceptions per test phase.
   * Report the :mod:`tracemalloc` allocation traceback (if available).
   * Avoid using a generator based hook to allow handling :class:`StopIteration` in test failures.
-  * Report the unraisable exception as the cause of the :class:`pytest.PytestUnraisableExceptionWarning` exception if raised.
+  * Report the unraisable exception as the cause of the :class:`testrunner.TestrunnerUnraisableExceptionWarning` exception if raised.
   * Compute the ``repr`` of the unraisable object in the unraisable hook so you get the latest information if available, and should help with resurrection of the object.
 
 
-- `#13010 <https://github.com/pytest-dev/pytest/issues/13010>`_: :func:`pytest.approx` now can compare collections that contain numbers and non-numbers mixed.
+- `#13010 <https://github.com/jacksonsr451/test-runner/issues/13010>`_: :func:`testrunner.approx` now can compare collections that contain numbers and non-numbers mixed.
 
 
-- `#13016 <https://github.com/pytest-dev/pytest/issues/13016>`_: A number of :ref:`threadexception <unraisable>` enhancements:
+- `#13016 <https://github.com/jacksonsr451/test-runner/issues/13016>`_: A number of :ref:`threadexception <unraisable>` enhancements:
 
   * Set the excepthook as early as possible and unset it as late as possible, to collect the most possible number of unhandled exceptions from threads.
   * Collect multiple thread exceptions per test phase.
   * Report the :mod:`tracemalloc` allocation traceback (if available).
   * Avoid using a generator based hook to allow handling :class:`StopIteration` in test failures.
-  * Report the thread exception as the cause of the :class:`pytest.PytestUnhandledThreadExceptionWarning` exception if raised.
+  * Report the thread exception as the cause of the :class:`testrunner.TestrunnerUnhandledThreadExceptionWarning` exception if raised.
   * Extract the ``name`` of the thread object in the excepthook which should help with resurrection of the thread.
 
 
-- `#13031 <https://github.com/pytest-dev/pytest/issues/13031>`_: An empty parameter set as in ``pytest.mark.parametrize([], ids=idfunc)`` will no longer trigger a call to ``idfunc`` with internal objects.
+- `#13031 <https://github.com/jacksonsr451/test-runner/issues/13031>`_: An empty parameter set as in ``testrunner.mark.parametrize([], ids=idfunc)`` will no longer trigger a call to ``idfunc`` with internal objects.
 
 
-- `#13115 <https://github.com/pytest-dev/pytest/issues/13115>`_: Allows supplying ``ExceptionGroup[Exception]`` and ``BaseExceptionGroup[BaseException]`` to ``pytest.raises`` to keep full typing on :class:`ExceptionInfo <pytest.ExceptionInfo>`:
+- `#13115 <https://github.com/jacksonsr451/test-runner/issues/13115>`_: Allows supplying ``ExceptionGroup[Exception]`` and ``BaseExceptionGroup[BaseException]`` to ``testrunner.raises`` to keep full typing on :class:`ExceptionInfo <testrunner.ExceptionInfo>`:
 
   .. code-block:: python
 
-      with pytest.raises(ExceptionGroup[Exception]) as exc_info:
+      with testrunner.raises(ExceptionGroup[Exception]) as exc_info:
           some_function()
 
   Parametrizing with other exception types remains an error - we do not check the types of child exceptions and thus do not permit code that might look like we do.
 
 
-- `#13122 <https://github.com/pytest-dev/pytest/issues/13122>`_: The ``--stepwise`` mode received a number of improvements:
+- `#13122 <https://github.com/jacksonsr451/test-runner/issues/13122>`_: The ``--stepwise`` mode received a number of improvements:
 
-  * It no longer forgets the last failed test in case pytest is executed later without the flag.
+  * It no longer forgets the last failed test in case testrunner is executed later without the flag.
 
     This enables the following workflow:
 
-    1. Execute pytest with ``--stepwise``, pytest then stops at the first failing test;
+    1. Execute testrunner with ``--stepwise``, testrunner then stops at the first failing test;
     2. Iteratively update the code and run the test in isolation, without the ``--stepwise`` flag (for example in an IDE), until it is fixed.
-    3. Execute pytest with ``--stepwise`` again and pytest will continue from the previously failed test, and if it passes, continue on to the next tests.
+    3. Execute testrunner with ``--stepwise`` again and testrunner will continue from the previously failed test, and if it passes, continue on to the next tests.
 
-    Previously, at step 3, pytest would start from the beginning, forgetting the previously failed test.
+    Previously, at step 3, testrunner would start from the beginning, forgetting the previously failed test.
 
     This change however might cause issues if the ``--stepwise`` mode is used far apart in time, as the state might get stale, so the internal state will be reset automatically in case the test suite changes (for now only the number of tests are considered for this, we might change/improve this on the future).
 
   * New ``--stepwise-reset``/``--sw-reset`` flag, allowing the user to explicitly reset the stepwise state and restart the workflow from the beginning.
 
 
-- `#13308 <https://github.com/pytest-dev/pytest/issues/13308>`_: Added official support for Python 3.14.
+- `#13308 <https://github.com/jacksonsr451/test-runner/issues/13308>`_: Added official support for Python 3.14.
 
 
-- `#13380 <https://github.com/pytest-dev/pytest/issues/13380>`_: Fix :class:`ExceptionGroup` traceback filtering to exclude pytest internals.
+- `#13380 <https://github.com/jacksonsr451/test-runner/issues/13380>`_: Fix :class:`ExceptionGroup` traceback filtering to exclude testrunner internals.
 
 
-- `#13415 <https://github.com/pytest-dev/pytest/issues/13415>`_: The author metadata of the BibTex example is now correctly formatted with last names following first names.
+- `#13415 <https://github.com/jacksonsr451/test-runner/issues/13415>`_: The author metadata of the BibTex example is now correctly formatted with last names following first names.
   An example of BibLaTex has been added.
   BibTex and BibLaTex examples now clearly indicate that what is cited is software.
 
   -- by :user:`willynilly`
 
 
-- `#13420 <https://github.com/pytest-dev/pytest/issues/13420>`_: Improved test collection performance by optimizing path resolution used in ``FSCollector``.
+- `#13420 <https://github.com/jacksonsr451/test-runner/issues/13420>`_: Improved test collection performance by optimizing path resolution used in ``FSCollector``.
 
 
-- `#13457 <https://github.com/pytest-dev/pytest/issues/13457>`_: The error message about duplicate parametrization no longer displays an internal stack trace.
+- `#13457 <https://github.com/jacksonsr451/test-runner/issues/13457>`_: The error message about duplicate parametrization no longer displays an internal stack trace.
 
 
-- `#4112 <https://github.com/pytest-dev/pytest/issues/4112>`_: Using :ref:`pytest.mark.usefixtures <pytest.mark.usefixtures ref>` on :func:`pytest.param` now produces an error instead of silently doing nothing.
+- `#4112 <https://github.com/jacksonsr451/test-runner/issues/4112>`_: Using :ref:`testrunner.mark.usefixtures <testrunner.mark.usefixtures ref>` on :func:`testrunner.param` now produces an error instead of silently doing nothing.
 
 
-- `#5473 <https://github.com/pytest-dev/pytest/issues/5473>`_: Replace `:` with `;` in the assertion rewrite warning message so it can be filtered using standard Python warning filters before calling :func:`pytest.main`.
+- `#5473 <https://github.com/jacksonsr451/test-runner/issues/5473>`_: Replace `:` with `;` in the assertion rewrite warning message so it can be filtered using standard Python warning filters before calling :func:`testrunner.main`.
 
 
-- `#6985 <https://github.com/pytest-dev/pytest/issues/6985>`_: Improved :func:`pytest.approx` to enhance the readability of value ranges and tolerances between 0.001 and 1000.
+- `#6985 <https://github.com/jacksonsr451/test-runner/issues/6985>`_: Improved :func:`testrunner.approx` to enhance the readability of value ranges and tolerances between 0.001 and 1000.
     * The `repr` method now provides clearer output for values within those ranges, making it easier to interpret the results.
     * Previously, the output for those ranges of values and tolerances was displayed in scientific notation (e.g., `42 ± 1.0e+00`). The updated method now presents the tolerance as a decimal for better readability (e.g., `42 ± 1`).
 
@@ -1114,97 +1114,97 @@ Improvements in existing functionality
 
       .. code-block:: console
 
-          >>> pytest.approx(42, abs=1)
+          >>> testrunner.approx(42, abs=1)
           42 ± 1.0e+00
 
       **Current Output:**
 
       .. code-block:: console
 
-          >>> pytest.approx(42, abs=1)
+          >>> testrunner.approx(42, abs=1)
           42 ± 1
 
     -- by :user:`fazeelghafoor`
 
 
-- `#7683 <https://github.com/pytest-dev/pytest/issues/7683>`_: The formerly optional ``pygments`` dependency is now required, causing output always to be source-highlighted (unless disabled via the ``--code-highlight=no`` CLI option).
+- `#7683 <https://github.com/jacksonsr451/test-runner/issues/7683>`_: The formerly optional ``pygments`` dependency is now required, causing output always to be source-highlighted (unless disabled via the ``--code-highlight=no`` CLI option).
 
 
 
 Bug fixes
 ---------
 
-- `#10404 <https://github.com/pytest-dev/pytest/issues/10404>`_: Apply filterwarnings from config/cli as soon as possible, and revert them as late as possible
-  so that warnings as errors are collected throughout the pytest run and before the
+- `#10404 <https://github.com/jacksonsr451/test-runner/issues/10404>`_: Apply filterwarnings from config/cli as soon as possible, and revert them as late as possible
+  so that warnings as errors are collected throughout the testrunner run and before the
   unraisable and threadexcept hooks are removed.
 
   This allows very late warnings and unraisable/threadexcept exceptions to fail the test suite.
 
-  This also changes the warning that the lsof plugin issues from PytestWarning to the new warning PytestFDWarning so it can be more easily filtered.
+  This also changes the warning that the lsof plugin issues from TestrunnerWarning to the new warning TestrunnerFDWarning so it can be more easily filtered.
 
 
-- `#11067 <https://github.com/pytest-dev/pytest/issues/11067>`_: The test report is now consistent regardless if the test xfailed via :ref:`pytest.mark.xfail <pytest.mark.xfail ref>` or :func:`pytest.fail`.
+- `#11067 <https://github.com/jacksonsr451/test-runner/issues/11067>`_: The test report is now consistent regardless if the test xfailed via :ref:`testrunner.mark.xfail <testrunner.mark.xfail ref>` or :func:`testrunner.fail`.
 
   Previously, *xfailed* tests via the marker would have the string ``"reason: "`` prefixed to the message, while those *xfailed* via the function did not. The prefix has been removed.
 
 
-- `#12008 <https://github.com/pytest-dev/pytest/issues/12008>`_: In :pr:`11220`, an unintended change in reordering was introduced by changing the way indices were assigned to direct params. More specifically, before that change, the indices of direct params to metafunc's callspecs were assigned after all parametrizations took place. Now, that change is reverted.
+- `#12008 <https://github.com/jacksonsr451/test-runner/issues/12008>`_: In :pr:`11220`, an unintended change in reordering was introduced by changing the way indices were assigned to direct params. More specifically, before that change, the indices of direct params to metafunc's callspecs were assigned after all parametrizations took place. Now, that change is reverted.
 
 
-- `#12863 <https://github.com/pytest-dev/pytest/issues/12863>`_: Fix applying markers, including :ref:`pytest.mark.parametrize <pytest.mark.parametrize ref>` when placed above `@staticmethod` or `@classmethod`.
+- `#12863 <https://github.com/jacksonsr451/test-runner/issues/12863>`_: Fix applying markers, including :ref:`testrunner.mark.parametrize <testrunner.mark.parametrize ref>` when placed above `@staticmethod` or `@classmethod`.
 
 
-- `#12929 <https://github.com/pytest-dev/pytest/issues/12929>`_: Handle StopIteration from test cases, setup and teardown correctly.
+- `#12929 <https://github.com/jacksonsr451/test-runner/issues/12929>`_: Handle StopIteration from test cases, setup and teardown correctly.
 
 
-- `#12938 <https://github.com/pytest-dev/pytest/issues/12938>`_: Fixed ``--durations-min`` argument not respected if ``-vv`` is used.
+- `#12938 <https://github.com/jacksonsr451/test-runner/issues/12938>`_: Fixed ``--durations-min`` argument not respected if ``-vv`` is used.
 
 
-- `#12946 <https://github.com/pytest-dev/pytest/issues/12946>`_: Fixed missing help for :mod:`pdb` commands wrapped by pytest -- by :user:`adamchainz`.
+- `#12946 <https://github.com/jacksonsr451/test-runner/issues/12946>`_: Fixed missing help for :mod:`pdb` commands wrapped by testrunner -- by :user:`adamchainz`.
 
 
-- `#12981 <https://github.com/pytest-dev/pytest/issues/12981>`_: Prevent exceptions in :func:`pytest.Config.add_cleanup` callbacks preventing further cleanups.
+- `#12981 <https://github.com/jacksonsr451/test-runner/issues/12981>`_: Prevent exceptions in :func:`testrunner.Config.add_cleanup` callbacks preventing further cleanups.
 
 
-- `#13047 <https://github.com/pytest-dev/pytest/issues/13047>`_: Restore :func:`pytest.approx` handling of equality checks between `bool` and `numpy.bool_` types.
+- `#13047 <https://github.com/jacksonsr451/test-runner/issues/13047>`_: Restore :func:`testrunner.approx` handling of equality checks between `bool` and `numpy.bool_` types.
 
-  Comparing `bool` and `numpy.bool_` using :func:`pytest.approx` accidentally changed in version `8.3.4` and `8.3.5` to no longer match:
+  Comparing `bool` and `numpy.bool_` using :func:`testrunner.approx` accidentally changed in version `8.3.4` and `8.3.5` to no longer match:
 
   .. code-block:: pycon
 
       >>> import numpy as np
-      >>> from pytest import approx
-      >>> [np.True_, np.True_] == pytest.approx([True, True])
+      >>> from testrunner import approx
+      >>> [np.True_, np.True_] == testrunner.approx([True, True])
       False
 
   This has now been fixed:
 
   .. code-block:: pycon
 
-      >>> [np.True_, np.True_] == pytest.approx([True, True])
+      >>> [np.True_, np.True_] == testrunner.approx([True, True])
       True
 
 
-- `#13119 <https://github.com/pytest-dev/pytest/issues/13119>`_: Improved handling of invalid regex patterns for filter warnings by providing a clear error message.
+- `#13119 <https://github.com/jacksonsr451/test-runner/issues/13119>`_: Improved handling of invalid regex patterns for filter warnings by providing a clear error message.
 
 
-- `#13175 <https://github.com/pytest-dev/pytest/issues/13175>`_: The diff is now also highlighted correctly when comparing two strings.
+- `#13175 <https://github.com/jacksonsr451/test-runner/issues/13175>`_: The diff is now also highlighted correctly when comparing two strings.
 
 
-- `#13248 <https://github.com/pytest-dev/pytest/issues/13248>`_: Fixed an issue where passing a ``scope`` in :py:func:`Metafunc.parametrize <pytest.Metafunc.parametrize>` with ``indirect=True``
+- `#13248 <https://github.com/jacksonsr451/test-runner/issues/13248>`_: Fixed an issue where passing a ``scope`` in :py:func:`Metafunc.parametrize <testrunner.Metafunc.parametrize>` with ``indirect=True``
   could result in other fixtures being unable to depend on the parametrized fixture.
 
 
-- `#13291 <https://github.com/pytest-dev/pytest/issues/13291>`_: Fixed ``repr`` of ``attrs`` objects in assertion failure messages when using ``attrs>=25.2``.
+- `#13291 <https://github.com/jacksonsr451/test-runner/issues/13291>`_: Fixed ``repr`` of ``attrs`` objects in assertion failure messages when using ``attrs>=25.2``.
 
 
-- `#13312 <https://github.com/pytest-dev/pytest/issues/13312>`_: Fixed a possible ``KeyError`` crash on PyPy during collection of tests involving higher-scoped parameters.
+- `#13312 <https://github.com/jacksonsr451/test-runner/issues/13312>`_: Fixed a possible ``KeyError`` crash on PyPy during collection of tests involving higher-scoped parameters.
 
 
-- `#13345 <https://github.com/pytest-dev/pytest/issues/13345>`_: Fix type hints for :attr:`pytest.TestReport.when` and :attr:`pytest.TestReport.location`.
+- `#13345 <https://github.com/jacksonsr451/test-runner/issues/13345>`_: Fix type hints for :attr:`testrunner.TestReport.when` and :attr:`testrunner.TestReport.location`.
 
 
-- `#13377 <https://github.com/pytest-dev/pytest/issues/13377>`_: Fixed handling of test methods with positional-only parameter syntax.
+- `#13377 <https://github.com/jacksonsr451/test-runner/issues/13377>`_: Fixed handling of test methods with positional-only parameter syntax.
 
   Now, methods are supported that formally define ``self`` as positional-only
   and/or fixture parameters as keyword-only, e.g.:
@@ -1215,49 +1215,49 @@ Bug fixes
 
           def test_method(self, /, *, fixture): ...
 
-  Before, this caused an internal error in pytest.
+  Before, this caused an internal error in testrunner.
 
 
-- `#13384 <https://github.com/pytest-dev/pytest/issues/13384>`_: Fixed an issue where pytest could report negative durations.
+- `#13384 <https://github.com/jacksonsr451/test-runner/issues/13384>`_: Fixed an issue where testrunner could report negative durations.
 
 
-- `#13420 <https://github.com/pytest-dev/pytest/issues/13420>`_: Added ``lru_cache`` to ``nodes._check_initialpaths_for_relpath``.
+- `#13420 <https://github.com/jacksonsr451/test-runner/issues/13420>`_: Added ``lru_cache`` to ``nodes._check_initialpaths_for_relpath``.
 
 
-- `#9037 <https://github.com/pytest-dev/pytest/issues/9037>`_: Honor :confval:`disable_test_id_escaping_and_forfeit_all_rights_to_community_support` when escaping ids in parametrized tests.
+- `#9037 <https://github.com/jacksonsr451/test-runner/issues/9037>`_: Honor :confval:`disable_test_id_escaping_and_forfeit_all_rights_to_community_support` when escaping ids in parametrized tests.
 
 
 
 Improved documentation
 ----------------------
 
-- `#12535 <https://github.com/pytest-dev/pytest/issues/12535>`_: `This
-  example`<https://docs.pytest.org/en/latest/example/simple.html#making-test-result-information-available-in-fixtures>
+- `#12535 <https://github.com/jacksonsr451/test-runner/issues/12535>`_: `This
+  example`<https://github.com/jacksonsr451/test-runner/tree/main/doc/en/example/simple.html#making-test-result-information-available-in-fixtures>
   showed ``print`` statements that do not exactly reflect what the
   different branches actually do.  The fix makes the example more precise.
 
 
-- `#13218 <https://github.com/pytest-dev/pytest/issues/13218>`_: Pointed out in the :func:`pytest.approx` documentation that it considers booleans unequal to numeric zero or one.
+- `#13218 <https://github.com/jacksonsr451/test-runner/issues/13218>`_: Pointed out in the :func:`testrunner.approx` documentation that it considers booleans unequal to numeric zero or one.
 
 
-- `#13221 <https://github.com/pytest-dev/pytest/issues/13221>`_: Improved grouping of CLI options in the ``--help`` output.
+- `#13221 <https://github.com/jacksonsr451/test-runner/issues/13221>`_: Improved grouping of CLI options in the ``--help`` output.
 
 
-- `#6649 <https://github.com/pytest-dev/pytest/issues/6649>`_: Added :class:`~pytest.TerminalReporter` to the :ref:`api-reference` documentation page.
+- `#6649 <https://github.com/jacksonsr451/test-runner/issues/6649>`_: Added :class:`~testrunner.TerminalReporter` to the :ref:`api-reference` documentation page.
 
 
-- `#8612 <https://github.com/pytest-dev/pytest/issues/8612>`_: Add a recipe for handling abstract test classes in the documentation.
+- `#8612 <https://github.com/jacksonsr451/test-runner/issues/8612>`_: Add a recipe for handling abstract test classes in the documentation.
 
   A new example has been added to the documentation to demonstrate how to use a mixin class to handle abstract
   test classes without manually setting the ``__test__`` attribute for subclasses.
-  This ensures that subclasses of abstract test classes are automatically collected by pytest.
+  This ensures that subclasses of abstract test classes are automatically collected by testrunner.
 
 
 
 Packaging updates and notes for downstreams
 -------------------------------------------
 
-- `#13317 <https://github.com/pytest-dev/pytest/issues/13317>`_: Specified minimum allowed versions of ``colorama``, ``iniconfig``,
+- `#13317 <https://github.com/jacksonsr451/test-runner/issues/13317>`_: Specified minimum allowed versions of ``colorama``, ``iniconfig``,
   and ``packaging``; and bumped the minimum allowed version
   of ``exceptiongroup`` for ``python_version<'3.11'`` from a release
   candidate to a full release.
@@ -1267,51 +1267,51 @@ Packaging updates and notes for downstreams
 Contributor-facing changes
 --------------------------
 
-- `#12017 <https://github.com/pytest-dev/pytest/issues/12017>`_: Mixed internal improvements:
+- `#12017 <https://github.com/jacksonsr451/test-runner/issues/12017>`_: Mixed internal improvements:
 
   * Migrate formatting to f-strings in some tests.
   * Use type-safe constructs in JUnitXML tests.
-  * Moved`` MockTiming`` into ``_pytest.timing``.
+  * Moved`` MockTiming`` into ``_testrunner.timing``.
 
   -- by :user:`RonnyPfannschmidt`
 
 
-- `#12647 <https://github.com/pytest-dev/pytest/issues/12647>`_: Fixed running the test suite with the ``hypothesis`` pytest plugin.
+- `#12647 <https://github.com/jacksonsr451/test-runner/issues/12647>`_: Fixed running the test suite with the ``hypothesis`` testrunner plugin.
 
 
 
 Miscellaneous internal changes
 ------------------------------
 
-- `#6649 <https://github.com/pytest-dev/pytest/issues/6649>`_: Added :class:`~pytest.TerminalReporter` to the public pytest API, as it is part of the signature of the :hook:`pytest_terminal_summary` hook.
+- `#6649 <https://github.com/jacksonsr451/test-runner/issues/6649>`_: Added :class:`~testrunner.TerminalReporter` to the public testrunner API, as it is part of the signature of the :hook:`testrunner_terminal_summary` hook.
 
 
-pytest 8.3.5 (2025-03-02)
+testrunner 8.3.5 (2025-03-02)
 =========================
 
 Bug fixes
 ---------
 
-- `#11777 <https://github.com/pytest-dev/pytest/issues/11777>`_: Fixed issue where sequences were still being shortened even with ``-vv`` verbosity.
+- `#11777 <https://github.com/jacksonsr451/test-runner/issues/11777>`_: Fixed issue where sequences were still being shortened even with ``-vv`` verbosity.
 
 
-- `#12888 <https://github.com/pytest-dev/pytest/issues/12888>`_: Fixed broken input when using Python 3.13+ and a ``libedit`` build of Python, such as on macOS or with uv-managed Python binaries from the ``python-build-standalone`` project. This could manifest e.g. by a broken prompt when using ``Pdb``, or seeing empty inputs with manual usage of ``input()`` and suspended capturing.
+- `#12888 <https://github.com/jacksonsr451/test-runner/issues/12888>`_: Fixed broken input when using Python 3.13+ and a ``libedit`` build of Python, such as on macOS or with uv-managed Python binaries from the ``python-build-standalone`` project. This could manifest e.g. by a broken prompt when using ``Pdb``, or seeing empty inputs with manual usage of ``input()`` and suspended capturing.
 
 
-- `#13026 <https://github.com/pytest-dev/pytest/issues/13026>`_: Fixed :class:`AttributeError`  crash when using ``--import-mode=importlib`` when top-level directory same name as another module of the standard library.
+- `#13026 <https://github.com/jacksonsr451/test-runner/issues/13026>`_: Fixed :class:`AttributeError`  crash when using ``--import-mode=importlib`` when top-level directory same name as another module of the standard library.
 
 
-- `#13053 <https://github.com/pytest-dev/pytest/issues/13053>`_: Fixed a regression in pytest 8.3.4 where, when using ``--import-mode=importlib``, a directory containing py file with the same name would cause an ``ImportError``
+- `#13053 <https://github.com/jacksonsr451/test-runner/issues/13053>`_: Fixed a regression in testrunner 8.3.4 where, when using ``--import-mode=importlib``, a directory containing py file with the same name would cause an ``ImportError``
 
 
-- `#13083 <https://github.com/pytest-dev/pytest/issues/13083>`_: Fixed issue where pytest could crash if one of the collected directories got removed during collection.
+- `#13083 <https://github.com/jacksonsr451/test-runner/issues/13083>`_: Fixed issue where testrunner could crash if one of the collected directories got removed during collection.
 
 
 
 Improved documentation
 ----------------------
 
-- `#12842 <https://github.com/pytest-dev/pytest/issues/12842>`_: Added dedicated page about using types with pytest.
+- `#12842 <https://github.com/jacksonsr451/test-runner/issues/12842>`_: Added dedicated page about using types with testrunner.
 
   See :ref:`types` for detailed usage.
 
@@ -1320,79 +1320,79 @@ Improved documentation
 Contributor-facing changes
 --------------------------
 
-- `#13112 <https://github.com/pytest-dev/pytest/issues/13112>`_: Fixed selftest failures in ``test_terminal.py`` with Pygments >= 2.19.0
+- `#13112 <https://github.com/jacksonsr451/test-runner/issues/13112>`_: Fixed selftest failures in ``test_terminal.py`` with Pygments >= 2.19.0
 
 
-- `#13256 <https://github.com/pytest-dev/pytest/issues/13256>`_: Support for Towncrier versions released in 2024 has been re-enabled
+- `#13256 <https://github.com/jacksonsr451/test-runner/issues/13256>`_: Support for Towncrier versions released in 2024 has been re-enabled
   when building Sphinx docs -- by :user:`webknjaz`.
 
 
-pytest 8.3.4 (2024-12-01)
+testrunner 8.3.4 (2024-12-01)
 =========================
 
 Bug fixes
 ---------
 
-- `#12592 <https://github.com/pytest-dev/pytest/issues/12592>`_: Fixed :class:`KeyError` crash when using ``--import-mode=importlib`` in a directory layout where a directory contains a child directory with the same name.
+- `#12592 <https://github.com/jacksonsr451/test-runner/issues/12592>`_: Fixed :class:`KeyError` crash when using ``--import-mode=importlib`` in a directory layout where a directory contains a child directory with the same name.
 
 
-- `#12818 <https://github.com/pytest-dev/pytest/issues/12818>`_: Assertion rewriting now preserves the source ranges of the original instructions, making it play well with tools that deal with the ``AST``, like `executing <https://github.com/alexmojaki/executing>`__.
+- `#12818 <https://github.com/jacksonsr451/test-runner/issues/12818>`_: Assertion rewriting now preserves the source ranges of the original instructions, making it play well with tools that deal with the ``AST``, like `executing <https://github.com/alexmojaki/executing>`__.
 
 
-- `#12849 <https://github.com/pytest-dev/pytest/issues/12849>`_: ANSI escape codes for colored output now handled correctly in :func:`pytest.fail` with `pytrace=False`.
+- `#12849 <https://github.com/jacksonsr451/test-runner/issues/12849>`_: ANSI escape codes for colored output now handled correctly in :func:`testrunner.fail` with `pytrace=False`.
 
 
-- `#9353 <https://github.com/pytest-dev/pytest/issues/9353>`_: :func:`pytest.approx` now uses strict equality when given booleans.
+- `#9353 <https://github.com/jacksonsr451/test-runner/issues/9353>`_: :func:`testrunner.approx` now uses strict equality when given booleans.
 
 
 
 Improved documentation
 ----------------------
 
-- `#10558 <https://github.com/pytest-dev/pytest/issues/10558>`_: Fix ambiguous docstring of :func:`pytest.Config.getoption`.
+- `#10558 <https://github.com/jacksonsr451/test-runner/issues/10558>`_: Fix ambiguous docstring of :func:`testrunner.Config.getoption`.
 
 
-- `#10829 <https://github.com/pytest-dev/pytest/issues/10829>`_: Improve documentation on the current handling of the ``--basetemp`` option and its lack of retention functionality (:ref:`temporary directory location and retention`).
+- `#10829 <https://github.com/jacksonsr451/test-runner/issues/10829>`_: Improve documentation on the current handling of the ``--basetemp`` option and its lack of retention functionality (:ref:`temporary directory location and retention`).
 
 
-- `#12866 <https://github.com/pytest-dev/pytest/issues/12866>`_: Improved cross-references concerning the :fixture:`recwarn` fixture.
+- `#12866 <https://github.com/jacksonsr451/test-runner/issues/12866>`_: Improved cross-references concerning the :fixture:`recwarn` fixture.
 
 
-- `#12966 <https://github.com/pytest-dev/pytest/issues/12966>`_: Clarify :ref:`filterwarnings` docs on filter precedence/order when using multiple :ref:`@pytest.mark.filterwarnings <pytest.mark.filterwarnings ref>` marks.
+- `#12966 <https://github.com/jacksonsr451/test-runner/issues/12966>`_: Clarify :ref:`filterwarnings` docs on filter precedence/order when using multiple :ref:`@testrunner.mark.filterwarnings <testrunner.mark.filterwarnings ref>` marks.
 
 
 
 Contributor-facing changes
 --------------------------
 
-- `#12497 <https://github.com/pytest-dev/pytest/issues/12497>`_: Fixed two failing pdb-related tests on Python 3.13.
+- `#12497 <https://github.com/jacksonsr451/test-runner/issues/12497>`_: Fixed two failing pdb-related tests on Python 3.13.
 
 
-pytest 8.3.3 (2024-09-09)
+testrunner 8.3.3 (2024-09-09)
 =========================
 
 Bug fixes
 ---------
 
-- `#12446 <https://github.com/pytest-dev/pytest/issues/12446>`_: Avoid calling ``@property`` (and other instance descriptors) during fixture discovery -- by :user:`asottile`
+- `#12446 <https://github.com/jacksonsr451/test-runner/issues/12446>`_: Avoid calling ``@property`` (and other instance descriptors) during fixture discovery -- by :user:`asottile`
 
 
-- `#12659 <https://github.com/pytest-dev/pytest/issues/12659>`_: Fixed the issue of not displaying assertion failure differences when using the parameter ``--import-mode=importlib`` in pytest>=8.1.
+- `#12659 <https://github.com/jacksonsr451/test-runner/issues/12659>`_: Fixed the issue of not displaying assertion failure differences when using the parameter ``--import-mode=importlib`` in testrunner>=8.1.
 
 
-- `#12667 <https://github.com/pytest-dev/pytest/issues/12667>`_: Fixed a regression where type change in `ExceptionInfo.errisinstance` caused `mypy` to fail.
+- `#12667 <https://github.com/jacksonsr451/test-runner/issues/12667>`_: Fixed a regression where type change in `ExceptionInfo.errisinstance` caused `mypy` to fail.
 
 
-- `#12744 <https://github.com/pytest-dev/pytest/issues/12744>`_: Fixed typing compatibility with Python 3.9 or less -- replaced `typing.Self` with `typing_extensions.Self` -- by :user:`Avasam`
+- `#12744 <https://github.com/jacksonsr451/test-runner/issues/12744>`_: Fixed typing compatibility with Python 3.9 or less -- replaced `typing.Self` with `typing_extensions.Self` -- by :user:`Avasam`
 
 
-- `#12745 <https://github.com/pytest-dev/pytest/issues/12745>`_: Fixed an issue with backslashes being incorrectly converted in nodeid paths on Windows, ensuring consistent path handling across environments.
+- `#12745 <https://github.com/jacksonsr451/test-runner/issues/12745>`_: Fixed an issue with backslashes being incorrectly converted in nodeid paths on Windows, ensuring consistent path handling across environments.
 
 
-- `#6682 <https://github.com/pytest-dev/pytest/issues/6682>`_: Fixed bug where the verbosity levels where not being respected when printing the "msg" part of failed assertion (as in ``assert condition, msg``).
+- `#6682 <https://github.com/jacksonsr451/test-runner/issues/6682>`_: Fixed bug where the verbosity levels where not being respected when printing the "msg" part of failed assertion (as in ``assert condition, msg``).
 
 
-- `#9422 <https://github.com/pytest-dev/pytest/issues/9422>`_: Fix bug where disabling the terminal plugin via ``-p no:terminal`` would cause crashes related to missing the ``verbose`` option.
+- `#9422 <https://github.com/jacksonsr451/test-runner/issues/9422>`_: Fix bug where disabling the terminal plugin via ``-p no:terminal`` would cause crashes related to missing the ``verbose`` option.
 
   -- by :user:`GTowers1`
 
@@ -1401,43 +1401,43 @@ Bug fixes
 Improved documentation
 ----------------------
 
-- `#12663 <https://github.com/pytest-dev/pytest/issues/12663>`_: Clarify that the `pytest_deselected` hook should be called from `pytest_collection_modifyitems` hook implementations when items are deselected.
+- `#12663 <https://github.com/jacksonsr451/test-runner/issues/12663>`_: Clarify that the `testrunner_deselected` hook should be called from `testrunner_collection_modifyitems` hook implementations when items are deselected.
 
 
-- `#12678 <https://github.com/pytest-dev/pytest/issues/12678>`_: Remove erroneous quotes from `tmp_path_retention_policy` example in docs.
+- `#12678 <https://github.com/jacksonsr451/test-runner/issues/12678>`_: Remove erroneous quotes from `tmp_path_retention_policy` example in docs.
 
 
 
 Miscellaneous internal changes
 ------------------------------
 
-- `#12769 <https://github.com/pytest-dev/pytest/issues/12769>`_: Fix typos discovered by codespell and add codespell to pre-commit hooks.
+- `#12769 <https://github.com/jacksonsr451/test-runner/issues/12769>`_: Fix typos discovered by codespell and add codespell to pre-commit hooks.
 
 
-pytest 8.3.2 (2024-07-24)
+testrunner 8.3.2 (2024-07-24)
 =========================
 
 Bug fixes
 ---------
 
-- `#12652 <https://github.com/pytest-dev/pytest/issues/12652>`_: Resolve regression `conda` environments where no longer being automatically detected.
+- `#12652 <https://github.com/jacksonsr451/test-runner/issues/12652>`_: Resolve regression `conda` environments where no longer being automatically detected.
 
   -- by :user:`RonnyPfannschmidt`
 
 
-pytest 8.3.1 (2024-07-20)
+testrunner 8.3.1 (2024-07-20)
 =========================
 
 The 8.3.0 release failed to include the change notes and docs for the release. This patch release remedies this. There are no other changes.
 
 
-pytest 8.3.0 (2024-07-20)
+testrunner 8.3.0 (2024-07-20)
 =========================
 
 New features
 ------------
 
-- `#12231 <https://github.com/pytest-dev/pytest/issues/12231>`_: Added `--xfail-tb` flag, which turns on traceback output for XFAIL results.
+- `#12231 <https://github.com/jacksonsr451/test-runner/issues/12231>`_: Added `--xfail-tb` flag, which turns on traceback output for XFAIL results.
 
   * If the `--xfail-tb` flag is not given, tracebacks for XFAIL results are NOT shown.
   * The style of traceback for XFAIL is set with `--tb`, and can be `auto|long|short|line|native|no`.
@@ -1445,14 +1445,14 @@ New features
 
   Some history:
 
-  With pytest 8.0, `-rx` or `-ra` would not only turn on summary reports for xfail, but also report the tracebacks for xfail results. This caused issues with some projects that utilize xfail, but don't want to see all of the xfail tracebacks.
+  With testrunner 8.0, `-rx` or `-ra` would not only turn on summary reports for xfail, but also report the tracebacks for xfail results. This caused issues with some projects that utilize xfail, but don't want to see all of the xfail tracebacks.
 
   This change detaches xfail tracebacks from `-rx`, and now we turn on xfail tracebacks with `--xfail-tb`. With this, the default `-rx`/ `-ra` behavior is identical to pre-8.0 with respect to xfail tracebacks. While this is a behavior change, it brings default behavior back to pre-8.0.0 behavior, which ultimately was considered the better course of action.
 
   -- by :user:`okken`
 
 
-- `#12281 <https://github.com/pytest-dev/pytest/issues/12281>`_: Added support for keyword matching in marker expressions.
+- `#12281 <https://github.com/jacksonsr451/test-runner/issues/12281>`_: Added support for keyword matching in marker expressions.
 
   Now tests can be selected by marker keyword arguments.
   Supported values are :class:`int`, (unescaped) :class:`str`, :class:`bool` & :data:`None`.
@@ -1462,7 +1462,7 @@ New features
   -- by :user:`lovetheguitar`
 
 
-- `#12567 <https://github.com/pytest-dev/pytest/issues/12567>`_: Added ``--no-fold-skipped`` command line option.
+- `#12567 <https://github.com/jacksonsr451/test-runner/issues/12567>`_: Added ``--no-fold-skipped`` command line option.
 
   If this option is set, then skipped tests in short summary are no longer grouped
   by reason but all tests are printed individually with their nodeid in the same
@@ -1475,21 +1475,21 @@ New features
 Improvements in existing functionality
 --------------------------------------
 
-- `#12469 <https://github.com/pytest-dev/pytest/issues/12469>`_: The console output now uses the "third-party plugins" terminology,
+- `#12469 <https://github.com/jacksonsr451/test-runner/issues/12469>`_: The console output now uses the "third-party plugins" terminology,
   replacing the previously established but confusing and outdated
   reference to :std:doc:`setuptools <setuptools:index>`
   -- by :user:`webknjaz`.
 
 
-- `#12544 <https://github.com/pytest-dev/pytest/issues/12544>`_, `#12545 <https://github.com/pytest-dev/pytest/issues/12545>`_: Python virtual environment detection was improved by
+- `#12544 <https://github.com/jacksonsr451/test-runner/issues/12544>`_, `#12545 <https://github.com/jacksonsr451/test-runner/issues/12545>`_: Python virtual environment detection was improved by
   checking for a :file:`pyvenv.cfg` file, ensuring reliable detection on
   various platforms -- by :user:`zachsnickers`.
 
 
-- `#2871 <https://github.com/pytest-dev/pytest/issues/2871>`_: Do not truncate arguments to functions in output when running with `-vvv`.
+- `#2871 <https://github.com/jacksonsr451/test-runner/issues/2871>`_: Do not truncate arguments to functions in output when running with `-vvv`.
 
 
-- `#389 <https://github.com/pytest-dev/pytest/issues/389>`_: The readability of assertion introspection of bound methods has been enhanced
+- `#389 <https://github.com/jacksonsr451/test-runner/issues/389>`_: The readability of assertion introspection of bound methods has been enhanced
   -- by :user:`farbodahm`, :user:`webknjaz`, :user:`obestwalter`, :user:`flub`
   and :user:`glyphack`.
 
@@ -1529,26 +1529,26 @@ Improvements in existing functionality
       =========================== 1 failed in 0.03 seconds ===========================
 
 
-- `#7662 <https://github.com/pytest-dev/pytest/issues/7662>`_: Added timezone information to the testsuite timestamp in the JUnit XML report.
+- `#7662 <https://github.com/jacksonsr451/test-runner/issues/7662>`_: Added timezone information to the testsuite timestamp in the JUnit XML report.
 
 
 
 Bug fixes
 ---------
 
-- `#11706 <https://github.com/pytest-dev/pytest/issues/11706>`_: Fixed reporting of teardown errors in higher-scoped fixtures when using `--maxfail` or `--stepwise`.
+- `#11706 <https://github.com/jacksonsr451/test-runner/issues/11706>`_: Fixed reporting of teardown errors in higher-scoped fixtures when using `--maxfail` or `--stepwise`.
 
-  Originally added in pytest 8.0.0, but reverted in 8.0.2 due to a regression in pytest-xdist.
-  This regression was fixed in pytest-xdist 3.6.1.
-
-
-- `#11797 <https://github.com/pytest-dev/pytest/issues/11797>`_: :func:`pytest.approx` now correctly handles :class:`Sequence <collections.abc.Sequence>`-like objects.
+  Originally added in testrunner 8.0.0, but reverted in 8.0.2 due to a regression in testrunner-xdist.
+  This regression was fixed in testrunner-xdist 3.6.1.
 
 
-- `#12204 <https://github.com/pytest-dev/pytest/issues/12204>`_, `#12264 <https://github.com/pytest-dev/pytest/issues/12264>`_: Fixed a regression in pytest 8.0 where tracebacks get longer and longer when multiple
+- `#11797 <https://github.com/jacksonsr451/test-runner/issues/11797>`_: :func:`testrunner.approx` now correctly handles :class:`Sequence <collections.abc.Sequence>`-like objects.
+
+
+- `#12204 <https://github.com/jacksonsr451/test-runner/issues/12204>`_, `#12264 <https://github.com/jacksonsr451/test-runner/issues/12264>`_: Fixed a regression in testrunner 8.0 where tracebacks get longer and longer when multiple
   tests fail due to a shared higher-scope fixture which raised -- by :user:`bluetech`.
 
-  Also fixed a similar regression in pytest 5.4 for collectors which raise during setup.
+  Also fixed a similar regression in testrunner 5.4 for collectors which raise during setup.
 
   The fix necessitated internal changes which may affect some plugins:
 
@@ -1558,39 +1558,39 @@ Bug fixes
     instead of ``exc``.
 
 
-- `#12275 <https://github.com/pytest-dev/pytest/issues/12275>`_: Fixed collection error upon encountering an :mod:`abstract <abc>` class, including abstract `unittest.TestCase` subclasses.
+- `#12275 <https://github.com/jacksonsr451/test-runner/issues/12275>`_: Fixed collection error upon encountering an :mod:`abstract <abc>` class, including abstract `unittest.TestCase` subclasses.
 
 
-- `#12328 <https://github.com/pytest-dev/pytest/issues/12328>`_: Fixed a regression in pytest 8.0.0 where package-scoped parameterized items were not correctly reordered to minimize setups/teardowns in some cases.
+- `#12328 <https://github.com/jacksonsr451/test-runner/issues/12328>`_: Fixed a regression in testrunner 8.0.0 where package-scoped parameterized items were not correctly reordered to minimize setups/teardowns in some cases.
 
 
-- `#12424 <https://github.com/pytest-dev/pytest/issues/12424>`_: Fixed crash with `assert testcase is not None` assertion failure when re-running unittest tests using plugins like pytest-rerunfailures. Regressed in 8.2.2.
+- `#12424 <https://github.com/jacksonsr451/test-runner/issues/12424>`_: Fixed crash with `assert testcase is not None` assertion failure when re-running unittest tests using plugins like testrunner-rerunfailures. Regressed in 8.2.2.
 
 
-- `#12472 <https://github.com/pytest-dev/pytest/issues/12472>`_: Fixed a crash when returning category ``"error"`` or ``"failed"`` with a custom test status from :hook:`pytest_report_teststatus` hook -- :user:`pbrezina`.
+- `#12472 <https://github.com/jacksonsr451/test-runner/issues/12472>`_: Fixed a crash when returning category ``"error"`` or ``"failed"`` with a custom test status from :hook:`testrunner_report_teststatus` hook -- :user:`pbrezina`.
 
 
-- `#12505 <https://github.com/pytest-dev/pytest/issues/12505>`_: Improved handling of invalid regex patterns in :func:`pytest.raises(match=r'...') <pytest.raises>` by providing a clear error message.
+- `#12505 <https://github.com/jacksonsr451/test-runner/issues/12505>`_: Improved handling of invalid regex patterns in :func:`testrunner.raises(match=r'...') <testrunner.raises>` by providing a clear error message.
 
 
-- `#12580 <https://github.com/pytest-dev/pytest/issues/12580>`_: Fixed a crash when using the cache class on Windows and the cache directory was created concurrently.
+- `#12580 <https://github.com/jacksonsr451/test-runner/issues/12580>`_: Fixed a crash when using the cache class on Windows and the cache directory was created concurrently.
 
 
-- `#6962 <https://github.com/pytest-dev/pytest/issues/6962>`_: Parametrization parameters are now compared using `==` instead of `is` (`is` is still used as a fallback if the parameter does not support `==`).
+- `#6962 <https://github.com/jacksonsr451/test-runner/issues/6962>`_: Parametrization parameters are now compared using `==` instead of `is` (`is` is still used as a fallback if the parameter does not support `==`).
   This fixes use of parameters such as lists, which have a different `id` but compare equal, causing fixtures to be re-computed instead of being cached.
 
 
-- `#7166 <https://github.com/pytest-dev/pytest/issues/7166>`_: Fixed progress percentages (the ``[ 87%]`` at the edge of the screen) sometimes not aligning correctly when running with pytest-xdist ``-n``.
+- `#7166 <https://github.com/jacksonsr451/test-runner/issues/7166>`_: Fixed progress percentages (the ``[ 87%]`` at the edge of the screen) sometimes not aligning correctly when running with testrunner-xdist ``-n``.
 
 
 
 Improved documentation
 ----------------------
 
-- `#12153 <https://github.com/pytest-dev/pytest/issues/12153>`_: Documented using :envvar:`PYTEST_VERSION` to detect if code is running from within a pytest run.
+- `#12153 <https://github.com/jacksonsr451/test-runner/issues/12153>`_: Documented using :envvar:`TESTRUNNER_VERSION` to detect if code is running from within a testrunner run.
 
 
-- `#12469 <https://github.com/pytest-dev/pytest/issues/12469>`_: The external plugin mentions in the documentation now avoid mentioning
+- `#12469 <https://github.com/jacksonsr451/test-runner/issues/12469>`_: The external plugin mentions in the documentation now avoid mentioning
   :std:doc:`setuptools entry-points <setuptools:index>` as the concept is
   much more generic nowadays. Instead, the terminology of "external",
   "installed", or "third-party" plugins (or packages) replaces that.
@@ -1598,8 +1598,8 @@ Improved documentation
   -- by :user:`webknjaz`
 
 
-- `#12577 <https://github.com/pytest-dev/pytest/issues/12577>`_: `CI` and `BUILD_NUMBER` environment variables role is described in
-  the reference doc. They now also appear when doing `pytest -h`
+- `#12577 <https://github.com/jacksonsr451/test-runner/issues/12577>`_: `CI` and `BUILD_NUMBER` environment variables role is described in
+  the reference doc. They now also appear when doing `testrunner -h`
   -- by :user:`MarcBresson`.
 
 
@@ -1607,19 +1607,19 @@ Improved documentation
 Contributor-facing changes
 --------------------------
 
-- `#12467 <https://github.com/pytest-dev/pytest/issues/12467>`_: Migrated all internal type-annotations to the python3.10+ style by using the `annotations` future import.
+- `#12467 <https://github.com/jacksonsr451/test-runner/issues/12467>`_: Migrated all internal type-annotations to the python3.10+ style by using the `annotations` future import.
 
   -- by :user:`RonnyPfannschmidt`
 
 
-- `#11771 <https://github.com/pytest-dev/pytest/issues/11771>`_, `#12557 <https://github.com/pytest-dev/pytest/issues/12557>`_: The PyPy runtime version has been updated to 3.9 from 3.8 that introduced
+- `#11771 <https://github.com/jacksonsr451/test-runner/issues/11771>`_, `#12557 <https://github.com/jacksonsr451/test-runner/issues/12557>`_: The PyPy runtime version has been updated to 3.9 from 3.8 that introduced
   a flaky bug at the garbage collector which was not expected to fix there
   as the 3.8 is EoL.
 
   -- by :user:`x612skm`
 
 
-- `#12493 <https://github.com/pytest-dev/pytest/issues/12493>`_: The change log draft preview integration has been refactored to use a
+- `#12493 <https://github.com/jacksonsr451/test-runner/issues/12493>`_: The change log draft preview integration has been refactored to use a
   third party extension ``sphinxcontib-towncrier``. The previous in-repo
   script was putting the change log preview file at
   :file:`doc/en/_changelog_towncrier_draft.rst`. Said file is no longer
@@ -1634,14 +1634,14 @@ Contributor-facing changes
   -- by :user:`webknjaz`
 
 
-- `#12498 <https://github.com/pytest-dev/pytest/issues/12498>`_: All the undocumented ``tox`` environments now have descriptions.
+- `#12498 <https://github.com/jacksonsr451/test-runner/issues/12498>`_: All the undocumented ``tox`` environments now have descriptions.
   They can be listed in one's development environment by invoking
   ``tox -av`` in a terminal.
 
   -- by :user:`webknjaz`
 
 
-- `#12501 <https://github.com/pytest-dev/pytest/issues/12501>`_: The changelog configuration has been updated to introduce more accurate
+- `#12501 <https://github.com/jacksonsr451/test-runner/issues/12501>`_: The changelog configuration has been updated to introduce more accurate
   audience-tailored categories. Previously, there was a ``trivial``
   change log fragment type with an unclear and broad meaning. It was
   removed and we now have ``contrib``, ``misc`` and ``packaging`` in
@@ -1654,7 +1654,7 @@ Contributor-facing changes
   -- by :user:`webknjaz`
 
 
-- `#12502 <https://github.com/pytest-dev/pytest/issues/12502>`_: The UX of the GitHub automation making pull requests to update the
+- `#12502 <https://github.com/jacksonsr451/test-runner/issues/12502>`_: The UX of the GitHub automation making pull requests to update the
   plugin list has been updated. Previously, the maintainers had to close
   the automatically created pull requests and re-open them to trigger the
   CI runs. From now on, they only need to click the `Ready for review`
@@ -1663,21 +1663,21 @@ Contributor-facing changes
   -- by :user:`webknjaz`
 
 
-- `#12522 <https://github.com/pytest-dev/pytest/issues/12522>`_: The ``:pull:`` RST role has been replaced with a shorter
+- `#12522 <https://github.com/jacksonsr451/test-runner/issues/12522>`_: The ``:pull:`` RST role has been replaced with a shorter
   ``:pr:`` due to starting to use the implementation from
   the third-party :pypi:`sphinx-issues` Sphinx extension
   -- by :user:`webknjaz`.
 
 
-- `#12531 <https://github.com/pytest-dev/pytest/issues/12531>`_: The coverage reporting configuration has been updated to exclude
-  pytest's own tests marked as expected to fail from the coverage
+- `#12531 <https://github.com/jacksonsr451/test-runner/issues/12531>`_: The coverage reporting configuration has been updated to exclude
+  testrunner's own tests marked as expected to fail from the coverage
   report. This has an effect of reducing the influence of flaky
   tests on the resulting number.
 
   -- by :user:`webknjaz`
 
 
-- `#12533 <https://github.com/pytest-dev/pytest/issues/12533>`_: The ``extlinks`` Sphinx extension is no longer enabled. The ``:bpo:``
+- `#12533 <https://github.com/jacksonsr451/test-runner/issues/12533>`_: The ``extlinks`` Sphinx extension is no longer enabled. The ``:bpo:``
   role it used to declare has been removed with that. BPO itself has
   migrated to GitHub some years ago and it is possible to link the
   respective issues by using their GitHub issue numbers and the
@@ -1686,78 +1686,78 @@ Contributor-facing changes
   -- by :user:`webknjaz`
 
 
-- `#12562 <https://github.com/pytest-dev/pytest/issues/12562>`_: Possible typos in using the ``:user:`` RST role is now being linted
+- `#12562 <https://github.com/jacksonsr451/test-runner/issues/12562>`_: Possible typos in using the ``:user:`` RST role is now being linted
   through the pre-commit tool integration -- by :user:`webknjaz`.
 
 
-pytest 8.2.2 (2024-06-04)
+testrunner 8.2.2 (2024-06-04)
 =========================
 
 Bug Fixes
 ---------
 
-- `#12355 <https://github.com/pytest-dev/pytest/issues/12355>`_: Fix possible catastrophic performance slowdown on a certain parametrization pattern involving many higher-scoped parameters.
+- `#12355 <https://github.com/jacksonsr451/test-runner/issues/12355>`_: Fix possible catastrophic performance slowdown on a certain parametrization pattern involving many higher-scoped parameters.
 
 
-- `#12367 <https://github.com/pytest-dev/pytest/issues/12367>`_: Fix a regression in pytest 8.2.0 where unittest class instances (a fresh one is created for each test) were not released promptly on test teardown but only on session teardown.
+- `#12367 <https://github.com/jacksonsr451/test-runner/issues/12367>`_: Fix a regression in testrunner 8.2.0 where unittest class instances (a fresh one is created for each test) were not released promptly on test teardown but only on session teardown.
 
 
-- `#12381 <https://github.com/pytest-dev/pytest/issues/12381>`_: Fix possible "Directory not empty" crashes arising from concurrent cache dir (``.pytest_cache``) creation. Regressed in pytest 8.2.0.
+- `#12381 <https://github.com/jacksonsr451/test-runner/issues/12381>`_: Fix possible "Directory not empty" crashes arising from concurrent cache dir (``.testrunner_cache``) creation. Regressed in testrunner 8.2.0.
 
 
 
 Improved Documentation
 ----------------------
 
-- `#12290 <https://github.com/pytest-dev/pytest/issues/12290>`_: Updated Sphinx theme to use Furo instead of Flask, enabling Dark mode theme.
+- `#12290 <https://github.com/jacksonsr451/test-runner/issues/12290>`_: Updated Sphinx theme to use Furo instead of Flask, enabling Dark mode theme.
 
 
-- `#12356 <https://github.com/pytest-dev/pytest/issues/12356>`_: Added a subsection to the documentation for debugging flaky tests to mention
-  lack of thread safety in pytest as a possible source of flakiness.
+- `#12356 <https://github.com/jacksonsr451/test-runner/issues/12356>`_: Added a subsection to the documentation for debugging flaky tests to mention
+  lack of thread safety in testrunner as a possible source of flakiness.
 
 
-- `#12363 <https://github.com/pytest-dev/pytest/issues/12363>`_: The documentation webpages now links to a canonical version to reduce outdated documentation in search engine results.
+- `#12363 <https://github.com/jacksonsr451/test-runner/issues/12363>`_: The documentation webpages now links to a canonical version to reduce outdated documentation in search engine results.
 
 
-pytest 8.2.1 (2024-05-19)
+testrunner 8.2.1 (2024-05-19)
 =========================
 
 Improvements
 ------------
 
-- `#12334 <https://github.com/pytest-dev/pytest/issues/12334>`_: Support for Python 3.13 (beta1 at the time of writing).
+- `#12334 <https://github.com/jacksonsr451/test-runner/issues/12334>`_: Support for Python 3.13 (beta1 at the time of writing).
 
 
 
 Bug Fixes
 ---------
 
-- `#12120 <https://github.com/pytest-dev/pytest/issues/12120>`_: Fix `PermissionError` crashes arising from directories which are not selected on the command-line.
+- `#12120 <https://github.com/jacksonsr451/test-runner/issues/12120>`_: Fix `PermissionError` crashes arising from directories which are not selected on the command-line.
 
 
-- `#12191 <https://github.com/pytest-dev/pytest/issues/12191>`_: Keyboard interrupts and system exits are now properly handled during the test collection.
+- `#12191 <https://github.com/jacksonsr451/test-runner/issues/12191>`_: Keyboard interrupts and system exits are now properly handled during the test collection.
 
 
-- `#12300 <https://github.com/pytest-dev/pytest/issues/12300>`_: Fixed handling of 'Function not implemented' error under squashfuse_ll, which is a different way to say that the mountpoint is read-only.
+- `#12300 <https://github.com/jacksonsr451/test-runner/issues/12300>`_: Fixed handling of 'Function not implemented' error under squashfuse_ll, which is a different way to say that the mountpoint is read-only.
 
 
-- `#12308 <https://github.com/pytest-dev/pytest/issues/12308>`_: Fix a regression in pytest 8.2.0 where the permissions of automatically-created ``.pytest_cache`` directories became ``rwx------`` instead of the expected ``rwxr-xr-x``.
+- `#12308 <https://github.com/jacksonsr451/test-runner/issues/12308>`_: Fix a regression in testrunner 8.2.0 where the permissions of automatically-created ``.testrunner_cache`` directories became ``rwx------`` instead of the expected ``rwxr-xr-x``.
 
 
 
 Trivial/Internal Changes
 ------------------------
 
-- `#12333 <https://github.com/pytest-dev/pytest/issues/12333>`_: pytest releases are now attested using the recent `Artifact Attestation <https://github.blog/2024-05-02-introducing-artifact-attestations-now-in-public-beta/>`_ support from GitHub, allowing users to verify the provenance of pytest's sdist and wheel artifacts.
+- `#12333 <https://github.com/jacksonsr451/test-runner/issues/12333>`_: testrunner releases are now attested using the recent `Artifact Attestation <https://github.blog/2024-05-02-introducing-artifact-attestations-now-in-public-beta/>`_ support from GitHub, allowing users to verify the provenance of testrunner's sdist and wheel artifacts.
 
 
-pytest 8.2.0 (2024-04-27)
+testrunner 8.2.0 (2024-04-27)
 =========================
 
 Breaking Changes
 ----------------
 
-- `#12089 <https://github.com/pytest-dev/pytest/pull/12089>`_: pytest now requires that :class:`unittest.TestCase` subclasses can be instantiated freely using ``MyTestCase('runTest')``.
+- `#12089 <https://github.com/jacksonsr451/test-runner/pull/12089>`_: testrunner now requires that :class:`unittest.TestCase` subclasses can be instantiated freely using ``MyTestCase('runTest')``.
 
   If the class doesn't allow this, you may see an error during collection such as ``AttributeError: 'MyTestCase' object has no attribute 'runTest'``.
 
@@ -1766,25 +1766,25 @@ Breaking Changes
   Classes which do should take care to not crash when ``"runTest"`` is given, as is shown in `unittest.TestCases's implementation <https://github.com/python/cpython/blob/51aefc5bf907ddffaaf083ded0de773adcdf08c8/Lib/unittest/case.py#L419-L426>`_.
   Alternatively, consider using :meth:`setUp <unittest.TestCase.setUp>` instead of ``__init__``.
 
-  If you run into this issue using ``tornado.AsyncTestCase``, please see `issue 12263 <https://github.com/pytest-dev/pytest/issues/12263>`_.
+  If you run into this issue using ``tornado.AsyncTestCase``, please see `issue 12263 <https://github.com/jacksonsr451/test-runner/issues/12263>`_.
 
-  If you run into this issue using an abstract ``TestCase`` subclass, please see `issue 12275 <https://github.com/pytest-dev/pytest/issues/12275>`_.
+  If you run into this issue using an abstract ``TestCase`` subclass, please see `issue 12275 <https://github.com/jacksonsr451/test-runner/issues/12275>`_.
 
   Historical note: the effect of this change on custom TestCase implementations was not properly considered initially, this is why it was done in a minor release. We apologize for the inconvenience.
 
 Deprecations
 ------------
 
-- `#12069 <https://github.com/pytest-dev/pytest/issues/12069>`_: A deprecation warning is now raised when implementations of one of the following hooks request a deprecated ``py.path.local`` parameter instead of the ``pathlib.Path`` parameter which replaced it:
+- `#12069 <https://github.com/jacksonsr451/test-runner/issues/12069>`_: A deprecation warning is now raised when implementations of one of the following hooks request a deprecated ``py.path.local`` parameter instead of the ``pathlib.Path`` parameter which replaced it:
 
-  - :hook:`pytest_ignore_collect` - the ``path`` parameter - use ``collection_path`` instead.
-  - :hook:`pytest_collect_file` - the ``path`` parameter - use ``file_path`` instead.
-  - :hook:`pytest_pycollect_makemodule` - the ``path`` parameter - use ``module_path`` instead.
-  - :hook:`pytest_report_header` - the ``startdir`` parameter - use ``start_path`` instead.
-  - :hook:`pytest_report_collectionfinish` - the ``startdir`` parameter - use ``start_path`` instead.
+  - :hook:`testrunner_ignore_collect` - the ``path`` parameter - use ``collection_path`` instead.
+  - :hook:`testrunner_collect_file` - the ``path`` parameter - use ``file_path`` instead.
+  - :hook:`testrunner_pycollect_makemodule` - the ``path`` parameter - use ``module_path`` instead.
+  - :hook:`testrunner_report_header` - the ``startdir`` parameter - use ``start_path`` instead.
+  - :hook:`testrunner_report_collectionfinish` - the ``startdir`` parameter - use ``start_path`` instead.
 
-  The replacement parameters are available since pytest 7.0.0.
-  The old parameters will be removed in pytest 9.0.0.
+  The replacement parameters are available since testrunner 7.0.0.
+  The old parameters will be removed in testrunner 9.0.0.
 
   See :ref:`legacy-path-hooks-deprecated` for more details.
 
@@ -1793,7 +1793,7 @@ Deprecations
 Features
 --------
 
-- `#11871 <https://github.com/pytest-dev/pytest/issues/11871>`_: Added support for reading command line arguments from a file using the prefix character ``@``, like e.g.: ``pytest @tests.txt``. The file must have one argument per line.
+- `#11871 <https://github.com/jacksonsr451/test-runner/issues/11871>`_: Added support for reading command line arguments from a file using the prefix character ``@``, like e.g.: ``testrunner @tests.txt``. The file must have one argument per line.
 
   See :ref:`Read arguments from file <args-from-file>` for details.
 
@@ -1802,64 +1802,64 @@ Features
 Improvements
 ------------
 
-- `#11523 <https://github.com/pytest-dev/pytest/issues/11523>`_: :func:`pytest.importorskip` will now issue a warning if the module could be found, but raised :class:`ImportError` instead of :class:`ModuleNotFoundError`.
+- `#11523 <https://github.com/jacksonsr451/test-runner/issues/11523>`_: :func:`testrunner.importorskip` will now issue a warning if the module could be found, but raised :class:`ImportError` instead of :class:`ModuleNotFoundError`.
 
-  The warning can be suppressed by passing ``exc_type=ImportError`` to :func:`pytest.importorskip`.
+  The warning can be suppressed by passing ``exc_type=ImportError`` to :func:`testrunner.importorskip`.
 
   See :ref:`import-or-skip-import-error` for details.
 
 
-- `#11728 <https://github.com/pytest-dev/pytest/issues/11728>`_: For ``unittest``-based tests, exceptions during class cleanup (as raised by functions registered with :meth:`TestCase.addClassCleanup <unittest.TestCase.addClassCleanup>`) are now reported instead of silently failing.
+- `#11728 <https://github.com/jacksonsr451/test-runner/issues/11728>`_: For ``unittest``-based tests, exceptions during class cleanup (as raised by functions registered with :meth:`TestCase.addClassCleanup <unittest.TestCase.addClassCleanup>`) are now reported instead of silently failing.
 
 
-- `#11777 <https://github.com/pytest-dev/pytest/issues/11777>`_: Text is no longer truncated in the ``short test summary info`` section when ``-vv`` is given.
+- `#11777 <https://github.com/jacksonsr451/test-runner/issues/11777>`_: Text is no longer truncated in the ``short test summary info`` section when ``-vv`` is given.
 
 
-- `#12112 <https://github.com/pytest-dev/pytest/issues/12112>`_: Improved namespace packages detection when :confval:`consider_namespace_packages` is enabled, covering more situations (like editable installs).
+- `#12112 <https://github.com/jacksonsr451/test-runner/issues/12112>`_: Improved namespace packages detection when :confval:`consider_namespace_packages` is enabled, covering more situations (like editable installs).
 
 
-- `#9502 <https://github.com/pytest-dev/pytest/issues/9502>`_: Added :envvar:`PYTEST_VERSION` environment variable which is defined at the start of the pytest session and undefined afterwards. It contains the value of ``pytest.__version__``, and among other things can be used to easily check if code is running from within a pytest run.
+- `#9502 <https://github.com/jacksonsr451/test-runner/issues/9502>`_: Added :envvar:`TESTRUNNER_VERSION` environment variable which is defined at the start of the testrunner session and undefined afterwards. It contains the value of ``testrunner.__version__``, and among other things can be used to easily check if code is running from within a testrunner run.
 
 
 
 Bug Fixes
 ---------
 
-- `#12065 <https://github.com/pytest-dev/pytest/issues/12065>`_: Fixed a regression in pytest 8.0.0 where test classes containing ``setup_method`` and tests using ``@staticmethod`` or ``@classmethod`` would crash with ``AttributeError: 'NoneType' object has no attribute 'setup_method'``.
+- `#12065 <https://github.com/jacksonsr451/test-runner/issues/12065>`_: Fixed a regression in testrunner 8.0.0 where test classes containing ``setup_method`` and tests using ``@staticmethod`` or ``@classmethod`` would crash with ``AttributeError: 'NoneType' object has no attribute 'setup_method'``.
 
-  Now the :attr:`request.instance <pytest.FixtureRequest.instance>` attribute of tests using ``@staticmethod`` and ``@classmethod`` is no longer ``None``, but a fresh instance of the class, like in non-static methods.
+  Now the :attr:`request.instance <testrunner.FixtureRequest.instance>` attribute of tests using ``@staticmethod`` and ``@classmethod`` is no longer ``None``, but a fresh instance of the class, like in non-static methods.
   Previously it was ``None``, and all fixtures of such tests would share a single ``self``.
 
 
-- `#12135 <https://github.com/pytest-dev/pytest/issues/12135>`_: Fixed issue where fixtures adding their finalizer multiple times to fixtures they request would cause unreliable and non-intuitive teardown ordering in some instances.
+- `#12135 <https://github.com/jacksonsr451/test-runner/issues/12135>`_: Fixed issue where fixtures adding their finalizer multiple times to fixtures they request would cause unreliable and non-intuitive teardown ordering in some instances.
 
 
-- `#12194 <https://github.com/pytest-dev/pytest/issues/12194>`_: Fixed a bug with ``--importmode=importlib`` and ``--doctest-modules`` where child modules did not appear as attributes in parent modules.
+- `#12194 <https://github.com/jacksonsr451/test-runner/issues/12194>`_: Fixed a bug with ``--importmode=importlib`` and ``--doctest-modules`` where child modules did not appear as attributes in parent modules.
 
 
-- `#1489 <https://github.com/pytest-dev/pytest/issues/1489>`_: Fixed some instances where teardown of higher-scoped fixtures was not happening in the reverse order they were initialized in.
+- `#1489 <https://github.com/jacksonsr451/test-runner/issues/1489>`_: Fixed some instances where teardown of higher-scoped fixtures was not happening in the reverse order they were initialized in.
 
 
 
 Trivial/Internal Changes
 ------------------------
 
-- `#12069 <https://github.com/pytest-dev/pytest/issues/12069>`_: ``pluggy>=1.5.0`` is now required.
+- `#12069 <https://github.com/jacksonsr451/test-runner/issues/12069>`_: ``pluggy>=1.5.0`` is now required.
 
 
-- `#12167 <https://github.com/pytest-dev/pytest/issues/12167>`_: :ref:`cache <cache>`: create supporting files (``CACHEDIR.TAG``, ``.gitignore``, etc.) in a temporary directory to provide atomic semantics.
+- `#12167 <https://github.com/jacksonsr451/test-runner/issues/12167>`_: :ref:`cache <cache>`: create supporting files (``CACHEDIR.TAG``, ``.gitignore``, etc.) in a temporary directory to provide atomic semantics.
 
 
-pytest 8.1.2 (2024-04-26)
+testrunner 8.1.2 (2024-04-26)
 =========================
 
 Bug Fixes
 ---------
 
-- `#12114 <https://github.com/pytest-dev/pytest/issues/12114>`_: Fixed error in :func:`pytest.approx` when used with `numpy` arrays and comparing with other types.
+- `#12114 <https://github.com/jacksonsr451/test-runner/issues/12114>`_: Fixed error in :func:`testrunner.approx` when used with `numpy` arrays and comparing with other types.
 
 
-pytest 8.1.1 (2024-03-08)
+testrunner 8.1.1 (2024-03-08)
 =========================
 
 .. note::
@@ -1870,51 +1870,51 @@ pytest 8.1.1 (2024-03-08)
 Features
 --------
 
-- `#11475 <https://github.com/pytest-dev/pytest/issues/11475>`_: Added the new :confval:`consider_namespace_packages` configuration option, defaulting to ``False``.
+- `#11475 <https://github.com/jacksonsr451/test-runner/issues/11475>`_: Added the new :confval:`consider_namespace_packages` configuration option, defaulting to ``False``.
 
-  If set to ``True``, pytest will attempt to identify modules that are part of `namespace packages <https://packaging.python.org/en/latest/guides/packaging-namespace-packages>`__ when importing modules.
+  If set to ``True``, testrunner will attempt to identify modules that are part of `namespace packages <https://packaging.python.org/en/latest/guides/packaging-namespace-packages>`__ when importing modules.
 
 
-- `#11653 <https://github.com/pytest-dev/pytest/issues/11653>`_: Added the new :confval:`verbosity_test_cases` configuration option for fine-grained control of test execution verbosity.
-  See :ref:`Fine-grained verbosity <pytest.fine_grained_verbosity>` for more details.
+- `#11653 <https://github.com/jacksonsr451/test-runner/issues/11653>`_: Added the new :confval:`verbosity_test_cases` configuration option for fine-grained control of test execution verbosity.
+  See :ref:`Fine-grained verbosity <testrunner.fine_grained_verbosity>` for more details.
 
 
 
 Improvements
 ------------
 
-- `#10865 <https://github.com/pytest-dev/pytest/issues/10865>`_: :func:`pytest.warns` now validates that :func:`warnings.warn` was called with a `str` or a `Warning`.
+- `#10865 <https://github.com/jacksonsr451/test-runner/issues/10865>`_: :func:`testrunner.warns` now validates that :func:`warnings.warn` was called with a `str` or a `Warning`.
   Currently in Python it is possible to use other types, however this causes an exception when :func:`warnings.filterwarnings` is used to filter those warnings (see `CPython #103577 <https://github.com/python/cpython/issues/103577>`__ for a discussion).
-  While this can be considered a bug in CPython, we decided to put guards in pytest as the error message produced without this check in place is confusing.
+  While this can be considered a bug in CPython, we decided to put guards in testrunner as the error message produced without this check in place is confusing.
 
 
-- `#11311 <https://github.com/pytest-dev/pytest/issues/11311>`_: When using ``--override-ini`` for paths in invocations without a configuration file defined, the current working directory is used
+- `#11311 <https://github.com/jacksonsr451/test-runner/issues/11311>`_: When using ``--override-ini`` for paths in invocations without a configuration file defined, the current working directory is used
   as the relative directory.
 
   Previously this would raise an :class:`AssertionError`.
 
 
-- `#11475 <https://github.com/pytest-dev/pytest/issues/11475>`_: :ref:`--import-mode=importlib <import-mode-importlib>` now tries to import modules using the standard import mechanism (but still without changing :py:data:`sys.path`), falling back to importing modules directly only if that fails.
+- `#11475 <https://github.com/jacksonsr451/test-runner/issues/11475>`_: :ref:`--import-mode=importlib <import-mode-importlib>` now tries to import modules using the standard import mechanism (but still without changing :py:data:`sys.path`), falling back to importing modules directly only if that fails.
 
   This means that installed packages will be imported under their canonical name if possible first, for example ``app.core.models``, instead of having the module name always be derived from their path (for example ``.env310.lib.site_packages.app.core.models``).
 
 
-- `#11801 <https://github.com/pytest-dev/pytest/issues/11801>`_: Added the :func:`iter_parents() <_pytest.nodes.Node.iter_parents>` helper method on nodes.
-  It is similar to :func:`listchain <_pytest.nodes.Node.listchain>`, but goes from bottom to top, and returns an iterator, not a list.
+- `#11801 <https://github.com/jacksonsr451/test-runner/issues/11801>`_: Added the :func:`iter_parents() <_testrunner.nodes.Node.iter_parents>` helper method on nodes.
+  It is similar to :func:`listchain <_testrunner.nodes.Node.listchain>`, but goes from bottom to top, and returns an iterator, not a list.
 
 
-- `#11850 <https://github.com/pytest-dev/pytest/issues/11850>`_: Added support for :data:`sys.last_exc` for post-mortem debugging on Python>=3.12.
+- `#11850 <https://github.com/jacksonsr451/test-runner/issues/11850>`_: Added support for :data:`sys.last_exc` for post-mortem debugging on Python>=3.12.
 
 
-- `#11962 <https://github.com/pytest-dev/pytest/issues/11962>`_: In case no other suitable candidates for configuration file are found, a ``pyproject.toml`` (even without a ``[tool.pytest.ini_options]`` table) will be considered as the configuration file and define the ``rootdir``.
+- `#11962 <https://github.com/jacksonsr451/test-runner/issues/11962>`_: In case no other suitable candidates for configuration file are found, a ``pyproject.toml`` (even without a ``[tool.testrunner.ini_options]`` table) will be considered as the configuration file and define the ``rootdir``.
 
 
-- `#11978 <https://github.com/pytest-dev/pytest/issues/11978>`_: Add ``--log-file-mode`` option to the logging plugin, enabling appending to log-files. This option accepts either ``"w"`` or ``"a"`` and defaults to ``"w"``.
+- `#11978 <https://github.com/jacksonsr451/test-runner/issues/11978>`_: Add ``--log-file-mode`` option to the logging plugin, enabling appending to log-files. This option accepts either ``"w"`` or ``"a"`` and defaults to ``"w"``.
 
   Previously, the mode was hard-coded to be ``"w"`` which truncates the file before logging.
 
 
-- `#12047 <https://github.com/pytest-dev/pytest/issues/12047>`_: When multiple finalizers of a fixture raise an exception, now all exceptions are reported as an exception group.
+- `#12047 <https://github.com/jacksonsr451/test-runner/issues/12047>`_: When multiple finalizers of a fixture raise an exception, now all exceptions are reported as an exception group.
   Previously, only the first exception was reported.
 
 
@@ -1922,43 +1922,43 @@ Improvements
 Bug Fixes
 ---------
 
-- `#11475 <https://github.com/pytest-dev/pytest/issues/11475>`_: Fixed regression where ``--importmode=importlib`` would import non-test modules more than once.
+- `#11475 <https://github.com/jacksonsr451/test-runner/issues/11475>`_: Fixed regression where ``--importmode=importlib`` would import non-test modules more than once.
 
 
-- `#11904 <https://github.com/pytest-dev/pytest/issues/11904>`_: Fixed a regression in pytest 8.0.0 that would cause test collection to fail due to permission errors when using ``--pyargs``.
+- `#11904 <https://github.com/jacksonsr451/test-runner/issues/11904>`_: Fixed a regression in testrunner 8.0.0 that would cause test collection to fail due to permission errors when using ``--pyargs``.
 
-  This change improves the collection tree for tests specified using ``--pyargs``, see :pr:`12043` for a comparison with pytest 8.0 and <8.
-
-
-- `#12011 <https://github.com/pytest-dev/pytest/issues/12011>`_: Fixed a regression in 8.0.1 whereby ``setup_module`` xunit-style fixtures are not executed when ``--doctest-modules`` is passed.
+  This change improves the collection tree for tests specified using ``--pyargs``, see :pr:`12043` for a comparison with testrunner 8.0 and <8.
 
 
-- `#12014 <https://github.com/pytest-dev/pytest/issues/12014>`_: Fix the ``stacklevel`` used when warning about marks used on fixtures.
+- `#12011 <https://github.com/jacksonsr451/test-runner/issues/12011>`_: Fixed a regression in 8.0.1 whereby ``setup_module`` xunit-style fixtures are not executed when ``--doctest-modules`` is passed.
 
 
-- `#12039 <https://github.com/pytest-dev/pytest/issues/12039>`_: Fixed a regression in ``8.0.2`` where tests created using :fixture:`tmp_path` have been collected multiple times in CI under Windows.
+- `#12014 <https://github.com/jacksonsr451/test-runner/issues/12014>`_: Fix the ``stacklevel`` used when warning about marks used on fixtures.
+
+
+- `#12039 <https://github.com/jacksonsr451/test-runner/issues/12039>`_: Fixed a regression in ``8.0.2`` where tests created using :fixture:`tmp_path` have been collected multiple times in CI under Windows.
 
 
 Improved Documentation
 ----------------------
 
-- `#11790 <https://github.com/pytest-dev/pytest/issues/11790>`_: Documented the retention of temporary directories created using the ``tmp_path`` fixture in more detail.
+- `#11790 <https://github.com/jacksonsr451/test-runner/issues/11790>`_: Documented the retention of temporary directories created using the ``tmp_path`` fixture in more detail.
 
 
 
 Trivial/Internal Changes
 ------------------------
 
-- `#11785 <https://github.com/pytest-dev/pytest/issues/11785>`_: Some changes were made to private functions which may affect plugins which access them:
+- `#11785 <https://github.com/jacksonsr451/test-runner/issues/11785>`_: Some changes were made to private functions which may affect plugins which access them:
 
   - ``FixtureManager._getautousenames()`` now takes a ``Node`` itself instead of the nodeid.
   - ``FixtureManager.getfixturedefs()`` now takes the ``Node`` itself instead of the nodeid.
-  - The ``_pytest.nodes.iterparentnodeids()`` function is removed without replacement.
+  - The ``_testrunner.nodes.iterparentnodeids()`` function is removed without replacement.
     Prefer to traverse the node hierarchy itself instead.
-    If you really need to, copy the function from the previous pytest release.
+    If you really need to, copy the function from the previous testrunner release.
 
 
-- `#12069 <https://github.com/pytest-dev/pytest/issues/12069>`_: Delayed the deprecation of the following features to ``9.0.0``:
+- `#12069 <https://github.com/jacksonsr451/test-runner/issues/12069>`_: Delayed the deprecation of the following features to ``9.0.0``:
 
   * :ref:`node-ctor-fspath-deprecation`.
   * :ref:`legacy-path-hooks-deprecated`.
@@ -1968,7 +1968,7 @@ Trivial/Internal Changes
   This is the reason for ``8.1.0`` being yanked.
 
 
-pytest 8.1.0 (YANKED)
+testrunner 8.1.0 (YANKED)
 =====================
 
 
@@ -1977,94 +1977,94 @@ pytest 8.1.0 (YANKED)
        This release has been **yanked**: it broke some plugins without the proper warning period, due to
        some warnings not showing up as expected.
 
-       See `#12069 <https://github.com/pytest-dev/pytest/issues/12069>`__.
+       See `#12069 <https://github.com/jacksonsr451/test-runner/issues/12069>`__.
 
 
-pytest 8.0.2 (2024-02-24)
+testrunner 8.0.2 (2024-02-24)
 =========================
 
 Bug Fixes
 ---------
 
-- `#11895 <https://github.com/pytest-dev/pytest/issues/11895>`_: Fix collection on Windows where initial paths contain the short version of a path (for example ``c:\PROGRA~1\tests``).
+- `#11895 <https://github.com/jacksonsr451/test-runner/issues/11895>`_: Fix collection on Windows where initial paths contain the short version of a path (for example ``c:\PROGRA~1\tests``).
 
 
-- `#11953 <https://github.com/pytest-dev/pytest/issues/11953>`_: Fix an ``IndexError`` crash raising from ``getstatementrange_ast``.
+- `#11953 <https://github.com/jacksonsr451/test-runner/issues/11953>`_: Fix an ``IndexError`` crash raising from ``getstatementrange_ast``.
 
 
-- `#12021 <https://github.com/pytest-dev/pytest/issues/12021>`_: Reverted a fix to `--maxfail` handling in pytest 8.0.0 because it caused a regression in pytest-xdist whereby session fixture teardowns may get executed multiple times when the max-fails is reached.
+- `#12021 <https://github.com/jacksonsr451/test-runner/issues/12021>`_: Reverted a fix to `--maxfail` handling in testrunner 8.0.0 because it caused a regression in testrunner-xdist whereby session fixture teardowns may get executed multiple times when the max-fails is reached.
 
 
-pytest 8.0.1 (2024-02-16)
+testrunner 8.0.1 (2024-02-16)
 =========================
 
 Bug Fixes
 ---------
 
-- `#11875 <https://github.com/pytest-dev/pytest/issues/11875>`_: Correctly handle errors from :func:`getpass.getuser` in Python 3.13.
+- `#11875 <https://github.com/jacksonsr451/test-runner/issues/11875>`_: Correctly handle errors from :func:`getpass.getuser` in Python 3.13.
 
 
-- `#11879 <https://github.com/pytest-dev/pytest/issues/11879>`_: Fix an edge case where ``ExceptionInfo._stringify_exception`` could crash :func:`pytest.raises`.
+- `#11879 <https://github.com/jacksonsr451/test-runner/issues/11879>`_: Fix an edge case where ``ExceptionInfo._stringify_exception`` could crash :func:`testrunner.raises`.
 
 
-- `#11906 <https://github.com/pytest-dev/pytest/issues/11906>`_: Fix regression with :func:`pytest.warns` using custom warning subclasses which have more than one parameter in their `__init__`.
+- `#11906 <https://github.com/jacksonsr451/test-runner/issues/11906>`_: Fix regression with :func:`testrunner.warns` using custom warning subclasses which have more than one parameter in their `__init__`.
 
 
-- `#11907 <https://github.com/pytest-dev/pytest/issues/11907>`_: Fix a regression in pytest 8.0.0 whereby calling :func:`pytest.skip` and similar control-flow exceptions within a :func:`pytest.warns()` block would get suppressed instead of propagating.
+- `#11907 <https://github.com/jacksonsr451/test-runner/issues/11907>`_: Fix a regression in testrunner 8.0.0 whereby calling :func:`testrunner.skip` and similar control-flow exceptions within a :func:`testrunner.warns()` block would get suppressed instead of propagating.
 
 
-- `#11929 <https://github.com/pytest-dev/pytest/issues/11929>`_: Fix a regression in pytest 8.0.0 whereby autouse fixtures defined in a module get ignored by the doctests in the module.
+- `#11929 <https://github.com/jacksonsr451/test-runner/issues/11929>`_: Fix a regression in testrunner 8.0.0 whereby autouse fixtures defined in a module get ignored by the doctests in the module.
 
 
-- `#11937 <https://github.com/pytest-dev/pytest/issues/11937>`_: Fix a regression in pytest 8.0.0 whereby items would be collected in reverse order in some circumstances.
+- `#11937 <https://github.com/jacksonsr451/test-runner/issues/11937>`_: Fix a regression in testrunner 8.0.0 whereby items would be collected in reverse order in some circumstances.
 
 
-pytest 8.0.0 (2024-01-27)
+testrunner 8.0.0 (2024-01-27)
 =========================
 
 Bug Fixes
 ---------
 
-- `#11842 <https://github.com/pytest-dev/pytest/issues/11842>`_: Properly escape the ``reason`` of a :ref:`skip <pytest.mark.skip ref>` mark when writing JUnit XML files.
+- `#11842 <https://github.com/jacksonsr451/test-runner/issues/11842>`_: Properly escape the ``reason`` of a :ref:`skip <testrunner.mark.skip ref>` mark when writing JUnit XML files.
 
 
-- `#11861 <https://github.com/pytest-dev/pytest/issues/11861>`_: Avoid microsecond exceeds ``1_000_000`` when using ``log-date-format`` with ``%f`` specifier, which might cause the test suite to crash.
+- `#11861 <https://github.com/jacksonsr451/test-runner/issues/11861>`_: Avoid microsecond exceeds ``1_000_000`` when using ``log-date-format`` with ``%f`` specifier, which might cause the test suite to crash.
 
 
-pytest 8.0.0rc2 (2024-01-17)
+testrunner 8.0.0rc2 (2024-01-17)
 ============================
 
 
 Improvements
 ------------
 
-- `#11233 <https://github.com/pytest-dev/pytest/issues/11233>`_: Improvements to ``-r`` for xfailures and xpasses:
+- `#11233 <https://github.com/jacksonsr451/test-runner/issues/11233>`_: Improvements to ``-r`` for xfailures and xpasses:
 
   * Report tracebacks for xfailures when ``-rx`` is set.
   * Report captured output for xpasses when ``-rX`` is set.
   * For xpasses, add ``-`` in summary between test name and reason, to match how xfail is displayed.
 
-- `#11825 <https://github.com/pytest-dev/pytest/issues/11825>`_: The :hook:`pytest_plugin_registered` hook has a new ``plugin_name`` parameter containing the name by which ``plugin`` is registered.
+- `#11825 <https://github.com/jacksonsr451/test-runner/issues/11825>`_: The :hook:`testrunner_plugin_registered` hook has a new ``plugin_name`` parameter containing the name by which ``plugin`` is registered.
 
 
 Bug Fixes
 ---------
 
-- `#11706 <https://github.com/pytest-dev/pytest/issues/11706>`_: Fix reporting of teardown errors in higher-scoped fixtures when using `--maxfail` or `--stepwise`.
+- `#11706 <https://github.com/jacksonsr451/test-runner/issues/11706>`_: Fix reporting of teardown errors in higher-scoped fixtures when using `--maxfail` or `--stepwise`.
 
-  NOTE: This change was reverted in pytest 8.0.2 to fix a `regression <https://github.com/pytest-dev/pytest-xdist/issues/1024>`_ it caused in pytest-xdist.
-
-
-- `#11758 <https://github.com/pytest-dev/pytest/issues/11758>`_: Fixed ``IndexError: string index out of range`` crash in ``if highlighted[-1] == "\n" and source[-1] != "\n"``.
-  This bug was introduced in pytest 8.0.0rc1.
+  NOTE: This change was reverted in testrunner 8.0.2 to fix a `regression <https://github.com/jacksonsr451/test-runner-xdist/issues/1024>`_ it caused in testrunner-xdist.
 
 
-- `#9765 <https://github.com/pytest-dev/pytest/issues/9765>`_, `#11816 <https://github.com/pytest-dev/pytest/issues/11816>`_: Fixed a frustrating bug that afflicted some users with the only error being ``assert mod not in mods``. The issue was caused by the fact that ``str(Path(mod))`` and ``mod.__file__`` don't necessarily produce the same string, and was being erroneously used interchangeably in some places in the code.
+- `#11758 <https://github.com/jacksonsr451/test-runner/issues/11758>`_: Fixed ``IndexError: string index out of range`` crash in ``if highlighted[-1] == "\n" and source[-1] != "\n"``.
+  This bug was introduced in testrunner 8.0.0rc1.
 
-  This fix also broke the internal API of ``PytestPluginManager.consider_conftest`` by introducing a new parameter -- we mention this in case it is being used by external code, even if marked as *private*.
+
+- `#9765 <https://github.com/jacksonsr451/test-runner/issues/9765>`_, `#11816 <https://github.com/jacksonsr451/test-runner/issues/11816>`_: Fixed a frustrating bug that afflicted some users with the only error being ``assert mod not in mods``. The issue was caused by the fact that ``str(Path(mod))`` and ``mod.__file__`` don't necessarily produce the same string, and was being erroneously used interchangeably in some places in the code.
+
+  This fix also broke the internal API of ``TestrunnerPluginManager.consider_conftest`` by introducing a new parameter -- we mention this in case it is being used by external code, even if marked as *private*.
 
 
-pytest 8.0.0rc1 (2023-12-30)
+testrunner 8.0.0rc1 (2023-12-30)
 ============================
 
 Breaking Changes
@@ -2073,25 +2073,25 @@ Breaking Changes
 Old Deprecations Are Now Errors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- `#7363 <https://github.com/pytest-dev/pytest/issues/7363>`_: **PytestRemovedIn8Warning deprecation warnings are now errors by default.**
+- `#7363 <https://github.com/jacksonsr451/test-runner/issues/7363>`_: **TestrunnerRemovedIn8Warning deprecation warnings are now errors by default.**
 
   Following our plan to remove deprecated features with as little disruption as
-  possible, all warnings of type ``PytestRemovedIn8Warning`` now generate errors
+  possible, all warnings of type ``TestrunnerRemovedIn8Warning`` now generate errors
   instead of warning messages by default.
 
-  **The affected features will be effectively removed in pytest 8.1**, so please consult the
+  **The affected features will be effectively removed in testrunner 8.1**, so please consult the
   :ref:`deprecations` section in the docs for directions on how to update existing code.
 
-  In the pytest ``8.0.X`` series, it is possible to change the errors back into warnings as a
-  stopgap measure by adding this to your ``pytest.ini`` file:
+  In the testrunner ``8.0.X`` series, it is possible to change the errors back into warnings as a
+  stopgap measure by adding this to your ``testrunner.ini`` file:
 
   .. code-block:: ini
 
-      [pytest]
+      [testrunner]
       filterwarnings =
-          ignore::pytest.PytestRemovedIn8Warning
+          ignore::testrunner.TestrunnerRemovedIn8Warning
 
-  But this will stop working when pytest ``8.1`` is released.
+  But this will stop working when testrunner ``8.1`` is released.
 
   **If you have concerns** about the removal of a specific feature, please add a
   comment to :issue:`7363`.
@@ -2100,7 +2100,7 @@ Old Deprecations Are Now Errors
 Version Compatibility
 ^^^^^^^^^^^^^^^^^^^^^
 
-- `#11151 <https://github.com/pytest-dev/pytest/issues/11151>`_: Dropped support for Python 3.7, which `reached end-of-life on 2023-06-27 <https://devguide.python.org/versions/>`__.
+- `#11151 <https://github.com/jacksonsr451/test-runner/issues/11151>`_: Dropped support for Python 3.7, which `reached end-of-life on 2023-06-27 <https://devguide.python.org/versions/>`__.
 
 
 - ``pluggy>=1.3.0`` is now required.
@@ -2109,28 +2109,28 @@ Version Compatibility
 Collection Changes
 ^^^^^^^^^^^^^^^^^^
 
-In this version we've made several breaking changes to pytest's collection phase,
+In this version we've made several breaking changes to testrunner's collection phase,
 particularly around how filesystem directories and Python packages are collected,
-fixing deficiencies and allowing for cleanups and improvements to pytest's internals.
+fixing deficiencies and allowing for cleanups and improvements to testrunner's internals.
 A deprecation period for these changes was not possible.
 
 
-- `#7777 <https://github.com/pytest-dev/pytest/issues/7777>`_: Files and directories are now collected in alphabetical order jointly, unless changed by a plugin.
+- `#7777 <https://github.com/jacksonsr451/test-runner/issues/7777>`_: Files and directories are now collected in alphabetical order jointly, unless changed by a plugin.
   Previously, files were collected before directories.
   See below for an example.
 
 
-- `#8976 <https://github.com/pytest-dev/pytest/issues/8976>`_: Running `pytest pkg/__init__.py` now collects the `pkg/__init__.py` file (module) only.
+- `#8976 <https://github.com/jacksonsr451/test-runner/issues/8976>`_: Running `testrunner pkg/__init__.py` now collects the `pkg/__init__.py` file (module) only.
   Previously, it collected the entire `pkg` package, including other test files in the directory, but excluding tests in the `__init__.py` file itself
   (unless :confval:`python_files` was changed to allow `__init__.py` file).
 
-  To collect the entire package, specify just the directory: `pytest pkg`.
+  To collect the entire package, specify just the directory: `testrunner pkg`.
 
 
-- `#11137 <https://github.com/pytest-dev/pytest/issues/11137>`_: :class:`pytest.Package` is no longer a :class:`pytest.Module` or :class:`pytest.File`.
+- `#11137 <https://github.com/jacksonsr451/test-runner/issues/11137>`_: :class:`testrunner.Package` is no longer a :class:`testrunner.Module` or :class:`testrunner.File`.
 
   The ``Package`` collector node designates a Python package, that is, a directory with an `__init__.py` file.
-  Previously ``Package`` was a subtype of ``pytest.Module`` (which represents a single Python module),
+  Previously ``Package`` was a subtype of ``testrunner.Module`` (which represents a single Python module),
   the module being the `__init__.py` file.
   This has been deemed a design mistake (see :issue:`11137` and :issue:`7777` for details).
 
@@ -2140,26 +2140,26 @@ A deprecation period for these changes was not possible.
   if it is picked up during collection (e.g. if you configured :confval:`python_files` to include ``__init__.py`` files).
 
 
-- `#7777 <https://github.com/pytest-dev/pytest/issues/7777>`_: Added a new :class:`pytest.Directory` base collection node, which all collector nodes for filesystem directories are expected to subclass.
-  This is analogous to the existing :class:`pytest.File` for file nodes.
+- `#7777 <https://github.com/jacksonsr451/test-runner/issues/7777>`_: Added a new :class:`testrunner.Directory` base collection node, which all collector nodes for filesystem directories are expected to subclass.
+  This is analogous to the existing :class:`testrunner.File` for file nodes.
 
-  Changed :class:`pytest.Package` to be a subclass of :class:`pytest.Directory`.
+  Changed :class:`testrunner.Package` to be a subclass of :class:`testrunner.Directory`.
   A ``Package`` represents a filesystem directory which is a Python package,
   i.e. contains an ``__init__.py`` file.
 
-  :class:`pytest.Package` now only collects files in its own directory; previously it collected recursively.
+  :class:`testrunner.Package` now only collects files in its own directory; previously it collected recursively.
   Sub-directories are collected as their own collector nodes, which then collect themselves, thus creating a collection tree which mirrors the filesystem hierarchy.
 
-  Added a new :class:`pytest.Dir` concrete collection node, a subclass of :class:`pytest.Directory`.
-  This node represents a filesystem directory, which is not a :class:`pytest.Package`,
+  Added a new :class:`testrunner.Dir` concrete collection node, a subclass of :class:`testrunner.Directory`.
+  This node represents a filesystem directory, which is not a :class:`testrunner.Package`,
   that is, does not contain an ``__init__.py`` file.
   Similarly to ``Package``, it only collects the files in its own directory.
 
-  :class:`pytest.Session` now only collects the initial arguments, without recursing into directories.
-  This work is now done by the :func:`recursive expansion process <pytest.Collector.collect>` of directory collector nodes.
+  :class:`testrunner.Session` now only collects the initial arguments, without recursing into directories.
+  This work is now done by the :func:`recursive expansion process <testrunner.Collector.collect>` of directory collector nodes.
 
-  :attr:`session.name <pytest.Session.name>` is now ``""``; previously it was the rootdir directory name.
-  This matches :attr:`session.nodeid <_pytest.nodes.Node.nodeid>` which has always been `""`.
+  :attr:`session.name <testrunner.Session.name>` is now ``""``; previously it was the rootdir directory name.
+  This matches :attr:`session.nodeid <_testrunner.nodes.Node.nodeid>` which has always been `""`.
 
   The collection tree now contains directories/packages up to the :ref:`rootdir <rootdir>`,
   for initial arguments that are found within the rootdir.
@@ -2169,7 +2169,7 @@ A deprecation period for these changes was not possible.
   As an example, given the following filesystem tree::
 
       myroot/
-          pytest.ini
+          testrunner.ini
           top/
           ├── aaa
           │   └── test_aaa.py
@@ -2182,7 +2182,7 @@ A deprecation period for these changes was not possible.
               ├── __init__.py
               └── test_zzz.py
 
-  the collection tree, as shown by `pytest --collect-only top/` but with the otherwise-hidden :class:`~pytest.Session` node added for clarity,
+  the collection tree, as shown by `testrunner --collect-only top/` but with the otherwise-hidden :class:`~testrunner.Session` node added for clarity,
   is now the following::
 
       <Session>
@@ -2221,7 +2221,7 @@ A deprecation period for these changes was not possible.
   Code/plugins which rely on a specific shape of the collection tree might need to update.
 
 
-- `#11676 <https://github.com/pytest-dev/pytest/issues/11676>`_: The classes :class:`~_pytest.nodes.Node`, :class:`~pytest.Collector`, :class:`~pytest.Item`, :class:`~pytest.File`, :class:`~_pytest.nodes.FSCollector` are now marked abstract (see :mod:`abc`).
+- `#11676 <https://github.com/jacksonsr451/test-runner/issues/11676>`_: The classes :class:`~_testrunner.nodes.Node`, :class:`~testrunner.Collector`, :class:`~testrunner.Item`, :class:`~testrunner.File`, :class:`~_testrunner.nodes.FSCollector` are now marked abstract (see :mod:`abc`).
 
   We do not expect this change to affect users and plugin authors, it will only cause errors when the code is already wrong or problematic.
 
@@ -2232,11 +2232,11 @@ Other breaking changes
 These are breaking changes where deprecation was not possible.
 
 
-- `#11282 <https://github.com/pytest-dev/pytest/issues/11282>`_: Sanitized the handling of the ``default`` parameter when defining configuration options.
+- `#11282 <https://github.com/jacksonsr451/test-runner/issues/11282>`_: Sanitized the handling of the ``default`` parameter when defining configuration options.
 
-  Previously if ``default`` was not supplied for :meth:`parser.addini <pytest.Parser.addini>` and the configuration option value was not defined in a test session, then calls to :func:`config.getini <pytest.Config.getini>` returned an *empty list* or an *empty string* depending on whether ``type`` was supplied or not respectively, which is clearly incorrect. Also, ``None`` was not honored even if ``default=None`` was used explicitly while defining the option.
+  Previously if ``default`` was not supplied for :meth:`parser.addini <testrunner.Parser.addini>` and the configuration option value was not defined in a test session, then calls to :func:`config.getini <testrunner.Config.getini>` returned an *empty list* or an *empty string* depending on whether ``type`` was supplied or not respectively, which is clearly incorrect. Also, ``None`` was not honored even if ``default=None`` was used explicitly while defining the option.
 
-  Now the behavior of :meth:`parser.addini <pytest.Parser.addini>` is as follows:
+  Now the behavior of :meth:`parser.addini <testrunner.Parser.addini>` is as follows:
 
   * If ``default`` is NOT passed but ``type`` is provided, then a type-specific default will be returned. For example ``type=bool`` will return ``False``, ``type=str`` will return ``""``, etc.
   * If ``default=None`` is passed and the option is not defined in a test session, then ``None`` will be returned, regardless of the ``type``.
@@ -2245,12 +2245,12 @@ These are breaking changes where deprecation was not possible.
   The team decided to not introduce a deprecation period for this change, as doing so would be complicated both in terms of communicating this to the community as well as implementing it, and also because the team believes this change should not break existing plugins except in rare cases.
 
 
-- `#11667 <https://github.com/pytest-dev/pytest/issues/11667>`_: pytest's ``setup.py`` file is removed.
-  If you relied on this file, e.g. to install pytest using ``setup.py install``,
+- `#11667 <https://github.com/jacksonsr451/test-runner/issues/11667>`_: testrunner's ``setup.py`` file is removed.
+  If you relied on this file, e.g. to install testrunner using ``setup.py install``,
   please see `Why you shouldn't invoke setup.py directly <https://blog.ganssle.io/articles/2021/10/setup-py-deprecated.html#summary>`_ for alternatives.
 
 
-- `#9288 <https://github.com/pytest-dev/pytest/issues/9288>`_: :func:`~pytest.warns` now re-emits unmatched warnings when the context
+- `#9288 <https://github.com/jacksonsr451/test-runner/issues/9288>`_: :func:`~testrunner.warns` now re-emits unmatched warnings when the context
   closes -- previously it would consume all warnings, hiding those that were not
   matched by the function.
 
@@ -2267,12 +2267,12 @@ These are breaking changes where deprecation was not possible.
 Deprecations
 ------------
 
-- `#10465 <https://github.com/pytest-dev/pytest/issues/10465>`_: Test functions returning a value other than ``None`` will now issue a :class:`pytest.PytestWarning` instead of ``pytest.PytestRemovedIn8Warning``, meaning this will stay a warning instead of becoming an error in the future.
+- `#10465 <https://github.com/jacksonsr451/test-runner/issues/10465>`_: Test functions returning a value other than ``None`` will now issue a :class:`testrunner.TestrunnerWarning` instead of ``testrunner.TestrunnerRemovedIn8Warning``, meaning this will stay a warning instead of becoming an error in the future.
 
 
-- `#3664 <https://github.com/pytest-dev/pytest/issues/3664>`_: Applying a mark to a fixture function now issues a warning: marks in fixtures never had any effect, but it is a common user error to apply a mark to a fixture (for example ``usefixtures``) and expect it to work.
+- `#3664 <https://github.com/jacksonsr451/test-runner/issues/3664>`_: Applying a mark to a fixture function now issues a warning: marks in fixtures never had any effect, but it is a common user error to apply a mark to a fixture (for example ``usefixtures``) and expect it to work.
 
-  This will become an error in pytest 9.0.
+  This will become an error in testrunner 9.0.
 
 
 
@@ -2282,298 +2282,298 @@ Features and Improvements
 Improved Diffs
 ^^^^^^^^^^^^^^
 
-These changes improve the diffs that pytest prints when an assertion fails.
+These changes improve the diffs that testrunner prints when an assertion fails.
 Note that syntax highlighting requires the ``pygments`` package.
 
 
-- `#11520 <https://github.com/pytest-dev/pytest/issues/11520>`_: The very verbose (``-vv``) diff output is now colored as a diff instead of a big chunk of red.
+- `#11520 <https://github.com/jacksonsr451/test-runner/issues/11520>`_: The very verbose (``-vv``) diff output is now colored as a diff instead of a big chunk of red.
 
   Python code in error reports is now syntax-highlighted as Python.
 
   The sections in the error reports are now better separated.
 
 
-- `#1531 <https://github.com/pytest-dev/pytest/issues/1531>`_: The very verbose diff (``-vv``) for every standard library container type is improved. The indentation is now consistent and the markers are on their own separate lines, which should reduce the diffs shown to users.
+- `#1531 <https://github.com/jacksonsr451/test-runner/issues/1531>`_: The very verbose diff (``-vv``) for every standard library container type is improved. The indentation is now consistent and the markers are on their own separate lines, which should reduce the diffs shown to users.
 
   Previously, the standard Python pretty printer was used to generate the output, which puts opening and closing
   markers on the same line as the first/last entry, in addition to not having consistent indentation.
 
 
-- `#10617 <https://github.com/pytest-dev/pytest/issues/10617>`_: Added more comprehensive set assertion rewrites for comparisons other than equality ``==``, with
+- `#10617 <https://github.com/jacksonsr451/test-runner/issues/10617>`_: Added more comprehensive set assertion rewrites for comparisons other than equality ``==``, with
   the following operations now providing better failure messages: ``!=``, ``<=``, ``>=``, ``<``, and ``>``.
 
 
 Separate Control For Assertion Verbosity
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- `#11387 <https://github.com/pytest-dev/pytest/issues/11387>`_: Added the new :confval:`verbosity_assertions` configuration option for fine-grained control of failed assertions verbosity.
+- `#11387 <https://github.com/jacksonsr451/test-runner/issues/11387>`_: Added the new :confval:`verbosity_assertions` configuration option for fine-grained control of failed assertions verbosity.
 
-  If you've ever wished that pytest always show you full diffs, but without making everything else verbose, this is for you.
+  If you've ever wished that testrunner always show you full diffs, but without making everything else verbose, this is for you.
 
-  See :ref:`Fine-grained verbosity <pytest.fine_grained_verbosity>` for more details.
+  See :ref:`Fine-grained verbosity <testrunner.fine_grained_verbosity>` for more details.
 
-  For plugin authors, :attr:`config.get_verbosity <pytest.Config.get_verbosity>` can be used to retrieve the verbosity level for a specific verbosity type.
+  For plugin authors, :attr:`config.get_verbosity <testrunner.Config.get_verbosity>` can be used to retrieve the verbosity level for a specific verbosity type.
 
 
 Additional Support For Exception Groups and ``__notes__``
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-These changes improve pytest's support for exception groups.
+These changes improve testrunner's support for exception groups.
 
 
-- `#10441 <https://github.com/pytest-dev/pytest/issues/10441>`_: Added :func:`ExceptionInfo.group_contains() <pytest.ExceptionInfo.group_contains>`, an assertion helper that tests if an :class:`ExceptionGroup` contains a matching exception.
+- `#10441 <https://github.com/jacksonsr451/test-runner/issues/10441>`_: Added :func:`ExceptionInfo.group_contains() <testrunner.ExceptionInfo.group_contains>`, an assertion helper that tests if an :class:`ExceptionGroup` contains a matching exception.
 
   See :ref:`assert-matching-exception-groups` for an example.
 
 
-- `#11227 <https://github.com/pytest-dev/pytest/issues/11227>`_: Allow :func:`pytest.raises` ``match`` argument to match against `PEP-678 <https://peps.python.org/pep-0678/>` ``__notes__``.
+- `#11227 <https://github.com/jacksonsr451/test-runner/issues/11227>`_: Allow :func:`testrunner.raises` ``match`` argument to match against `PEP-678 <https://peps.python.org/pep-0678/>` ``__notes__``.
 
 
 Custom Directory collectors
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- `#7777 <https://github.com/pytest-dev/pytest/issues/7777>`_: Added a new hook :hook:`pytest_collect_directory`,
+- `#7777 <https://github.com/jacksonsr451/test-runner/issues/7777>`_: Added a new hook :hook:`testrunner_collect_directory`,
   which is called by filesystem-traversing collector nodes,
-  such as :class:`pytest.Session`, :class:`pytest.Dir` and :class:`pytest.Package`,
+  such as :class:`testrunner.Session`, :class:`testrunner.Dir` and :class:`testrunner.Package`,
   to create a collector node for a sub-directory.
-  It is expected to return a subclass of :class:`pytest.Directory`.
+  It is expected to return a subclass of :class:`testrunner.Directory`.
   This hook allows plugins to :ref:`customize the collection of directories <custom directory collectors>`.
 
 
 "New-style" Hook Wrappers
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- `#11122 <https://github.com/pytest-dev/pytest/issues/11122>`_: pytest now uses "new-style" hook wrappers internally, available since pluggy 1.2.0.
+- `#11122 <https://github.com/jacksonsr451/test-runner/issues/11122>`_: testrunner now uses "new-style" hook wrappers internally, available since pluggy 1.2.0.
   See `pluggy's 1.2.0 changelog <https://pluggy.readthedocs.io/en/latest/changelog.html#pluggy-1-2-0-2023-06-21>`_ and the :ref:`updated docs <hookwrapper>` for details.
 
-  Plugins which want to use new-style wrappers can do so if they require ``pytest>=8``.
+  Plugins which want to use new-style wrappers can do so if they require ``testrunner>=8``.
 
 
 Other Improvements
 ^^^^^^^^^^^^^^^^^^
 
-- `#11216 <https://github.com/pytest-dev/pytest/issues/11216>`_: If a test is skipped from inside an :ref:`xunit setup fixture <classic xunit>`, the test summary now shows the test location instead of the fixture location.
+- `#11216 <https://github.com/jacksonsr451/test-runner/issues/11216>`_: If a test is skipped from inside an :ref:`xunit setup fixture <classic xunit>`, the test summary now shows the test location instead of the fixture location.
 
 
-- `#11314 <https://github.com/pytest-dev/pytest/issues/11314>`_: Logging to a file using the ``--log-file`` option will use ``--log-level``, ``--log-format`` and ``--log-date-format`` as fallback
+- `#11314 <https://github.com/jacksonsr451/test-runner/issues/11314>`_: Logging to a file using the ``--log-file`` option will use ``--log-level``, ``--log-format`` and ``--log-date-format`` as fallback
   if ``--log-file-level``, ``--log-file-format`` and ``--log-file-date-format`` are not provided respectively.
 
 
-- `#11610 <https://github.com/pytest-dev/pytest/issues/11610>`_: Added the :func:`LogCaptureFixture.filtering() <pytest.LogCaptureFixture.filtering>` context manager which
+- `#11610 <https://github.com/jacksonsr451/test-runner/issues/11610>`_: Added the :func:`LogCaptureFixture.filtering() <testrunner.LogCaptureFixture.filtering>` context manager which
   adds a given :class:`logging.Filter` object to the :fixture:`caplog` fixture.
 
 
-- `#11447 <https://github.com/pytest-dev/pytest/issues/11447>`_: :func:`pytest.deprecated_call` now also considers warnings of type :class:`FutureWarning`.
+- `#11447 <https://github.com/jacksonsr451/test-runner/issues/11447>`_: :func:`testrunner.deprecated_call` now also considers warnings of type :class:`FutureWarning`.
 
 
-- `#11600 <https://github.com/pytest-dev/pytest/issues/11600>`_: Improved the documentation and type signature for :func:`pytest.mark.xfail <pytest.mark.xfail>`'s ``condition`` param to use ``False`` as the default value.
+- `#11600 <https://github.com/jacksonsr451/test-runner/issues/11600>`_: Improved the documentation and type signature for :func:`testrunner.mark.xfail <testrunner.mark.xfail>`'s ``condition`` param to use ``False`` as the default value.
 
 
-- `#7469 <https://github.com/pytest-dev/pytest/issues/7469>`_: :class:`~pytest.FixtureDef` is now exported as ``pytest.FixtureDef`` for typing purposes.
+- `#7469 <https://github.com/jacksonsr451/test-runner/issues/7469>`_: :class:`~testrunner.FixtureDef` is now exported as ``testrunner.FixtureDef`` for typing purposes.
 
 
-- `#11353 <https://github.com/pytest-dev/pytest/issues/11353>`_: Added typing to :class:`~pytest.PytestPluginManager`.
+- `#11353 <https://github.com/jacksonsr451/test-runner/issues/11353>`_: Added typing to :class:`~testrunner.TestrunnerPluginManager`.
 
 
 Bug Fixes
 ---------
 
-- `#10701 <https://github.com/pytest-dev/pytest/issues/10701>`_: :meth:`pytest.WarningsRecorder.pop` will return the most-closely-matched warning in the list,
+- `#10701 <https://github.com/jacksonsr451/test-runner/issues/10701>`_: :meth:`testrunner.WarningsRecorder.pop` will return the most-closely-matched warning in the list,
   rather than the first warning which is an instance of the requested type.
 
 
-- `#11255 <https://github.com/pytest-dev/pytest/issues/11255>`_: Fixed crash on `parametrize(..., scope="package")` without a package present.
+- `#11255 <https://github.com/jacksonsr451/test-runner/issues/11255>`_: Fixed crash on `parametrize(..., scope="package")` without a package present.
 
 
-- `#11277 <https://github.com/pytest-dev/pytest/issues/11277>`_: Fixed a bug that when there are multiple fixtures for an indirect parameter,
+- `#11277 <https://github.com/jacksonsr451/test-runner/issues/11277>`_: Fixed a bug that when there are multiple fixtures for an indirect parameter,
   the scope of the highest-scope fixture is picked for the parameter set, instead of that of the one with the narrowest scope.
 
 
-- `#11456 <https://github.com/pytest-dev/pytest/issues/11456>`_: Parametrized tests now *really do* ensure that the ids given to each input are unique - for
+- `#11456 <https://github.com/jacksonsr451/test-runner/issues/11456>`_: Parametrized tests now *really do* ensure that the ids given to each input are unique - for
   example, ``a, a, a0`` now results in ``a1, a2, a0`` instead of the previous (buggy) ``a0, a1, a0``.
   This necessarily means changing nodeids where these were previously colliding, and for
   readability adds an underscore when non-unique ids end in a number.
 
 
-- `#11563 <https://github.com/pytest-dev/pytest/issues/11563>`_: Fixed a crash when using an empty string for the same parametrized value more than once.
+- `#11563 <https://github.com/jacksonsr451/test-runner/issues/11563>`_: Fixed a crash when using an empty string for the same parametrized value more than once.
 
 
-- `#11712 <https://github.com/pytest-dev/pytest/issues/11712>`_: Fixed handling ``NO_COLOR`` and ``FORCE_COLOR`` to ignore an empty value.
+- `#11712 <https://github.com/jacksonsr451/test-runner/issues/11712>`_: Fixed handling ``NO_COLOR`` and ``FORCE_COLOR`` to ignore an empty value.
 
 
-- `#9036 <https://github.com/pytest-dev/pytest/issues/9036>`_: ``pytest.warns`` and similar functions now capture warnings when an exception is raised inside a ``with`` block.
+- `#9036 <https://github.com/jacksonsr451/test-runner/issues/9036>`_: ``testrunner.warns`` and similar functions now capture warnings when an exception is raised inside a ``with`` block.
 
 
 
 Improved Documentation
 ----------------------
 
-- `#11011 <https://github.com/pytest-dev/pytest/issues/11011>`_: Added a warning about modifying the root logger during tests when using ``caplog``.
+- `#11011 <https://github.com/jacksonsr451/test-runner/issues/11011>`_: Added a warning about modifying the root logger during tests when using ``caplog``.
 
 
-- `#11065 <https://github.com/pytest-dev/pytest/issues/11065>`_: Use ``pytestconfig`` instead of ``request.config`` in cache example to be consistent with the API documentation.
+- `#11065 <https://github.com/jacksonsr451/test-runner/issues/11065>`_: Use ``testrunnerconfig`` instead of ``request.config`` in cache example to be consistent with the API documentation.
 
 
 Trivial/Internal Changes
 ------------------------
 
-- `#11208 <https://github.com/pytest-dev/pytest/issues/11208>`_: The (internal) ``FixtureDef.cached_result`` type has changed.
+- `#11208 <https://github.com/jacksonsr451/test-runner/issues/11208>`_: The (internal) ``FixtureDef.cached_result`` type has changed.
   Now the third item ``cached_result[2]``, when set, is an exception instance instead of an exception triplet.
 
 
-- `#11218 <https://github.com/pytest-dev/pytest/issues/11218>`_: (This entry is meant to assist plugins which access private pytest internals to instantiate ``FixtureRequest`` objects.)
+- `#11218 <https://github.com/jacksonsr451/test-runner/issues/11218>`_: (This entry is meant to assist plugins which access private testrunner internals to instantiate ``FixtureRequest`` objects.)
 
-  :class:`~pytest.FixtureRequest` is now an abstract class which can't be instantiated directly.
+  :class:`~testrunner.FixtureRequest` is now an abstract class which can't be instantiated directly.
   A new concrete ``TopRequest`` subclass of ``FixtureRequest`` has been added for the ``request`` fixture in test functions,
   as counterpart to the existing ``SubRequest`` subclass for the ``request`` fixture in fixture functions.
 
 
-- `#11315 <https://github.com/pytest-dev/pytest/issues/11315>`_: The :fixture:`pytester` fixture now uses the :fixture:`monkeypatch` fixture to manage the current working directory.
-  If you use ``pytester`` in combination with :func:`monkeypatch.undo() <pytest.MonkeyPatch.undo>`, the CWD might get restored.
-  Use :func:`monkeypatch.context() <pytest.MonkeyPatch.context>` instead.
+- `#11315 <https://github.com/jacksonsr451/test-runner/issues/11315>`_: The :fixture:`testrunnerer` fixture now uses the :fixture:`monkeypatch` fixture to manage the current working directory.
+  If you use ``testrunnerer`` in combination with :func:`monkeypatch.undo() <testrunner.MonkeyPatch.undo>`, the CWD might get restored.
+  Use :func:`monkeypatch.context() <testrunner.MonkeyPatch.context>` instead.
 
 
-- `#11333 <https://github.com/pytest-dev/pytest/issues/11333>`_: Corrected the spelling of ``Config.ArgsSource.INVOCATION_DIR``.
+- `#11333 <https://github.com/jacksonsr451/test-runner/issues/11333>`_: Corrected the spelling of ``Config.ArgsSource.INVOCATION_DIR``.
   The previous spelling ``INCOVATION_DIR`` remains as an alias.
 
 
-- `#11638 <https://github.com/pytest-dev/pytest/issues/11638>`_: Fixed the selftests to pass correctly if ``FORCE_COLOR``, ``NO_COLOR`` or ``PY_COLORS`` is set in the calling environment.
+- `#11638 <https://github.com/jacksonsr451/test-runner/issues/11638>`_: Fixed the selftests to pass correctly if ``FORCE_COLOR``, ``NO_COLOR`` or ``PY_COLORS`` is set in the calling environment.
 
-pytest 7.4.4 (2023-12-31)
+testrunner 7.4.4 (2023-12-31)
 =========================
 
 Bug Fixes
 ---------
 
-- `#11140 <https://github.com/pytest-dev/pytest/issues/11140>`_: Fix non-string constants at the top of file being detected as docstrings on Python>=3.8.
+- `#11140 <https://github.com/jacksonsr451/test-runner/issues/11140>`_: Fix non-string constants at the top of file being detected as docstrings on Python>=3.8.
 
 
-- `#11572 <https://github.com/pytest-dev/pytest/issues/11572>`_: Handle an edge case where :data:`sys.stderr` and :data:`sys.__stderr__` might already be closed when :ref:`faulthandler` is tearing down.
+- `#11572 <https://github.com/jacksonsr451/test-runner/issues/11572>`_: Handle an edge case where :data:`sys.stderr` and :data:`sys.__stderr__` might already be closed when :ref:`faulthandler` is tearing down.
 
 
-- `#11710 <https://github.com/pytest-dev/pytest/issues/11710>`_: Fixed tracebacks from collection errors not getting pruned.
+- `#11710 <https://github.com/jacksonsr451/test-runner/issues/11710>`_: Fixed tracebacks from collection errors not getting pruned.
 
 
-- `#7966 <https://github.com/pytest-dev/pytest/issues/7966>`_: Removed unhelpful error message from assertion rewrite mechanism when exceptions are raised in ``__iter__`` methods. Now they are treated un-iterable instead.
+- `#7966 <https://github.com/jacksonsr451/test-runner/issues/7966>`_: Removed unhelpful error message from assertion rewrite mechanism when exceptions are raised in ``__iter__`` methods. Now they are treated un-iterable instead.
 
 
 
 Improved Documentation
 ----------------------
 
-- `#11091 <https://github.com/pytest-dev/pytest/issues/11091>`_: Updated documentation to refer to hyphenated options: replaced ``--junitxml`` with ``--junit-xml`` and ``--collectonly`` with ``--collect-only``.
+- `#11091 <https://github.com/jacksonsr451/test-runner/issues/11091>`_: Updated documentation to refer to hyphenated options: replaced ``--junitxml`` with ``--junit-xml`` and ``--collectonly`` with ``--collect-only``.
 
 
-pytest 7.4.3 (2023-10-24)
+testrunner 7.4.3 (2023-10-24)
 =========================
 
 Bug Fixes
 ---------
 
-- `#10447 <https://github.com/pytest-dev/pytest/issues/10447>`_: Markers are now considered in the reverse mro order to ensure base  class markers are considered first -- this resolves a regression.
+- `#10447 <https://github.com/jacksonsr451/test-runner/issues/10447>`_: Markers are now considered in the reverse mro order to ensure base  class markers are considered first -- this resolves a regression.
 
 
-- `#11239 <https://github.com/pytest-dev/pytest/issues/11239>`_: Fixed ``:=`` in asserts impacting unrelated test cases.
+- `#11239 <https://github.com/jacksonsr451/test-runner/issues/11239>`_: Fixed ``:=`` in asserts impacting unrelated test cases.
 
 
-- `#11439 <https://github.com/pytest-dev/pytest/issues/11439>`_: Handled an edge case where :data:`sys.stderr` might already be closed when :ref:`faulthandler` is tearing down.
+- `#11439 <https://github.com/jacksonsr451/test-runner/issues/11439>`_: Handled an edge case where :data:`sys.stderr` might already be closed when :ref:`faulthandler` is tearing down.
 
 
-pytest 7.4.2 (2023-09-07)
+testrunner 7.4.2 (2023-09-07)
 =========================
 
 Bug Fixes
 ---------
 
-- `#11237 <https://github.com/pytest-dev/pytest/issues/11237>`_: Fix doctest collection of `functools.cached_property` objects.
+- `#11237 <https://github.com/jacksonsr451/test-runner/issues/11237>`_: Fix doctest collection of `functools.cached_property` objects.
 
 
-- `#11306 <https://github.com/pytest-dev/pytest/issues/11306>`_: Fixed bug using ``--importmode=importlib`` which would cause package ``__init__.py`` files to be imported more than once in some cases.
+- `#11306 <https://github.com/jacksonsr451/test-runner/issues/11306>`_: Fixed bug using ``--importmode=importlib`` which would cause package ``__init__.py`` files to be imported more than once in some cases.
 
 
-- `#11367 <https://github.com/pytest-dev/pytest/issues/11367>`_: Fixed bug where `user_properties` where not being saved in the JUnit XML file if a fixture failed during teardown.
+- `#11367 <https://github.com/jacksonsr451/test-runner/issues/11367>`_: Fixed bug where `user_properties` where not being saved in the JUnit XML file if a fixture failed during teardown.
 
 
-- `#11394 <https://github.com/pytest-dev/pytest/issues/11394>`_: Fixed crash when parsing long command line arguments that might be interpreted as files.
+- `#11394 <https://github.com/jacksonsr451/test-runner/issues/11394>`_: Fixed crash when parsing long command line arguments that might be interpreted as files.
 
 
 
 Improved Documentation
 ----------------------
 
-- `#11391 <https://github.com/pytest-dev/pytest/issues/11391>`_: Improved disclaimer on pytest plugin reference page to better indicate this is an automated, non-curated listing.
+- `#11391 <https://github.com/jacksonsr451/test-runner/issues/11391>`_: Improved disclaimer on testrunner plugin reference page to better indicate this is an automated, non-curated listing.
 
 
-pytest 7.4.1 (2023-09-02)
+testrunner 7.4.1 (2023-09-02)
 =========================
 
 Bug Fixes
 ---------
 
-- `#10337 <https://github.com/pytest-dev/pytest/issues/10337>`_: Fixed bug where fake intermediate modules generated by ``--import-mode=importlib`` would not include the
+- `#10337 <https://github.com/jacksonsr451/test-runner/issues/10337>`_: Fixed bug where fake intermediate modules generated by ``--import-mode=importlib`` would not include the
   child modules as attributes of the parent modules.
 
 
-- `#10702 <https://github.com/pytest-dev/pytest/issues/10702>`_: Fixed error assertion handling in :func:`pytest.approx` when ``None`` is an expected or received value when comparing dictionaries.
+- `#10702 <https://github.com/jacksonsr451/test-runner/issues/10702>`_: Fixed error assertion handling in :func:`testrunner.approx` when ``None`` is an expected or received value when comparing dictionaries.
 
 
-- `#10811 <https://github.com/pytest-dev/pytest/issues/10811>`_: Fixed issue when using ``--import-mode=importlib`` together with ``--doctest-modules`` that caused modules
+- `#10811 <https://github.com/jacksonsr451/test-runner/issues/10811>`_: Fixed issue when using ``--import-mode=importlib`` together with ``--doctest-modules`` that caused modules
   to be imported more than once, causing problems with modules that have import side effects.
 
 
-pytest 7.4.0 (2023-06-23)
+testrunner 7.4.0 (2023-06-23)
 =========================
 
 Features
 --------
 
-- `#10901 <https://github.com/pytest-dev/pytest/issues/10901>`_: Added :func:`ExceptionInfo.from_exception() <pytest.ExceptionInfo.from_exception>`, a simpler way to create an :class:`~pytest.ExceptionInfo` from an exception.
-  This can replace :func:`ExceptionInfo.from_exc_info() <pytest.ExceptionInfo.from_exc_info()>` for most uses.
+- `#10901 <https://github.com/jacksonsr451/test-runner/issues/10901>`_: Added :func:`ExceptionInfo.from_exception() <testrunner.ExceptionInfo.from_exception>`, a simpler way to create an :class:`~testrunner.ExceptionInfo` from an exception.
+  This can replace :func:`ExceptionInfo.from_exc_info() <testrunner.ExceptionInfo.from_exc_info()>` for most uses.
 
 
 
 Improvements
 ------------
 
-- `#10872 <https://github.com/pytest-dev/pytest/issues/10872>`_: Update test log report annotation to named tuple and fixed inconsistency in docs for :hook:`pytest_report_teststatus` hook.
+- `#10872 <https://github.com/jacksonsr451/test-runner/issues/10872>`_: Update test log report annotation to named tuple and fixed inconsistency in docs for :hook:`testrunner_report_teststatus` hook.
 
 
-- `#10907 <https://github.com/pytest-dev/pytest/issues/10907>`_: When an exception traceback to be displayed is completely filtered out (by mechanisms such as ``__tracebackhide__``, internal frames, and similar), now only the exception string and the following message are shown:
+- `#10907 <https://github.com/jacksonsr451/test-runner/issues/10907>`_: When an exception traceback to be displayed is completely filtered out (by mechanisms such as ``__tracebackhide__``, internal frames, and similar), now only the exception string and the following message are shown:
 
   "All traceback entries are hidden. Pass `--full-trace` to see hidden and internal frames.".
 
   Previously, the last frame of the traceback was shown, even though it was hidden.
 
 
-- `#10940 <https://github.com/pytest-dev/pytest/issues/10940>`_: Improved verbose output (``-vv``) of ``skip`` and ``xfail`` reasons by performing text wrapping while leaving a clear margin for progress output.
+- `#10940 <https://github.com/jacksonsr451/test-runner/issues/10940>`_: Improved verbose output (``-vv``) of ``skip`` and ``xfail`` reasons by performing text wrapping while leaving a clear margin for progress output.
 
   Added ``TerminalReporter.wrap_write()`` as a helper for that.
 
 
-- `#10991 <https://github.com/pytest-dev/pytest/issues/10991>`_: Added handling of ``%f`` directive to print microseconds in log format options, such as ``log-date-format``.
+- `#10991 <https://github.com/jacksonsr451/test-runner/issues/10991>`_: Added handling of ``%f`` directive to print microseconds in log format options, such as ``log-date-format``.
 
 
-- `#11005 <https://github.com/pytest-dev/pytest/issues/11005>`_: Added the underlying exception to the cache provider's path creation and write warning messages.
+- `#11005 <https://github.com/jacksonsr451/test-runner/issues/11005>`_: Added the underlying exception to the cache provider's path creation and write warning messages.
 
 
-- `#11013 <https://github.com/pytest-dev/pytest/issues/11013>`_: Added warning when :confval:`testpaths` is set, but paths are not found by glob. In this case, pytest will fall back to searching from the current directory.
+- `#11013 <https://github.com/jacksonsr451/test-runner/issues/11013>`_: Added warning when :confval:`testpaths` is set, but paths are not found by glob. In this case, testrunner will fall back to searching from the current directory.
 
 
-- `#11043 <https://github.com/pytest-dev/pytest/issues/11043>`_: When `--confcutdir` is not specified, and there is no config file present, the conftest cutoff directory (`--confcutdir`) is now set to the :ref:`rootdir <rootdir>`.
+- `#11043 <https://github.com/jacksonsr451/test-runner/issues/11043>`_: When `--confcutdir` is not specified, and there is no config file present, the conftest cutoff directory (`--confcutdir`) is now set to the :ref:`rootdir <rootdir>`.
   Previously in such cases, `conftest.py` files would be probed all the way to the root directory of the filesystem.
   If you are badly affected by this change, consider adding an empty config file to your desired cutoff directory, or explicitly set `--confcutdir`.
 
 
-- `#11081 <https://github.com/pytest-dev/pytest/issues/11081>`_: The :confval:`norecursedirs` check is now performed in a :hook:`pytest_ignore_collect` implementation, so plugins can affect it.
+- `#11081 <https://github.com/jacksonsr451/test-runner/issues/11081>`_: The :confval:`norecursedirs` check is now performed in a :hook:`testrunner_ignore_collect` implementation, so plugins can affect it.
 
   If after updating to this version you see that your `norecursedirs` setting is not being respected,
-  it means that a conftest or a plugin you use has a bad `pytest_ignore_collect` implementation.
+  it means that a conftest or a plugin you use has a bad `testrunner_ignore_collect` implementation.
   Most likely, your hook returns `False` for paths it does not want to ignore,
-  which ends the processing and doesn't allow other plugins, including pytest itself, to ignore the path.
+  which ends the processing and doesn't allow other plugins, including testrunner itself, to ignore the path.
   The fix is to return `None` instead of `False` for paths your hook doesn't want to ignore.
 
 
-- `#8711 <https://github.com/pytest-dev/pytest/issues/8711>`_: :func:`caplog.set_level() <pytest.LogCaptureFixture.set_level>` and :func:`caplog.at_level() <pytest.LogCaptureFixture.at_level>`
+- `#8711 <https://github.com/jacksonsr451/test-runner/issues/8711>`_: :func:`caplog.set_level() <testrunner.LogCaptureFixture.set_level>` and :func:`caplog.at_level() <testrunner.LogCaptureFixture.at_level>`
   will temporarily enable the requested ``level`` if ``level`` was disabled globally via
   ``logging.disable(LEVEL)``.
 
@@ -2582,124 +2582,124 @@ Improvements
 Bug Fixes
 ---------
 
-- `#10831 <https://github.com/pytest-dev/pytest/issues/10831>`_: Terminal Reporting: Fixed bug when running in ``--tb=line`` mode where ``pytest.fail(pytrace=False)`` tests report ``None``.
+- `#10831 <https://github.com/jacksonsr451/test-runner/issues/10831>`_: Terminal Reporting: Fixed bug when running in ``--tb=line`` mode where ``testrunner.fail(pytrace=False)`` tests report ``None``.
 
 
-- `#11068 <https://github.com/pytest-dev/pytest/issues/11068>`_: Fixed the ``--last-failed`` whole-file skipping functionality ("skipped N files") for :ref:`non-python test files <non-python tests>`.
+- `#11068 <https://github.com/jacksonsr451/test-runner/issues/11068>`_: Fixed the ``--last-failed`` whole-file skipping functionality ("skipped N files") for :ref:`non-python test files <non-python tests>`.
 
 
-- `#11104 <https://github.com/pytest-dev/pytest/issues/11104>`_: Fixed a regression in pytest 7.3.2 which caused to :confval:`testpaths` to be considered for loading initial conftests,
+- `#11104 <https://github.com/jacksonsr451/test-runner/issues/11104>`_: Fixed a regression in testrunner 7.3.2 which caused to :confval:`testpaths` to be considered for loading initial conftests,
   even when it was not utilized (e.g. when explicit paths were given on the command line).
   Now the ``testpaths`` are only considered when they are in use.
 
 
-- `#1904 <https://github.com/pytest-dev/pytest/issues/1904>`_: Fixed traceback entries hidden with ``__tracebackhide__ = True`` still being shown for chained exceptions (parts after "... the above exception ..." message).
+- `#1904 <https://github.com/jacksonsr451/test-runner/issues/1904>`_: Fixed traceback entries hidden with ``__tracebackhide__ = True`` still being shown for chained exceptions (parts after "... the above exception ..." message).
 
 
-- `#7781 <https://github.com/pytest-dev/pytest/issues/7781>`_: Fix writing non-encodable text to log file when using ``--debug``.
+- `#7781 <https://github.com/jacksonsr451/test-runner/issues/7781>`_: Fix writing non-encodable text to log file when using ``--debug``.
 
 
 
 Improved Documentation
 ----------------------
 
-- `#9146 <https://github.com/pytest-dev/pytest/issues/9146>`_: Improved documentation for :func:`caplog.set_level() <pytest.LogCaptureFixture.set_level>`.
+- `#9146 <https://github.com/jacksonsr451/test-runner/issues/9146>`_: Improved documentation for :func:`caplog.set_level() <testrunner.LogCaptureFixture.set_level>`.
 
 
 
 Trivial/Internal Changes
 ------------------------
 
-- `#11031 <https://github.com/pytest-dev/pytest/issues/11031>`_: Enhanced the CLI flag for ``-c`` to now include ``--config-file`` to make it clear that this flag applies to the usage of a custom config file.
+- `#11031 <https://github.com/jacksonsr451/test-runner/issues/11031>`_: Enhanced the CLI flag for ``-c`` to now include ``--config-file`` to make it clear that this flag applies to the usage of a custom config file.
 
 
-pytest 7.3.2 (2023-06-10)
+testrunner 7.3.2 (2023-06-10)
 =========================
 
 Bug Fixes
 ---------
 
-- `#10169 <https://github.com/pytest-dev/pytest/issues/10169>`_: Fix bug where very long option names could cause pytest to break with ``OSError: [Errno 36] File name too long`` on some systems.
+- `#10169 <https://github.com/jacksonsr451/test-runner/issues/10169>`_: Fix bug where very long option names could cause testrunner to break with ``OSError: [Errno 36] File name too long`` on some systems.
 
 
-- `#10894 <https://github.com/pytest-dev/pytest/issues/10894>`_: Support for Python 3.12 (beta at the time of writing).
+- `#10894 <https://github.com/jacksonsr451/test-runner/issues/10894>`_: Support for Python 3.12 (beta at the time of writing).
 
 
-- `#10987 <https://github.com/pytest-dev/pytest/issues/10987>`_: :confval:`testpaths` is now honored to load root ``conftests``.
+- `#10987 <https://github.com/jacksonsr451/test-runner/issues/10987>`_: :confval:`testpaths` is now honored to load root ``conftests``.
 
 
-- `#10999 <https://github.com/pytest-dev/pytest/issues/10999>`_: The `monkeypatch` `setitem`/`delitem` type annotations now allow `TypedDict` arguments.
+- `#10999 <https://github.com/jacksonsr451/test-runner/issues/10999>`_: The `monkeypatch` `setitem`/`delitem` type annotations now allow `TypedDict` arguments.
 
 
-- `#11028 <https://github.com/pytest-dev/pytest/issues/11028>`_: Fixed bug in assertion rewriting where a variable assigned with the walrus operator could not be used later in a function call.
+- `#11028 <https://github.com/jacksonsr451/test-runner/issues/11028>`_: Fixed bug in assertion rewriting where a variable assigned with the walrus operator could not be used later in a function call.
 
 
-- `#11054 <https://github.com/pytest-dev/pytest/issues/11054>`_: Fixed ``--last-failed``'s "(skipped N files)" functionality for files inside of packages (directories with `__init__.py` files).
+- `#11054 <https://github.com/jacksonsr451/test-runner/issues/11054>`_: Fixed ``--last-failed``'s "(skipped N files)" functionality for files inside of packages (directories with `__init__.py` files).
 
 
-pytest 7.3.1 (2023-04-14)
+testrunner 7.3.1 (2023-04-14)
 =========================
 
 Improvements
 ------------
 
-- `#10875 <https://github.com/pytest-dev/pytest/issues/10875>`_: Python 3.12 support: fixed ``RuntimeError: TestResult has no addDuration method`` when running ``unittest`` tests.
+- `#10875 <https://github.com/jacksonsr451/test-runner/issues/10875>`_: Python 3.12 support: fixed ``RuntimeError: TestResult has no addDuration method`` when running ``unittest`` tests.
 
 
-- `#10890 <https://github.com/pytest-dev/pytest/issues/10890>`_: Python 3.12 support: fixed ``shutil.rmtree(onerror=...)`` deprecation warning when using :fixture:`tmp_path`.
+- `#10890 <https://github.com/jacksonsr451/test-runner/issues/10890>`_: Python 3.12 support: fixed ``shutil.rmtree(onerror=...)`` deprecation warning when using :fixture:`tmp_path`.
 
 
 
 Bug Fixes
 ---------
 
-- `#10896 <https://github.com/pytest-dev/pytest/issues/10896>`_: Fixed performance regression related to :fixture:`tmp_path` and the new :confval:`tmp_path_retention_policy` option.
+- `#10896 <https://github.com/jacksonsr451/test-runner/issues/10896>`_: Fixed performance regression related to :fixture:`tmp_path` and the new :confval:`tmp_path_retention_policy` option.
 
 
-- `#10903 <https://github.com/pytest-dev/pytest/issues/10903>`_: Fix crash ``INTERNALERROR IndexError: list index out of range`` which happens when displaying an exception where all entries are hidden.
+- `#10903 <https://github.com/jacksonsr451/test-runner/issues/10903>`_: Fix crash ``INTERNALERROR IndexError: list index out of range`` which happens when displaying an exception where all entries are hidden.
   This reverts the change "Correctly handle ``__tracebackhide__`` for chained exceptions." introduced in version 7.3.0.
 
 
-pytest 7.3.0 (2023-04-08)
+testrunner 7.3.0 (2023-04-08)
 =========================
 
 Features
 --------
 
-- `#10525 <https://github.com/pytest-dev/pytest/issues/10525>`_: Test methods decorated with ``@classmethod`` can now be discovered as tests, following the same rules as normal methods. This fills the gap that static methods were discoverable as tests but not class methods.
+- `#10525 <https://github.com/jacksonsr451/test-runner/issues/10525>`_: Test methods decorated with ``@classmethod`` can now be discovered as tests, following the same rules as normal methods. This fills the gap that static methods were discoverable as tests but not class methods.
 
 
-- `#10755 <https://github.com/pytest-dev/pytest/issues/10755>`_: :confval:`console_output_style` now supports ``progress-even-when-capture-no`` to force the use of the progress output even when capture is disabled. This is useful in large test suites where capture may have significant performance impact.
+- `#10755 <https://github.com/jacksonsr451/test-runner/issues/10755>`_: :confval:`console_output_style` now supports ``progress-even-when-capture-no`` to force the use of the progress output even when capture is disabled. This is useful in large test suites where capture may have significant performance impact.
 
 
-- `#7431 <https://github.com/pytest-dev/pytest/issues/7431>`_: ``--log-disable`` CLI option added to disable individual loggers.
+- `#7431 <https://github.com/jacksonsr451/test-runner/issues/7431>`_: ``--log-disable`` CLI option added to disable individual loggers.
 
 
-- `#8141 <https://github.com/pytest-dev/pytest/issues/8141>`_: Added :confval:`tmp_path_retention_count` and :confval:`tmp_path_retention_policy` configuration options to control how directories created by the :fixture:`tmp_path` fixture are kept.
+- `#8141 <https://github.com/jacksonsr451/test-runner/issues/8141>`_: Added :confval:`tmp_path_retention_count` and :confval:`tmp_path_retention_policy` configuration options to control how directories created by the :fixture:`tmp_path` fixture are kept.
 
 
 
 Improvements
 ------------
 
-- `#10226 <https://github.com/pytest-dev/pytest/issues/10226>`_: If multiple errors are raised in teardown, we now re-raise an ``ExceptionGroup`` of them instead of discarding all but the last.
+- `#10226 <https://github.com/jacksonsr451/test-runner/issues/10226>`_: If multiple errors are raised in teardown, we now re-raise an ``ExceptionGroup`` of them instead of discarding all but the last.
 
 
-- `#10658 <https://github.com/pytest-dev/pytest/issues/10658>`_: Allow ``-p`` arguments to include spaces (eg: ``-p no:logging`` instead of
+- `#10658 <https://github.com/jacksonsr451/test-runner/issues/10658>`_: Allow ``-p`` arguments to include spaces (eg: ``-p no:logging`` instead of
   ``-pno:logging``). Mostly useful in the ``addopts`` section of the configuration
   file.
 
 
-- `#10710 <https://github.com/pytest-dev/pytest/issues/10710>`_: Added ``start`` and ``stop`` timestamps to ``TestReport`` objects.
+- `#10710 <https://github.com/jacksonsr451/test-runner/issues/10710>`_: Added ``start`` and ``stop`` timestamps to ``TestReport`` objects.
 
 
-- `#10727 <https://github.com/pytest-dev/pytest/issues/10727>`_: Split the report header for ``rootdir``, ``config file`` and ``testpaths`` so each has its own line.
+- `#10727 <https://github.com/jacksonsr451/test-runner/issues/10727>`_: Split the report header for ``rootdir``, ``config file`` and ``testpaths`` so each has its own line.
 
 
-- `#10840 <https://github.com/pytest-dev/pytest/issues/10840>`_: pytest should no longer crash on AST with pathological position attributes, for example testing AST produced by `Hylang <https://github.com/hylang/hy>__`.
+- `#10840 <https://github.com/jacksonsr451/test-runner/issues/10840>`_: testrunner should no longer crash on AST with pathological position attributes, for example testing AST produced by `Hylang <https://github.com/hylang/hy>__`.
 
 
-- `#6267 <https://github.com/pytest-dev/pytest/issues/6267>`_: The full output of a test is no longer truncated if the truncation message would be longer than
+- `#6267 <https://github.com/jacksonsr451/test-runner/issues/6267>`_: The full output of a test is no longer truncated if the truncation message would be longer than
   the hidden text. The line number shown has also been fixed.
 
 
@@ -2707,13 +2707,13 @@ Improvements
 Bug Fixes
 ---------
 
-- `#10743 <https://github.com/pytest-dev/pytest/issues/10743>`_: The assertion rewriting mechanism now works correctly when assertion expressions contain the walrus operator.
+- `#10743 <https://github.com/jacksonsr451/test-runner/issues/10743>`_: The assertion rewriting mechanism now works correctly when assertion expressions contain the walrus operator.
 
 
-- `#10765 <https://github.com/pytest-dev/pytest/issues/10765>`_: Fixed :fixture:`tmp_path` fixture always raising :class:`OSError` on ``emscripten`` platform due to missing :func:`os.getuid`.
+- `#10765 <https://github.com/jacksonsr451/test-runner/issues/10765>`_: Fixed :fixture:`tmp_path` fixture always raising :class:`OSError` on ``emscripten`` platform due to missing :func:`os.getuid`.
 
 
-- `#1904 <https://github.com/pytest-dev/pytest/issues/1904>`_: Correctly handle ``__tracebackhide__`` for chained exceptions.
+- `#1904 <https://github.com/jacksonsr451/test-runner/issues/1904>`_: Correctly handle ``__tracebackhide__`` for chained exceptions.
   NOTE: This change was reverted in version 7.3.1.
 
 
@@ -2721,344 +2721,344 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- `#10782 <https://github.com/pytest-dev/pytest/issues/10782>`_: Fixed the minimal example in :ref:`goodpractices`: ``pip install -e .`` requires a ``version`` entry in ``pyproject.toml`` to run successfully.
+- `#10782 <https://github.com/jacksonsr451/test-runner/issues/10782>`_: Fixed the minimal example in :ref:`goodpractices`: ``pip install -e .`` requires a ``version`` entry in ``pyproject.toml`` to run successfully.
 
 
 
 Trivial/Internal Changes
 ------------------------
 
-- `#10669 <https://github.com/pytest-dev/pytest/issues/10669>`_: pytest no longer directly depends on the `attrs <https://www.attrs.org/en/stable/>`__ package. While
-  we at pytest all love the package dearly and would like to thank the ``attrs`` team for many years of cooperation and support,
-  it makes sense for ``pytest`` to have as little external dependencies as possible, as this helps downstream projects.
-  With that in mind, we have replaced the pytest's limited internal usage to use the standard library's ``dataclasses`` instead.
+- `#10669 <https://github.com/jacksonsr451/test-runner/issues/10669>`_: testrunner no longer directly depends on the `attrs <https://www.attrs.org/en/stable/>`__ package. While
+  we at testrunner all love the package dearly and would like to thank the ``attrs`` team for many years of cooperation and support,
+  it makes sense for ``testrunner`` to have as little external dependencies as possible, as this helps downstream projects.
+  With that in mind, we have replaced the testrunner's limited internal usage to use the standard library's ``dataclasses`` instead.
 
   Nice diffs for ``attrs`` classes are still supported though.
 
 
-pytest 7.2.2 (2023-03-03)
+testrunner 7.2.2 (2023-03-03)
 =========================
 
 Bug Fixes
 ---------
 
-- `#10533 <https://github.com/pytest-dev/pytest/issues/10533>`_: Fixed :func:`pytest.approx` handling of dictionaries containing one or more values of `0.0`.
+- `#10533 <https://github.com/jacksonsr451/test-runner/issues/10533>`_: Fixed :func:`testrunner.approx` handling of dictionaries containing one or more values of `0.0`.
 
 
-- `#10592 <https://github.com/pytest-dev/pytest/issues/10592>`_: Fixed crash if `--cache-show` and `--help` are passed at the same time.
+- `#10592 <https://github.com/jacksonsr451/test-runner/issues/10592>`_: Fixed crash if `--cache-show` and `--help` are passed at the same time.
 
 
-- `#10597 <https://github.com/pytest-dev/pytest/issues/10597>`_: Fixed bug where a fixture method named ``teardown`` would be called as part of ``nose`` teardown stage.
+- `#10597 <https://github.com/jacksonsr451/test-runner/issues/10597>`_: Fixed bug where a fixture method named ``teardown`` would be called as part of ``nose`` teardown stage.
 
 
-- `#10626 <https://github.com/pytest-dev/pytest/issues/10626>`_: Fixed crash if ``--fixtures`` and ``--help`` are passed at the same time.
+- `#10626 <https://github.com/jacksonsr451/test-runner/issues/10626>`_: Fixed crash if ``--fixtures`` and ``--help`` are passed at the same time.
 
 
-- `#10660 <https://github.com/pytest-dev/pytest/issues/10660>`_: Fixed :py:func:`pytest.raises` to return a 'ContextManager' so that type-checkers could narrow
-  :code:`pytest.raises(...) if ... else nullcontext()` down to 'ContextManager' rather than 'object'.
+- `#10660 <https://github.com/jacksonsr451/test-runner/issues/10660>`_: Fixed :py:func:`testrunner.raises` to return a 'ContextManager' so that type-checkers could narrow
+  :code:`testrunner.raises(...) if ... else nullcontext()` down to 'ContextManager' rather than 'object'.
 
 
 
 Improved Documentation
 ----------------------
 
-- `#10690 <https://github.com/pytest-dev/pytest/issues/10690>`_: Added `CI` and `BUILD_NUMBER` environment variables to the documentation.
+- `#10690 <https://github.com/jacksonsr451/test-runner/issues/10690>`_: Added `CI` and `BUILD_NUMBER` environment variables to the documentation.
 
 
-- `#10721 <https://github.com/pytest-dev/pytest/issues/10721>`_: Fixed entry-points declaration in the documentation example using Hatch.
+- `#10721 <https://github.com/jacksonsr451/test-runner/issues/10721>`_: Fixed entry-points declaration in the documentation example using Hatch.
 
 
-- `#10753 <https://github.com/pytest-dev/pytest/issues/10753>`_: Changed wording of the module level skip to be very explicit
+- `#10753 <https://github.com/jacksonsr451/test-runner/issues/10753>`_: Changed wording of the module level skip to be very explicit
   about not collecting tests and not executing the rest of the module.
 
 
-pytest 7.2.1 (2023-01-13)
+testrunner 7.2.1 (2023-01-13)
 =========================
 
 Bug Fixes
 ---------
 
-- `#10452 <https://github.com/pytest-dev/pytest/issues/10452>`_: Fix 'importlib.abc.TraversableResources' deprecation warning in Python 3.12.
+- `#10452 <https://github.com/jacksonsr451/test-runner/issues/10452>`_: Fix 'importlib.abc.TraversableResources' deprecation warning in Python 3.12.
 
 
-- `#10457 <https://github.com/pytest-dev/pytest/issues/10457>`_: If a test is skipped from inside a fixture, the test summary now shows the test location instead of the fixture location.
+- `#10457 <https://github.com/jacksonsr451/test-runner/issues/10457>`_: If a test is skipped from inside a fixture, the test summary now shows the test location instead of the fixture location.
 
 
-- `#10506 <https://github.com/pytest-dev/pytest/issues/10506>`_: Fix bug where sometimes pytest would use the file system root directory as :ref:`rootdir <rootdir>` on Windows.
+- `#10506 <https://github.com/jacksonsr451/test-runner/issues/10506>`_: Fix bug where sometimes testrunner would use the file system root directory as :ref:`rootdir <rootdir>` on Windows.
 
 
-- `#10607 <https://github.com/pytest-dev/pytest/issues/10607>`_: Fix a race condition when creating junitxml reports, which could occur when multiple instances of pytest execute in parallel.
+- `#10607 <https://github.com/jacksonsr451/test-runner/issues/10607>`_: Fix a race condition when creating junitxml reports, which could occur when multiple instances of testrunner execute in parallel.
 
 
-- `#10641 <https://github.com/pytest-dev/pytest/issues/10641>`_: Fix a race condition when creating or updating the stepwise plugin's cache, which could occur when multiple xdist worker nodes try to simultaneously update the stepwise plugin's cache.
+- `#10641 <https://github.com/jacksonsr451/test-runner/issues/10641>`_: Fix a race condition when creating or updating the stepwise plugin's cache, which could occur when multiple xdist worker nodes try to simultaneously update the stepwise plugin's cache.
 
 
-pytest 7.2.0 (2022-10-23)
+testrunner 7.2.0 (2022-10-23)
 =========================
 
 Deprecations
 ------------
 
-- `#10012 <https://github.com/pytest-dev/pytest/issues/10012>`_: Update ``pytest.PytestUnhandledCoroutineWarning`` to a deprecation; it will raise an error in pytest 8.
+- `#10012 <https://github.com/jacksonsr451/test-runner/issues/10012>`_: Update ``testrunner.TestrunnerUnhandledCoroutineWarning`` to a deprecation; it will raise an error in testrunner 8.
 
 
-- `#10396 <https://github.com/pytest-dev/pytest/issues/10396>`_: pytest no longer depends on the ``py`` library.  ``pytest`` provides a vendored copy of ``py.error`` and ``py.path`` modules but will use the ``py`` library if it is installed.  If you need other ``py.*`` modules, continue to install the deprecated ``py`` library separately, otherwise it can usually be removed as a dependency.
+- `#10396 <https://github.com/jacksonsr451/test-runner/issues/10396>`_: testrunner no longer depends on the ``py`` library.  ``testrunner`` provides a vendored copy of ``py.error`` and ``py.path`` modules but will use the ``py`` library if it is installed.  If you need other ``py.*`` modules, continue to install the deprecated ``py`` library separately, otherwise it can usually be removed as a dependency.
 
 
-- `#4562 <https://github.com/pytest-dev/pytest/issues/4562>`_: Deprecate configuring hook specs/impls using attributes/marks.
+- `#4562 <https://github.com/jacksonsr451/test-runner/issues/4562>`_: Deprecate configuring hook specs/impls using attributes/marks.
 
-  Instead use :py:func:`pytest.hookimpl` and :py:func:`pytest.hookspec`.
+  Instead use :py:func:`testrunner.hookimpl` and :py:func:`testrunner.hookspec`.
   For more details, see the :ref:`docs <legacy-path-hooks-deprecated>`.
 
 
-- `#9886 <https://github.com/pytest-dev/pytest/issues/9886>`_: The functionality for running tests written for ``nose`` has been officially deprecated.
+- `#9886 <https://github.com/jacksonsr451/test-runner/issues/9886>`_: The functionality for running tests written for ``nose`` has been officially deprecated.
 
   This includes:
 
-  * Plain ``setup`` and ``teardown`` functions and methods: this might catch users by surprise, as ``setup()`` and ``teardown()`` are not pytest idioms, but part of the ``nose`` support.
+  * Plain ``setup`` and ``teardown`` functions and methods: this might catch users by surprise, as ``setup()`` and ``teardown()`` are not testrunner idioms, but part of the ``nose`` support.
   * Setup/teardown using the `@with_setup <with-setup-nose>`_ decorator.
 
   For more details, consult the :ref:`deprecation docs <nose-deprecation>`.
 
   .. _`with-setup-nose`: https://nose.readthedocs.io/en/latest/testing_tools.html?highlight=with_setup#nose.tools.with_setup
 
-- `#7337 <https://github.com/pytest-dev/pytest/issues/7337>`_: A deprecation warning is now emitted if a test function returns something other than `None`. This prevents a common mistake among beginners that expect that returning a `bool` (for example `return foo(a, b) == result`) would cause a test to pass or fail, instead of using `assert`. The plan is to make returning non-`None` from tests an error in the future.
+- `#7337 <https://github.com/jacksonsr451/test-runner/issues/7337>`_: A deprecation warning is now emitted if a test function returns something other than `None`. This prevents a common mistake among beginners that expect that returning a `bool` (for example `return foo(a, b) == result`) would cause a test to pass or fail, instead of using `assert`. The plan is to make returning non-`None` from tests an error in the future.
 
 
 Features
 --------
 
-- `#9897 <https://github.com/pytest-dev/pytest/issues/9897>`_: Added shell-style wildcard support to ``testpaths``.
+- `#9897 <https://github.com/jacksonsr451/test-runner/issues/9897>`_: Added shell-style wildcard support to ``testpaths``.
 
 
 
 Improvements
 ------------
 
-- `#10218 <https://github.com/pytest-dev/pytest/issues/10218>`_: ``@pytest.mark.parametrize()`` (and similar functions) now accepts any ``Sequence[str]`` for the argument names,
+- `#10218 <https://github.com/jacksonsr451/test-runner/issues/10218>`_: ``@testrunner.mark.parametrize()`` (and similar functions) now accepts any ``Sequence[str]`` for the argument names,
   instead of just ``list[str]`` and ``tuple[str, ...]``.
 
   (Note that ``str``, which is itself a ``Sequence[str]``, is still treated as a
   comma-delimited name list, as before).
 
 
-- `#10381 <https://github.com/pytest-dev/pytest/issues/10381>`_: The ``--no-showlocals`` flag has been added. This can be passed directly to tests to override ``--showlocals`` declared through ``addopts``.
+- `#10381 <https://github.com/jacksonsr451/test-runner/issues/10381>`_: The ``--no-showlocals`` flag has been added. This can be passed directly to tests to override ``--showlocals`` declared through ``addopts``.
 
 
-- `#3426 <https://github.com/pytest-dev/pytest/issues/3426>`_: Assertion failures with strings in NFC and NFD forms that normalize to the same string now have a dedicated error message detailing the issue, and their utf-8 representation is expressed instead.
+- `#3426 <https://github.com/jacksonsr451/test-runner/issues/3426>`_: Assertion failures with strings in NFC and NFD forms that normalize to the same string now have a dedicated error message detailing the issue, and their utf-8 representation is expressed instead.
 
 
-- `#8508 <https://github.com/pytest-dev/pytest/issues/8508>`_: Introduce multiline display for warning matching  via :py:func:`pytest.warns` and
-  enhance match comparison for :py:func:`pytest.ExceptionInfo.match` as returned by :py:func:`pytest.raises`.
+- `#8508 <https://github.com/jacksonsr451/test-runner/issues/8508>`_: Introduce multiline display for warning matching  via :py:func:`testrunner.warns` and
+  enhance match comparison for :py:func:`testrunner.ExceptionInfo.match` as returned by :py:func:`testrunner.raises`.
 
 
-- `#8646 <https://github.com/pytest-dev/pytest/issues/8646>`_: Improve :py:func:`pytest.raises`. Previously passing an empty tuple would give a confusing
+- `#8646 <https://github.com/jacksonsr451/test-runner/issues/8646>`_: Improve :py:func:`testrunner.raises`. Previously passing an empty tuple would give a confusing
   error. We now raise immediately with a more helpful message.
 
 
-- `#9741 <https://github.com/pytest-dev/pytest/issues/9741>`_: On Python 3.11, use the standard library's :mod:`tomllib` to parse TOML.
+- `#9741 <https://github.com/jacksonsr451/test-runner/issues/9741>`_: On Python 3.11, use the standard library's :mod:`tomllib` to parse TOML.
 
   `tomli` is no longer a dependency on Python 3.11.
 
 
-- `#9742 <https://github.com/pytest-dev/pytest/issues/9742>`_: Display assertion message without escaped newline characters with ``-vv``.
+- `#9742 <https://github.com/jacksonsr451/test-runner/issues/9742>`_: Display assertion message without escaped newline characters with ``-vv``.
 
 
-- `#9823 <https://github.com/pytest-dev/pytest/issues/9823>`_: Improved error message that is shown when no collector is found for a given file.
+- `#9823 <https://github.com/jacksonsr451/test-runner/issues/9823>`_: Improved error message that is shown when no collector is found for a given file.
 
 
-- `#9873 <https://github.com/pytest-dev/pytest/issues/9873>`_: Some coloring has been added to the short test summary.
+- `#9873 <https://github.com/jacksonsr451/test-runner/issues/9873>`_: Some coloring has been added to the short test summary.
 
 
-- `#9883 <https://github.com/pytest-dev/pytest/issues/9883>`_: Normalize the help description of all command-line options.
+- `#9883 <https://github.com/jacksonsr451/test-runner/issues/9883>`_: Normalize the help description of all command-line options.
 
 
-- `#9920 <https://github.com/pytest-dev/pytest/issues/9920>`_: Display full crash messages in ``short test summary info``, when running in a CI environment.
+- `#9920 <https://github.com/jacksonsr451/test-runner/issues/9920>`_: Display full crash messages in ``short test summary info``, when running in a CI environment.
 
 
-- `#9987 <https://github.com/pytest-dev/pytest/issues/9987>`_: Added support for hidden configuration file by allowing ``.pytest.ini`` as an alternative to ``pytest.ini``.
+- `#9987 <https://github.com/jacksonsr451/test-runner/issues/9987>`_: Added support for hidden configuration file by allowing ``.testrunner.ini`` as an alternative to ``testrunner.ini``.
 
 
 
 Bug Fixes
 ---------
 
-- `#10150 <https://github.com/pytest-dev/pytest/issues/10150>`_: :data:`sys.stdin` now contains all expected methods of a file-like object when capture is enabled.
+- `#10150 <https://github.com/jacksonsr451/test-runner/issues/10150>`_: :data:`sys.stdin` now contains all expected methods of a file-like object when capture is enabled.
 
 
-- `#10382 <https://github.com/pytest-dev/pytest/issues/10382>`_: Do not break into pdb when ``raise unittest.SkipTest()`` appears top-level in a file.
+- `#10382 <https://github.com/jacksonsr451/test-runner/issues/10382>`_: Do not break into pdb when ``raise unittest.SkipTest()`` appears top-level in a file.
 
 
-- `#7792 <https://github.com/pytest-dev/pytest/issues/7792>`_: Marks are now inherited according to the full MRO in test classes. Previously, if a test class inherited from two or more classes, only marks from the first super-class would apply.
+- `#7792 <https://github.com/jacksonsr451/test-runner/issues/7792>`_: Marks are now inherited according to the full MRO in test classes. Previously, if a test class inherited from two or more classes, only marks from the first super-class would apply.
 
   When inheriting marks from super-classes, marks from the sub-classes are now ordered before marks from the super-classes, in MRO order. Previously it was the reverse.
 
-  When inheriting marks from super-classes, the `pytestmark` attribute of the sub-class now only contains the marks directly applied to it. Previously, it also contained marks from its super-classes. Please note that this attribute should not normally be accessed directly; use :func:`Node.iter_markers <_pytest.nodes.Node.iter_markers>` instead.
+  When inheriting marks from super-classes, the `_testrunner_mark` attribute of the sub-class now only contains the marks directly applied to it. Previously, it also contained marks from its super-classes. Please note that this attribute should not normally be accessed directly; use :func:`Node.iter_markers <_testrunner.nodes.Node.iter_markers>` instead.
 
 
-- `#9159 <https://github.com/pytest-dev/pytest/issues/9159>`_: Showing inner exceptions by forcing native display in ``ExceptionGroups`` even when using display options other than ``--tb=native``. A temporary step before full implementation of pytest-native display for inner exceptions in ``ExceptionGroups``.
+- `#9159 <https://github.com/jacksonsr451/test-runner/issues/9159>`_: Showing inner exceptions by forcing native display in ``ExceptionGroups`` even when using display options other than ``--tb=native``. A temporary step before full implementation of testrunner-native display for inner exceptions in ``ExceptionGroups``.
 
 
-- `#9877 <https://github.com/pytest-dev/pytest/issues/9877>`_: Ensure ``caplog.get_records(when)`` returns current/correct data after invoking ``caplog.clear()``.
+- `#9877 <https://github.com/jacksonsr451/test-runner/issues/9877>`_: Ensure ``caplog.get_records(when)`` returns current/correct data after invoking ``caplog.clear()``.
 
 
 
 Improved Documentation
 ----------------------
 
-- `#10344 <https://github.com/pytest-dev/pytest/issues/10344>`_: Update information on writing plugins to use ``pyproject.toml`` instead of ``setup.py``.
+- `#10344 <https://github.com/jacksonsr451/test-runner/issues/10344>`_: Update information on writing plugins to use ``pyproject.toml`` instead of ``setup.py``.
 
 
-- `#9248 <https://github.com/pytest-dev/pytest/issues/9248>`_: The documentation is now built using Sphinx 5.x (up from 3.x previously).
+- `#9248 <https://github.com/jacksonsr451/test-runner/issues/9248>`_: The documentation is now built using Sphinx 5.x (up from 3.x previously).
 
 
-- `#9291 <https://github.com/pytest-dev/pytest/issues/9291>`_: Update documentation on how :func:`pytest.warns` affects :class:`DeprecationWarning`.
+- `#9291 <https://github.com/jacksonsr451/test-runner/issues/9291>`_: Update documentation on how :func:`testrunner.warns` affects :class:`DeprecationWarning`.
 
 
 
 Trivial/Internal Changes
 ------------------------
 
-- `#10313 <https://github.com/pytest-dev/pytest/issues/10313>`_: Made ``_pytest.doctest.DoctestItem`` export ``pytest.DoctestItem`` for
-  type check and runtime purposes. Made `_pytest.doctest` use internal APIs
+- `#10313 <https://github.com/jacksonsr451/test-runner/issues/10313>`_: Made ``_testrunner.doctest.DoctestItem`` export ``testrunner.DoctestItem`` for
+  type check and runtime purposes. Made `_testrunner.doctest` use internal APIs
   to avoid circular imports.
 
 
-- `#9906 <https://github.com/pytest-dev/pytest/issues/9906>`_: Made ``_pytest.compat`` re-export ``importlib_metadata`` in the eyes of type checkers.
+- `#9906 <https://github.com/jacksonsr451/test-runner/issues/9906>`_: Made ``_testrunner.compat`` re-export ``importlib_metadata`` in the eyes of type checkers.
 
 
-- `#9910 <https://github.com/pytest-dev/pytest/issues/9910>`_: Fix default encoding warning (``EncodingWarning``) in ``cacheprovider``
+- `#9910 <https://github.com/jacksonsr451/test-runner/issues/9910>`_: Fix default encoding warning (``EncodingWarning``) in ``cacheprovider``
 
 
-- `#9984 <https://github.com/pytest-dev/pytest/issues/9984>`_: Improve the error message when we attempt to access a fixture that has been
+- `#9984 <https://github.com/jacksonsr451/test-runner/issues/9984>`_: Improve the error message when we attempt to access a fixture that has been
   torn down.
   Add an additional sentence to the docstring explaining when it's not a good
   idea to call ``getfixturevalue``.
 
 
-pytest 7.1.3 (2022-08-31)
+testrunner 7.1.3 (2022-08-31)
 =========================
 
 Bug Fixes
 ---------
 
-- `#10060 <https://github.com/pytest-dev/pytest/issues/10060>`_: When running with ``--pdb``, ``TestCase.tearDown`` is no longer called for tests when the *class* has been skipped via ``unittest.skip`` or ``pytest.mark.skip``.
+- `#10060 <https://github.com/jacksonsr451/test-runner/issues/10060>`_: When running with ``--pdb``, ``TestCase.tearDown`` is no longer called for tests when the *class* has been skipped via ``unittest.skip`` or ``testrunner.mark.skip``.
 
 
-- `#10190 <https://github.com/pytest-dev/pytest/issues/10190>`_: Invalid XML characters in setup or teardown error messages are now properly escaped for JUnit XML reports.
+- `#10190 <https://github.com/jacksonsr451/test-runner/issues/10190>`_: Invalid XML characters in setup or teardown error messages are now properly escaped for JUnit XML reports.
 
 
-- `#10230 <https://github.com/pytest-dev/pytest/issues/10230>`_: Ignore ``.py`` files created by ``pyproject.toml``-based editable builds introduced in `pip 21.3 <https://pip.pypa.io/en/stable/news/#v21-3>`__.
+- `#10230 <https://github.com/jacksonsr451/test-runner/issues/10230>`_: Ignore ``.py`` files created by ``pyproject.toml``-based editable builds introduced in `pip 21.3 <https://pip.pypa.io/en/stable/news/#v21-3>`__.
 
 
-- `#3396 <https://github.com/pytest-dev/pytest/issues/3396>`_: Doctests now respect the ``--import-mode`` flag.
+- `#3396 <https://github.com/jacksonsr451/test-runner/issues/3396>`_: Doctests now respect the ``--import-mode`` flag.
 
 
-- `#9514 <https://github.com/pytest-dev/pytest/issues/9514>`_: Type-annotate ``FixtureRequest.param`` as ``Any`` as a stop gap measure until :issue:`8073` is fixed.
+- `#9514 <https://github.com/jacksonsr451/test-runner/issues/9514>`_: Type-annotate ``FixtureRequest.param`` as ``Any`` as a stop gap measure until :issue:`8073` is fixed.
 
 
-- `#9791 <https://github.com/pytest-dev/pytest/issues/9791>`_: Fixed a path handling code in ``rewrite.py`` that seems to work fine, but was incorrect and fails in some systems.
+- `#9791 <https://github.com/jacksonsr451/test-runner/issues/9791>`_: Fixed a path handling code in ``rewrite.py`` that seems to work fine, but was incorrect and fails in some systems.
 
 
-- `#9917 <https://github.com/pytest-dev/pytest/issues/9917>`_: Fixed string representation for :func:`pytest.approx` when used to compare tuples.
+- `#9917 <https://github.com/jacksonsr451/test-runner/issues/9917>`_: Fixed string representation for :func:`testrunner.approx` when used to compare tuples.
 
 
 
 Improved Documentation
 ----------------------
 
-- `#9937 <https://github.com/pytest-dev/pytest/issues/9937>`_: Explicit note that :fixture:`tmpdir` fixture is discouraged in favour of :fixture:`tmp_path`.
+- `#9937 <https://github.com/jacksonsr451/test-runner/issues/9937>`_: Explicit note that :fixture:`tmpdir` fixture is discouraged in favour of :fixture:`tmp_path`.
 
 
 
 Trivial/Internal Changes
 ------------------------
 
-- `#10114 <https://github.com/pytest-dev/pytest/issues/10114>`_: Replace `atomicwrites <https://github.com/untitaker/python-atomicwrites>`__ dependency on windows with `os.replace`.
+- `#10114 <https://github.com/jacksonsr451/test-runner/issues/10114>`_: Replace `atomicwrites <https://github.com/untitaker/python-atomicwrites>`__ dependency on windows with `os.replace`.
 
 
-pytest 7.1.2 (2022-04-23)
+testrunner 7.1.2 (2022-04-23)
 =========================
 
 Bug Fixes
 ---------
 
-- `#9726 <https://github.com/pytest-dev/pytest/issues/9726>`_: An unnecessary ``numpy`` import inside :func:`pytest.approx` was removed.
+- `#9726 <https://github.com/jacksonsr451/test-runner/issues/9726>`_: An unnecessary ``numpy`` import inside :func:`testrunner.approx` was removed.
 
 
-- `#9820 <https://github.com/pytest-dev/pytest/issues/9820>`_: Fix comparison of  ``dataclasses`` with ``InitVar``.
+- `#9820 <https://github.com/jacksonsr451/test-runner/issues/9820>`_: Fix comparison of  ``dataclasses`` with ``InitVar``.
 
 
-- `#9869 <https://github.com/pytest-dev/pytest/issues/9869>`_: Increase ``stacklevel`` for the ``NODE_CTOR_FSPATH_ARG`` deprecation to point to the
-  user's code, not pytest.
+- `#9869 <https://github.com/jacksonsr451/test-runner/issues/9869>`_: Increase ``stacklevel`` for the ``NODE_CTOR_FSPATH_ARG`` deprecation to point to the
+  user's code, not testrunner.
 
 
-- `#9871 <https://github.com/pytest-dev/pytest/issues/9871>`_: Fix a bizarre (and fortunately rare) bug where the `temp_path` fixture could raise
+- `#9871 <https://github.com/jacksonsr451/test-runner/issues/9871>`_: Fix a bizarre (and fortunately rare) bug where the `temp_path` fixture could raise
   an internal error while attempting to get the current user's username.
 
 
-pytest 7.1.1 (2022-03-17)
+testrunner 7.1.1 (2022-03-17)
 =========================
 
 Bug Fixes
 ---------
 
-- `#9767 <https://github.com/pytest-dev/pytest/issues/9767>`_: Fixed a regression in pytest 7.1.0 where some conftest.py files outside of the source tree (e.g. in the `site-packages` directory) were not picked up.
+- `#9767 <https://github.com/jacksonsr451/test-runner/issues/9767>`_: Fixed a regression in testrunner 7.1.0 where some conftest.py files outside of the source tree (e.g. in the `site-packages` directory) were not picked up.
 
 
-pytest 7.1.0 (2022-03-13)
+testrunner 7.1.0 (2022-03-13)
 =========================
 
 Breaking Changes
 ----------------
 
-- `#8838 <https://github.com/pytest-dev/pytest/issues/8838>`_: As per our policy, the following features have been deprecated in the 6.X series and are now
+- `#8838 <https://github.com/jacksonsr451/test-runner/issues/8838>`_: As per our policy, the following features have been deprecated in the 6.X series and are now
   removed:
 
-  * ``pytest._fillfuncargs`` function.
+  * ``testrunner._fillfuncargs`` function.
 
-  * ``pytest_warning_captured`` hook - use ``pytest_warning_recorded`` instead.
+  * ``testrunner_warning_captured`` hook - use ``testrunner_warning_recorded`` instead.
 
   * ``-k -foobar`` syntax - use ``-k 'not foobar'`` instead.
 
   * ``-k foobar:`` syntax.
 
-  * ``pytest.collect`` module - import from ``pytest`` directly.
+  * ``testrunner.collect`` module - import from ``testrunner`` directly.
 
   For more information consult
-  `Deprecations and Removals <https://docs.pytest.org/en/latest/deprecations.html>`__ in the docs.
+  `Deprecations and Removals <https://github.com/jacksonsr451/test-runner/tree/main/doc/en/deprecations.html>`__ in the docs.
 
 
-- `#9437 <https://github.com/pytest-dev/pytest/issues/9437>`_: Dropped support for Python 3.6, which reached `end-of-life <https://devguide.python.org/#status-of-python-branches>`__ at 2021-12-23.
+- `#9437 <https://github.com/jacksonsr451/test-runner/issues/9437>`_: Dropped support for Python 3.6, which reached `end-of-life <https://devguide.python.org/#status-of-python-branches>`__ at 2021-12-23.
 
 
 
 Improvements
 ------------
 
-- `#5192 <https://github.com/pytest-dev/pytest/issues/5192>`_: Fixed test output for some data types where ``-v`` would show less information.
+- `#5192 <https://github.com/jacksonsr451/test-runner/issues/5192>`_: Fixed test output for some data types where ``-v`` would show less information.
 
   Also, when showing diffs for sequences, ``-q`` would produce full diffs instead of the expected diff.
 
 
-- `#9362 <https://github.com/pytest-dev/pytest/issues/9362>`_: pytest now avoids specialized assert formatting when it is detected that the default ``__eq__`` is overridden in ``attrs`` or ``dataclasses``.
+- `#9362 <https://github.com/jacksonsr451/test-runner/issues/9362>`_: testrunner now avoids specialized assert formatting when it is detected that the default ``__eq__`` is overridden in ``attrs`` or ``dataclasses``.
 
 
-- `#9536 <https://github.com/pytest-dev/pytest/issues/9536>`_: When ``-vv`` is given on command line, show skipping and xfail reasons in full instead of truncating them to fit the terminal width.
+- `#9536 <https://github.com/jacksonsr451/test-runner/issues/9536>`_: When ``-vv`` is given on command line, show skipping and xfail reasons in full instead of truncating them to fit the terminal width.
 
 
-- `#9644 <https://github.com/pytest-dev/pytest/issues/9644>`_: More information about the location of resources that led Python to raise :class:`ResourceWarning` can now
+- `#9644 <https://github.com/jacksonsr451/test-runner/issues/9644>`_: More information about the location of resources that led Python to raise :class:`ResourceWarning` can now
   be obtained by enabling :mod:`tracemalloc`.
 
   See :ref:`resource-warnings` for more information.
 
 
-- `#9678 <https://github.com/pytest-dev/pytest/issues/9678>`_: More types are now accepted in the ``ids`` argument to ``@pytest.mark.parametrize``.
+- `#9678 <https://github.com/jacksonsr451/test-runner/issues/9678>`_: More types are now accepted in the ``ids`` argument to ``@testrunner.mark.parametrize``.
   Previously only `str`, `float`, `int` and `bool` were accepted;
   now `bytes`, `complex`, `re.Pattern`, `Enum` and anything with a `__name__` are also accepted.
 
 
-- `#9692 <https://github.com/pytest-dev/pytest/issues/9692>`_: :func:`pytest.approx` now raises a :class:`TypeError` when given an unordered sequence (such as :class:`set`).
+- `#9692 <https://github.com/jacksonsr451/test-runner/issues/9692>`_: :func:`testrunner.approx` now raises a :class:`TypeError` when given an unordered sequence (such as :class:`set`).
 
   Note that this implies that custom classes which only implement ``__iter__`` and ``__len__`` are no longer supported as they don't guarantee order.
 
@@ -3067,12 +3067,12 @@ Improvements
 Bug Fixes
 ---------
 
-- `#8242 <https://github.com/pytest-dev/pytest/issues/8242>`_: The deprecation of raising :class:`unittest.SkipTest` to skip collection of
-  tests during the pytest collection phase is reverted - this is now a supported
+- `#8242 <https://github.com/jacksonsr451/test-runner/issues/8242>`_: The deprecation of raising :class:`unittest.SkipTest` to skip collection of
+  tests during the testrunner collection phase is reverted - this is now a supported
   feature again.
 
 
-- `#9493 <https://github.com/pytest-dev/pytest/issues/9493>`_: Symbolic link components are no longer resolved in conftest paths.
+- `#9493 <https://github.com/jacksonsr451/test-runner/issues/9493>`_: Symbolic link components are no longer resolved in conftest paths.
   This means that if a conftest appears twice in collection tree, using symlinks, it will be executed twice.
   For example, given
 
@@ -3080,49 +3080,49 @@ Bug Fixes
       tests/real/test_it.py
       tests/link -> tests/real
 
-  running ``pytest tests`` now imports the conftest twice, once as ``tests/real/conftest.py`` and once as ``tests/link/conftest.py``.
-  This is a fix to match a similar change made to test collection itself in pytest 6.0 (see :pr:`6523` for details).
+  running ``testrunner tests`` now imports the conftest twice, once as ``tests/real/conftest.py`` and once as ``tests/link/conftest.py``.
+  This is a fix to match a similar change made to test collection itself in testrunner 6.0 (see :pr:`6523` for details).
 
 
-- `#9626 <https://github.com/pytest-dev/pytest/issues/9626>`_: Fixed count of selected tests on terminal collection summary when there were errors or skipped modules.
+- `#9626 <https://github.com/jacksonsr451/test-runner/issues/9626>`_: Fixed count of selected tests on terminal collection summary when there were errors or skipped modules.
 
-  If there were errors or skipped modules on collection, pytest would mistakenly subtract those from the selected count.
-
-
-- `#9645 <https://github.com/pytest-dev/pytest/issues/9645>`_: Fixed regression where ``--import-mode=importlib`` used together with :envvar:`PYTHONPATH` or :confval:`pythonpath` would cause import errors in test suites.
+  If there were errors or skipped modules on collection, testrunner would mistakenly subtract those from the selected count.
 
 
-- `#9708 <https://github.com/pytest-dev/pytest/issues/9708>`_: :fixture:`pytester` now requests a :fixture:`monkeypatch` fixture instead of creating one internally. This solves some issues with tests that involve pytest environment variables.
+- `#9645 <https://github.com/jacksonsr451/test-runner/issues/9645>`_: Fixed regression where ``--import-mode=importlib`` used together with :envvar:`PYTHONPATH` or :confval:`pythonpath` would cause import errors in test suites.
 
 
-- `#9730 <https://github.com/pytest-dev/pytest/issues/9730>`_: Malformed ``pyproject.toml`` files now produce a clearer error message.
+- `#9708 <https://github.com/jacksonsr451/test-runner/issues/9708>`_: :fixture:`testrunnerer` now requests a :fixture:`monkeypatch` fixture instead of creating one internally. This solves some issues with tests that involve testrunner environment variables.
 
 
-pytest 7.0.1 (2022-02-11)
+- `#9730 <https://github.com/jacksonsr451/test-runner/issues/9730>`_: Malformed ``pyproject.toml`` files now produce a clearer error message.
+
+
+testrunner 7.0.1 (2022-02-11)
 =========================
 
 Bug Fixes
 ---------
 
-- `#9608 <https://github.com/pytest-dev/pytest/issues/9608>`_: Fix invalid importing of ``importlib.readers`` in Python 3.9.
+- `#9608 <https://github.com/jacksonsr451/test-runner/issues/9608>`_: Fix invalid importing of ``importlib.readers`` in Python 3.9.
 
 
-- `#9610 <https://github.com/pytest-dev/pytest/issues/9610>`_: Restore `UnitTestFunction.obj` to return unbound rather than bound method.
+- `#9610 <https://github.com/jacksonsr451/test-runner/issues/9610>`_: Restore `UnitTestFunction.obj` to return unbound rather than bound method.
   Fixes a crash during a failed teardown in unittest TestCases with non-default `__init__`.
-  Regressed in pytest 7.0.0.
+  Regressed in testrunner 7.0.0.
 
 
-- `#9636 <https://github.com/pytest-dev/pytest/issues/9636>`_: The ``pythonpath`` plugin was renamed to ``python_path``. This avoids a conflict with the ``pytest-pythonpath`` plugin.
+- `#9636 <https://github.com/jacksonsr451/test-runner/issues/9636>`_: The ``pythonpath`` plugin was renamed to ``python_path``. This avoids a conflict with the ``testrunner-pythonpath`` plugin.
 
 
-- `#9642 <https://github.com/pytest-dev/pytest/issues/9642>`_: Fix running tests by id with ``::`` in the parametrize portion.
+- `#9642 <https://github.com/jacksonsr451/test-runner/issues/9642>`_: Fix running tests by id with ``::`` in the parametrize portion.
 
 
-- `#9643 <https://github.com/pytest-dev/pytest/issues/9643>`_: Delay issuing a :class:`~pytest.PytestWarning` about diamond inheritance involving :class:`~pytest.Item` and
-  :class:`~pytest.Collector` so it can be filtered using :ref:`standard warning filters <warnings>`.
+- `#9643 <https://github.com/jacksonsr451/test-runner/issues/9643>`_: Delay issuing a :class:`~testrunner.TestrunnerWarning` about diamond inheritance involving :class:`~testrunner.Item` and
+  :class:`~testrunner.Collector` so it can be filtered using :ref:`standard warning filters <warnings>`.
 
 
-pytest 7.0.0 (2022-02-03)
+testrunner 7.0.0 (2022-02-03)
 =========================
 
 (**Please see the full set of changes for this release also in the 7.0.0rc1 notes below**)
@@ -3130,12 +3130,12 @@ pytest 7.0.0 (2022-02-03)
 Deprecations
 ------------
 
-- `#9488 <https://github.com/pytest-dev/pytest/issues/9488>`_: If custom subclasses of nodes like :class:`pytest.Item` override the
+- `#9488 <https://github.com/jacksonsr451/test-runner/issues/9488>`_: If custom subclasses of nodes like :class:`testrunner.Item` override the
   ``__init__`` method, they should take ``**kwargs``. See
   :ref:`uncooperative-constructors-deprecated` for details.
 
   Note that a deprecation warning is only emitted when there is a conflict in the
-  arguments pytest expected to pass. This deprecation was already part of pytest
+  arguments testrunner expected to pass. This deprecation was already part of testrunner
   7.0.0rc1 but wasn't documented.
 
 
@@ -3143,20 +3143,20 @@ Deprecations
 Bug Fixes
 ---------
 
-- `#9355 <https://github.com/pytest-dev/pytest/issues/9355>`_: Fixed error message prints function decorators when using assert in Python 3.8 and above.
+- `#9355 <https://github.com/jacksonsr451/test-runner/issues/9355>`_: Fixed error message prints function decorators when using assert in Python 3.8 and above.
 
 
-- `#9396 <https://github.com/pytest-dev/pytest/issues/9396>`_: Ensure `pytest.Config.inifile` is available during the :hook:`pytest_cmdline_main` hook (regression during ``7.0.0rc1``).
+- `#9396 <https://github.com/jacksonsr451/test-runner/issues/9396>`_: Ensure `testrunner.Config.inifile` is available during the :hook:`testrunner_cmdline_main` hook (regression during ``7.0.0rc1``).
 
 
 
 Improved Documentation
 ----------------------
 
-- `#9404 <https://github.com/pytest-dev/pytest/issues/9404>`_: Added extra documentation on alternatives to common misuses of `pytest.warns(None)` ahead of its deprecation.
+- `#9404 <https://github.com/jacksonsr451/test-runner/issues/9404>`_: Added extra documentation on alternatives to common misuses of `testrunner.warns(None)` ahead of its deprecation.
 
 
-- `#9505 <https://github.com/pytest-dev/pytest/issues/9505>`_: Clarify where the configuration files are located. To avoid confusions documentation mentions
+- `#9505 <https://github.com/jacksonsr451/test-runner/issues/9505>`_: Clarify where the configuration files are located. To avoid confusions documentation mentions
   that configuration file is located in the root of the repository.
 
 
@@ -3164,78 +3164,78 @@ Improved Documentation
 Trivial/Internal Changes
 ------------------------
 
-- `#9521 <https://github.com/pytest-dev/pytest/issues/9521>`_: Add test coverage to assertion rewrite path.
+- `#9521 <https://github.com/jacksonsr451/test-runner/issues/9521>`_: Add test coverage to assertion rewrite path.
 
 
-pytest 7.0.0rc1 (2021-12-06)
+testrunner 7.0.0rc1 (2021-12-06)
 ============================
 
 Breaking Changes
 ----------------
 
-- `#7259 <https://github.com/pytest-dev/pytest/issues/7259>`_: The :ref:`Node.reportinfo() <non-python tests>` function first return value type has been expanded from `py.path.local | str` to `os.PathLike[str] | str`.
+- `#7259 <https://github.com/jacksonsr451/test-runner/issues/7259>`_: The :ref:`Node.reportinfo() <non-python tests>` function first return value type has been expanded from `py.path.local | str` to `os.PathLike[str] | str`.
 
-  Most plugins which refer to `reportinfo()` only define it as part of a custom :class:`pytest.Item` implementation.
+  Most plugins which refer to `reportinfo()` only define it as part of a custom :class:`testrunner.Item` implementation.
   Since `py.path.local` is an `os.PathLike[str]`, these plugins are unaffected.
 
   Plugins and users which call `reportinfo()`, use the first return value and interact with it as a `py.path.local`, would need to adjust by calling `py.path.local(fspath)`.
   Although preferably, avoid the legacy `py.path.local` and use `pathlib.Path`, or use `item.location` or `item.path`, instead.
 
-  Note: pytest was not able to provide a deprecation period for this change.
+  Note: testrunner was not able to provide a deprecation period for this change.
 
 
-- `#8246 <https://github.com/pytest-dev/pytest/issues/8246>`_: ``--version`` now writes version information to ``stdout`` rather than ``stderr``.
+- `#8246 <https://github.com/jacksonsr451/test-runner/issues/8246>`_: ``--version`` now writes version information to ``stdout`` rather than ``stderr``.
 
-- `#8592 <https://github.com/pytest-dev/pytest/issues/8592>`_: The ``pytest_cmdline_preparse`` hook has been removed following its deprecation. See :ref:`the deprecation note <cmdline-preparse-deprecated>` for more details.
+- `#8592 <https://github.com/jacksonsr451/test-runner/issues/8592>`_: The ``testrunner_cmdline_preparse`` hook has been removed following its deprecation. See :ref:`the deprecation note <cmdline-preparse-deprecated>` for more details.
 
-- `#8733 <https://github.com/pytest-dev/pytest/issues/8733>`_: Drop a workaround for `pyreadline <https://github.com/pyreadline/pyreadline>`__ that made it work with ``--pdb``.
+- `#8733 <https://github.com/jacksonsr451/test-runner/issues/8733>`_: Drop a workaround for `pyreadline <https://github.com/pyreadline/pyreadline>`__ that made it work with ``--pdb``.
 
-  The workaround was introduced in `#1281 <https://github.com/pytest-dev/pytest/pull/1281>`__ in 2015, however since then
+  The workaround was introduced in `#1281 <https://github.com/jacksonsr451/test-runner/pull/1281>`__ in 2015, however since then
   `pyreadline seems to have gone unmaintained <https://github.com/pyreadline/pyreadline/issues/58>`__, is `generating
-  warnings <https://github.com/pytest-dev/pytest/issues/8847>`__, and will stop working on Python 3.10.
+  warnings <https://github.com/jacksonsr451/test-runner/issues/8847>`__, and will stop working on Python 3.10.
 
 
-- `#9061 <https://github.com/pytest-dev/pytest/issues/9061>`_: Using :func:`pytest.approx` in a boolean context now raises an error hinting at the proper usage.
+- `#9061 <https://github.com/jacksonsr451/test-runner/issues/9061>`_: Using :func:`testrunner.approx` in a boolean context now raises an error hinting at the proper usage.
 
-  It is apparently common for users to mistakenly use ``pytest.approx`` like this:
+  It is apparently common for users to mistakenly use ``testrunner.approx`` like this:
 
   .. code-block:: python
 
-      assert pytest.approx(actual, expected)
+      assert testrunner.approx(actual, expected)
 
   While the correct usage is:
 
   .. code-block:: python
 
-      assert actual == pytest.approx(expected)
+      assert actual == testrunner.approx(expected)
 
   The new error message helps catch those mistakes.
 
 
-- `#9277 <https://github.com/pytest-dev/pytest/issues/9277>`_: The ``pytest.Instance`` collector type has been removed.
-  Importing ``pytest.Instance`` or ``_pytest.python.Instance`` returns a dummy type and emits a deprecation warning.
+- `#9277 <https://github.com/jacksonsr451/test-runner/issues/9277>`_: The ``testrunner.Instance`` collector type has been removed.
+  Importing ``testrunner.Instance`` or ``_testrunner.python.Instance`` returns a dummy type and emits a deprecation warning.
   See :ref:`instance-collector-deprecation` for details.
 
 
-- `#9308 <https://github.com/pytest-dev/pytest/issues/9308>`_: **PytestRemovedIn7Warning deprecation warnings are now errors by default.**
+- `#9308 <https://github.com/jacksonsr451/test-runner/issues/9308>`_: **TestrunnerRemovedIn7Warning deprecation warnings are now errors by default.**
 
   Following our plan to remove deprecated features with as little disruption as
-  possible, all warnings of type ``PytestRemovedIn7Warning`` now generate errors
+  possible, all warnings of type ``TestrunnerRemovedIn7Warning`` now generate errors
   instead of warning messages by default.
 
-  **The affected features will be effectively removed in pytest 7.1**, so please consult the
+  **The affected features will be effectively removed in testrunner 7.1**, so please consult the
   :ref:`deprecations` section in the docs for directions on how to update existing code.
 
-  In the pytest ``7.0.X`` series, it is possible to change the errors back into warnings as a
-  stopgap measure by adding this to your ``pytest.ini`` file:
+  In the testrunner ``7.0.X`` series, it is possible to change the errors back into warnings as a
+  stopgap measure by adding this to your ``testrunner.ini`` file:
 
   .. code-block:: ini
 
-      [pytest]
+      [testrunner]
       filterwarnings =
-          ignore::pytest.PytestRemovedIn7Warning
+          ignore::testrunner.TestrunnerRemovedIn7Warning
 
-  But this will stop working when pytest ``7.1`` is released.
+  But this will stop working when testrunner ``7.1`` is released.
 
   **If you have concerns** about the removal of a specific feature, please add a
   comment to :issue:`9308`.
@@ -3245,12 +3245,12 @@ Breaking Changes
 Deprecations
 ------------
 
-- `#7259 <https://github.com/pytest-dev/pytest/issues/7259>`_: ``py.path.local`` arguments for hooks have been deprecated. See :ref:`the deprecation note <legacy-path-hooks-deprecated>` for full details.
+- `#7259 <https://github.com/jacksonsr451/test-runner/issues/7259>`_: ``py.path.local`` arguments for hooks have been deprecated. See :ref:`the deprecation note <legacy-path-hooks-deprecated>` for full details.
 
   ``py.path.local`` arguments to Node constructors have been deprecated. See :ref:`the deprecation note <node-ctor-fspath-deprecation>` for full details.
 
   .. note::
-      The name of the :class:`~_pytest.nodes.Node` arguments and attributes (the
+      The name of the :class:`~_testrunner.nodes.Node` arguments and attributes (the
       new attribute being ``path``) is **the opposite** of the situation for hooks
       (the old argument being ``path``).
 
@@ -3259,66 +3259,66 @@ Deprecations
       dependency (see :issue:`9283` for a longer discussion).
 
 
-- `#7469 <https://github.com/pytest-dev/pytest/issues/7469>`_: Directly constructing the following classes is now deprecated:
+- `#7469 <https://github.com/jacksonsr451/test-runner/issues/7469>`_: Directly constructing the following classes is now deprecated:
 
-  - ``_pytest.mark.structures.Mark``
-  - ``_pytest.mark.structures.MarkDecorator``
-  - ``_pytest.mark.structures.MarkGenerator``
-  - ``_pytest.python.Metafunc``
-  - ``_pytest.runner.CallInfo``
-  - ``_pytest._code.ExceptionInfo``
-  - ``_pytest.config.argparsing.Parser``
-  - ``_pytest.config.argparsing.OptionGroup``
-  - ``_pytest.pytester.HookRecorder``
+  - ``_testrunner.mark.structures.Mark``
+  - ``_testrunner.mark.structures.MarkDecorator``
+  - ``_testrunner.mark.structures.MarkGenerator``
+  - ``_testrunner.python.Metafunc``
+  - ``_testrunner.runner.CallInfo``
+  - ``_testrunner._code.ExceptionInfo``
+  - ``_testrunner.config.argparsing.Parser``
+  - ``_testrunner.config.argparsing.OptionGroup``
+  - ``_testrunner.testrunnerer.HookRecorder``
 
-  These constructors have always been considered private, but now issue a deprecation warning, which may become a hard error in pytest 8.
+  These constructors have always been considered private, but now issue a deprecation warning, which may become a hard error in testrunner 8.
 
 
-- `#8242 <https://github.com/pytest-dev/pytest/issues/8242>`_: Raising :class:`unittest.SkipTest` to skip collection of tests during the
-  pytest collection phase is deprecated. Use :func:`pytest.skip` instead.
+- `#8242 <https://github.com/jacksonsr451/test-runner/issues/8242>`_: Raising :class:`unittest.SkipTest` to skip collection of tests during the
+  testrunner collection phase is deprecated. Use :func:`testrunner.skip` instead.
 
   Note: This deprecation only relates to using :class:`unittest.SkipTest` during test
   collection. You are probably not doing that. Ordinary usage of
   :class:`unittest.SkipTest` / :meth:`unittest.TestCase.skipTest` /
   :func:`unittest.skip` in unittest test cases is fully supported.
 
-  .. note:: This deprecation has been reverted in pytest 7.1.0.
+  .. note:: This deprecation has been reverted in testrunner 7.1.0.
 
 
-- `#8315 <https://github.com/pytest-dev/pytest/issues/8315>`_: Several behaviors of :meth:`Parser.addoption <pytest.Parser.addoption>` are now
-  scheduled for removal in pytest 8 (deprecated since pytest 2.4.0):
+- `#8315 <https://github.com/jacksonsr451/test-runner/issues/8315>`_: Several behaviors of :meth:`Parser.addoption <testrunner.Parser.addoption>` are now
+  scheduled for removal in testrunner 8 (deprecated since testrunner 2.4.0):
 
   - ``parser.addoption(..., help=".. %default ..")`` - use ``%(default)s`` instead.
   - ``parser.addoption(..., type="int/string/float/complex")`` - use ``type=int`` etc. instead.
 
 
-- `#8447 <https://github.com/pytest-dev/pytest/issues/8447>`_: Defining a custom pytest node type which is both an :class:`~pytest.Item` and a :class:`~pytest.Collector` (e.g. :class:`~pytest.File`) now issues a warning.
+- `#8447 <https://github.com/jacksonsr451/test-runner/issues/8447>`_: Defining a custom testrunner node type which is both an :class:`~testrunner.Item` and a :class:`~testrunner.Collector` (e.g. :class:`~testrunner.File`) now issues a warning.
   It was never sanely supported and triggers hard to debug errors.
 
   See :ref:`the deprecation note <diamond-inheritance-deprecated>` for full details.
 
 
-- `#8592 <https://github.com/pytest-dev/pytest/issues/8592>`_: ``pytest_cmdline_preparse`` has been officially deprecated.  It will be removed in a future release.  Use :hook:`pytest_load_initial_conftests` instead.
+- `#8592 <https://github.com/jacksonsr451/test-runner/issues/8592>`_: ``testrunner_cmdline_preparse`` has been officially deprecated.  It will be removed in a future release.  Use :hook:`testrunner_load_initial_conftests` instead.
 
   See :ref:`the deprecation note <cmdline-preparse-deprecated>` for full details.
 
 
-- `#8645 <https://github.com/pytest-dev/pytest/issues/8645>`_: :func:`pytest.warns(None) <pytest.warns>` is now deprecated because many people used
+- `#8645 <https://github.com/jacksonsr451/test-runner/issues/8645>`_: :func:`testrunner.warns(None) <testrunner.warns>` is now deprecated because many people used
   it to mean "this code does not emit warnings", but it actually had the effect of
-  checking that the code emits at least one warning of any type - like ``pytest.warns()``
-  or ``pytest.warns(Warning)``.
+  checking that the code emits at least one warning of any type - like ``testrunner.warns()``
+  or ``testrunner.warns(Warning)``.
 
 
-- `#8948 <https://github.com/pytest-dev/pytest/issues/8948>`_: :func:`pytest.skip(msg=...) <pytest.skip>`, :func:`pytest.fail(msg=...) <pytest.fail>` and :func:`pytest.exit(msg=...) <pytest.exit>`
+- `#8948 <https://github.com/jacksonsr451/test-runner/issues/8948>`_: :func:`testrunner.skip(msg=...) <testrunner.skip>`, :func:`testrunner.fail(msg=...) <testrunner.fail>` and :func:`testrunner.exit(msg=...) <testrunner.exit>`
   signatures now accept a ``reason`` argument instead of ``msg``.  Using ``msg`` still works, but is deprecated and will be removed in a future release.
 
-  This was changed for consistency with :func:`pytest.mark.skip <pytest.mark.skip>` and  :func:`pytest.mark.xfail <pytest.mark.xfail>` which both accept
+  This was changed for consistency with :func:`testrunner.mark.skip <testrunner.mark.skip>` and  :func:`testrunner.mark.xfail <testrunner.mark.xfail>` which both accept
   ``reason`` as an argument.
 
-- `#8174 <https://github.com/pytest-dev/pytest/issues/8174>`_: The following changes have been made to types reachable through :attr:`pytest.ExceptionInfo.traceback`:
+- `#8174 <https://github.com/jacksonsr451/test-runner/issues/8174>`_: The following changes have been made to types reachable through :attr:`testrunner.ExceptionInfo.traceback`:
 
-  - The ``path`` property of ``_pytest.code.Code`` returns ``Path`` instead of ``py.path.local``.
-  - The ``path`` property of ``_pytest.code.TracebackEntry`` returns ``Path`` instead of ``py.path.local``.
+  - The ``path`` property of ``_testrunner.code.Code`` returns ``Path`` instead of ``py.path.local``.
+  - The ``path`` property of ``_testrunner.code.TracebackEntry`` returns ``Path`` instead of ``py.path.local``.
 
   There was no deprecation period for this change (sorry!).
 
@@ -3326,64 +3326,64 @@ Deprecations
 Features
 --------
 
-- `#5196 <https://github.com/pytest-dev/pytest/issues/5196>`_: Tests are now ordered by definition order in more cases.
+- `#5196 <https://github.com/jacksonsr451/test-runner/issues/5196>`_: Tests are now ordered by definition order in more cases.
 
   In a class hierarchy, tests from base classes are now consistently ordered before tests defined on their subclasses (reverse MRO order).
 
 
-- `#7132 <https://github.com/pytest-dev/pytest/issues/7132>`_: Added two environment variables :envvar:`PYTEST_THEME` and :envvar:`PYTEST_THEME_MODE` to let the users customize the pygments theme used.
+- `#7132 <https://github.com/jacksonsr451/test-runner/issues/7132>`_: Added two environment variables :envvar:`TESTRUNNER_THEME` and :envvar:`TESTRUNNER_THEME_MODE` to let the users customize the pygments theme used.
 
 
-- `#7259 <https://github.com/pytest-dev/pytest/issues/7259>`_: Added :meth:`cache.mkdir() <pytest.Cache.mkdir>`, which is similar to the existing ``cache.makedir()``,
+- `#7259 <https://github.com/jacksonsr451/test-runner/issues/7259>`_: Added :meth:`cache.mkdir() <testrunner.Cache.mkdir>`, which is similar to the existing ``cache.makedir()``,
   but returns a :class:`pathlib.Path` instead of a legacy ``py.path.local``.
 
-  Added a ``paths`` type to :meth:`parser.addini() <pytest.Parser.addini>`,
+  Added a ``paths`` type to :meth:`parser.addini() <testrunner.Parser.addini>`,
   as in ``parser.addini("mypaths", "my paths", type="paths")``,
   which is similar to the existing ``pathlist``,
   but returns a list of :class:`pathlib.Path` instead of legacy ``py.path.local``.
 
 
-- `#7469 <https://github.com/pytest-dev/pytest/issues/7469>`_: The types of objects used in pytest's API are now exported so they may be used in type annotations.
+- `#7469 <https://github.com/jacksonsr451/test-runner/issues/7469>`_: The types of objects used in testrunner's API are now exported so they may be used in type annotations.
 
   The newly-exported types are:
 
-  - ``pytest.Config`` for :class:`Config <pytest.Config>`.
-  - ``pytest.Mark`` for :class:`marks <pytest.Mark>`.
-  - ``pytest.MarkDecorator`` for :class:`mark decorators <pytest.MarkDecorator>`.
-  - ``pytest.MarkGenerator`` for the :class:`pytest.mark <pytest.MarkGenerator>` singleton.
-  - ``pytest.Metafunc`` for the :class:`metafunc <pytest.MarkGenerator>` argument to the :hook:`pytest_generate_tests` hook.
-  - ``pytest.CallInfo`` for the :class:`CallInfo <pytest.CallInfo>` type passed to various hooks.
-  - ``pytest.PytestPluginManager`` for :class:`PytestPluginManager <pytest.PytestPluginManager>`.
-  - ``pytest.ExceptionInfo`` for the :class:`ExceptionInfo <pytest.ExceptionInfo>` type returned from :func:`pytest.raises` and passed to various hooks.
-  - ``pytest.Parser`` for the :class:`Parser <pytest.Parser>` type passed to the :hook:`pytest_addoption` hook.
-  - ``pytest.OptionGroup`` for the :class:`OptionGroup <pytest.OptionGroup>` type returned from the :func:`parser.addgroup <pytest.Parser.getgroup>` method.
-  - ``pytest.HookRecorder`` for the :class:`HookRecorder <pytest.HookRecorder>` type returned from :class:`~pytest.Pytester`.
-  - ``pytest.RecordedHookCall`` for the :class:`RecordedHookCall <pytest.HookRecorder>` type returned from :class:`~pytest.HookRecorder`.
-  - ``pytest.RunResult`` for the :class:`RunResult <pytest.RunResult>` type returned from :class:`~pytest.Pytester`.
-  - ``pytest.LineMatcher`` for the :class:`LineMatcher <pytest.LineMatcher>` type used in :class:`~pytest.RunResult` and others.
-  - ``pytest.TestReport`` for the :class:`TestReport <pytest.TestReport>` type used in various hooks.
-  - ``pytest.CollectReport`` for the :class:`CollectReport <pytest.CollectReport>` type used in various hooks.
+  - ``testrunner.Config`` for :class:`Config <testrunner.Config>`.
+  - ``testrunner.Mark`` for :class:`marks <testrunner.Mark>`.
+  - ``testrunner.MarkDecorator`` for :class:`mark decorators <testrunner.MarkDecorator>`.
+  - ``testrunner.MarkGenerator`` for the :class:`testrunner.mark <testrunner.MarkGenerator>` singleton.
+  - ``testrunner.Metafunc`` for the :class:`metafunc <testrunner.MarkGenerator>` argument to the :hook:`testrunner_generate_tests` hook.
+  - ``testrunner.CallInfo`` for the :class:`CallInfo <testrunner.CallInfo>` type passed to various hooks.
+  - ``testrunner.TestrunnerPluginManager`` for :class:`TestrunnerPluginManager <testrunner.TestrunnerPluginManager>`.
+  - ``testrunner.ExceptionInfo`` for the :class:`ExceptionInfo <testrunner.ExceptionInfo>` type returned from :func:`testrunner.raises` and passed to various hooks.
+  - ``testrunner.Parser`` for the :class:`Parser <testrunner.Parser>` type passed to the :hook:`testrunner_addoption` hook.
+  - ``testrunner.OptionGroup`` for the :class:`OptionGroup <testrunner.OptionGroup>` type returned from the :func:`parser.addgroup <testrunner.Parser.getgroup>` method.
+  - ``testrunner.HookRecorder`` for the :class:`HookRecorder <testrunner.HookRecorder>` type returned from :class:`~testrunner.Testrunnerer`.
+  - ``testrunner.RecordedHookCall`` for the :class:`RecordedHookCall <testrunner.HookRecorder>` type returned from :class:`~testrunner.HookRecorder`.
+  - ``testrunner.RunResult`` for the :class:`RunResult <testrunner.RunResult>` type returned from :class:`~testrunner.Testrunnerer`.
+  - ``testrunner.LineMatcher`` for the :class:`LineMatcher <testrunner.LineMatcher>` type used in :class:`~testrunner.RunResult` and others.
+  - ``testrunner.TestReport`` for the :class:`TestReport <testrunner.TestReport>` type used in various hooks.
+  - ``testrunner.CollectReport`` for the :class:`CollectReport <testrunner.CollectReport>` type used in various hooks.
 
   Constructing most of them directly is not supported; they are only meant for use in type annotations.
-  Doing so will emit a deprecation warning, and may become a hard-error in pytest 8.0.
+  Doing so will emit a deprecation warning, and may become a hard-error in testrunner 8.0.
 
   Subclassing them is also not supported. This is not currently enforced at runtime, but is detected by type-checkers such as mypy.
 
 
-- `#7856 <https://github.com/pytest-dev/pytest/issues/7856>`_: :ref:`--import-mode=importlib <import-modes>` now works with features that
+- `#7856 <https://github.com/jacksonsr451/test-runner/issues/7856>`_: :ref:`--import-mode=importlib <import-modes>` now works with features that
   depend on modules being on :py:data:`sys.modules`, such as :mod:`pickle` and :mod:`dataclasses`.
 
 
-- `#8144 <https://github.com/pytest-dev/pytest/issues/8144>`_: The following hooks now receive an additional ``pathlib.Path`` argument, equivalent to an existing ``py.path.local`` argument:
+- `#8144 <https://github.com/jacksonsr451/test-runner/issues/8144>`_: The following hooks now receive an additional ``pathlib.Path`` argument, equivalent to an existing ``py.path.local`` argument:
 
-  - :hook:`pytest_ignore_collect` - The ``collection_path`` parameter (equivalent to existing ``path`` parameter).
-  - :hook:`pytest_collect_file` - The ``file_path`` parameter (equivalent to existing ``path`` parameter).
-  - :hook:`pytest_pycollect_makemodule` - The ``module_path`` parameter (equivalent to existing ``path`` parameter).
-  - :hook:`pytest_report_header` - The ``start_path`` parameter (equivalent to existing ``startdir`` parameter).
-  - :hook:`pytest_report_collectionfinish` - The ``start_path`` parameter (equivalent to existing ``startdir`` parameter).
+  - :hook:`testrunner_ignore_collect` - The ``collection_path`` parameter (equivalent to existing ``path`` parameter).
+  - :hook:`testrunner_collect_file` - The ``file_path`` parameter (equivalent to existing ``path`` parameter).
+  - :hook:`testrunner_pycollect_makemodule` - The ``module_path`` parameter (equivalent to existing ``path`` parameter).
+  - :hook:`testrunner_report_header` - The ``start_path`` parameter (equivalent to existing ``startdir`` parameter).
+  - :hook:`testrunner_report_collectionfinish` - The ``start_path`` parameter (equivalent to existing ``startdir`` parameter).
 
   .. note::
-      The name of the :class:`~_pytest.nodes.Node` arguments and attributes (the
+      The name of the :class:`~_testrunner.nodes.Node` arguments and attributes (the
       new attribute being ``path``) is **the opposite** of the situation for hooks
       (the old argument being ``path``).
 
@@ -3392,11 +3392,11 @@ Features
       dependency (see :issue:`9283` for a longer discussion).
 
 
-- `#8251 <https://github.com/pytest-dev/pytest/issues/8251>`_: Implement ``Node.path`` as a ``pathlib.Path``. Both the old ``fspath`` and this new attribute gets set no matter whether ``path`` or ``fspath`` (deprecated) is passed to the constructor. It is a replacement for the ``fspath`` attribute (which represents the same path as ``py.path.local``). While ``fspath`` is not deprecated yet
-  due to the ongoing migration of methods like :meth:`~pytest.Item.reportinfo`, we expect to deprecate it in a future release.
+- `#8251 <https://github.com/jacksonsr451/test-runner/issues/8251>`_: Implement ``Node.path`` as a ``pathlib.Path``. Both the old ``fspath`` and this new attribute gets set no matter whether ``path`` or ``fspath`` (deprecated) is passed to the constructor. It is a replacement for the ``fspath`` attribute (which represents the same path as ``py.path.local``). While ``fspath`` is not deprecated yet
+  due to the ongoing migration of methods like :meth:`~testrunner.Item.reportinfo`, we expect to deprecate it in a future release.
 
   .. note::
-      The name of the :class:`~_pytest.nodes.Node` arguments and attributes (the
+      The name of the :class:`~_testrunner.nodes.Node` arguments and attributes (the
       new attribute being ``path``) is **the opposite** of the situation for hooks
       (the old argument being ``path``).
 
@@ -3405,91 +3405,91 @@ Features
       dependency (see :issue:`9283` for a longer discussion).
 
 
-- `#8421 <https://github.com/pytest-dev/pytest/issues/8421>`_: :func:`pytest.approx` now works on :class:`~decimal.Decimal` within mappings/dicts and sequences/lists.
+- `#8421 <https://github.com/jacksonsr451/test-runner/issues/8421>`_: :func:`testrunner.approx` now works on :class:`~decimal.Decimal` within mappings/dicts and sequences/lists.
 
 
-- `#8606 <https://github.com/pytest-dev/pytest/issues/8606>`_: pytest invocations with ``--fixtures-per-test`` and ``--fixtures`` have been enriched with:
+- `#8606 <https://github.com/jacksonsr451/test-runner/issues/8606>`_: testrunner invocations with ``--fixtures-per-test`` and ``--fixtures`` have been enriched with:
 
   - Fixture location path printed with the fixture name.
   - First section of the fixture's docstring printed under the fixture name.
   - Whole of fixture's docstring printed under the fixture name using ``--verbose`` option.
 
 
-- `#8761 <https://github.com/pytest-dev/pytest/issues/8761>`_: New :ref:`version-tuple` attribute, which makes it simpler for users to do something depending on the pytest version (such as declaring hooks which are introduced in later versions).
+- `#8761 <https://github.com/jacksonsr451/test-runner/issues/8761>`_: New :ref:`version-tuple` attribute, which makes it simpler for users to do something depending on the testrunner version (such as declaring hooks which are introduced in later versions).
 
 
-- `#8789 <https://github.com/pytest-dev/pytest/issues/8789>`_: Switch TOML parser from ``toml`` to ``tomli`` for TOML v1.0.0 support in ``pyproject.toml``.
+- `#8789 <https://github.com/jacksonsr451/test-runner/issues/8789>`_: Switch TOML parser from ``toml`` to ``tomli`` for TOML v1.0.0 support in ``pyproject.toml``.
 
 
-- `#8920 <https://github.com/pytest-dev/pytest/issues/8920>`_: Added :class:`pytest.Stash`, a facility for plugins to store their data on :class:`~pytest.Config` and :class:`~_pytest.nodes.Node`\s in a type-safe and conflict-free manner.
+- `#8920 <https://github.com/jacksonsr451/test-runner/issues/8920>`_: Added :class:`testrunner.Stash`, a facility for plugins to store their data on :class:`~testrunner.Config` and :class:`~_testrunner.nodes.Node`\s in a type-safe and conflict-free manner.
   See :ref:`plugin-stash` for details.
 
 
-- `#8953 <https://github.com/pytest-dev/pytest/issues/8953>`_: :class:`~pytest.RunResult` method :meth:`~pytest.RunResult.assert_outcomes` now accepts a
+- `#8953 <https://github.com/jacksonsr451/test-runner/issues/8953>`_: :class:`~testrunner.RunResult` method :meth:`~testrunner.RunResult.assert_outcomes` now accepts a
   ``warnings`` argument to assert the total number of warnings captured.
 
 
-- `#8954 <https://github.com/pytest-dev/pytest/issues/8954>`_: ``--debug`` flag now accepts a :class:`str` file to route debug logs into, remains defaulted to `pytestdebug.log`.
+- `#8954 <https://github.com/jacksonsr451/test-runner/issues/8954>`_: ``--debug`` flag now accepts a :class:`str` file to route debug logs into, remains defaulted to `testrunnerdebug.log`.
 
 
-- `#9023 <https://github.com/pytest-dev/pytest/issues/9023>`_: Full diffs are now always shown for equality assertions of iterables when
+- `#9023 <https://github.com/jacksonsr451/test-runner/issues/9023>`_: Full diffs are now always shown for equality assertions of iterables when
   `CI` or ``BUILD_NUMBER`` is found in the environment, even when ``-v`` isn't
   used.
 
 
-- `#9113 <https://github.com/pytest-dev/pytest/issues/9113>`_: :class:`~pytest.RunResult` method :meth:`~pytest.RunResult.assert_outcomes` now accepts a
+- `#9113 <https://github.com/jacksonsr451/test-runner/issues/9113>`_: :class:`~testrunner.RunResult` method :meth:`~testrunner.RunResult.assert_outcomes` now accepts a
   ``deselected`` argument to assert the total number of deselected tests.
 
 
-- `#9114 <https://github.com/pytest-dev/pytest/issues/9114>`_: Added :confval:`pythonpath` setting that adds listed paths to :data:`sys.path` for the duration of the test session. If you currently use the pytest-pythonpath or pytest-srcpaths plugins, you should be able to replace them with built-in `pythonpath` setting.
+- `#9114 <https://github.com/jacksonsr451/test-runner/issues/9114>`_: Added :confval:`pythonpath` setting that adds listed paths to :data:`sys.path` for the duration of the test session. If you currently use the testrunner-pythonpath or testrunner-srcpaths plugins, you should be able to replace them with built-in `pythonpath` setting.
 
 
 
 Improvements
 ------------
 
-- `#7480 <https://github.com/pytest-dev/pytest/issues/7480>`_: A deprecation scheduled to be removed in a major version X (e.g. pytest 7, 8, 9, ...) now uses warning category `PytestRemovedInXWarning`,
-  a subclass of :class:`~pytest.PytestDeprecationWarning`,
-  instead of :class:`~pytest.PytestDeprecationWarning` directly.
+- `#7480 <https://github.com/jacksonsr451/test-runner/issues/7480>`_: A deprecation scheduled to be removed in a major version X (e.g. testrunner 7, 8, 9, ...) now uses warning category `TestrunnerRemovedInXWarning`,
+  a subclass of :class:`~testrunner.TestrunnerDeprecationWarning`,
+  instead of :class:`~testrunner.TestrunnerDeprecationWarning` directly.
 
   See :ref:`backwards-compatibility` for more details.
 
 
-- `#7864 <https://github.com/pytest-dev/pytest/issues/7864>`_: Improved error messages when parsing warning filters.
+- `#7864 <https://github.com/jacksonsr451/test-runner/issues/7864>`_: Improved error messages when parsing warning filters.
 
-  Previously pytest would show an internal traceback, which besides being ugly sometimes would hide the cause
+  Previously testrunner would show an internal traceback, which besides being ugly sometimes would hide the cause
   of the problem (for example an ``ImportError`` while importing a specific warning type).
 
 
-- `#8335 <https://github.com/pytest-dev/pytest/issues/8335>`_: Improved :func:`pytest.approx` assertion messages for sequences of numbers.
+- `#8335 <https://github.com/jacksonsr451/test-runner/issues/8335>`_: Improved :func:`testrunner.approx` assertion messages for sequences of numbers.
 
   The assertion messages now dumps a table with the index and the error of each diff.
   Example::
 
-      >       assert [1, 2, 3, 4] == pytest.approx([1, 3, 3, 5])
+      >       assert [1, 2, 3, 4] == testrunner.approx([1, 3, 3, 5])
       E       assert comparison failed for 2 values:
       E         Index | Obtained | Expected
       E         1     | 2        | 3 +- 3.0e-06
       E         3     | 4        | 5 +- 5.0e-06
 
 
-- `#8403 <https://github.com/pytest-dev/pytest/issues/8403>`_: By default, pytest will truncate long strings in assert errors so they don't clutter the output too much,
+- `#8403 <https://github.com/jacksonsr451/test-runner/issues/8403>`_: By default, testrunner will truncate long strings in assert errors so they don't clutter the output too much,
   currently at ``240`` characters by default.
 
   However, in some cases the longer output helps, or is even crucial, to diagnose a failure. Using ``-v`` will
   now increase the truncation threshold to ``2400`` characters, and ``-vv`` or higher will disable truncation entirely.
 
 
-- `#8509 <https://github.com/pytest-dev/pytest/issues/8509>`_: Fixed issue where :meth:`unittest.TestCase.setUpClass` is not called when a test has `/` in its name since pytest 6.2.0.
+- `#8509 <https://github.com/jacksonsr451/test-runner/issues/8509>`_: Fixed issue where :meth:`unittest.TestCase.setUpClass` is not called when a test has `/` in its name since testrunner 6.2.0.
 
-  This refers to the path part in pytest node IDs, e.g. ``TestClass::test_it`` in the node ID ``tests/test_file.py::TestClass::test_it``.
+  This refers to the path part in testrunner node IDs, e.g. ``TestClass::test_it`` in the node ID ``tests/test_file.py::TestClass::test_it``.
 
   Now, instead of assuming that the test name does not contain ``/``, it is assumed that test path does not contain ``::``. We plan to hopefully make both of these work in the future.
 
 
-- `#8803 <https://github.com/pytest-dev/pytest/issues/8803>`_: It is now possible to add colors to custom log levels on cli log.
+- `#8803 <https://github.com/jacksonsr451/test-runner/issues/8803>`_: It is now possible to add colors to custom log levels on cli log.
 
-  By using ``add_color_level`` from a :hook:`pytest_configure` hook, colors can be added::
+  By using ``add_color_level`` from a :hook:`testrunner_configure` hook, colors can be added::
 
       logging_plugin = config.pluginmanager.get_plugin('logging-plugin')
       logging_plugin.log_cli_handler.formatter.add_color_level(logging.INFO, 'cyan')
@@ -3498,92 +3498,92 @@ Improvements
   See :ref:`log_colors` for more information.
 
 
-- `#8822 <https://github.com/pytest-dev/pytest/issues/8822>`_: When showing fixture paths in `--fixtures` or `--fixtures-by-test`, fixtures coming from pytest itself now display an elided path, rather than the full path to the file in the `site-packages` directory.
+- `#8822 <https://github.com/jacksonsr451/test-runner/issues/8822>`_: When showing fixture paths in `--fixtures` or `--fixtures-by-test`, fixtures coming from testrunner itself now display an elided path, rather than the full path to the file in the `site-packages` directory.
 
 
-- `#8898 <https://github.com/pytest-dev/pytest/issues/8898>`_: Complex numbers are now treated like floats and integers when generating parameterization IDs.
+- `#8898 <https://github.com/jacksonsr451/test-runner/issues/8898>`_: Complex numbers are now treated like floats and integers when generating parameterization IDs.
 
 
-- `#9062 <https://github.com/pytest-dev/pytest/issues/9062>`_: ``--stepwise-skip`` now implicitly enables ``--stepwise`` and can be used on its own.
+- `#9062 <https://github.com/jacksonsr451/test-runner/issues/9062>`_: ``--stepwise-skip`` now implicitly enables ``--stepwise`` and can be used on its own.
 
 
-- `#9205 <https://github.com/pytest-dev/pytest/issues/9205>`_: :meth:`pytest.Cache.set` now preserves key order when saving dicts.
+- `#9205 <https://github.com/jacksonsr451/test-runner/issues/9205>`_: :meth:`testrunner.Cache.set` now preserves key order when saving dicts.
 
 
 
 Bug Fixes
 ---------
 
-- `#7124 <https://github.com/pytest-dev/pytest/issues/7124>`_: Fixed an issue where ``__main__.py`` would raise an ``ImportError`` when ``--doctest-modules`` was provided.
+- `#7124 <https://github.com/jacksonsr451/test-runner/issues/7124>`_: Fixed an issue where ``__main__.py`` would raise an ``ImportError`` when ``--doctest-modules`` was provided.
 
 
-- `#8061 <https://github.com/pytest-dev/pytest/issues/8061>`_: Fixed failing ``staticmethod`` test cases if they are inherited from a parent test class.
+- `#8061 <https://github.com/jacksonsr451/test-runner/issues/8061>`_: Fixed failing ``staticmethod`` test cases if they are inherited from a parent test class.
 
 
-- `#8192 <https://github.com/pytest-dev/pytest/issues/8192>`_: ``testdir.makefile`` now silently accepts values which don't start with ``.`` to maintain backward compatibility with older pytest versions.
+- `#8192 <https://github.com/jacksonsr451/test-runner/issues/8192>`_: ``testdir.makefile`` now silently accepts values which don't start with ``.`` to maintain backward compatibility with older testrunner versions.
 
-  ``pytester.makefile`` now issues a clearer error if the ``.`` is missing in the ``ext`` argument.
-
-
-- `#8258 <https://github.com/pytest-dev/pytest/issues/8258>`_: Fixed issue where pytest's ``faulthandler`` support would not dump traceback on crashes
-  if the :mod:`faulthandler` module was already enabled during pytest startup (using
-  ``python -X dev -m pytest`` for example).
+  ``testrunnerer.makefile`` now issues a clearer error if the ``.`` is missing in the ``ext`` argument.
 
 
-- `#8317 <https://github.com/pytest-dev/pytest/issues/8317>`_: Fixed an issue where illegal directory characters derived from ``getpass.getuser()`` raised an ``OSError``.
+- `#8258 <https://github.com/jacksonsr451/test-runner/issues/8258>`_: Fixed issue where testrunner's ``faulthandler`` support would not dump traceback on crashes
+  if the :mod:`faulthandler` module was already enabled during testrunner startup (using
+  ``python -X dev -m testrunner`` for example).
 
 
-- `#8367 <https://github.com/pytest-dev/pytest/issues/8367>`_: Fix ``Class.from_parent`` so it forwards extra keyword arguments to the constructor.
+- `#8317 <https://github.com/jacksonsr451/test-runner/issues/8317>`_: Fixed an issue where illegal directory characters derived from ``getpass.getuser()`` raised an ``OSError``.
 
 
-- `#8377 <https://github.com/pytest-dev/pytest/issues/8377>`_: The test selection options ``pytest -k`` and ``pytest -m`` now support matching
+- `#8367 <https://github.com/jacksonsr451/test-runner/issues/8367>`_: Fix ``Class.from_parent`` so it forwards extra keyword arguments to the constructor.
+
+
+- `#8377 <https://github.com/jacksonsr451/test-runner/issues/8377>`_: The test selection options ``testrunner -k`` and ``testrunner -m`` now support matching
   names containing forward slash (``/``) characters.
 
 
-- `#8384 <https://github.com/pytest-dev/pytest/issues/8384>`_: The ``@pytest.mark.skip`` decorator now correctly handles its arguments. When the ``reason`` argument is accidentally given both positional and as a keyword (e.g. because it was confused with ``skipif``), a ``TypeError`` now occurs. Before, such tests were silently skipped, and the positional argument ignored. Additionally, ``reason`` is now documented correctly as positional or keyword (rather than keyword-only).
+- `#8384 <https://github.com/jacksonsr451/test-runner/issues/8384>`_: The ``@testrunner.mark.skip`` decorator now correctly handles its arguments. When the ``reason`` argument is accidentally given both positional and as a keyword (e.g. because it was confused with ``skipif``), a ``TypeError`` now occurs. Before, such tests were silently skipped, and the positional argument ignored. Additionally, ``reason`` is now documented correctly as positional or keyword (rather than keyword-only).
 
 
-- `#8394 <https://github.com/pytest-dev/pytest/issues/8394>`_: Use private names for internal fixtures that handle classic setup/teardown so that they don't show up with the default ``--fixtures`` invocation (but they still show up with ``--fixtures -v``).
+- `#8394 <https://github.com/jacksonsr451/test-runner/issues/8394>`_: Use private names for internal fixtures that handle classic setup/teardown so that they don't show up with the default ``--fixtures`` invocation (but they still show up with ``--fixtures -v``).
 
 
-- `#8456 <https://github.com/pytest-dev/pytest/issues/8456>`_: The :confval:`required_plugins` config option now works correctly when pre-releases of plugins are installed, rather than falsely claiming that those plugins aren't installed at all.
+- `#8456 <https://github.com/jacksonsr451/test-runner/issues/8456>`_: The :confval:`required_plugins` config option now works correctly when pre-releases of plugins are installed, rather than falsely claiming that those plugins aren't installed at all.
 
 
-- `#8464 <https://github.com/pytest-dev/pytest/issues/8464>`_: ``-c <config file>`` now also properly defines ``rootdir`` as the directory that contains ``<config file>``.
+- `#8464 <https://github.com/jacksonsr451/test-runner/issues/8464>`_: ``-c <config file>`` now also properly defines ``rootdir`` as the directory that contains ``<config file>``.
 
 
-- `#8503 <https://github.com/pytest-dev/pytest/issues/8503>`_: :meth:`pytest.MonkeyPatch.syspath_prepend` no longer fails when
+- `#8503 <https://github.com/jacksonsr451/test-runner/issues/8503>`_: :meth:`testrunner.MonkeyPatch.syspath_prepend` no longer fails when
   ``setuptools`` is not installed.
   It now only calls ``pkg_resources.fixup_namespace_packages`` if
   ``pkg_resources`` was previously imported, because it is not needed otherwise.
 
 
-- `#8548 <https://github.com/pytest-dev/pytest/issues/8548>`_: Introduce fix to handle precision width in ``log-cli-format`` in turn to fix output coloring for certain formats.
+- `#8548 <https://github.com/jacksonsr451/test-runner/issues/8548>`_: Introduce fix to handle precision width in ``log-cli-format`` in turn to fix output coloring for certain formats.
 
 
-- `#8796 <https://github.com/pytest-dev/pytest/issues/8796>`_: Fixed internal error when skipping doctests.
+- `#8796 <https://github.com/jacksonsr451/test-runner/issues/8796>`_: Fixed internal error when skipping doctests.
 
 
-- `#8983 <https://github.com/pytest-dev/pytest/issues/8983>`_: The test selection options ``pytest -k`` and ``pytest -m`` now support matching names containing backslash (`\\`) characters.
+- `#8983 <https://github.com/jacksonsr451/test-runner/issues/8983>`_: The test selection options ``testrunner -k`` and ``testrunner -m`` now support matching names containing backslash (`\\`) characters.
   Backslashes are treated literally, not as escape characters (the values being matched against are already escaped).
 
 
-- `#8990 <https://github.com/pytest-dev/pytest/issues/8990>`_: Fix `pytest -vv` crashing with an internal exception `AttributeError: 'str' object has no attribute 'relative_to'` in some cases.
+- `#8990 <https://github.com/jacksonsr451/test-runner/issues/8990>`_: Fix `testrunner -vv` crashing with an internal exception `AttributeError: 'str' object has no attribute 'relative_to'` in some cases.
 
 
-- `#9077 <https://github.com/pytest-dev/pytest/issues/9077>`_: Fixed confusing error message when ``request.fspath`` / ``request.path`` was accessed from a session-scoped fixture.
+- `#9077 <https://github.com/jacksonsr451/test-runner/issues/9077>`_: Fixed confusing error message when ``request.fspath`` / ``request.path`` was accessed from a session-scoped fixture.
 
 
-- `#9131 <https://github.com/pytest-dev/pytest/issues/9131>`_: Fixed the URL used by ``--pastebin`` to use `bpa.st <http://bpa.st>`__.
+- `#9131 <https://github.com/jacksonsr451/test-runner/issues/9131>`_: Fixed the URL used by ``--pastebin`` to use `bpa.st <http://bpa.st>`__.
 
 
-- `#9163 <https://github.com/pytest-dev/pytest/issues/9163>`_: The end line number and end column offset are now properly set for rewritten assert statements.
+- `#9163 <https://github.com/jacksonsr451/test-runner/issues/9163>`_: The end line number and end column offset are now properly set for rewritten assert statements.
 
 
-- `#9169 <https://github.com/pytest-dev/pytest/issues/9169>`_: Support for the ``files`` API from ``importlib.resources`` within rewritten files.
+- `#9169 <https://github.com/jacksonsr451/test-runner/issues/9169>`_: Support for the ``files`` API from ``importlib.resources`` within rewritten files.
 
 
-- `#9272 <https://github.com/pytest-dev/pytest/issues/9272>`_: The nose compatibility module-level fixtures `setup()` and `teardown()` are now only called once per module, instead of for each test function.
+- `#9272 <https://github.com/jacksonsr451/test-runner/issues/9272>`_: The nose compatibility module-level fixtures `setup()` and `teardown()` are now only called once per module, instead of for each test function.
   They are now called even if object-level `setup`/`teardown` is defined.
 
 
@@ -3591,67 +3591,67 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- `#4320 <https://github.com/pytest-dev/pytest/issues/4320>`_: Improved docs for `pytester.copy_example`.
+- `#4320 <https://github.com/jacksonsr451/test-runner/issues/4320>`_: Improved docs for `testrunnerer.copy_example`.
 
 
-- `#5105 <https://github.com/pytest-dev/pytest/issues/5105>`_: Add automatically generated :ref:`plugin-list`. The list is updated on a periodic schedule.
+- `#5105 <https://github.com/jacksonsr451/test-runner/issues/5105>`_: Add automatically generated :ref:`plugin-list`. The list is updated on a periodic schedule.
 
 
-- `#8337 <https://github.com/pytest-dev/pytest/issues/8337>`_: Recommend `numpy.testing <https://numpy.org/doc/stable/reference/routines.testing.html>`__ module on :func:`pytest.approx` documentation.
+- `#8337 <https://github.com/jacksonsr451/test-runner/issues/8337>`_: Recommend `numtestrunnering <https://numpy.org/doc/stable/reference/routines.testing.html>`__ module on :func:`testrunner.approx` documentation.
 
 
-- `#8655 <https://github.com/pytest-dev/pytest/issues/8655>`_: Help text for ``--pdbcls`` more accurately reflects the option's behavior.
+- `#8655 <https://github.com/jacksonsr451/test-runner/issues/8655>`_: Help text for ``--pdbcls`` more accurately reflects the option's behavior.
 
 
-- `#9210 <https://github.com/pytest-dev/pytest/issues/9210>`_: Remove incorrect docs about ``confcutdir`` being a configuration option: it can only be set through the ``--confcutdir`` command-line option.
+- `#9210 <https://github.com/jacksonsr451/test-runner/issues/9210>`_: Remove incorrect docs about ``confcutdir`` being a configuration option: it can only be set through the ``--confcutdir`` command-line option.
 
 
-- `#9242 <https://github.com/pytest-dev/pytest/issues/9242>`_: Upgrade readthedocs configuration to use a `newer Ubuntu version <https://blog.readthedocs.com/new-build-specification/>`__` with better unicode support for PDF docs.
+- `#9242 <https://github.com/jacksonsr451/test-runner/issues/9242>`_: Upgrade readthedocs configuration to use a `newer Ubuntu version <https://blog.readthedocs.com/new-build-specification/>`__` with better unicode support for PDF docs.
 
 
-- `#9341 <https://github.com/pytest-dev/pytest/issues/9341>`_: Various methods commonly used for :ref:`non-python tests` are now correctly documented in the reference docs. They were undocumented previously.
+- `#9341 <https://github.com/jacksonsr451/test-runner/issues/9341>`_: Various methods commonly used for :ref:`non-python tests` are now correctly documented in the reference docs. They were undocumented previously.
 
 
 
 Trivial/Internal Changes
 ------------------------
 
-- `#8133 <https://github.com/pytest-dev/pytest/issues/8133>`_: Migrate to ``setuptools_scm`` 6.x to use ``SETUPTOOLS_SCM_PRETEND_VERSION_FOR_PYTEST`` for more robust release tooling.
+- `#8133 <https://github.com/jacksonsr451/test-runner/issues/8133>`_: Migrate to ``setuptools_scm`` 6.x to use ``SETUPTOOLS_SCM_PRETEND_VERSION_FOR_TESTRUNNER`` for more robust release tooling.
 
 
-- `#8174 <https://github.com/pytest-dev/pytest/issues/8174>`_: The following changes have been made to internal pytest types/functions:
+- `#8174 <https://github.com/jacksonsr451/test-runner/issues/8174>`_: The following changes have been made to internal testrunner types/functions:
 
-  - The ``_pytest.code.getfslineno()`` function returns ``Path`` instead of ``py.path.local``.
-  - The ``_pytest.python.path_matches_patterns()`` function takes ``Path`` instead of ``py.path.local``.
-  - The ``_pytest._code.Traceback.cut()`` function accepts any ``os.PathLike[str]``, not just ``py.path.local``.
-
-
-- `#8248 <https://github.com/pytest-dev/pytest/issues/8248>`_: Internal Restructure: let ``python.PyObjMixin`` inherit from ``nodes.Node`` to carry over typing information.
+  - The ``_testrunner.code.getfslineno()`` function returns ``Path`` instead of ``py.path.local``.
+  - The ``_testrunner.python.path_matches_patterns()`` function takes ``Path`` instead of ``py.path.local``.
+  - The ``_testrunner._code.Traceback.cut()`` function accepts any ``os.PathLike[str]``, not just ``py.path.local``.
 
 
-- `#8432 <https://github.com/pytest-dev/pytest/issues/8432>`_: Improve error message when :func:`pytest.skip` is used at module level without passing `allow_module_level=True`.
+- `#8248 <https://github.com/jacksonsr451/test-runner/issues/8248>`_: Internal Restructure: let ``python.PyObjMixin`` inherit from ``nodes.Node`` to carry over typing information.
 
 
-- `#8818 <https://github.com/pytest-dev/pytest/issues/8818>`_: Ensure ``regendoc`` opts out of ``TOX_ENV`` cachedir selection to ensure independent example test runs.
+- `#8432 <https://github.com/jacksonsr451/test-runner/issues/8432>`_: Improve error message when :func:`testrunner.skip` is used at module level without passing `allow_module_level=True`.
 
 
-- `#8913 <https://github.com/pytest-dev/pytest/issues/8913>`_: The private ``CallSpec2._arg2scopenum`` attribute has been removed after an internal refactoring.
+- `#8818 <https://github.com/jacksonsr451/test-runner/issues/8818>`_: Ensure ``regendoc`` opts out of ``TOX_ENV`` cachedir selection to ensure independent example test runs.
 
 
-- `#8967 <https://github.com/pytest-dev/pytest/issues/8967>`_: :hook:`pytest_assertion_pass` is no longer considered experimental and
+- `#8913 <https://github.com/jacksonsr451/test-runner/issues/8913>`_: The private ``CallSpec2._arg2scopenum`` attribute has been removed after an internal refactoring.
+
+
+- `#8967 <https://github.com/jacksonsr451/test-runner/issues/8967>`_: :hook:`testrunner_assertion_pass` is no longer considered experimental and
   future changes to it will be considered more carefully.
 
 
-- `#9202 <https://github.com/pytest-dev/pytest/issues/9202>`_: Add github action to upload coverage report to codecov instead of bash uploader.
+- `#9202 <https://github.com/jacksonsr451/test-runner/issues/9202>`_: Add github action to upload coverage report to codecov instead of bash uploader.
 
 
-- `#9225 <https://github.com/pytest-dev/pytest/issues/9225>`_: Changed the command used to create sdist and wheel artifacts: using the build package instead of setup.py.
+- `#9225 <https://github.com/jacksonsr451/test-runner/issues/9225>`_: Changed the command used to create sdist and wheel artifacts: using the build package instead of setup.py.
 
 
-- `#9351 <https://github.com/pytest-dev/pytest/issues/9351>`_: Correct minor typos in doc/en/example/special.rst.
+- `#9351 <https://github.com/jacksonsr451/test-runner/issues/9351>`_: Correct minor typos in doc/en/example/special.rst.
 
 
-pytest 6.2.5 (2021-08-29)
+testrunner 6.2.5 (2021-08-29)
 =========================
 
 
@@ -3664,7 +3664,7 @@ Trivial/Internal Changes
 - :issue:`9040`: Enable compatibility with ``pluggy 1.0`` or later.
 
 
-pytest 6.2.4 (2021-05-04)
+testrunner 6.2.4 (2021-05-04)
 =========================
 
 Bug Fixes
@@ -3673,25 +3673,25 @@ Bug Fixes
 - :issue:`8539`: Fixed assertion rewriting on Python 3.10.
 
 
-pytest 6.2.3 (2021-04-03)
+testrunner 6.2.3 (2021-04-03)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`8414`: pytest used to create directories under ``/tmp`` with world-readable
+- :issue:`8414`: testrunner used to create directories under ``/tmp`` with world-readable
   permissions. This means that any user in the system was able to read
   information written by tests in temporary directories (such as those created by
   the ``tmp_path``/``tmpdir`` fixture). Now the directories are created with
   private permissions.
 
-  pytest used to silently use a preexisting ``/tmp/pytest-of-<username>`` directory,
+  testrunner used to silently use a preexisting ``/tmp/testrunner-of-<username>`` directory,
   even if owned by another user. This means another user could pre-create such a
   directory and gain control of another user's temporary directory. Now such a
   condition results in an error.
 
 
-pytest 6.2.2 (2021-01-25)
+testrunner 6.2.2 (2021-01-25)
 =========================
 
 Bug Fixes
@@ -3700,10 +3700,10 @@ Bug Fixes
 - :issue:`8152`: Fixed "(<Skipped instance>)" being shown as a skip reason in the verbose test summary line when the reason is empty.
 
 
-- :issue:`8249`: Fix the ``faulthandler`` plugin for occasions when running with ``twisted.logger`` and using ``pytest --capture=no``.
+- :issue:`8249`: Fix the ``faulthandler`` plugin for occasions when running with ``twisted.logger`` and using ``testrunner --capture=no``.
 
 
-pytest 6.2.1 (2020-12-15)
+testrunner 6.2.1 (2020-12-15)
 =========================
 
 Bug Fixes
@@ -3725,13 +3725,13 @@ Bug Fixes
   regardless of size.
 
 
-pytest 6.2.0 (2020-12-12)
+testrunner 6.2.0 (2020-12-12)
 =========================
 
 Breaking Changes
 ----------------
 
-- :issue:`7808`: pytest now supports python3.6+ only.
+- :issue:`7808`: testrunner now supports python3.6+ only.
 
 
 
@@ -3740,22 +3740,22 @@ Deprecations
 
 - :issue:`7469`: Directly constructing/calling the following classes/functions is now deprecated:
 
-  - ``_pytest.cacheprovider.Cache``
-  - ``_pytest.cacheprovider.Cache.for_config()``
-  - ``_pytest.cacheprovider.Cache.clear_cache()``
-  - ``_pytest.cacheprovider.Cache.cache_dir_from_config()``
-  - ``_pytest.capture.CaptureFixture``
-  - ``_pytest.fixtures.FixtureRequest``
-  - ``_pytest.fixtures.SubRequest``
-  - ``_pytest.logging.LogCaptureFixture``
-  - ``_pytest.pytester.Pytester``
-  - ``_pytest.pytester.Testdir``
-  - ``_pytest.recwarn.WarningsRecorder``
-  - ``_pytest.recwarn.WarningsChecker``
-  - ``_pytest.tmpdir.TempPathFactory``
-  - ``_pytest.tmpdir.TempdirFactory``
+  - ``_testrunner.cacheprovider.Cache``
+  - ``_testrunner.cacheprovider.Cache.for_config()``
+  - ``_testrunner.cacheprovider.Cache.clear_cache()``
+  - ``_testrunner.cacheprovider.Cache.cache_dir_from_config()``
+  - ``_testrunner.capture.CaptureFixture``
+  - ``_testrunner.fixtures.FixtureRequest``
+  - ``_testrunner.fixtures.SubRequest``
+  - ``_testrunner.logging.LogCaptureFixture``
+  - ``_testrunner.testrunnerer.Testrunnerer``
+  - ``_testrunner.testrunnerer.Testdir``
+  - ``_testrunner.recwarn.WarningsRecorder``
+  - ``_testrunner.recwarn.WarningsChecker``
+  - ``_testrunner.tmpdir.TempPathFactory``
+  - ``_testrunner.tmpdir.TempdirFactory``
 
-  These have always been considered private, but now issue a deprecation warning, which may become a hard error in pytest 8.0.0.
+  These have always been considered private, but now issue a deprecation warning, which may become a hard error in testrunner 8.0.0.
 
 
 - :issue:`7530`: The ``--strict`` command-line option has been deprecated, use ``--strict-markers`` instead.
@@ -3764,7 +3764,7 @@ Deprecations
   related options (``--strict-markers`` and ``--strict-config`` at the moment, more might be introduced in the future).
 
 
-- :issue:`7988`: The ``@pytest.yield_fixture`` decorator/function is now deprecated. Use :func:`pytest.fixture` instead.
+- :issue:`7988`: The ``@testrunner.yield_fixture`` decorator/function is now deprecated. Use :func:`testrunner.fixture` instead.
 
   ``yield_fixture`` has been an alias for ``fixture`` for a very long time, so can be search/replaced safely.
 
@@ -3773,18 +3773,18 @@ Deprecations
 Features
 --------
 
-- :issue:`5299`: pytest now warns about unraisable exceptions and unhandled thread exceptions that occur in tests on Python>=3.8.
+- :issue:`5299`: testrunner now warns about unraisable exceptions and unhandled thread exceptions that occur in tests on Python>=3.8.
   See :ref:`unraisable` for more information.
 
 
-- :issue:`7425`: New :fixture:`pytester` fixture, which is identical to :fixture:`testdir` but its methods return :class:`pathlib.Path` when appropriate instead of ``py.path.local``.
+- :issue:`7425`: New :fixture:`testrunnerer` fixture, which is identical to :fixture:`testdir` but its methods return :class:`pathlib.Path` when appropriate instead of ``py.path.local``.
 
   This is part of the movement to use :class:`pathlib.Path` objects internally, in order to remove the dependency to ``py`` in the future.
 
-  Internally, the old ``pytest.Testdir`` is now a thin wrapper around :class:`~pytest.Pytester`, preserving the old interface.
+  Internally, the old ``testrunner.Testdir`` is now a thin wrapper around :class:`~testrunner.Testrunnerer`, preserving the old interface.
 
 
-- :issue:`7695`: A new hook was added, `pytest_markeval_namespace` which should return a dictionary.
+- :issue:`7695`: A new hook was added, `testrunner_markeval_namespace` which should return a dictionary.
   This dictionary will be used to augment the "global" variables available to evaluate skipif/xfail/xpass markers.
 
   Pseudo example
@@ -3793,23 +3793,23 @@ Features
 
   .. code-block:: python
 
-     def pytest_markeval_namespace():
+     def testrunner_markeval_namespace():
          return {"color": "red"}
 
   ``test_func.py``:
 
   .. code-block:: python
 
-     @pytest.mark.skipif("color == 'blue'", reason="Color is not red")
+     @testrunner.mark.skipif("color == 'blue'", reason="Color is not red")
      def test_func():
          assert False
 
 
-- :issue:`8006`: It is now possible to construct a :class:`~pytest.MonkeyPatch` object directly as ``pytest.MonkeyPatch()``,
+- :issue:`8006`: It is now possible to construct a :class:`~testrunner.MonkeyPatch` object directly as ``testrunner.MonkeyPatch()``,
   in cases when the :fixture:`monkeypatch` fixture cannot be used. Previously some users imported it
-  from the private `_pytest.monkeypatch.MonkeyPatch` namespace.
+  from the private `_testrunner.monkeypatch.MonkeyPatch` namespace.
 
-  Additionally, :meth:`MonkeyPatch.context <pytest.MonkeyPatch.context>` is now a classmethod,
+  Additionally, :meth:`MonkeyPatch.context <testrunner.MonkeyPatch.context>` is now a classmethod,
   and can be used as ``with MonkeyPatch.context() as mp: ...``. This is the recommended way to use
   ``MonkeyPatch`` directly, since unlike the ``monkeypatch`` fixture, an instance created directly
   is not ``undo()``-ed automatically.
@@ -3819,43 +3819,43 @@ Features
 Improvements
 ------------
 
-- :issue:`1265`: Added an ``__str__`` implementation to the :class:`~pytest.LineMatcher` class which is returned from ``pytester.run_pytest().stdout`` and similar. It returns the entire output, like the existing ``str()`` method.
+- :issue:`1265`: Added an ``__str__`` implementation to the :class:`~testrunner.LineMatcher` class which is returned from ``testrunnerer.run_testrunner().stdout`` and similar. It returns the entire output, like the existing ``str()`` method.
 
 
 - :issue:`2044`: Verbose mode now shows the reason that a test was skipped in the test's terminal line after the "SKIPPED", "XFAIL" or "XPASS".
 
 
-- :issue:`7469` The types of builtin pytest fixtures are now exported so they may be used in type annotations of test functions.
+- :issue:`7469` The types of builtin testrunner fixtures are now exported so they may be used in type annotations of test functions.
   The newly-exported types are:
 
-  - ``pytest.FixtureRequest`` for the :fixture:`request` fixture.
-  - ``pytest.Cache`` for the :fixture:`cache` fixture.
-  - ``pytest.CaptureFixture[str]`` for the :fixture:`capfd` and :fixture:`capsys` fixtures.
-  - ``pytest.CaptureFixture[bytes]`` for the :fixture:`capfdbinary` and :fixture:`capsysbinary` fixtures.
-  - ``pytest.LogCaptureFixture`` for the :fixture:`caplog` fixture.
-  - ``pytest.Pytester`` for the :fixture:`pytester` fixture.
-  - ``pytest.Testdir`` for the :fixture:`testdir` fixture.
-  - ``pytest.TempdirFactory`` for the :fixture:`tmpdir_factory` fixture.
-  - ``pytest.TempPathFactory`` for the :fixture:`tmp_path_factory` fixture.
-  - ``pytest.MonkeyPatch`` for the :fixture:`monkeypatch` fixture.
-  - ``pytest.WarningsRecorder`` for the :fixture:`recwarn` fixture.
+  - ``testrunner.FixtureRequest`` for the :fixture:`request` fixture.
+  - ``testrunner.Cache`` for the :fixture:`cache` fixture.
+  - ``testrunner.CaptureFixture[str]`` for the :fixture:`capfd` and :fixture:`capsys` fixtures.
+  - ``testrunner.CaptureFixture[bytes]`` for the :fixture:`capfdbinary` and :fixture:`capsysbinary` fixtures.
+  - ``testrunner.LogCaptureFixture`` for the :fixture:`caplog` fixture.
+  - ``testrunner.Testrunnerer`` for the :fixture:`testrunnerer` fixture.
+  - ``testrunner.Testdir`` for the :fixture:`testdir` fixture.
+  - ``testrunner.TempdirFactory`` for the :fixture:`tmpdir_factory` fixture.
+  - ``testrunner.TempPathFactory`` for the :fixture:`tmp_path_factory` fixture.
+  - ``testrunner.MonkeyPatch`` for the :fixture:`monkeypatch` fixture.
+  - ``testrunner.WarningsRecorder`` for the :fixture:`recwarn` fixture.
 
   Constructing them is not supported (except for `MonkeyPatch`); they are only meant for use in type annotations.
-  Doing so will emit a deprecation warning, and may become a hard-error in pytest 8.0.
+  Doing so will emit a deprecation warning, and may become a hard-error in testrunner 8.0.
 
   Subclassing them is also not supported. This is not currently enforced at runtime, but is detected by type-checkers such as mypy.
 
 
-- :issue:`7527`: When a comparison between :func:`namedtuple <collections.namedtuple>` instances of the same type fails, pytest now shows the differing field names (possibly nested) instead of their indexes.
+- :issue:`7527`: When a comparison between :func:`namedtuple <collections.namedtuple>` instances of the same type fails, testrunner now shows the differing field names (possibly nested) instead of their indexes.
 
 
-- :issue:`7615`: :meth:`Node.warn <_pytest.nodes.Node.warn>` now permits any subclass of :class:`Warning`, not just :class:`PytestWarning <pytest.PytestWarning>`.
+- :issue:`7615`: :meth:`Node.warn <_testrunner.nodes.Node.warn>` now permits any subclass of :class:`Warning`, not just :class:`TestrunnerWarning <testrunner.TestrunnerWarning>`.
 
 
 - :issue:`7701`: Improved reporting when using ``--collected-only``. It will now show the number of collected tests in the summary stats.
 
 
-- :issue:`7710`: Use strict equality comparison for non-numeric types in :func:`pytest.approx` instead of
+- :issue:`7710`: Use strict equality comparison for non-numeric types in :func:`testrunner.approx` instead of
   raising :class:`TypeError`.
 
   This was the undocumented behavior before 3.7, but is now officially a supported feature.
@@ -3877,22 +3877,22 @@ Bug Fixes
 - :issue:`4824`: Fixed quadratic behavior and improved performance of collection of items using autouse fixtures and xunit fixtures.
 
 
-- :issue:`7758`: Fixed an issue where some files in packages are getting lost from ``--lf`` even though they contain tests that failed. Regressed in pytest 5.4.0.
+- :issue:`7758`: Fixed an issue where some files in packages are getting lost from ``--lf`` even though they contain tests that failed. Regressed in testrunner 5.4.0.
 
 
 - :issue:`7911`: Directories created by by :fixture:`tmp_path` and :fixture:`tmpdir` are now considered stale after 3 days without modification (previous value was 3 hours) to avoid deleting directories still in use in long running test suites.
 
 
-- :issue:`7913`: Fixed a crash or hang in :meth:`pytester.spawn <pytest.Pytester.spawn>` when the :mod:`readline` module is involved.
+- :issue:`7913`: Fixed a crash or hang in :meth:`testrunnerer.spawn <testrunner.Testrunnerer.spawn>` when the :mod:`readline` module is involved.
 
 
 - :issue:`7951`: Fixed handling of recursive symlinks when collecting tests.
 
 
-- :issue:`7981`: Fixed symlinked directories not being followed during collection. Regressed in pytest 6.1.0.
+- :issue:`7981`: Fixed symlinked directories not being followed during collection. Regressed in testrunner 6.1.0.
 
 
-- :issue:`8016`: Fixed only one doctest being collected when using ``pytest --doctest-modules path/to/an/__init__.py``.
+- :issue:`8016`: Fixed only one doctest being collected when using ``testrunner --doctest-modules path/to/an/__init__.py``.
 
 
 
@@ -3905,7 +3905,7 @@ Improved Documentation
 - :issue:`7780`: Classes which should not be inherited from are now marked ``final class`` in the API reference.
 
 
-- :issue:`7872`: ``_pytest.config.argparsing.Parser.addini()`` accepts explicit ``None`` and ``"string"``.
+- :issue:`7872`: ``_testrunner.config.argparsing.Parser.addini()`` accepts explicit ``None`` and ``"string"``.
 
 
 - :issue:`7878`: In pull request section, ask to commit after editing changelog and authors file.
@@ -3918,17 +3918,17 @@ Trivial/Internal Changes
 - :issue:`7802`: The ``attrs`` dependency requirement is now >=19.2.0 instead of >=17.4.0.
 
 
-- :issue:`8014`: `.pyc` files created by pytest's assertion rewriting now conform to the newer :pep:`552` format on Python>=3.7.
-  (These files are internal and only interpreted by pytest itself.)
+- :issue:`8014`: `.pyc` files created by testrunner's assertion rewriting now conform to the newer :pep:`552` format on Python>=3.7.
+  (These files are internal and only interpreted by testrunner itself.)
 
 
-pytest 6.1.2 (2020-10-28)
+testrunner 6.1.2 (2020-10-28)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`7758`: Fixed an issue where some files in packages are getting lost from ``--lf`` even though they contain tests that failed. Regressed in pytest 5.4.0.
+- :issue:`7758`: Fixed an issue where some files in packages are getting lost from ``--lf`` even though they contain tests that failed. Regressed in testrunner 5.4.0.
 
 
 - :issue:`7911`: Directories created by `tmpdir` are now considered stale after 3 days without modification (previous value was 3 hours) to avoid deleting directories still in use in long running test suites.
@@ -3938,22 +3938,22 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- :issue:`7815`: Improve deprecation warning message for ``pytest._fillfuncargs()``.
+- :issue:`7815`: Improve deprecation warning message for ``testrunner._fillfuncargs()``.
 
 
-pytest 6.1.1 (2020-10-03)
+testrunner 6.1.1 (2020-10-03)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`7807`: Fixed regression in pytest 6.1.0 causing incorrect rootdir to be determined in some non-trivial cases where parent directories have config files as well.
+- :issue:`7807`: Fixed regression in testrunner 6.1.0 causing incorrect rootdir to be determined in some non-trivial cases where parent directories have config files as well.
 
 
 - :issue:`7814`: Fixed crash in header reporting when :confval:`testpaths` is used and contains absolute paths (regression in 6.1.0).
 
 
-pytest 6.1.0 (2020-09-26)
+testrunner 6.1.0 (2020-09-26)
 =========================
 
 Breaking Changes
@@ -3964,7 +3964,7 @@ Breaking Changes
 
   * The ``funcargnames`` read-only property of ``FixtureRequest``, ``Metafunc``, and ``Function`` classes. Use ``fixturenames`` attribute.
 
-  * ``@pytest.fixture`` no longer supports positional arguments, pass all arguments by keyword instead.
+  * ``@testrunner.fixture`` no longer supports positional arguments, pass all arguments by keyword instead.
 
   * Direct construction of ``Node`` subclasses now raise an error, use ``from_parent`` instead.
 
@@ -3972,7 +3972,7 @@ Breaking Changes
 
   * The ``TerminalReporter`` no longer has a ``writer`` attribute. Plugin authors may use the public functions of the ``TerminalReporter`` instead of accessing the ``TerminalWriter`` object directly.
 
-  * The ``--result-log`` option has been removed. Users are recommended to use the `pytest-reportlog <https://github.com/pytest-dev/pytest-reportlog>`__ plugin instead.
+  * The ``--result-log`` option has been removed. Users are recommended to use the `testrunner-reportlog <https://github.com/jacksonsr451/test-runner-reportlog>`__ plugin instead.
 
 
   For more information consult :std:doc:`deprecations` in the docs.
@@ -3982,10 +3982,10 @@ Breaking Changes
 Deprecations
 ------------
 
-- :issue:`6981`: The ``pytest.collect`` module is deprecated: all its names can be imported from ``pytest`` directly.
+- :issue:`6981`: The ``testrunner.collect`` module is deprecated: all its names can be imported from ``testrunner`` directly.
 
 
-- :issue:`7097`: The ``pytest._fillfuncargs`` function is deprecated. This function was kept
+- :issue:`7097`: The ``testrunner._fillfuncargs`` function is deprecated. This function was kept
   for backward compatibility with an older plugin.
 
   It's functionality is not meant to be used directly, but if you must replace
@@ -4000,13 +4000,13 @@ Deprecations
   if you use this and want a replacement.
 
 
-- :issue:`7255`: The ``pytest_warning_captured`` hook is deprecated in favor
-  of :hook:`pytest_warning_recorded`, and will be removed in a future version.
+- :issue:`7255`: The ``testrunner_warning_captured`` hook is deprecated in favor
+  of :hook:`testrunner_warning_recorded`, and will be removed in a future version.
 
 
 - :issue:`7648`: The ``gethookproxy()`` and ``isinitpath()`` methods of ``FSCollector`` and ``Package`` are deprecated;
   use ``self.session.gethookproxy()`` and ``self.session.isinitpath()`` instead.
-  This should work on all pytest versions.
+  This should work on all testrunner versions.
 
 
 
@@ -4020,7 +4020,7 @@ Features
 Improvements
 ------------
 
-- :issue:`6681`: Internal pytest warnings issued during the early stages of initialization are now properly handled and can filtered through :confval:`filterwarnings` or ``--pythonwarnings/-W``.
+- :issue:`6681`: Internal testrunner warnings issued during the early stages of initialization are now properly handled and can filtered through :confval:`filterwarnings` or ``--pythonwarnings/-W``.
 
   This also fixes a number of long standing issues: :issue:`2891`, :issue:`7620`, :issue:`7426`.
 
@@ -4028,7 +4028,7 @@ Improvements
 - :issue:`7572`: When a plugin listed in ``required_plugins`` is missing or an unknown config key is used with ``--strict-config``, a simple error message is now shown instead of a stacktrace.
 
 
-- :issue:`7685`: Added two new attributes :attr:`rootpath <pytest.Config.rootpath>` and :attr:`inipath <pytest.Config.inipath>` to :class:`~pytest.Config`.
+- :issue:`7685`: Added two new attributes :attr:`rootpath <testrunner.Config.rootpath>` and :attr:`inipath <testrunner.Config.inipath>` to :class:`~testrunner.Config`.
   These attributes are :class:`pathlib.Path` versions of the existing ``rootdir`` and ``inifile`` attributes,
   and should be preferred over them when possible.
 
@@ -4047,19 +4047,19 @@ Bug Fixes
   .. code-block:: python
 
       # conftest.py
-      import pytest
+      import testrunner
 
 
-      @pytest.fixture(params=[1, 2])
+      @testrunner.fixture(params=[1, 2])
       def foo(request):
           return request.param
 
 
       # test_foo.py
-      import pytest
+      import testrunner
 
 
-      @pytest.fixture
+      @testrunner.fixture
       def foo(foo):
           return foo * 2
 
@@ -4072,10 +4072,10 @@ Bug Fixes
 - :issue:`7591`: pylint shouldn't complain anymore about unimplemented abstract methods when inheriting from :ref:`File <non-python tests>`.
 
 
-- :issue:`7628`: Fixed test collection when a full path without a drive letter was passed to pytest on Windows (for example ``\projects\tests\test.py`` instead of ``c:\projects\tests\pytest.py``).
+- :issue:`7628`: Fixed test collection when a full path without a drive letter was passed to testrunner on Windows (for example ``\projects\tests\test.py`` instead of ``c:\projects\tests\testrunner.py``).
 
 
-- :issue:`7638`: Fix handling of command-line options that appear as paths but trigger an OS-level syntax error on Windows, such as the options used internally by ``pytest-xdist``.
+- :issue:`7638`: Fix handling of command-line options that appear as paths but trigger an OS-level syntax error on Windows, such as the options used internally by ``testrunner-xdist``.
 
 
 - :issue:`7742`: Fixed INTERNALERROR when accessing locals / globals with faulty ``exec``.
@@ -4100,19 +4100,19 @@ Trivial/Internal Changes
 - :issue:`7587`: The dependency on the ``more-itertools`` package has been removed.
 
 
-- :issue:`7631`: The result type of :meth:`capfd.readouterr() <pytest.CaptureFixture.readouterr>` (and similar) is no longer a namedtuple,
+- :issue:`7631`: The result type of :meth:`capfd.readouterr() <testrunner.CaptureFixture.readouterr>` (and similar) is no longer a namedtuple,
   but should behave like one in all respects. This was done for technical reasons.
 
 
-- :issue:`7671`: When collecting tests, pytest finds test classes and functions by examining the
+- :issue:`7671`: When collecting tests, testrunner finds test classes and functions by examining the
   attributes of python objects (modules, classes and instances). To speed up this
-  process, pytest now ignores builtin attributes (like ``__class__``,
+  process, testrunner now ignores builtin attributes (like ``__class__``,
   ``__delattr__`` and ``__new__``) without consulting the :confval:`python_classes` and
   :confval:`python_functions` configuration options and without passing them to plugins
-  using the :hook:`pytest_pycollect_makeitem` hook.
+  using the :hook:`testrunner_pycollect_makeitem` hook.
 
 
-pytest 6.0.2 (2020-09-04)
+testrunner 6.0.2 (2020-09-04)
 =========================
 
 Bug Fixes
@@ -4125,33 +4125,33 @@ Bug Fixes
 
 
 - :issue:`7686`: Fixed `NotSetType.token` being used as the parameter ID when the parametrization list is empty.
-  Regressed in pytest 6.0.0.
+  Regressed in testrunner 6.0.0.
 
 
 - :issue:`7707`: Fix internal error when handling some exceptions that contain multiple lines or the style uses multiple lines (``--tb=line`` for example).
 
 
-pytest 6.0.1 (2020-07-30)
+testrunner 6.0.1 (2020-07-30)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`7394`: Passing an empty ``help`` value to ``Parser.add_option`` is now accepted instead of crashing when running ``pytest --help``.
+- :issue:`7394`: Passing an empty ``help`` value to ``Parser.add_option`` is now accepted instead of crashing when running ``testrunner --help``.
   Passing ``None`` raises a more informative ``TypeError``.
 
 
-- :issue:`7558`: Fix pylint ``not-callable`` lint on ``pytest.mark.parametrize()`` and the other builtin marks:
+- :issue:`7558`: Fix pylint ``not-callable`` lint on ``testrunner.mark.parametrize()`` and the other builtin marks:
   ``skip``, ``skipif``, ``xfail``, ``usefixtures``, ``filterwarnings``.
 
 
-- :issue:`7559`: Fix regression in plugins using ``TestReport.longreprtext`` (such as ``pytest-html``) when ``TestReport.longrepr`` is not a string.
+- :issue:`7559`: Fix regression in plugins using ``TestReport.longreprtext`` (such as ``testrunner-html``) when ``TestReport.longrepr`` is not a string.
 
 
 - :issue:`7569`: Fix logging capture handler's level not reset on teardown after a call to ``caplog.set_level()``.
 
 
-pytest 6.0.0 (2020-07-28)
+testrunner 6.0.0 (2020-07-28)
 =========================
 
 (**Please see the full set of changes for this release also in the 6.0.0rc1 notes below**)
@@ -4159,31 +4159,31 @@ pytest 6.0.0 (2020-07-28)
 Breaking Changes
 ----------------
 
-- :issue:`5584`: **PytestDeprecationWarning are now errors by default.**
+- :issue:`5584`: **TestrunnerDeprecationWarning are now errors by default.**
 
   Following our plan to remove deprecated features with as little disruption as
-  possible, all warnings of type ``PytestDeprecationWarning`` now generate errors
+  possible, all warnings of type ``TestrunnerDeprecationWarning`` now generate errors
   instead of warning messages.
 
-  **The affected features will be effectively removed in pytest 6.1**, so please consult the
+  **The affected features will be effectively removed in testrunner 6.1**, so please consult the
   :std:doc:`deprecations` section in the docs for directions on how to update existing code.
 
-  In the pytest ``6.0.X`` series, it is possible to change the errors back into warnings as a
-  stopgap measure by adding this to your ``pytest.ini`` file:
+  In the testrunner ``6.0.X`` series, it is possible to change the errors back into warnings as a
+  stopgap measure by adding this to your ``testrunner.ini`` file:
 
   .. code-block:: ini
 
-      [pytest]
+      [testrunner]
       filterwarnings =
-          ignore::pytest.PytestDeprecationWarning
+          ignore::testrunner.TestrunnerDeprecationWarning
 
-  But this will stop working when pytest ``6.1`` is released.
+  But this will stop working when testrunner ``6.1`` is released.
 
   **If you have concerns** about the removal of a specific feature, please add a
   comment to :issue:`5584`.
 
 
-- :issue:`7472`: The ``exec_()`` and ``is_true()`` methods of ``_pytest._code.Frame`` have been removed.
+- :issue:`7472`: The ``exec_()`` and ``is_true()`` methods of ``_testrunner._code.Frame`` have been removed.
 
 
 
@@ -4200,14 +4200,14 @@ Improvements
 - :issue:`7467`: ``--log-file`` CLI option and ``log_file`` ini marker now create subdirectories if needed.
 
 
-- :issue:`7489`: The :func:`pytest.raises` function has a clearer error message when ``match`` equals the obtained string but is not a regex match. In this case it is suggested to escape the regex.
+- :issue:`7489`: The :func:`testrunner.raises` function has a clearer error message when ``match`` equals the obtained string but is not a regex match. In this case it is suggested to escape the regex.
 
 
 
 Bug Fixes
 ---------
 
-- :issue:`7392`: Fix the reported location of tests skipped with ``@pytest.mark.skip`` when ``--runxfail`` is used.
+- :issue:`7392`: Fix the reported location of tests skipped with ``@testrunner.mark.skip`` when ``--runxfail`` is used.
 
 
 - :issue:`7491`: :fixture:`tmpdir` and :fixture:`tmp_path` no longer raise an error if the lock to check for
@@ -4237,13 +4237,13 @@ Trivial/Internal Changes
 - :issue:`7389`: Fixture scope ``package`` is no longer considered experimental.
 
 
-pytest 6.0.0rc1 (2020-07-08)
+testrunner 6.0.0rc1 (2020-07-08)
 ============================
 
 Breaking Changes
 ----------------
 
-- :issue:`1316`: ``TestReport.longrepr`` is now always an instance of ``ReprExceptionInfo``. Previously it was a ``str`` when a test failed with ``pytest.fail(..., pytrace=False)``.
+- :issue:`1316`: ``TestReport.longrepr`` is now always an instance of ``ReprExceptionInfo``. Previously it was a ``str`` when a test failed with ``testrunner.fail(..., pytrace=False)``.
 
 
 - :issue:`5965`: symlinks are no longer resolved during collection and matching `conftest.py` files with test file paths.
@@ -4267,7 +4267,7 @@ Breaking Changes
 
   .. code-block:: python
 
-      result = testdir.runpytest()
+      result = testdir.runtestrunner()
       result.assert_outcomes(error=1)
 
   Need to be changed to:
@@ -4275,7 +4275,7 @@ Breaking Changes
 
   .. code-block:: python
 
-      result = testdir.runpytest()
+      result = testdir.runtestrunner()
       result.assert_outcomes(errors=1)
 
 
@@ -4285,7 +4285,7 @@ Breaking Changes
 
 - :issue:`7040`: ``-k`` no longer matches against the names of the directories outside the test session root.
 
-  Also, ``pytest.Package.name`` is now just the name of the directory containing the package's
+  Also, ``testrunner.Package.name`` is now just the name of the directory containing the package's
   ``__init__.py`` file, instead of the full path. This is consistent with how the other nodes
   are named, and also one of the reasons why ``-k`` would match against any directory containing
   the test suite.
@@ -4296,9 +4296,9 @@ Breaking Changes
   Python constants, keywords or other operators are no longer evaluated differently.
 
 
-- :issue:`7135`: Pytest now uses its own ``TerminalWriter`` class instead of using the one from the ``py`` library.
+- :issue:`7135`: Testrunner now uses its own ``TerminalWriter`` class instead of using the one from the ``py`` library.
   Plugins generally access this class through ``TerminalReporter.writer``, ``TerminalReporter.write()``
-  (and similar methods), or ``_pytest.config.create_terminal_writer()``.
+  (and similar methods), or ``_testrunner.config.create_terminal_writer()``.
 
   The following breaking changes were made:
 
@@ -4319,23 +4319,23 @@ Breaking Changes
   The deprecated ``--no-print-logs`` option and ``log_print`` ini option are removed. Use ``--show-capture`` instead.
 
 
-- :issue:`7226`: Removed the unused ``args`` parameter from ``pytest.Function.__init__``.
+- :issue:`7226`: Removed the unused ``args`` parameter from ``testrunner.Function.__init__``.
 
 
-- :issue:`7418`: Removed the `pytest_doctest_prepare_content` hook specification. This hook
-  hasn't been triggered by pytest for at least 10 years.
+- :issue:`7418`: Removed the `testrunner_doctest_prepare_content` hook specification. This hook
+  hasn't been triggered by testrunner for at least 10 years.
 
 
-- :issue:`7438`: Some changes were made to the internal ``_pytest._code.source``, listed here
+- :issue:`7438`: Some changes were made to the internal ``_testrunner._code.source``, listed here
   for the benefit of plugin authors who may be using it:
 
   - The ``deindent`` argument to ``Source()`` has been removed, now it is always true.
   - Support for zero or multiple arguments to ``Source()`` has been removed.
   - Support for comparing ``Source`` with an ``str`` has been removed.
   - The methods ``Source.isparseable()`` and ``Source.putaround()`` have been removed.
-  - The method ``Source.compile()`` and function ``_pytest._code.compile()`` have
+  - The method ``Source.compile()`` and function ``_testrunner._code.compile()`` have
     been removed; use plain ``compile()`` instead.
-  - The function ``_pytest._code.source.getsource()`` has been removed; use
+  - The function ``_testrunner._code.source.getsource()`` has been removed; use
     ``Source()`` directly instead.
 
 
@@ -4349,21 +4349,21 @@ Deprecations
   The special ``-k 'expr:'`` syntax to ``-k`` is deprecated. Please open an issue
   if you use this and want a replacement.
 
-- :issue:`4049`: ``pytest_warning_captured`` is deprecated in favor of the ``pytest_warning_recorded`` hook.
+- :issue:`4049`: ``testrunner_warning_captured`` is deprecated in favor of the ``testrunner_warning_recorded`` hook.
 
 
 Features
 --------
 
-- :issue:`1556`: pytest now supports ``pyproject.toml`` files for configuration.
+- :issue:`1556`: testrunner now supports ``pyproject.toml`` files for configuration.
 
   The configuration options is similar to the one available in other formats, but must be defined
-  in a ``[tool.pytest.ini_options]`` table to be picked up by pytest:
+  in a ``[tool.testrunner.ini_options]`` table to be picked up by testrunner:
 
   .. code-block:: toml
 
       # pyproject.toml
-      [tool.pytest.ini_options]
+      [tool.testrunner.ini_options]
       minversion = "6.0"
       addopts = "-ra -q"
       testpaths = [
@@ -4374,7 +4374,7 @@ Features
   More information can be found :ref:`in the docs <config file formats>`.
 
 
-- :issue:`3342`: pytest now includes inline type annotations and exposes them to user programs.
+- :issue:`3342`: testrunner now includes inline type annotations and exposes them to user programs.
   Most of the user-facing API is covered, as well as internal code.
 
   If you are running a type checker such as mypy on your tests, you may start
@@ -4384,12 +4384,12 @@ Features
   The types were developed against mypy version 0.780. Versions before 0.750
   are known not to work. We recommend using the latest version. Other type
   checkers may work as well, but they are not officially verified to work by
-  pytest yet.
+  testrunner yet.
 
 
-- :issue:`4049`: Introduced a new hook named `pytest_warning_recorded` to convey information about warnings captured by the internal `pytest` warnings plugin.
+- :issue:`4049`: Introduced a new hook named `testrunner_warning_recorded` to convey information about warnings captured by the internal `testrunner` warnings plugin.
 
-  This hook is meant to replace `pytest_warning_captured`, which is deprecated and will be removed in a future release.
+  This hook is meant to replace `testrunner_warning_captured`, which is deprecated and will be removed in a future release.
 
 
 - :issue:`6471`: New command-line flags:
@@ -4408,12 +4408,12 @@ Features
 
 - :issue:`7245`: New ``--import-mode=importlib`` option that uses :mod:`importlib` to import test modules.
 
-  Traditionally pytest used ``__import__`` while changing ``sys.path`` to import test modules (which
+  Traditionally testrunner used ``__import__`` while changing ``sys.path`` to import test modules (which
   also changes ``sys.modules`` as a side-effect), which works but has a number of drawbacks, like requiring test modules
   that don't live in packages to have unique names (as they need to reside under a unique name in ``sys.modules``).
 
   ``--import-mode=importlib`` uses more fine-grained import mechanisms from ``importlib`` which don't
-  require pytest to change ``sys.path`` or ``sys.modules`` at all, eliminating much of the drawbacks
+  require testrunner to change ``sys.path`` or ``sys.modules`` at all, eliminating much of the drawbacks
   of the previous mode.
 
   We intend to make ``--import-mode=importlib`` the default in future versions, so users are encouraged
@@ -4422,14 +4422,14 @@ Features
   You can read more about this option in :std:ref:`the documentation <import-modes>`.
 
 
-- :issue:`7305`: New ``required_plugins`` configuration option allows the user to specify a list of plugins, including version information, that are required for pytest to run. An error is raised if any required plugins are not found when running pytest.
+- :issue:`7305`: New ``required_plugins`` configuration option allows the user to specify a list of plugins, including version information, that are required for testrunner to run. An error is raised if any required plugins are not found when running testrunner.
 
 
 Improvements
 ------------
 
-- :issue:`4375`: The ``pytest`` command now suppresses the ``BrokenPipeError`` error message that
-  is printed to stderr when the output of ``pytest`` is piped and the pipe is
+- :issue:`4375`: The ``testrunner`` command now suppresses the ``BrokenPipeError`` error message that
+  is printed to stderr when the output of ``testrunner`` is piped and the pipe is
   closed by the piped-to program (common examples are ``less`` and ``head``).
 
 
@@ -4439,13 +4439,13 @@ Improvements
 - :issue:`4675`: Rich comparison for dataclasses and `attrs`-classes is now recursive.
 
 
-- :issue:`6285`: Exposed the `pytest.FixtureLookupError` exception which is raised by `request.getfixturevalue()`
+- :issue:`6285`: Exposed the `testrunner.FixtureLookupError` exception which is raised by `request.getfixturevalue()`
   (where `request` is a `FixtureRequest` fixture) when a fixture with the given name cannot be returned.
 
 
 - :issue:`6433`: If an error is encountered while formatting the message in a logging call, for
   example ``logging.warning("oh no!: %s: %s", "first")`` (a second argument is
-  missing), pytest now propagates the error, likely causing the test to fail.
+  missing), testrunner now propagates the error, likely causing the test to fail.
 
   Previously, such a mistake would cause an error to be printed to stderr, which
   is not displayed by default for passing tests. This change makes the mistake
@@ -4475,13 +4475,13 @@ Improvements
   This is done to protect against accidental data loss, as any directory passed to this argument is cleared.
 
 
-- :issue:`7128`: `pytest --version` now displays just the pytest version, while `pytest --version --version` displays more verbose information including plugins. This is more consistent with how other tools show `--version`.
+- :issue:`7128`: `testrunner --version` now displays just the testrunner version, while `testrunner --version --version` displays more verbose information including plugins. This is more consistent with how other tools show `--version`.
 
 
-- :issue:`7133`: :meth:`caplog.set_level() <pytest.LogCaptureFixture.set_level>` will now override any :confval:`log_level` set via the CLI or configuration file.
+- :issue:`7133`: :meth:`caplog.set_level() <testrunner.LogCaptureFixture.set_level>` will now override any :confval:`log_level` set via the CLI or configuration file.
 
 
-- :issue:`7159`: :meth:`caplog.set_level() <pytest.LogCaptureFixture.set_level>` and :meth:`caplog.at_level() <pytest.LogCaptureFixture.at_level>` no longer affect
+- :issue:`7159`: :meth:`caplog.set_level() <testrunner.LogCaptureFixture.set_level>` and :meth:`caplog.at_level() <testrunner.LogCaptureFixture.at_level>` no longer affect
   the level of logs that are shown in the *Captured log report* report section.
 
 
@@ -4507,7 +4507,7 @@ Improvements
 Bug Fixes
 ---------
 
-- :issue:`1120`: Fix issue where directories from :fixture:`tmpdir` are not removed properly when multiple instances of pytest are running in parallel.
+- :issue:`1120`: Fix issue where directories from :fixture:`tmpdir` are not removed properly when multiple instances of testrunner are running in parallel.
 
 
 - :issue:`4583`: Prevent crashing and provide a user-friendly error when a marker expression (`-m`) invoking of :func:`eval` raises any exception.
@@ -4534,7 +4534,7 @@ Bug Fixes
 - :issue:`6871`: Fix crash with captured output when using :fixture:`capsysbinary`.
 
 
-- :issue:`6909`: Revert the change introduced by :pr:`6330`, which required all arguments to ``@pytest.mark.parametrize`` to be explicitly defined in the function signature.
+- :issue:`6909`: Revert the change introduced by :pr:`6330`, which required all arguments to ``@testrunner.mark.parametrize`` to be explicitly defined in the function signature.
 
   The intention of the original change was to remove what was expected to be an unintended/surprising behavior, but it turns out many people relied on it, so the restriction has been reverted.
 
@@ -4554,19 +4554,19 @@ Bug Fixes
 - :issue:`6951`: Allow users to still set the deprecated ``TerminalReporter.writer`` attribute.
 
 
-- :issue:`6956`: Prevent pytest from printing `ConftestImportFailure` traceback to stdout.
+- :issue:`6956`: Prevent testrunner from printing `ConftestImportFailure` traceback to stdout.
 
 
-- :issue:`6991`: Fix regressions with `--lf` filtering too much since pytest 5.4.
+- :issue:`6991`: Fix regressions with `--lf` filtering too much since testrunner 5.4.
 
 
-- :issue:`6992`: Revert "tmpdir: clean up indirection via config for factories" :issue:`6767` as it breaks pytest-xdist.
+- :issue:`6992`: Revert "tmpdir: clean up indirection via config for factories" :issue:`6767` as it breaks testrunner-xdist.
 
 
 - :issue:`7061`: When a yielding fixture fails to yield a value, report a test setup error instead of crashing.
 
 
-- :issue:`7076`: The path of file skipped by ``@pytest.mark.skip`` in the SKIPPED report is now relative to invocation directory. Previously it was relative to root directory.
+- :issue:`7076`: The path of file skipped by ``@testrunner.mark.skip`` in the SKIPPED report is now relative to invocation directory. Previously it was relative to root directory.
 
 
 - :issue:`7110`: Fixed regression: ``asyncbase.TestCase`` tests are executed correctly again.
@@ -4576,7 +4576,7 @@ Bug Fixes
   parameter when Python is called with the ``-bb`` flag.
 
 
-- :issue:`7143`: Fix :meth:`pytest.File.from_parent <_pytest.nodes.Node.from_parent>` so it forwards extra keyword arguments to the constructor.
+- :issue:`7143`: Fix :meth:`testrunner.File.from_parent <_testrunner.nodes.Node.from_parent>` so it forwards extra keyword arguments to the constructor.
 
 
 - :issue:`7145`: Classes with broken ``__getattribute__`` methods are displayed correctly during failures.
@@ -4591,12 +4591,12 @@ Bug Fixes
 - :issue:`7215`: Fix regression where running with ``--pdb`` would call :meth:`unittest.TestCase.tearDown` for skipped tests.
 
 
-- :issue:`7253`: When using ``pytest.fixture`` on a function directly, as in ``pytest.fixture(func)``,
+- :issue:`7253`: When using ``testrunner.fixture`` on a function directly, as in ``testrunner.fixture(func)``,
   if the ``autouse`` or ``params`` arguments are also passed, the function is no longer
   ignored, but is marked as a fixture.
 
 
-- :issue:`7360`: Fix possibly incorrect evaluation of string expressions passed to ``pytest.mark.skipif`` and ``pytest.mark.xfail``,
+- :issue:`7360`: Fix possibly incorrect evaluation of string expressions passed to ``testrunner.mark.skipif`` and ``testrunner.mark.xfail``,
   in rare circumstances where the exact same string is used but refers to different global values.
 
 
@@ -4620,7 +4620,7 @@ Improved Documentation
 Trivial/Internal Changes
 ------------------------
 
-- :issue:`7035`: The ``originalname`` attribute of ``_pytest.python.Function`` now defaults to ``name`` if not
+- :issue:`7035`: The ``originalname`` attribute of ``_testrunner.python.Function`` now defaults to ``name`` if not
   provided explicitly, and is always set.
 
 
@@ -4630,16 +4630,16 @@ Trivial/Internal Changes
 - :issue:`7291`: Replaced ``py.iniconfig`` with :pypi:`iniconfig`.
 
 
-- :issue:`7295`: ``src/_pytest/config/__init__.py`` now uses the ``warnings`` module to report warnings instead of ``sys.stderr.write``.
+- :issue:`7295`: ``src/_testrunner/config/__init__.py`` now uses the ``warnings`` module to report warnings instead of ``sys.stderr.write``.
 
 
-- :issue:`7356`: Remove last internal uses of deprecated *slave* term from old ``pytest-xdist``.
+- :issue:`7356`: Remove last internal uses of deprecated *slave* term from old ``testrunner-xdist``.
 
 
 - :issue:`7357`: ``py``>=1.8.2 is now required.
 
 
-pytest 5.4.3 (2020-06-02)
+testrunner 5.4.3 (2020-06-02)
 =========================
 
 Bug Fixes
@@ -4652,7 +4652,7 @@ Bug Fixes
 - :issue:`6755`: Support deleting paths longer than 260 characters on windows created inside tmpdir.
 
 
-- :issue:`6956`: Prevent pytest from printing ConftestImportFailure traceback to stdout.
+- :issue:`6956`: Prevent testrunner from printing ConftestImportFailure traceback to stdout.
 
 
 - :issue:`7150`: Prevent hiding the underlying exception when ``ConfTestImportFailure`` is raised.
@@ -4662,7 +4662,7 @@ Bug Fixes
   subclasses for skipped tests.
 
 
-pytest 5.4.2 (2020-05-08)
+testrunner 5.4.2 (2020-05-08)
 =========================
 
 Bug Fixes
@@ -4683,7 +4683,7 @@ Bug Fixes
 - :issue:`6951`: Allow users to still set the deprecated ``TerminalReporter.writer`` attribute.
 
 
-- :issue:`6992`: Revert "tmpdir: clean up indirection via config for factories" #6767 as it breaks pytest-xdist.
+- :issue:`6992`: Revert "tmpdir: clean up indirection via config for factories" #6767 as it breaks testrunner-xdist.
 
 
 - :issue:`7110`: Fixed regression: ``asyncbase.TestCase`` tests are executed correctly again.
@@ -4698,13 +4698,13 @@ Bug Fixes
 - :issue:`7180`: Fix ``_is_setup_py`` for files encoded differently than locale.
 
 
-pytest 5.4.1 (2020-03-13)
+testrunner 5.4.1 (2020-03-13)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`6909`: Revert the change introduced by :pr:`6330`, which required all arguments to ``@pytest.mark.parametrize`` to be explicitly defined in the function signature.
+- :issue:`6909`: Revert the change introduced by :pr:`6330`, which required all arguments to ``@testrunner.mark.parametrize`` to be explicitly defined in the function signature.
 
   The intention of the original change was to remove what was expected to be an unintended/surprising behavior, but it turns out many people relied on it, so the restriction has been reverted.
 
@@ -4712,7 +4712,7 @@ Bug Fixes
 - :issue:`6910`: Fix crash when plugins return an unknown stats while using the ``--reportlog`` option.
 
 
-pytest 5.4.0 (2020-03-12)
+testrunner 5.4.0 (2020-03-12)
 =========================
 
 Breaking Changes
@@ -4723,12 +4723,12 @@ Breaking Changes
 
 - :issue:`6443`: Plugins specified with ``-p`` are now loaded after internal plugins, which results in their hooks being called *before* the internal ones.
 
-  This makes the ``-p`` behavior consistent with ``PYTEST_PLUGINS``.
+  This makes the ``-p`` behavior consistent with ``TESTRUNNER_PLUGINS``.
 
 
-- :issue:`6637`: Removed the long-deprecated ``pytest_itemstart`` hook.
+- :issue:`6637`: Removed the long-deprecated ``testrunner_itemstart`` hook.
 
-  This hook has been marked as deprecated and not been even called by pytest for over 10 years now.
+  This hook has been marked as deprecated and not been even called by testrunner for over 10 years now.
 
 
 - :issue:`6673`: Reversed / fix meaning of "+/-" in error diffs.  "-" means that something expected is missing in the result and "+" means that there are unexpected extras in the result.
@@ -4738,7 +4738,7 @@ Breaking Changes
   the result is unavailable, instead of being deleted.
 
   If your plugin performs checks like ``hasattr(fixturedef, 'cached_result')``,
-  for example in a ``pytest_fixture_post_finalizer`` hook implementation, replace
+  for example in a ``testrunner_fixture_post_finalizer`` hook implementation, replace
   it with ``fixturedef.cached_result is not None``. If you ``del`` the attribute,
   set it to ``None`` instead.
 
@@ -4750,11 +4750,11 @@ Deprecations
 - :issue:`3238`: Option ``--no-print-logs`` is deprecated and meant to be removed in a future release. If you use ``--no-print-logs``, please try out ``--show-capture`` and
   provide feedback.
 
-  ``--show-capture`` command-line option was added in ``pytest 3.5.0`` and allows to specify how to
+  ``--show-capture`` command-line option was added in ``testrunner 3.5.0`` and allows to specify how to
   display captured output when tests fail: ``no``, ``stdout``, ``stderr``, ``log`` or ``all`` (the default).
 
 
-- :issue:`571`: Deprecate the unused/broken `pytest_collect_directory` hook.
+- :issue:`571`: Deprecate the unused/broken `testrunner_collect_directory` hook.
   It was misaligned since the removal of the ``Directory`` collector in 2010
   and incorrect/unusable as soon as collection was split from test execution.
 
@@ -4783,11 +4783,11 @@ Features
 - :issue:`4597`: New :ref:`--capture=tee-sys <capture-method>` option to allow both live printing and capturing of test output.
 
 
-- :issue:`5712`: Now all arguments to ``@pytest.mark.parametrize`` need to be explicitly declared in the function signature or via ``indirect``.
+- :issue:`5712`: Now all arguments to ``@testrunner.mark.parametrize`` need to be explicitly declared in the function signature or via ``indirect``.
   Previously it was possible to omit an argument if a fixture with the same name existed, which was just an accident of implementation and was not meant to be a part of the API.
 
 
-- :issue:`6454`: Changed default for `-r` to `fE`, which displays failures and errors in the :ref:`short test summary <pytest.detailed_failed_tests_usage>`.  `-rN` can be used to disable it (the old behavior).
+- :issue:`6454`: Changed default for `-r` to `fE`, which displays failures and errors in the :ref:`short test summary <testrunner.detailed_failed_tests_usage>`.  `-rN` can be used to disable it (the old behavior).
 
 
 - :issue:`6469`: New options have been added to the :confval:`junit_logging` option: ``log``, ``out-err``, and ``all``.
@@ -4800,7 +4800,7 @@ Features
 Improvements
 ------------
 
-- :issue:`1857`: ``pytest.mark.parametrize`` accepts integers for ``ids`` again, converting it to strings.
+- :issue:`1857`: ``testrunner.mark.parametrize`` accepts integers for ``ids`` again, converting it to strings.
 
 
 - :issue:`449`: Use "yellow" main color with any XPASSED tests.
@@ -4815,10 +4815,10 @@ Improvements
 - :issue:`5686`: ``tmpdir_factory.mktemp`` now fails when given absolute and non-normalized paths.
 
 
-- :issue:`5984`: The ``pytest_warning_captured`` hook now receives a ``location`` parameter with the code location that generated the warning.
+- :issue:`5984`: The ``testrunner_warning_captured`` hook now receives a ``location`` parameter with the code location that generated the warning.
 
 
-- :issue:`6213`: pytester: the ``testdir`` fixture respects environment settings from the ``monkeypatch`` fixture for inner runs.
+- :issue:`6213`: testrunnerer: the ``testdir`` fixture respects environment settings from the ``monkeypatch`` fixture for inner runs.
 
 
 - :issue:`6247`: ``--fulltrace`` is honored with collection errors.
@@ -4827,7 +4827,7 @@ Improvements
 - :issue:`6384`: Make `--showlocals` work also with `--tb=short`.
 
 
-- :issue:`6653`: Add support for matching lines consecutively with :class:`~pytest.LineMatcher`'s :func:`~pytest.LineMatcher.fnmatch_lines` and :func:`~pytest.LineMatcher.re_match_lines`.
+- :issue:`6653`: Add support for matching lines consecutively with :class:`~testrunner.LineMatcher`'s :func:`~testrunner.LineMatcher.fnmatch_lines` and :func:`~testrunner.LineMatcher.re_match_lines`.
 
 
 - :issue:`6658`: Code is now highlighted in tracebacks when ``pygments`` is installed.
@@ -4839,26 +4839,26 @@ Improvements
 - :issue:`6795`: Import usage error message with invalid `-o` option.
 
 
-- :issue:`759`: ``pytest.mark.parametrize`` supports iterators and generators for ``ids``.
+- :issue:`759`: ``testrunner.mark.parametrize`` supports iterators and generators for ``ids``.
 
 
 
 Bug Fixes
 ---------
 
-- :issue:`310`: Add support for calling `pytest.xfail()` and `pytest.importorskip()` with doctests.
+- :issue:`310`: Add support for calling `testrunner.xfail()` and `testrunner.importorskip()` with doctests.
 
 
 - :issue:`3823`: ``--trace`` now works with unittests.
 
 
-- :issue:`4445`: Fixed some warning reports produced by pytest to point to the correct location of the warning in the user's code.
+- :issue:`4445`: Fixed some warning reports produced by testrunner to point to the correct location of the warning in the user's code.
 
 
 - :issue:`5301`: Fix ``--last-failed`` to collect new tests from files with known failures.
 
 
-- :issue:`5928`: Report ``PytestUnknownMarkWarning`` at the level of the user's code, not ``pytest``'s.
+- :issue:`5928`: Report ``TestrunnerUnknownMarkWarning`` at the level of the user's code, not ``testrunner``'s.
 
 
 - :issue:`5991`: Fix interaction with ``--pdb`` and unittests: do not use unittest's ``TestCase.debug()``.
@@ -4895,15 +4895,15 @@ Bug Fixes
 - :issue:`6597`: Fix node ids which contain a parametrized empty-string variable.
 
 
-- :issue:`6646`: Assertion rewriting hooks are (re)stored for the current item, which fixes them being still used after e.g. pytester's ``testdir.runpytest`` etc.
+- :issue:`6646`: Assertion rewriting hooks are (re)stored for the current item, which fixes them being still used after e.g. testrunnerer's ``testdir.runtestrunner`` etc.
 
 
-- :issue:`6660`: :py:func:`pytest.exit` is handled when emitted from the :hook:`pytest_sessionfinish` hook.  This includes quitting from a debugger.
+- :issue:`6660`: :py:func:`testrunner.exit` is handled when emitted from the :hook:`testrunner_sessionfinish` hook.  This includes quitting from a debugger.
 
 
-- :issue:`6752`: When :py:func:`pytest.raises` is used as a function (as opposed to a context manager),
+- :issue:`6752`: When :py:func:`testrunner.raises` is used as a function (as opposed to a context manager),
   a `match` keyword argument is now passed through to the tested function. Previously
-  it was swallowed and ignored (regression in pytest 5.1.0).
+  it was swallowed and ignored (regression in testrunner 5.1.0).
 
 
 - :issue:`6801`: Do not display empty lines in between traceback for unexpected exceptions with doctests.
@@ -4929,16 +4929,16 @@ Trivial/Internal Changes
 - :issue:`6404`: Remove usage of ``parser`` module, deprecated in Python 3.9.
 
 
-pytest 5.3.5 (2020-01-29)
+testrunner 5.3.5 (2020-01-29)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`6517`: Fix regression in pytest 5.3.4 causing an INTERNALERROR due to a wrong assertion.
+- :issue:`6517`: Fix regression in testrunner 5.3.4 causing an INTERNALERROR due to a wrong assertion.
 
 
-pytest 5.3.4 (2020-01-20)
+testrunner 5.3.4 (2020-01-20)
 =========================
 
 Bug Fixes
@@ -4948,7 +4948,7 @@ Bug Fixes
   so the team decided to revert this change and make a new release while we continue to look for a solution.
 
 
-pytest 5.3.3 (2020-01-16)
+testrunner 5.3.3 (2020-01-16)
 =========================
 
 Bug Fixes
@@ -4957,11 +4957,11 @@ Bug Fixes
 - :issue:`2780`: Captured output during teardown is shown with ``-rP``.
 
 
-- :issue:`5971`: Fix a ``pytest-xdist`` crash when dealing with exceptions raised in subprocesses created by the
+- :issue:`5971`: Fix a ``testrunner-xdist`` crash when dealing with exceptions raised in subprocesses created by the
   ``multiprocessing`` module.
 
 
-- :issue:`6436`: :class:`~pytest.FixtureDef` objects now properly register their finalizers with autouse and
+- :issue:`6436`: :class:`~testrunner.FixtureDef` objects now properly register their finalizers with autouse and
   parameterized fixtures that execute before them in the fixture stack so they are torn
   down at the right times, and in the right order.
 
@@ -4976,7 +4976,7 @@ Trivial/Internal Changes
 - :issue:`6350`: Optimized automatic renaming of test parameter IDs.
 
 
-pytest 5.3.2 (2019-12-13)
+testrunner 5.3.2 (2019-12-13)
 =========================
 
 Improvements
@@ -4995,29 +4995,29 @@ Bug Fixes
 - :issue:`5430`: junitxml: Logs for failed test are now passed to junit report in case the test fails during call phase.
 
 
-- :issue:`6290`: The supporting files in the ``.pytest_cache`` directory are kept with ``--cache-clear``, which only clears cached values now.
+- :issue:`6290`: The supporting files in the ``.testrunner_cache`` directory are kept with ``--cache-clear``, which only clears cached values now.
 
 
 - :issue:`6301`: Fix assertion rewriting for egg-based distributions and ``editable`` installs (``pip install --editable``).
 
 
-pytest 5.3.1 (2019-11-25)
+testrunner 5.3.1 (2019-11-25)
 =========================
 
 Improvements
 ------------
 
-- :issue:`6231`: Improve check for misspelling of :ref:`pytest.mark.parametrize ref`.
+- :issue:`6231`: Improve check for misspelling of :ref:`testrunner.mark.parametrize ref`.
 
 
-- :issue:`6257`: Handle :func:`pytest.exit` being used via :hook:`pytest_internalerror`, e.g. when quitting pdb from post mortem.
+- :issue:`6257`: Handle :func:`testrunner.exit` being used via :hook:`testrunner_internalerror`, e.g. when quitting pdb from post mortem.
 
 
 
 Bug Fixes
 ---------
 
-- :issue:`5914`: pytester: fix :py:func:`~pytest.LineMatcher.no_fnmatch_line` when used after positive matching.
+- :issue:`5914`: testrunnerer: fix :py:func:`~testrunner.LineMatcher.no_fnmatch_line` when used after positive matching.
 
 
 - :issue:`6082`: Fix line detection for doctest samples inside
@@ -5025,7 +5025,7 @@ Bug Fixes
   :issue:`python/cpython#61648`.
 
 
-- :issue:`6254`: Fix compatibility with pytest-parallel (regression in pytest 5.3.0).
+- :issue:`6254`: Fix compatibility with testrunner-parallel (regression in testrunner 5.3.0).
 
 
 - :issue:`6255`: Clear the :py:data:`sys.last_traceback`, :py:data:`sys.last_type`
@@ -5034,17 +5034,17 @@ Bug Fixes
   the Python standard library.
 
 
-pytest 5.3.0 (2019-11-19)
+testrunner 5.3.0 (2019-11-19)
 =========================
 
 Deprecations
 ------------
 
-- :issue:`6179`: The default value of :confval:`junit_family` option will change to ``"xunit2"`` in pytest 6.0, given
+- :issue:`6179`: The default value of :confval:`junit_family` option will change to ``"xunit2"`` in testrunner 6.0, given
   that this is the version supported by default in modern tools that manipulate this type of file.
 
-  In order to smooth the transition, pytest will issue a warning in case the ``--junitxml`` option
-  is given in the command line but :confval:`junit_family` is not explicitly configured in ``pytest.ini``.
+  In order to smooth the transition, testrunner will issue a warning in case the ``--junitxml`` option
+  is given in the command line but :confval:`junit_family` is not explicitly configured in ``testrunner.ini``.
 
   For more information, :ref:`see the docs <junit-family changed default value>`.
 
@@ -5053,7 +5053,7 @@ Deprecations
 Features
 --------
 
-- :issue:`4488`: The pytest team has created the `pytest-reportlog <https://github.com/pytest-dev/pytest-reportlog>`__
+- :issue:`4488`: The testrunner team has created the `testrunner-reportlog <https://github.com/jacksonsr451/test-runner-reportlog>`__
   plugin, which provides a new ``--report-log=FILE`` option that writes *report logs* into a file as the test session executes.
 
   Each line of the report log contains a self contained JSON object corresponding to a testing event,
@@ -5061,11 +5061,11 @@ Features
   each line, so systems can read and process events in real-time.
 
   The plugin is meant to replace the ``--resultlog`` option, which is deprecated and meant to be removed
-  in a future release. If you use ``--resultlog``, please try out ``pytest-reportlog`` and
+  in a future release. If you use ``--resultlog``, please try out ``testrunner-reportlog`` and
   provide feedback.
 
 
-- :issue:`4730`: When :py:data:`sys.pycache_prefix` (Python 3.8+) is set, it will be used by pytest to cache test files changed by the assertion rewriting mechanism.
+- :issue:`4730`: When :py:data:`sys.pycache_prefix` (Python 3.8+) is set, it will be used by testrunner to cache test files changed by the assertion rewriting mechanism.
 
   This makes it easier to benefit of cached ``.pyc`` files even on file systems without permissions.
 
@@ -5083,8 +5083,8 @@ Features
   rather than implicitly.
 
 
-- :issue:`5914`: :fixture:`testdir` learned two new functions, :py:func:`~pytest.LineMatcher.no_fnmatch_line` and
-  :py:func:`~pytest.LineMatcher.no_re_match_line`.
+- :issue:`5914`: :fixture:`testdir` learned two new functions, :py:func:`~testrunner.LineMatcher.no_fnmatch_line` and
+  :py:func:`~testrunner.LineMatcher.no_re_match_line`.
 
   The functions are used to ensure the captured text *does not* match the given
   pattern.
@@ -5093,25 +5093,25 @@ Features
 
   .. code-block:: python
 
-      result = testdir.runpytest()
+      result = testdir.runtestrunner()
       assert re.match(pat, result.stdout.str()) is None
 
   Or the ``in`` operator:
 
   .. code-block:: python
 
-      result = testdir.runpytest()
+      result = testdir.runtestrunner()
       assert text in result.stdout.str()
 
   But the new functions produce best output on failure.
 
 
-- :issue:`6057`: Added tolerances to complex values when printing ``pytest.approx``.
+- :issue:`6057`: Added tolerances to complex values when printing ``testrunner.approx``.
 
-  For example, ``repr(pytest.approx(3+4j))`` returns ``(3+4j) ± 5e-06 ∠ ±180°``. This is polar notation indicating a circle around the expected value, with a radius of 5e-06. For ``approx`` comparisons to return ``True``, the actual value should fall within this circle.
+  For example, ``repr(testrunner.approx(3+4j))`` returns ``(3+4j) ± 5e-06 ∠ ±180°``. This is polar notation indicating a circle around the expected value, with a radius of 5e-06. For ``approx`` comparisons to return ``True``, the actual value should fall within this circle.
 
 
-- :issue:`6061`: Added the pluginmanager as an argument to ``pytest_addoption``
+- :issue:`6061`: Added the pluginmanager as an argument to ``testrunner_addoption``
   so that hooks can be invoked when setting up command line options. This is
   useful for having one plugin communicate things to another plugin,
   such as default values or which set of command line options to add.
@@ -5175,16 +5175,16 @@ Improvements
   immutable and avoid accidental modifications.
 
 
-- :issue:`6023`: ``pytest.main`` returns a ``pytest.ExitCode`` instance now, except for when custom exit codes are used (where it returns ``int`` then still).
+- :issue:`6023`: ``testrunner.main`` returns a ``testrunner.ExitCode`` instance now, except for when custom exit codes are used (where it returns ``int`` then still).
 
 
-- :issue:`6026`: Align prefixes in output of pytester's ``LineMatcher``.
+- :issue:`6026`: Align prefixes in output of testrunnerer's ``LineMatcher``.
 
 
 - :issue:`6059`: Collection errors are reported as errors (and not failures like before) in the terminal's short test summary.
 
 
-- :issue:`6069`: ``pytester.spawn`` does not skip/xfail tests on FreeBSD anymore unconditionally.
+- :issue:`6069`: ``testrunnerer.spawn`` does not skip/xfail tests on FreeBSD anymore unconditionally.
 
 
 - :issue:`6097`: The "[...%]" indicator in the test summary is now colored according to the final (new) multi-colored line's main color.
@@ -5199,7 +5199,7 @@ Improvements
 - :issue:`6152`: Now parametrization will use the ``__name__`` attribute of any object for the id, if present. Previously it would only use ``__name__`` for functions and classes.
 
 
-- :issue:`6176`: Improved failure reporting with pytester's ``Hookrecorder.assertoutcome``.
+- :issue:`6176`: Improved failure reporting with testrunnerer's ``Hookrecorder.assertoutcome``.
 
 
 - :issue:`6181`: The reason for a stopped session, e.g. with ``--maxfail`` / ``-x``, now gets reported in the test summary.
@@ -5218,15 +5218,15 @@ Bug Fixes
 - :issue:`2548`: Fixed line offset mismatch of skipped tests in terminal summary.
 
 
-- :issue:`6039`: The ``PytestDoctestRunner`` is now properly invalidated when unconfiguring the doctest plugin.
+- :issue:`6039`: The ``TestrunnerDoctestRunner`` is now properly invalidated when unconfiguring the doctest plugin.
 
-  This is important when used with ``pytester``'s ``runpytest_inprocess``.
-
-
-- :issue:`6047`: BaseExceptions are now handled in ``saferepr``, which includes ``pytest.fail.Exception`` etc.
+  This is important when used with ``testrunnerer``'s ``runtestrunner_inprocess``.
 
 
-- :issue:`6074`: pytester: fixed order of arguments in ``rm_rf`` warning when cleaning up temporary directories, and do not emit warnings for errors with ``os.open``.
+- :issue:`6047`: BaseExceptions are now handled in ``saferepr``, which includes ``testrunner.fail.Exception`` etc.
+
+
+- :issue:`6074`: testrunnerer: fixed order of arguments in ``rm_rf`` warning when cleaning up temporary directories, and do not emit warnings for errors with ``os.open``.
 
 
 - :issue:`6189`: Fixed result of ``getmodpath`` method.
@@ -5236,11 +5236,11 @@ Bug Fixes
 Trivial/Internal Changes
 ------------------------
 
-- :issue:`4901`: ``RunResult`` from ``pytester`` now displays the mnemonic of the ``ret`` attribute when it is a
-  valid ``pytest.ExitCode`` value.
+- :issue:`4901`: ``RunResult`` from ``testrunnerer`` now displays the mnemonic of the ``ret`` attribute when it is a
+  valid ``testrunner.ExitCode`` value.
 
 
-pytest 5.2.4 (2019-11-15)
+testrunner 5.2.4 (2019-11-15)
 =========================
 
 Bug Fixes
@@ -5249,26 +5249,26 @@ Bug Fixes
 - :issue:`6194`: Fix incorrect discovery of non-test ``__init__.py`` files.
 
 
-- :issue:`6197`: Revert "The first test in a package (``__init__.py``) marked with ``@pytest.mark.skip`` is now correctly skipped.".
+- :issue:`6197`: Revert "The first test in a package (``__init__.py``) marked with ``@testrunner.mark.skip`` is now correctly skipped.".
 
 
-pytest 5.2.3 (2019-11-14)
+testrunner 5.2.3 (2019-11-14)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`5830`: The first test in a package (``__init__.py``) marked with ``@pytest.mark.skip`` is now correctly skipped.
+- :issue:`5830`: The first test in a package (``__init__.py``) marked with ``@testrunner.mark.skip`` is now correctly skipped.
 
 
 - :issue:`6099`: Fix ``--trace`` when used with parametrized functions.
 
 
-- :issue:`6183`: Using ``request`` as a parameter name in ``@pytest.mark.parametrize`` now produces a more
+- :issue:`6183`: Using ``request`` as a parameter name in ``@testrunner.mark.parametrize`` now produces a more
   user-friendly error.
 
 
-pytest 5.2.2 (2019-10-24)
+testrunner 5.2.2 (2019-10-24)
 =========================
 
 Bug Fixes
@@ -5284,11 +5284,11 @@ Bug Fixes
 
 
 - :issue:`6044`: Properly ignore ``FileNotFoundError`` exceptions when trying to remove old temporary directories,
-  for instance when multiple processes try to remove the same directory (common with ``pytest-xdist``
+  for instance when multiple processes try to remove the same directory (common with ``testrunner-xdist``
   for example).
 
 
-pytest 5.2.1 (2019-10-06)
+testrunner 5.2.1 (2019-10-06)
 =========================
 
 Bug Fixes
@@ -5297,13 +5297,13 @@ Bug Fixes
 - :issue:`5902`: Fix warnings about deprecated ``cmp`` attribute in ``attrs>=19.2``.
 
 
-pytest 5.2.0 (2019-09-28)
+testrunner 5.2.0 (2019-09-28)
 =========================
 
 Deprecations
 ------------
 
-- :issue:`1682`: Passing arguments to pytest.fixture() as positional arguments is deprecated - pass them
+- :issue:`1682`: Passing arguments to testrunner.fixture() as positional arguments is deprecated - pass them
   as a keyword argument instead.
 
 
@@ -5311,12 +5311,12 @@ Deprecations
 Features
 --------
 
-- :issue:`1682`: The ``scope`` parameter of ``@pytest.fixture`` can now be a callable that receives
+- :issue:`1682`: The ``scope`` parameter of ``@testrunner.fixture`` can now be a callable that receives
   the fixture name and the ``config`` object as keyword-only parameters.
   See :ref:`the docs <dynamic scope>` for more information.
 
 
-- :issue:`5764`: New behavior of the ``--pastebin`` option: failures to connect to the pastebin server are reported, without failing the pytest run
+- :issue:`5764`: New behavior of the ``--pastebin`` option: failures to connect to the pastebin server are reported, without failing the testrunner run
 
 
 
@@ -5326,7 +5326,7 @@ Bug Fixes
 - :issue:`5806`: Fix "lexer" being used when uploading to bpaste.net from ``--pastebin`` to "text".
 
 
-- :issue:`5884`: Fix ``--setup-only`` and ``--setup-show`` for custom pytest items.
+- :issue:`5884`: Fix ``--setup-only`` and ``--setup-show`` for custom testrunner items.
 
 
 
@@ -5336,7 +5336,7 @@ Trivial/Internal Changes
 - :issue:`5056`: The HelpFormatter uses ``py.io.get_terminal_width`` for better width detection.
 
 
-pytest 5.1.3 (2019-09-18)
+testrunner 5.1.3 (2019-09-18)
 =========================
 
 Bug Fixes
@@ -5345,14 +5345,14 @@ Bug Fixes
 - :issue:`5807`: Fix pypy3.6 (nightly) on windows.
 
 
-- :issue:`5811`: Handle ``--fulltrace`` correctly with ``pytest.raises``.
+- :issue:`5811`: Handle ``--fulltrace`` correctly with ``testrunner.raises``.
 
 
 - :issue:`5819`: Windows: Fix regression with conftest whose qualified name contains uppercase
   characters (introduced by #5792).
 
 
-pytest 5.1.2 (2019-08-30)
+testrunner 5.1.2 (2019-08-30)
 =========================
 
 Bug Fixes
@@ -5370,7 +5370,7 @@ Bug Fixes
 
 
 - :issue:`5786`: Chained exceptions in test and collection reports are now correctly serialized, allowing plugins like
-  ``pytest-xdist`` to display them properly.
+  ``testrunner-xdist`` to display them properly.
 
 
 - :issue:`5792`: Windows: Fix error that occurs in certain circumstances when loading
@@ -5378,16 +5378,16 @@ Bug Fixes
   in the filesystem (e.g., ``c:\test`` instead of ``C:\test``).
 
 
-pytest 5.1.1 (2019-08-20)
+testrunner 5.1.1 (2019-08-20)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`5751`: Fixed ``TypeError`` when importing pytest on Python 3.5.0 and 3.5.1.
+- :issue:`5751`: Fixed ``TypeError`` when importing testrunner on Python 3.5.0 and 3.5.1.
 
 
-pytest 5.1.0 (2019-08-15)
+testrunner 5.1.0 (2019-08-15)
 =========================
 
 Removals
@@ -5398,21 +5398,21 @@ Removals
 
   * ``Request.getfuncargvalue``: use ``Request.getfixturevalue`` instead.
 
-  * ``pytest.raises`` and ``pytest.warns`` no longer support strings as the second argument.
+  * ``testrunner.raises`` and ``testrunner.warns`` no longer support strings as the second argument.
 
-  * ``message`` parameter of ``pytest.raises``.
+  * ``message`` parameter of ``testrunner.raises``.
 
-  * ``pytest.raises``, ``pytest.warns`` and ``ParameterSet.param`` now use native keyword-only
+  * ``testrunner.raises``, ``testrunner.warns`` and ``ParameterSet.param`` now use native keyword-only
     syntax. This might change the exception message from previous versions, but they still raise
     ``TypeError`` on unknown keyword arguments as before.
 
-  * ``pytest.config`` global variable.
+  * ``testrunner.config`` global variable.
 
   * ``tmpdir_factory.ensuretemp`` method.
 
-  * ``pytest_logwarning`` hook.
+  * ``testrunner_logwarning`` hook.
 
-  * ``RemovedInPytest4Warning`` warning type.
+  * ``RemovedInTestrunner4Warning`` warning type.
 
   * ``request`` is now a reserved name for fixtures.
 
@@ -5423,18 +5423,18 @@ Removals
 - :issue:`5565`: Removed unused support code for :pypi:`unittest2`.
 
   The ``unittest2`` backport module is no longer
-  necessary since Python 3.3+, and the small amount of code in pytest to support it also doesn't seem
+  necessary since Python 3.3+, and the small amount of code in testrunner to support it also doesn't seem
   to be used: after removed, all tests still pass unchanged.
 
   Although our policy is to introduce a deprecation period before removing any features or support
   for third party libraries, because this code is apparently not used
-  at all (even if ``unittest2`` is used by a test suite executed by pytest), it was decided to
+  at all (even if ``unittest2`` is used by a test suite executed by testrunner), it was decided to
   remove it in this release.
 
   If you experience a regression because of this, please :issue:`file an issue <new>`.
 
 
-- :issue:`5615`: ``pytest.fail``, ``pytest.xfail`` and ``pytest.skip`` no longer support bytes for the message argument.
+- :issue:`5615`: ``testrunner.fail``, ``testrunner.xfail`` and ``testrunner.skip`` no longer support bytes for the message argument.
 
   This was supported for Python 2 where it was tempting to use ``"message"``
   instead of ``u"message"``.
@@ -5447,7 +5447,7 @@ Removals
 Features
 --------
 
-- :issue:`5564`: New ``Config.invocation_args`` attribute containing the unchanged arguments passed to ``pytest.main()``.
+- :issue:`5564`: New ``Config.invocation_args`` attribute containing the unchanged arguments passed to ``testrunner.main()``.
 
 
 - :issue:`5576`: New :ref:`NUMBER <using doctest options>`
@@ -5476,31 +5476,31 @@ Bug Fixes
 - :issue:`4344`: Fix RuntimeError/StopIteration when trying to collect package with "__init__.py" only.
 
 
-- :issue:`5115`: Warnings issued during ``pytest_configure`` are explicitly not treated as errors, even if configured as such, because it otherwise completely breaks pytest.
+- :issue:`5115`: Warnings issued during ``testrunner_configure`` are explicitly not treated as errors, even if configured as such, because it otherwise completely breaks testrunner.
 
 
 - :issue:`5477`: The XML file produced by ``--junitxml`` now correctly contain a ``<testsuites>`` root element.
 
 
 - :issue:`5524`: Fix issue where ``tmp_path`` and ``tmpdir`` would not remove directories containing files marked as read-only,
-  which could lead to pytest crashing when executed a second time with the ``--basetemp`` option.
+  which could lead to testrunner crashing when executed a second time with the ``--basetemp`` option.
 
 
 - :issue:`5537`: Replace ``importlib_metadata`` backport with ``importlib.metadata`` from the
   standard library on Python 3.8+.
 
 
-- :issue:`5578`: Improve type checking for some exception-raising functions (``pytest.xfail``, ``pytest.skip``, etc)
-  so they provide better error messages when users meant to use marks (for example ``@pytest.xfail``
-  instead of ``@pytest.mark.xfail``).
+- :issue:`5578`: Improve type checking for some exception-raising functions (``testrunner.xfail``, ``testrunner.skip``, etc)
+  so they provide better error messages when users meant to use marks (for example ``@testrunner.xfail``
+  instead of ``@testrunner.mark.xfail``).
 
 
 - :issue:`5606`: Fixed internal error when test functions were patched with objects that cannot be compared
   for truth values against others, like ``numpy`` arrays.
 
 
-- :issue:`5634`: ``pytest.exit`` is now correctly handled in ``unittest`` cases.
-  This makes ``unittest`` cases handle ``quit`` from pytest's pdb correctly.
+- :issue:`5634`: ``testrunner.exit`` is now correctly handled in ``unittest`` cases.
+  This makes ``unittest`` cases handle ``quit`` from testrunner's pdb correctly.
 
 
 - :issue:`5650`: Improved output when parsing an ini configuration file fails.
@@ -5523,7 +5523,7 @@ Improved Documentation
 Trivial/Internal Changes
 ------------------------
 
-- :issue:`5095`: XML files of the ``xunit2`` family are now validated against the schema by pytest's own test suite
+- :issue:`5095`: XML files of the ``xunit2`` family are now validated against the schema by testrunner's own test suite
   to avoid future regressions.
 
 
@@ -5533,14 +5533,14 @@ Trivial/Internal Changes
 - :issue:`5603`: Simplified internal ``SafeRepr`` class and removed some dead code.
 
 
-- :issue:`5664`: When invoking pytest's own testsuite with ``PYTHONDONTWRITEBYTECODE=1``,
+- :issue:`5664`: When invoking testrunner's own testsuite with ``PYTHONDONTWRITEBYTECODE=1``,
   the ``test_xfail_handling`` test no longer fails.
 
 
 - :issue:`5684`: Replace manual handling of ``OSError.errno`` in the codebase by new ``OSError`` subclasses (``PermissionError``, ``FileNotFoundError``, etc.).
 
 
-pytest 5.0.1 (2019-07-04)
+testrunner 5.0.1 (2019-07-04)
 =========================
 
 Bug Fixes
@@ -5562,7 +5562,7 @@ Improved Documentation
 - :issue:`5517`: Improve "Declaring new hooks" section in chapter "Writing Plugins"
 
 
-pytest 5.0.0 (2019-06-28)
+testrunner 5.0.0 (2019-06-28)
 =========================
 
 Important
@@ -5571,13 +5571,13 @@ Important
 This release is a Python3.5+ only release.
 
 For more details, see our `Python 2.7 and 3.4 support plan
-<https://docs.pytest.org/en/7.0.x/py27-py34-deprecation.html>`_.
+<https://github.com/jacksonsr451/test-runner/en/7.0.x/py27-py34-deprecation.html>`_.
 
 Removals
 --------
 
-- :issue:`1149`: Pytest no longer accepts prefixes of command-line arguments, for example
-  typing ``pytest --doctest-mod`` inplace of ``--doctest-modules``.
+- :issue:`1149`: Testrunner no longer accepts prefixes of command-line arguments, for example
+  typing ``testrunner --doctest-mod`` inplace of ``--doctest-modules``.
   This was previously allowed where the ``ArgumentParser`` thought it was unambiguous,
   but this could be incorrect due to delayed parsing of options for plugins.
   See for example issues :issue:`1149`,
@@ -5585,38 +5585,38 @@ Removals
   :issue:`4009`.
 
 
-- :issue:`5402`: **PytestDeprecationWarning are now errors by default.**
+- :issue:`5402`: **TestrunnerDeprecationWarning are now errors by default.**
 
   Following our plan to remove deprecated features with as little disruption as
-  possible, all warnings of type ``PytestDeprecationWarning`` now generate errors
+  possible, all warnings of type ``TestrunnerDeprecationWarning`` now generate errors
   instead of warning messages.
 
-  **The affected features will be effectively removed in pytest 5.1**, so please consult the
+  **The affected features will be effectively removed in testrunner 5.1**, so please consult the
   :std:doc:`deprecations` section in the docs for directions on how to update existing code.
 
-  In the pytest ``5.0.X`` series, it is possible to change the errors back into warnings as a stop
-  gap measure by adding this to your ``pytest.ini`` file:
+  In the testrunner ``5.0.X`` series, it is possible to change the errors back into warnings as a stop
+  gap measure by adding this to your ``testrunner.ini`` file:
 
   .. code-block:: ini
 
-      [pytest]
+      [testrunner]
       filterwarnings =
-          ignore::pytest.PytestDeprecationWarning
+          ignore::testrunner.TestrunnerDeprecationWarning
 
-  But this will stop working when pytest ``5.1`` is released.
+  But this will stop working when testrunner ``5.1`` is released.
 
   **If you have concerns** about the removal of a specific feature, please add a
   comment to :issue:`5402`.
 
 
-- :issue:`5412`: ``ExceptionInfo`` objects (returned by ``pytest.raises``) now have the same ``str`` representation as ``repr``, which
+- :issue:`5412`: ``ExceptionInfo`` objects (returned by ``testrunner.raises``) now have the same ``str`` representation as ``repr``, which
   avoids some confusion when users use ``print(e)`` to inspect the object.
 
   This means code like:
 
   .. code-block:: python
 
-        with pytest.raises(SomeException) as e:
+        with testrunner.raises(SomeException) as e:
             ...
         assert "some message" in str(e)
 
@@ -5625,7 +5625,7 @@ Removals
 
   .. code-block:: python
 
-        with pytest.raises(SomeException) as e:
+        with testrunner.raises(SomeException) as e:
             ...
         assert "some message" in str(e.value)
 
@@ -5635,19 +5635,19 @@ Removals
 Deprecations
 ------------
 
-- :issue:`4488`: The removal of the ``--result-log`` option and module has been postponed to (tentatively) pytest 6.0 as
+- :issue:`4488`: The removal of the ``--result-log`` option and module has been postponed to (tentatively) testrunner 6.0 as
   the team has not yet got around to implement a good alternative for it.
 
 
 - :issue:`466`: The ``funcargnames`` attribute has been an alias for ``fixturenames`` since
-  pytest 2.3, and is now deprecated in code too.
+  testrunner 2.3, and is now deprecated in code too.
 
 
 
 Features
 --------
 
-- :issue:`3457`: New :hook:`pytest_assertion_pass`
+- :issue:`3457`: New :hook:`testrunner_assertion_pass`
   hook, called with context information when an assertion *passes*.
 
   This hook is still **experimental** so use it with caution.
@@ -5657,20 +5657,20 @@ Features
   module is now enabled by default to help users diagnose crashes in C modules.
 
   This functionality was provided by integrating the external
-  `pytest-faulthandler <https://github.com/pytest-dev/pytest-faulthandler>`__ plugin into the core,
+  `testrunner-faulthandler <https://github.com/jacksonsr451/test-runner-faulthandler>`__ plugin into the core,
   so users should remove that plugin from their requirements if used.
 
   For more information see the docs: :ref:`faulthandler`.
 
 
-- :issue:`5452`: When warnings are configured as errors, pytest warnings now appear as originating from ``pytest.`` instead of the internal ``_pytest.warning_types.`` module.
+- :issue:`5452`: When warnings are configured as errors, testrunner warnings now appear as originating from ``testrunner.`` instead of the internal ``_testrunner.warning_types.`` module.
 
 
-- :issue:`5125`: ``Session.exitcode`` values are now coded in ``pytest.ExitCode``, an ``IntEnum``. This makes the exit code available for consumer code and are more explicit other than just documentation. User defined exit codes are still valid, but should be used with caution.
+- :issue:`5125`: ``Session.exitcode`` values are now coded in ``testrunner.ExitCode``, an ``IntEnum``. This makes the exit code available for consumer code and are more explicit other than just documentation. User defined exit codes are still valid, but should be used with caution.
 
   The team doesn't expect this change to break test suites or plugins in general, except in esoteric/specific scenarios.
 
-  **pytest-xdist** users should upgrade to ``1.29.0`` or later, as ``pytest-xdist`` required a compatibility fix because of this change.
+  **testrunner-xdist** users should upgrade to ``1.29.0`` or later, as ``testrunner-xdist`` required a compatibility fix because of this change.
 
 
 
@@ -5680,7 +5680,7 @@ Bug Fixes
 - :issue:`1403`: Switch from ``imp`` to ``importlib``.
 
 
-- :issue:`1671`: The name of the ``.pyc`` files cached by the assertion writer now includes the pytest version
+- :issue:`1671`: The name of the ``.pyc`` files cached by the assertion writer now includes the testrunner version
   to avoid stale caches.
 
 
@@ -5713,7 +5713,7 @@ Bug Fixes
   '%(levelname).Xs' (truncated fixed width alignment), where X is an integer.
 
 
-- :issue:`5354`: Fix ``pytest.mark.parametrize`` when the argvalues is an iterator.
+- :issue:`5354`: Fix ``testrunner.mark.parametrize`` when the argvalues is an iterator.
 
 
 - :issue:`5370`: Revert unrolling of ``all()`` to fix ``NameError`` on nested comprehensions.
@@ -5739,7 +5739,7 @@ Bug Fixes
   for easier debugging (:issue:`5080`).
 
 
-- :issue:`5432`: Prevent "already imported" warnings from assertion rewriter when invoking pytest in-process multiple times.
+- :issue:`5432`: Prevent "already imported" warnings from assertion rewriter when invoking testrunner in-process multiple times.
 
 
 - :issue:`5433`: Fix assertion rewriting in packages (``__init__.py``).
@@ -5749,7 +5749,7 @@ Bug Fixes
 
 
 - :issue:`5482`: Fix bug introduced in 4.6.0 causing collection errors when passing
-  more than 2 positional arguments to ``pytest.mark.parametrize``.
+  more than 2 positional arguments to ``testrunner.mark.parametrize``.
 
 
 - :issue:`5505`: Fix crash when discovery fails while using ``-p no:terminal``.
@@ -5762,10 +5762,10 @@ Improved Documentation
 - :issue:`5315`: Expand docs on mocking classes and dictionaries with ``monkeypatch``.
 
 
-- :issue:`5416`: Fix PytestUnknownMarkWarning in run/skip example.
+- :issue:`5416`: Fix TestrunnerUnknownMarkWarning in run/skip example.
 
 
-pytest 4.6.11 (2020-06-04)
+testrunner 4.6.11 (2020-06-04)
 ==========================
 
 Bug Fixes
@@ -5777,28 +5777,28 @@ Bug Fixes
 
 
 - :issue:`7310`: Fix ``UnboundLocalError: local variable 'letter' referenced before
-  assignment`` in ``_pytest.terminal.pytest_report_teststatus()``
+  assignment`` in ``_testrunner.terminal.testrunner_report_teststatus()``
   when plugins return report objects in an unconventional state.
 
-  This was making ``pytest_report_teststatus()`` skip
+  This was making ``testrunner_report_teststatus()`` skip
   entering if-block branches that declare the ``letter`` variable.
 
   The fix was to set the initial value of the ``letter`` before
   the if-block cascade so that it always has a value.
 
 
-pytest 4.6.10 (2020-05-08)
+testrunner 4.6.10 (2020-05-08)
 ==========================
 
 Features
 --------
 
-- :issue:`6870`: New ``Config.invocation_args`` attribute containing the unchanged arguments passed to ``pytest.main()``.
+- :issue:`6870`: New ``Config.invocation_args`` attribute containing the unchanged arguments passed to ``testrunner.main()``.
 
   Remark: while this is technically a new feature and according to our
-  `policy <https://docs.pytest.org/en/7.0.x/py27-py34-deprecation.html#what-goes-into-4-6-x-releases>`_
+  `policy <https://github.com/jacksonsr451/test-runner/en/7.0.x/py27-py34-deprecation.html#what-goes-into-4-6-x-releases>`_
   it should not have been backported, we have opened an exception in this
-  particular case because it fixes a serious interaction with ``pytest-xdist``,
+  particular case because it fixes a serious interaction with ``testrunner-xdist``,
   so it can also be considered a bugfix.
 
 Trivial/Internal Changes
@@ -5807,7 +5807,7 @@ Trivial/Internal Changes
 - :issue:`6404`: Remove usage of ``parser`` module, deprecated in Python 3.9.
 
 
-pytest 4.6.9 (2020-01-04)
+testrunner 4.6.9 (2020-01-04)
 =========================
 
 Bug Fixes
@@ -5816,7 +5816,7 @@ Bug Fixes
 - :issue:`6301`: Fix assertion rewriting for egg-based distributions and ``editable`` installs (``pip install --editable``).
 
 
-pytest 4.6.8 (2019-12-19)
+testrunner 4.6.8 (2019-12-19)
 =========================
 
 Features
@@ -5839,7 +5839,7 @@ Trivial/Internal Changes
 - :issue:`6345`: Pin ``colorama`` to ``0.4.1`` only for Python 3.4 so newer Python versions can still receive colorama updates.
 
 
-pytest 4.6.7 (2019-12-05)
+testrunner 4.6.7 (2019-12-05)
 =========================
 
 Bug Fixes
@@ -5849,11 +5849,11 @@ Bug Fixes
 
 
 - :issue:`6044`: Properly ignore ``FileNotFoundError`` (``OSError.errno == NOENT`` in Python 2) exceptions when trying to remove old temporary directories,
-  for instance when multiple processes try to remove the same directory (common with ``pytest-xdist``
+  for instance when multiple processes try to remove the same directory (common with ``testrunner-xdist``
   for example).
 
 
-pytest 4.6.6 (2019-10-11)
+testrunner 4.6.6 (2019-10-11)
 =========================
 
 Bug Fixes
@@ -5879,7 +5879,7 @@ Trivial/Internal Changes
 - :issue:`5801`: Fixes python version checks (detected by ``flake8-2020``) in case python4 becomes a thing.
 
 
-pytest 4.6.5 (2019-08-05)
+testrunner 4.6.5 (2019-08-05)
 =========================
 
 Bug Fixes
@@ -5888,11 +5888,11 @@ Bug Fixes
 - :issue:`4344`: Fix RuntimeError/StopIteration when trying to collect package with "__init__.py" only.
 
 
-- :issue:`5478`: Fix encode error when using unicode strings in exceptions with ``pytest.raises``.
+- :issue:`5478`: Fix encode error when using unicode strings in exceptions with ``testrunner.raises``.
 
 
 - :issue:`5524`: Fix issue where ``tmp_path`` and ``tmpdir`` would not remove directories containing files marked as read-only,
-  which could lead to pytest crashing when executed a second time with the ``--basetemp`` option.
+  which could lead to testrunner crashing when executed a second time with the ``--basetemp`` option.
 
 
 - :issue:`5547`: ``--step-wise`` now handles ``xfail(strict=True)`` markers properly.
@@ -5900,7 +5900,7 @@ Bug Fixes
 
 - :issue:`5650`: Improved output when parsing an ini configuration file fails.
 
-pytest 4.6.4 (2019-06-28)
+testrunner 4.6.4 (2019-06-28)
 =========================
 
 Bug Fixes
@@ -5914,13 +5914,13 @@ Bug Fixes
 
 
 - :issue:`5482`: Fix bug introduced in 4.6.0 causing collection errors when passing
-  more than 2 positional arguments to ``pytest.mark.parametrize``.
+  more than 2 positional arguments to ``testrunner.mark.parametrize``.
 
 
 - :issue:`5505`: Fix crash when discovery fails while using ``-p no:terminal``.
 
 
-pytest 4.6.3 (2019-06-11)
+testrunner 4.6.3 (2019-06-11)
 =========================
 
 Bug Fixes
@@ -5936,7 +5936,7 @@ Bug Fixes
 - :issue:`5390`: Fix regression where the ``obj`` attribute of ``TestCase`` items was no longer bound to methods.
 
 
-pytest 4.6.2 (2019-06-03)
+testrunner 4.6.2 (2019-06-03)
 =========================
 
 Bug Fixes
@@ -5951,19 +5951,19 @@ Bug Fixes
 - :issue:`5372`: Revert unrolling of ``all()`` to fix incorrect assertion when using ``all()`` in an expression.
 
 
-pytest 4.6.1 (2019-06-02)
+testrunner 4.6.1 (2019-06-02)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`5354`: Fix ``pytest.mark.parametrize`` when the argvalues is an iterator.
+- :issue:`5354`: Fix ``testrunner.mark.parametrize`` when the argvalues is an iterator.
 
 
 - :issue:`5358`: Fix assertion rewriting of ``all()`` calls to deal with non-generators.
 
 
-pytest 4.6.0 (2019-05-31)
+testrunner 4.6.0 (2019-05-31)
 =========================
 
 Important
@@ -5972,7 +5972,7 @@ Important
 The ``4.6.X`` series will be the last series to support **Python 2 and Python 3.4**.
 
 For more details, see our `Python 2.7 and 3.4 support plan
-<https://docs.pytest.org/en/7.0.x/py27-py34-deprecation.html>`_.
+<https://github.com/jacksonsr451/test-runner/en/7.0.x/py27-py34-deprecation.html>`_.
 
 
 Features
@@ -5981,7 +5981,7 @@ Features
 - :issue:`4559`: Added the ``junit_log_passing_tests`` ini value which can be used to enable or disable logging of passing test output in the Junit XML file.
 
 
-- :issue:`4956`: pytester's ``testdir.spawn`` uses ``tmpdir`` as HOME/USERPROFILE directory.
+- :issue:`4956`: testrunnerer's ``testdir.spawn`` uses ``tmpdir`` as HOME/USERPROFILE directory.
 
 
 - :issue:`5062`: Unroll calls to ``all`` to full for-loops with assertion rewriting for better failure messages, especially when using Generator Expressions.
@@ -5993,7 +5993,7 @@ Features
 - :issue:`5091`: The output for ini options in ``--help`` has been improved.
 
 
-- :issue:`5269`: ``pytest.importorskip`` includes the ``ImportError`` now in the default ``reason``.
+- :issue:`5269`: ``testrunner.importorskip`` includes the ``ImportError`` now in the default ``reason``.
 
 
 - :issue:`5311`: Captured logs that are output for each failing test are formatted using the
@@ -6010,7 +6010,7 @@ Bug Fixes
 - :issue:`2064`: The debugging plugin imports the wrapped ``Pdb`` class (``--pdbcls``) on-demand now.
 
 
-- :issue:`4908`: The ``pytest_enter_pdb`` hook gets called with post-mortem (``--pdb``).
+- :issue:`4908`: The ``testrunner_enter_pdb`` hook gets called with post-mortem (``--pdb``).
 
 
 - :issue:`5036`: Fix issue where fixtures dependent on other parametrized fixtures would be erroneously parametrized.
@@ -6022,13 +6022,13 @@ Bug Fixes
 - :issue:`5257`: Ensure that ``sys.stdout.mode`` does not include ``'b'`` as it is a text stream.
 
 
-- :issue:`5278`: Pytest's internal python plugin can be disabled using ``-p no:python`` again.
+- :issue:`5278`: Testrunner's internal python plugin can be disabled using ``-p no:python`` again.
 
 
 - :issue:`5286`: Fix issue with ``disable_test_id_escaping_and_forfeit_all_rights_to_community_support`` option not working when using a list of test IDs in parametrized tests.
 
 
-- :issue:`5330`: Show the test module being collected when emitting ``PytestCollectionWarning`` messages for
+- :issue:`5330`: Show the test module being collected when emitting ``TestrunnerCollectionWarning`` messages for
   test classes with ``__init__`` and ``__new__`` methods to make it easier to pin down the problem.
 
 
@@ -6042,7 +6042,7 @@ Improved Documentation
 - :issue:`5250`: Expand docs on use of ``setenv`` and ``delenv`` with ``monkeypatch``.
 
 
-pytest 4.5.0 (2019-05-11)
+testrunner 4.5.0 (2019-05-11)
 =========================
 
 Features
@@ -6072,7 +6072,7 @@ Features
 - :issue:`5035`: The ``--cache-show`` option/action accepts an optional glob to show only matching cache entries.
 
 
-- :issue:`5059`: Standard input (stdin) can be given to pytester's ``Testdir.run()`` and ``Testdir.popen()``.
+- :issue:`5059`: Standard input (stdin) can be given to testrunnerer's ``Testdir.run()`` and ``Testdir.popen()``.
 
 
 - :issue:`5068`: The ``-r`` option learnt about ``A`` to display all reports (including passed ones) in the short test summary.
@@ -6085,20 +6085,20 @@ Features
   of that test file have passed in previous runs, greatly speeding up collection.
 
 
-- :issue:`5177`: Introduce new specific warning ``PytestWarning`` subclasses to make it easier to filter warnings based on the class, rather than on the message. The new subclasses are:
+- :issue:`5177`: Introduce new specific warning ``TestrunnerWarning`` subclasses to make it easier to filter warnings based on the class, rather than on the message. The new subclasses are:
 
 
-  * ``PytestAssertRewriteWarning``
+  * ``TestrunnerAssertRewriteWarning``
 
-  * ``PytestCacheWarning``
+  * ``TestrunnerCacheWarning``
 
-  * ``PytestCollectionWarning``
+  * ``TestrunnerCollectionWarning``
 
-  * ``PytestConfigWarning``
+  * ``TestrunnerConfigWarning``
 
-  * ``PytestUnhandledCoroutineWarning``
+  * ``TestrunnerUnhandledCoroutineWarning``
 
-  * ``PytestUnknownMarkWarning``
+  * ``TestrunnerUnknownMarkWarning``
 
 
 - :issue:`5202`: New ``record_testsuite_property`` session-scoped fixture allows users to log ``<property>`` tags at the ``testsuite``
@@ -6127,10 +6127,10 @@ Features
 Bug Fixes
 ---------
 
-- :issue:`5113`: Deselected items from plugins using ``pytest_collect_modifyitems`` as a hookwrapper are correctly reported now.
+- :issue:`5113`: Deselected items from plugins using ``testrunner_collect_modifyitems`` as a hookwrapper are correctly reported now.
 
 
-- :issue:`5144`: With usage errors ``exitstatus`` is set to ``EXIT_USAGEERROR`` in the ``pytest_sessionfinish`` hook now as expected.
+- :issue:`5144`: With usage errors ``exitstatus`` is set to ``EXIT_USAGEERROR`` in the ``testrunner_sessionfinish`` hook now as expected.
 
 
 - :issue:`5235`: ``outcome.exit`` is not used with ``EOF`` in the pdb wrapper anymore, but only with ``quit``.
@@ -6150,19 +6150,19 @@ Trivial/Internal Changes
 - :issue:`4942`: ``logging.raiseExceptions`` is not set to ``False`` anymore.
 
 
-- :issue:`5013`: pytest now depends on :pypi:`wcwidth` to properly track unicode character sizes for more precise terminal output.
+- :issue:`5013`: testrunner now depends on :pypi:`wcwidth` to properly track unicode character sizes for more precise terminal output.
 
 
-- :issue:`5059`: pytester's ``Testdir.popen()`` uses ``stdout`` and ``stderr`` via keyword arguments with defaults now (``subprocess.PIPE``).
+- :issue:`5059`: testrunnerer's ``Testdir.popen()`` uses ``stdout`` and ``stderr`` via keyword arguments with defaults now (``subprocess.PIPE``).
 
 
 - :issue:`5069`: The code for the short test summary in the terminal was moved to the terminal plugin.
 
 
-- :issue:`5082`: Improved validation of kwargs for various methods in the pytester plugin.
+- :issue:`5082`: Improved validation of kwargs for various methods in the testrunnerer plugin.
 
 
-- :issue:`5202`: ``record_property`` now emits a ``PytestWarning`` when used with ``junit_family=xunit2``: the fixture generates
+- :issue:`5202`: ``record_property`` now emits a ``TestrunnerWarning`` when used with ``junit_family=xunit2``: the fixture generates
   ``property`` tags as children of ``testcase``, which is not permitted according to the most
   `recent schema <https://github.com/jenkinsci/xunit-plugin/blob/master/
   src/main/resources/org/jenkinsci/plugins/xunit/types/model/xsd/junit-10.xsd>`__.
@@ -6170,10 +6170,10 @@ Trivial/Internal Changes
 
 - :issue:`5239`: Pin ``pluggy`` to ``< 1.0`` so we don't update to ``1.0`` automatically when
   it gets released: there are planned breaking changes, and we want to ensure
-  pytest properly supports ``pluggy 1.0``.
+  testrunner properly supports ``pluggy 1.0``.
 
 
-pytest 4.4.2 (2019-05-08)
+testrunner 4.4.2 (2019-05-08)
 =========================
 
 Bug Fixes
@@ -6193,7 +6193,7 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- :issue:`5171`: Doc: ``pytest_ignore_collect``, ``pytest_collect_directory``, ``pytest_collect_file`` and ``pytest_pycollect_makemodule`` hooks's 'path' parameter documented type is now ``py.path.local``
+- :issue:`5171`: Doc: ``testrunner_ignore_collect``, ``testrunner_collect_directory``, ``testrunner_collect_file`` and ``testrunner_pycollect_makemodule`` hooks's 'path' parameter documented type is now ``py.path.local``
 
 
 - :issue:`5188`: Improve help for ``--runxfail`` flag.
@@ -6203,35 +6203,35 @@ Improved Documentation
 Trivial/Internal Changes
 ------------------------
 
-- :issue:`5182`: Removed internal and unused ``_pytest.deprecated.MARK_INFO_ATTRIBUTE``.
+- :issue:`5182`: Removed internal and unused ``_testrunner.deprecated.MARK_INFO_ATTRIBUTE``.
 
 
-pytest 4.4.1 (2019-04-15)
+testrunner 4.4.1 (2019-04-15)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`5031`: Environment variables are properly restored when using pytester's ``testdir`` fixture.
+- :issue:`5031`: Environment variables are properly restored when using testrunnerer's ``testdir`` fixture.
 
 
 - :issue:`5039`: Fix regression with ``--pdbcls``, which stopped working with local modules in 4.0.0.
 
 
-- :issue:`5092`: Produce a warning when unknown keywords are passed to ``pytest.param(...)``.
+- :issue:`5092`: Produce a warning when unknown keywords are passed to ``testrunner.param(...)``.
 
 
 - :issue:`5098`: Invalidate import caches with ``monkeypatch.syspath_prepend``, which is required with namespace packages being used.
 
 
-pytest 4.4.0 (2019-03-29)
+testrunner 4.4.0 (2019-03-29)
 =========================
 
 Features
 --------
 
 - :issue:`2224`: ``async`` test functions are skipped and a warning is emitted when a suitable
-  async plugin is not installed (such as ``pytest-asyncio`` or ``pytest-trio``).
+  async plugin is not installed (such as ``testrunner-asyncio`` or ``testrunner-trio``).
 
   Previously ``async`` functions would not execute at all but still be marked as "passed".
 
@@ -6242,9 +6242,9 @@ Features
 - :issue:`4718`: The ``-p`` option can now be used to early-load plugins also by entry-point name, instead of just
   by module name.
 
-  This makes it possible to early load external plugins like ``pytest-cov`` in the command-line::
+  This makes it possible to early load external plugins like ``testrunner-cov`` in the command-line::
 
-      pytest -p pytest_cov
+      testrunner -p testrunner_cov
 
 
 - :issue:`4855`: The ``--pdbcls`` option handles classes via module attributes now (e.g.
@@ -6252,24 +6252,24 @@ Features
 
 
 - :issue:`4875`: The :confval:`testpaths` configuration option is now displayed next
-  to the ``rootdir`` and ``inifile`` lines in the pytest header if the option is in effect, i.e., directories or file names were
+  to the ``rootdir`` and ``inifile`` lines in the testrunner header if the option is in effect, i.e., directories or file names were
   not explicitly passed in the command line.
 
   Also, ``inifile`` is only displayed if there's a configuration file, instead of an empty ``inifile:`` string.
 
 
-- :issue:`4911`: Doctests can be skipped now dynamically using ``pytest.skip()``.
+- :issue:`4911`: Doctests can be skipped now dynamically using ``testrunner.skip()``.
 
 
 - :issue:`4920`: Internal refactorings have been made in order to make the implementation of the
-  `pytest-subtests <https://github.com/pytest-dev/pytest-subtests>`__ plugin
+  `testrunner-subtests <https://github.com/jacksonsr451/test-runner-subtests>`__ plugin
   possible, which adds unittest sub-test support and a new ``subtests`` fixture as discussed in
   :issue:`1367`.
 
   For details on the internal refactorings, please see the details on the related PR.
 
 
-- :issue:`4931`: pytester's ``LineMatcher`` asserts that the passed lines are a sequence.
+- :issue:`4931`: testrunnerer's ``LineMatcher`` asserts that the passed lines are a sequence.
 
 
 - :issue:`4936`: Handle ``-p plug`` after ``-p no:plug``.
@@ -6281,7 +6281,7 @@ Features
 - :issue:`4951`: Output capturing is handled correctly when only capturing via fixtures (capsys, capfs) with ``pdb.set_trace()``.
 
 
-- :issue:`4956`: ``pytester`` sets ``$HOME`` and ``$USERPROFILE`` to the temporary directory during test runs.
+- :issue:`4956`: ``testrunnerer`` sets ``$HOME`` and ``$USERPROFILE`` to the temporary directory during test runs.
 
   This ensures to not load configuration files from the real user's home directory.
 
@@ -6292,9 +6292,9 @@ Features
 - :issue:`4993`: The stepwise plugin reports status information now.
 
 
-- :issue:`5008`: If a ``setup.cfg`` file contains ``[tool:pytest]`` and also the no longer supported ``[pytest]`` section, pytest will use ``[tool:pytest]`` ignoring ``[pytest]``. Previously it would unconditionally error out.
+- :issue:`5008`: If a ``setup.cfg`` file contains ``[tool:testrunner]`` and also the no longer supported ``[testrunner]`` section, testrunner will use ``[tool:testrunner]`` ignoring ``[testrunner]``. Previously it would unconditionally error out.
 
-  This makes it simpler for plugins to support old pytest versions.
+  This makes it simpler for plugins to support old testrunner versions.
 
 
 
@@ -6305,7 +6305,7 @@ Bug Fixes
   before the requesting fixture.
 
 
-- :issue:`4851`: pytester unsets ``PYTEST_ADDOPTS`` now to not use outer options with ``testdir.runpytest()``.
+- :issue:`4851`: testrunnerer unsets ``TESTRUNNER_ADDOPTS`` now to not use outer options with ``testdir.runtestrunner()``.
 
 
 - :issue:`4903`: Use the correct modified time for years after 2038 in rewritten ``.pyc`` files.
@@ -6338,7 +6338,7 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- :issue:`4974`: Update docs for ``pytest_cmdline_parse`` hook to note availability limitations
+- :issue:`4974`: Update docs for ``testrunner_cmdline_parse`` hook to note availability limitations
 
 
 
@@ -6354,19 +6354,19 @@ Trivial/Internal Changes
 - :issue:`4829`: Some left-over internal code related to ``yield`` tests has been removed.
 
 
-- :issue:`4890`: Remove internally unused ``anypython`` fixture from the pytester plugin.
+- :issue:`4890`: Remove internally unused ``anypython`` fixture from the testrunnerer plugin.
 
 
 - :issue:`4912`: Remove deprecated Sphinx directive, ``add_description_unit()``,
   pin sphinx-removed-in to >= 0.2.0 to support Sphinx 2.0.
 
 
-- :issue:`4913`: Fix pytest tests invocation with custom ``PYTHONPATH``.
+- :issue:`4913`: Fix testrunner tests invocation with custom ``PYTHONPATH``.
 
 
-- :issue:`4965`: New ``pytest_report_to_serializable`` and ``pytest_report_from_serializable`` **experimental** hooks.
+- :issue:`4965`: New ``testrunner_report_to_serializable`` and ``testrunner_report_from_serializable`` **experimental** hooks.
 
-  These hooks will be used by ``pytest-xdist``, ``pytest-subtests``, and the replacement for
+  These hooks will be used by ``testrunner-xdist``, ``testrunner-subtests``, and the replacement for
   resultlog to serialize and customize reports.
 
   They are experimental, meaning that their details might change or even be removed
@@ -6378,13 +6378,13 @@ Trivial/Internal Changes
 - :issue:`4987`: ``Collector.repr_failure`` respects the ``--tb`` option, but only defaults to ``short`` now (with ``auto``).
 
 
-pytest 4.3.1 (2019-03-11)
+testrunner 4.3.1 (2019-03-11)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`4810`: Logging messages inside ``pytest_runtest_logreport()`` are now properly captured and displayed.
+- :issue:`4810`: Logging messages inside ``testrunner_runtest_logreport()`` are now properly captured and displayed.
 
 
 - :issue:`4861`: Improve validation of contents written to captured output so it behaves the same as when capture is disabled.
@@ -6400,13 +6400,13 @@ Trivial/Internal Changes
 - :issue:`4768`: Avoid pkg_resources import at the top-level.
 
 
-pytest 4.3.0 (2019-02-16)
+testrunner 4.3.0 (2019-02-16)
 =========================
 
 Deprecations
 ------------
 
-- :issue:`4724`: ``pytest.warns()`` now emits a warning when it receives unknown keyword arguments.
+- :issue:`4724`: ``testrunner.warns()`` now emits a warning when it receives unknown keyword arguments.
 
   This will be changed into an error in the future.
 
@@ -6415,18 +6415,18 @@ Deprecations
 Features
 --------
 
-- :issue:`2753`: Usage errors from argparse are mapped to pytest's ``UsageError``.
+- :issue:`2753`: Usage errors from argparse are mapped to testrunner's ``UsageError``.
 
 
 - :issue:`3711`: Add the ``--ignore-glob`` parameter to exclude test-modules with Unix shell-style wildcards.
   Add the :globalvar:`collect_ignore_glob` for ``conftest.py`` to exclude test-modules with Unix shell-style wildcards.
 
 
-- :issue:`4698`: The warning about Python 2.7 and 3.4 not being supported in pytest 5.0 has been removed.
+- :issue:`4698`: The warning about Python 2.7 and 3.4 not being supported in testrunner 5.0 has been removed.
 
   In the end it was considered to be more
   of a nuisance than actual utility and users of those Python versions shouldn't have problems as ``pip`` will not
-  install pytest 5.0 on those interpreters.
+  install testrunner 5.0 on those interpreters.
 
 
 - :issue:`4707`: With the help of new ``set_log_path()`` method there is a way to set ``log_file`` paths from hooks.
@@ -6442,16 +6442,16 @@ Bug Fixes
 - :issue:`4782`: Fix ``AssertionError`` with collection of broken symlinks with packages.
 
 
-pytest 4.2.1 (2019-02-12)
+testrunner 4.2.1 (2019-02-12)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`2895`: The ``pytest_report_collectionfinish`` hook now is also called with ``--collect-only``.
+- :issue:`2895`: The ``testrunner_report_collectionfinish`` hook now is also called with ``--collect-only``.
 
 
-- :issue:`3899`: Do not raise ``UsageError`` when an imported package has a ``pytest_plugins.py`` child module.
+- :issue:`3899`: Do not raise ``UsageError`` when an imported package has a ``testrunner_plugins.py`` child module.
 
 
 - :issue:`4347`: Fix output capturing when using pdb++ with recursive debugging.
@@ -6480,14 +6480,14 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- :issue:`3899`: Add note to ``plugins.rst`` that ``pytest_plugins`` should not be used as a name for a user module containing plugins.
+- :issue:`3899`: Add note to ``plugins.rst`` that ``testrunner_plugins`` should not be used as a name for a user module containing plugins.
 
 
 - :issue:`4324`: Document how to use ``raises`` and ``does_not_raise`` to write parametrized tests with conditional raises.
 
 
 - :issue:`4709`: Document how to customize test failure messages when using
-  ``pytest.warns``.
+  ``testrunner.warns``.
 
 
 
@@ -6498,7 +6498,7 @@ Trivial/Internal Changes
   read only properties.
 
 
-pytest 4.2.0 (2019-01-30)
+testrunner 4.2.0 (2019-01-30)
 =========================
 
 Features
@@ -6511,17 +6511,17 @@ Features
   autouse fixtures (see :issue:`517` for an example).
 
 
-- :issue:`4627`: Display a message at the end of the test session when running under Python 2.7 and 3.4 that pytest 5.0 will no longer
+- :issue:`4627`: Display a message at the end of the test session when running under Python 2.7 and 3.4 that testrunner 5.0 will no longer
   support those Python versions.
 
 
 - :issue:`4660`: The number of *selected* tests now are also displayed when the ``-k`` or ``-m`` flags are used.
 
 
-- :issue:`4688`: ``pytest_report_teststatus`` hook now can also receive a ``config`` parameter.
+- :issue:`4688`: ``testrunner_report_teststatus`` hook now can also receive a ``config`` parameter.
 
 
-- :issue:`4691`: ``pytest_terminal_summary`` hook now can also receive a ``config`` parameter.
+- :issue:`4691`: ``testrunner_terminal_summary`` hook now can also receive a ``config`` parameter.
 
 
 
@@ -6534,7 +6534,7 @@ Bug Fixes
 
 - :issue:`4280`: Improve quitting from pdb, especially with ``--trace``.
 
-  Using ``q[quit]`` after ``pdb.set_trace()`` will quit pytest also.
+  Using ``q[quit]`` after ``pdb.set_trace()`` will quit testrunner also.
 
 
 - :issue:`4402`: Warning summary now groups warnings by message instead of by test id.
@@ -6552,7 +6552,7 @@ Bug Fixes
 - :issue:`4653`: ``tmp_path`` fixture and other related ones provides resolved path (a.k.a real path)
 
 
-- :issue:`4667`: ``pytest_terminal_summary`` uses result from ``pytest_report_teststatus`` hook, rather than hardcoded strings.
+- :issue:`4667`: ``testrunner_terminal_summary`` uses result from ``testrunner_report_teststatus`` hook, rather than hardcoded strings.
 
 
 - :issue:`4669`: Correctly handle ``unittest.SkipTest`` exception containing non-ascii characters on Python 2.
@@ -6568,7 +6568,7 @@ Bug Fixes
 Trivial/Internal Changes
 ------------------------
 
-- :issue:`4643`: Use ``a.item()`` instead of the deprecated ``np.asscalar(a)`` in ``pytest.approx``.
+- :issue:`4643`: Use ``a.item()`` instead of the deprecated ``np.asscalar(a)`` in ``testrunner.approx``.
 
   ``np.asscalar`` has been :doc:`deprecated <numpy:release/1.16.0-notes>` in ``numpy 1.16.``.
 
@@ -6579,7 +6579,7 @@ Trivial/Internal Changes
 - :issue:`4668`: The verbose word for expected failures in the teststatus report changes from ``xfail`` to ``XFAIL`` to be consistent with other test outcomes.
 
 
-pytest 4.1.1 (2019-01-12)
+testrunner 4.1.1 (2019-01-12)
 =========================
 
 Bug Fixes
@@ -6591,7 +6591,7 @@ Bug Fixes
 - :issue:`3456`: Extend Doctest-modules to ignore mock objects.
 
 
-- :issue:`4617`: Fixed ``pytest.warns`` bug when context manager is reused (e.g. multiple parametrization).
+- :issue:`4617`: Fixed ``testrunner.warns`` bug when context manager is reused (e.g. multiple parametrization).
 
 
 - :issue:`4631`: Don't rewrite assertion when ``__getattr__`` is broken
@@ -6601,7 +6601,7 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- :issue:`3375`: Document that using ``setup.cfg`` may crash other tools or cause hard to track down problems because it uses a different parser than ``pytest.ini`` or ``tox.ini`` files.
+- :issue:`3375`: Document that using ``setup.cfg`` may crash other tools or cause hard to track down problems because it uses a different parser than ``testrunner.ini`` or ``tox.ini`` files.
 
 
 
@@ -6611,16 +6611,16 @@ Trivial/Internal Changes
 - :issue:`4602`: Uninstall ``hypothesis`` in regen tox env.
 
 
-pytest 4.1.0 (2019-01-05)
+testrunner 4.1.0 (2019-01-05)
 =========================
 
 Removals
 --------
 
-- :issue:`2169`: ``pytest.mark.parametrize``: in previous versions, errors raised by id functions were suppressed and changed into warnings. Now the exceptions are propagated, along with a pytest message informing the node, parameter value and index where the exception occurred.
+- :issue:`2169`: ``testrunner.mark.parametrize``: in previous versions, errors raised by id functions were suppressed and changed into warnings. Now the exceptions are propagated, along with a testrunner message informing the node, parameter value and index where the exception occurred.
 
 
-- :issue:`3078`: Remove legacy internal warnings system: ``config.warn``, ``Node.warn``. The ``pytest_logwarning`` now issues a warning when implemented.
+- :issue:`3078`: Remove legacy internal warnings system: ``config.warn``, ``Node.warn``. The ``testrunner_logwarning`` now issues a warning when implemented.
 
   See our :ref:`docs <config.warn and node.warn deprecated>` on information on how to update your code.
 
@@ -6630,35 +6630,35 @@ Removals
   See our :ref:`docs <yield tests deprecated>` on information on how to update your code.
 
 
-- :issue:`3082`: Removed support for applying marks directly to values in ``@pytest.mark.parametrize``. Use ``pytest.param`` instead.
+- :issue:`3082`: Removed support for applying marks directly to values in ``@testrunner.mark.parametrize``. Use ``testrunner.param`` instead.
 
-  See our :ref:`docs <marks in pytest.parametrize deprecated>` on information on how to update your code.
+  See our :ref:`docs <marks in testrunner.parametrize deprecated>` on information on how to update your code.
 
 
-- :issue:`3083`: Removed ``Metafunc.addcall``. This was the predecessor mechanism to ``@pytest.mark.parametrize``.
+- :issue:`3083`: Removed ``Metafunc.addcall``. This was the predecessor mechanism to ``@testrunner.mark.parametrize``.
 
   See our :ref:`docs <metafunc.addcall deprecated>` on information on how to update your code.
 
 
-- :issue:`3085`: Removed support for passing strings to ``pytest.main``. Now, always pass a list of strings instead.
+- :issue:`3085`: Removed support for passing strings to ``testrunner.main``. Now, always pass a list of strings instead.
 
-  See our :ref:`docs <passing command-line string to pytest.main deprecated>` on information on how to update your code.
-
-
-- :issue:`3086`: ``[pytest]`` section in **setup.cfg** files is no longer supported, use ``[tool:pytest]`` instead. ``setup.cfg`` files
-  are meant for use with ``distutils``, and a section named ``pytest`` has notoriously been a source of conflicts and bugs.
-
-  Note that for **pytest.ini** and **tox.ini** files the section remains ``[pytest]``.
+  See our :ref:`docs <passing command-line string to testrunner.main deprecated>` on information on how to update your code.
 
 
-- :issue:`3616`: Removed the deprecated compat properties for ``node.Class/Function/Module`` - use ``pytest.Class/Function/Module`` now.
+- :issue:`3086`: ``[testrunner]`` section in **setup.cfg** files is no longer supported, use ``[tool:testrunner]`` instead. ``setup.cfg`` files
+  are meant for use with ``distutils``, and a section named ``testrunner`` has notoriously been a source of conflicts and bugs.
+
+  Note that for **testrunner.ini** and **tox.ini** files the section remains ``[testrunner]``.
+
+
+- :issue:`3616`: Removed the deprecated compat properties for ``node.Class/Function/Module`` - use ``testrunner.Class/Function/Module`` now.
 
   See our :ref:`docs <internal classes accessed through node deprecated>` on information on how to update your code.
 
 
-- :issue:`4421`: Removed the implementation of the ``pytest_namespace`` hook.
+- :issue:`4421`: Removed the implementation of the ``testrunner_namespace`` hook.
 
-  See our :ref:`docs <pytest.namespace deprecated>` on information on how to update your code.
+  See our :ref:`docs <testrunner.namespace deprecated>` on information on how to update your code.
 
 
 - :issue:`4489`: Removed ``request.cached_setup``. This was the predecessor mechanism to modern fixtures.
@@ -6669,9 +6669,9 @@ Removals
 - :issue:`4535`: Removed the deprecated ``PyCollector.makeitem`` method. This method was made public by mistake a long time ago.
 
 
-- :issue:`4543`: Removed support to define fixtures using the ``pytest_funcarg__`` prefix. Use the ``@pytest.fixture`` decorator instead.
+- :issue:`4543`: Removed support to define fixtures using the ``testrunner_funcarg__`` prefix. Use the ``@testrunner.fixture`` decorator instead.
 
-  See our :ref:`docs <pytest_funcarg__ prefix deprecated>` on information on how to update your code.
+  See our :ref:`docs <testrunner_funcarg__ prefix deprecated>` on information on how to update your code.
 
 
 - :issue:`4545`: Calling fixtures directly is now always an error instead of a warning.
@@ -6689,9 +6689,9 @@ Removals
   See our :ref:`docs <record_xml_property deprecated>` for more information.
 
 
-- :issue:`4548`: An error is now raised if the ``pytest_plugins`` variable is defined in a non-top-level ``conftest.py`` file (i.e., not residing in the ``rootdir``).
+- :issue:`4548`: An error is now raised if the ``testrunner_plugins`` variable is defined in a non-top-level ``conftest.py`` file (i.e., not residing in the ``rootdir``).
 
-  See our :ref:`docs <pytest_plugins in non-top-level conftest files deprecated>` for more information.
+  See our :ref:`docs <testrunner_plugins in non-top-level conftest files deprecated>` for more information.
 
 
 - :issue:`891`: Remove ``testfunction.markername`` attributes - use ``Node.iter_markers(name=None)`` to iterate them.
@@ -6701,16 +6701,16 @@ Removals
 Deprecations
 ------------
 
-- :issue:`3050`: Deprecated the ``pytest.config`` global.
+- :issue:`3050`: Deprecated the ``testrunner.config`` global.
 
-  See :ref:`pytest.config global deprecated` for rationale.
+  See :ref:`testrunner.config global deprecated` for rationale.
 
 
-- :issue:`3974`: Passing the ``message`` parameter of ``pytest.raises`` now issues a ``DeprecationWarning``.
+- :issue:`3974`: Passing the ``message`` parameter of ``testrunner.raises`` now issues a ``DeprecationWarning``.
 
   It is a common mistake to think this parameter will match the exception message, while in fact
-  it only serves to provide a custom message in case the ``pytest.raises`` check fails. To avoid this
-  mistake and because it is believed to be little used, pytest is deprecating it without providing
+  it only serves to provide a custom message in case the ``testrunner.raises`` check fails. To avoid this
+  mistake and because it is believed to be little used, testrunner is deprecating it without providing
   an alternative for the moment.
 
   If you have concerns about this, please comment on :issue:`3974`.
@@ -6756,10 +6756,10 @@ Features
 - :issue:`4278`: ``CACHEDIR.TAG`` files are now created inside cache directories.
 
   Those files are part of the `Cache Directory Tagging Standard <https://bford.info/cachedir/spec.html>`__, and can
-  be used by backup or synchronization programs to identify pytest's cache directory as such.
+  be used by backup or synchronization programs to identify testrunner's cache directory as such.
 
 
-- :issue:`4292`: ``pytest.outcomes.Exit`` is derived from ``SystemExit`` instead of ``KeyboardInterrupt``. This allows us to better handle ``pdb`` exiting.
+- :issue:`4292`: ``testrunner.outcomes.Exit`` is derived from ``SystemExit`` instead of ``KeyboardInterrupt``. This allows us to better handle ``pdb`` exiting.
 
 
 - :issue:`4371`: Updated the ``--collect-only`` option to display test descriptions when ran using ``--verbose``.
@@ -6778,12 +6778,12 @@ Features
 
 - :issue:`4483`: Added ini parameter ``junit_duration_report`` to optionally report test call durations, excluding setup and teardown times.
 
-  The JUnit XML specification and the default pytest behavior is to include setup and teardown times in the test duration
-  report. You can include just the call durations instead (excluding setup and teardown) by adding this to your ``pytest.ini`` file:
+  The JUnit XML specification and the default testrunner behavior is to include setup and teardown times in the test duration
+  report. You can include just the call durations instead (excluding setup and teardown) by adding this to your ``testrunner.ini`` file:
 
   .. code-block:: ini
 
-      [pytest]
+      [testrunner]
       junit_duration_report = call
 
 
@@ -6792,7 +6792,7 @@ Features
   This makes it easier to obtain a list of errors and failures to run tests selectively.
 
 
-- :issue:`4599`: ``pytest.importorskip`` now supports a ``reason`` parameter, which will be shown when the
+- :issue:`4599`: ``testrunner.importorskip`` now supports a ``reason`` parameter, which will be shown when the
   requested module cannot be imported.
 
 
@@ -6819,7 +6819,7 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- :issue:`4557`: Markers example documentation page updated to support latest pytest version.
+- :issue:`4557`: Markers example documentation page updated to support latest testrunner version.
 
 
 - :issue:`4558`: Update cache documentation example to correctly show cache hit and miss.
@@ -6832,18 +6832,18 @@ Improved Documentation
 Trivial/Internal Changes
 ------------------------
 
-- :issue:`4447`: Changed the deprecation type of ``--result-log`` to ``PytestDeprecationWarning``.
+- :issue:`4447`: Changed the deprecation type of ``--result-log`` to ``TestrunnerDeprecationWarning``.
 
   It was decided to remove this feature at the next major revision.
 
 
-pytest 4.0.2 (2018-12-13)
+testrunner 4.0.2 (2018-12-13)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`4265`: Validate arguments from the ``PYTEST_ADDOPTS`` environment variable and the ``addopts`` ini option separately.
+- :issue:`4265`: Validate arguments from the ``TESTRUNNER_ADDOPTS`` environment variable and the ``addopts`` ini option separately.
 
 
 - :issue:`4435`: Fix ``raises(..., 'code(string)')`` frame filename.
@@ -6862,7 +6862,7 @@ Improved Documentation
 - :issue:`1495`: Document common doctest fixture directory tree structure pitfalls
 
 
-pytest 4.0.1 (2018-11-23)
+testrunner 4.0.1 (2018-11-23)
 =========================
 
 Bug Fixes
@@ -6896,34 +6896,34 @@ Trivial/Internal Changes
 - :issue:`4315`: Use ``pkg_resources.parse_version`` instead of ``LooseVersion`` in minversion check.
 
 
-- :issue:`4440`: Adjust the stack level of some internal pytest warnings.
+- :issue:`4440`: Adjust the stack level of some internal testrunner warnings.
 
 
-pytest 4.0.0 (2018-11-13)
+testrunner 4.0.0 (2018-11-13)
 =========================
 
 Removals
 --------
 
-- :issue:`3737`: **RemovedInPytest4Warnings are now errors by default.**
+- :issue:`3737`: **RemovedInTestrunner4Warnings are now errors by default.**
 
   Following our plan to remove deprecated features with as little disruption as
-  possible, all warnings of type ``RemovedInPytest4Warnings`` now generate errors
+  possible, all warnings of type ``RemovedInTestrunner4Warnings`` now generate errors
   instead of warning messages.
 
-  **The affected features will be effectively removed in pytest 4.1**, so please consult the
+  **The affected features will be effectively removed in testrunner 4.1**, so please consult the
   :std:doc:`deprecations` section in the docs for directions on how to update existing code.
 
-  In the pytest ``4.0.X`` series, it is possible to change the errors back into warnings as a stop
-  gap measure by adding this to your ``pytest.ini`` file:
+  In the testrunner ``4.0.X`` series, it is possible to change the errors back into warnings as a stop
+  gap measure by adding this to your ``testrunner.ini`` file:
 
   .. code-block:: ini
 
-      [pytest]
+      [testrunner]
       filterwarnings =
-          ignore::pytest.RemovedInPytest4Warning
+          ignore::testrunner.RemovedInTestrunner4Warning
 
-  But this will stop working when pytest ``4.1`` is released.
+  But this will stop working when testrunner ``4.1`` is released.
 
   **If you have concerns** about the removal of a specific feature, please add a
   comment to :issue:`4348`.
@@ -6965,13 +6965,13 @@ Bug Fixes
 - :issue:`3554`: Fix ``CallInfo.__repr__`` for when the call is not finished yet.
 
 
-pytest 3.10.1 (2018-11-11)
+testrunner 3.10.1 (2018-11-11)
 ==========================
 
 Bug Fixes
 ---------
 
-- :issue:`4287`: Fix nested usage of debugging plugin (pdb), e.g. with pytester's ``testdir.runpytest``.
+- :issue:`4287`: Fix nested usage of debugging plugin (pdb), e.g. with testrunnerer's ``testdir.runtestrunner``.
 
 
 - :issue:`4304`: Block the ``stepwise`` plugin if ``cacheprovider`` is also blocked, as one depends on the other.
@@ -6999,7 +6999,7 @@ Trivial/Internal Changes
 - :issue:`4305`: Replace byte/unicode helpers in test_capture with python level syntax.
 
 
-pytest 3.10.0 (2018-11-03)
+testrunner 3.10.0 (2018-11-03)
 ==========================
 
 Features
@@ -7007,8 +7007,8 @@ Features
 
 - :issue:`2619`: Resume capturing output after ``continue`` with ``__import__("pdb").set_trace()``.
 
-  This also adds a new ``pytest_leave_pdb`` hook, and passes in ``pdb`` to the
-  existing ``pytest_enter_pdb`` hook.
+  This also adds a new ``testrunner_leave_pdb`` hook, and passes in ``pdb`` to the
+  existing ``testrunner_enter_pdb`` hook.
 
 
 - :issue:`4147`: Add ``--sw``, ``--stepwise`` as an alternative to ``--lf -x`` for stopping at the first failure, but starting the next test invocation from that test.  See :ref:`the documentation <cache stepwise>` for more info.
@@ -7026,7 +7026,7 @@ Features
 Bug Fixes
 ---------
 
-- :issue:`2701`: Fix false ``RemovedInPytest4Warning: usage of Session... is deprecated, please use pytest`` warnings.
+- :issue:`2701`: Fix false ``RemovedInTestrunner4Warning: usage of Session... is deprecated, please use testrunner`` warnings.
 
 
 - :issue:`4046`: Fix problems with running tests in package ``__init__.py`` files.
@@ -7067,7 +7067,7 @@ Trivial/Internal Changes
 - :issue:`4279`: Improve message and stack level of warnings issued by ``monkeypatch.setenv`` when the value of the environment variable is not a ``str``.
 
 
-pytest 3.9.3 (2018-10-27)
+testrunner 3.9.3 (2018-10-27)
 =========================
 
 Bug Fixes
@@ -7089,7 +7089,7 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- :issue:`3851`: Add reference to ``empty_parameter_set_mark`` ini option in documentation of ``@pytest.mark.parametrize``
+- :issue:`3851`: Add reference to ``empty_parameter_set_mark`` ini option in documentation of ``@testrunner.mark.parametrize``
 
 
 
@@ -7105,7 +7105,7 @@ Trivial/Internal Changes
 - :issue:`4248`: Remove use of unnecessary compat shim, six.binary_type
 
 
-pytest 3.9.2 (2018-10-22)
+testrunner 3.9.2 (2018-10-22)
 =========================
 
 Bug Fixes
@@ -7114,7 +7114,7 @@ Bug Fixes
 - :issue:`2909`: Improve error message when a recursive dependency between fixtures is detected.
 
 
-- :issue:`3340`: Fix logging messages not shown in hooks ``pytest_sessionstart()`` and ``pytest_sessionfinish()``.
+- :issue:`3340`: Fix logging messages not shown in hooks ``testrunner_sessionstart()`` and ``testrunner_sessionfinish()``.
 
 
 - :issue:`3533`: Fix unescaped XML raw objects in JUnit report for skipped tests
@@ -7136,7 +7136,7 @@ Bug Fixes
 - :issue:`4192`: Fix filename reported by ``warnings.warn`` when using ``recwarn`` under python2.
 
 
-pytest 3.9.1 (2018-10-16)
+testrunner 3.9.1 (2018-10-16)
 =========================
 
 Features
@@ -7147,7 +7147,7 @@ Features
   "-vv").
 
 
-pytest 3.9.0 (2018-10-15 - not published due to a release automation bug)
+testrunner 3.9.0 (2018-10-15 - not published due to a release automation bug)
 =========================================================================
 
 Deprecations
@@ -7158,26 +7158,26 @@ Deprecations
   * Access of ``Module``, ``Function``, ``Class``, ``Instance``, ``File`` and ``Item`` through ``Node`` instances. Now
     users will this warning::
 
-          usage of Function.Module is deprecated, please use pytest.Module instead
+          usage of Function.Module is deprecated, please use testrunner.Module instead
 
-    Users should just ``import pytest`` and access those objects using the ``pytest`` module.
+    Users should just ``import testrunner`` and access those objects using the ``testrunner`` module.
 
   * ``request.cached_setup``, this was the precursor of the setup/teardown mechanism available to fixtures. You can
     consult :std:doc:`funcarg comparison section in the docs <funcarg_compare>`.
 
   * Using objects named ``"Class"`` as a way to customize the type of nodes that are collected in ``Collector``
-    subclasses has been deprecated. Users instead should use ``pytest_collect_make_item`` to customize node types during
+    subclasses has been deprecated. Users instead should use ``testrunner_collect_make_item`` to customize node types during
     collection.
 
     This issue should affect only advanced plugins who create new collection types, so if you see this warning
     message please contact the authors so they can change the code.
 
-  * The warning that produces the message below has changed to ``RemovedInPytest4Warning``::
+  * The warning that produces the message below has changed to ``RemovedInTestrunner4Warning``::
 
           getfuncargvalue is deprecated, use getfixturevalue
 
 
-- :issue:`3988`: Add a Deprecation warning for pytest.ensuretemp as it was deprecated since a while.
+- :issue:`3988`: Add a Deprecation warning for testrunner.ensuretemp as it was deprecated since a while.
 
 
 
@@ -7208,18 +7208,18 @@ Features
 
 
 - :issue:`4013`: Deprecation warnings are now shown even if you customize the warnings filters yourself. In the previous version
-  any customization would override pytest's filters and deprecation warnings would fall back to being hidden by default.
+  any customization would override testrunner's filters and deprecation warnings would fall back to being hidden by default.
 
 
-- :issue:`4073`: Allow specification of timeout for ``Testdir.runpytest_subprocess()`` and ``Testdir.run()``.
+- :issue:`4073`: Allow specification of timeout for ``Testdir.runtestrunner_subprocess()`` and ``Testdir.run()``.
 
 
-- :issue:`4098`: Add returncode argument to pytest.exit() to exit pytest with a specific return code.
+- :issue:`4098`: Add returncode argument to testrunner.exit() to exit testrunner with a specific return code.
 
 
-- :issue:`4102`: Reimplement ``pytest.deprecated_call`` using ``pytest.warns`` so it supports the ``match='...'`` keyword argument.
+- :issue:`4102`: Reimplement ``testrunner.deprecated_call`` using ``testrunner.warns`` so it supports the ``match='...'`` keyword argument.
 
-  This has the side effect that ``pytest.deprecated_call`` now raises ``pytest.fail.Exception`` instead
+  This has the side effect that ``testrunner.deprecated_call`` now raises ``testrunner.fail.Exception`` instead
   of ``AssertionError``.
 
 
@@ -7243,12 +7243,12 @@ Bug Fixes
 - :issue:`4066`: Fix source reindenting by using ``textwrap.dedent`` directly.
 
 
-- :issue:`4102`: ``pytest.warn`` will capture previously-warned warnings in Python 2. Previously they were never raised.
+- :issue:`4102`: ``testrunner.warn`` will capture previously-warned warnings in Python 2. Previously they were never raised.
 
 
 - :issue:`4108`: Resolve symbolic links for args.
 
-  This fixes running ``pytest tests/test_foo.py::test_bar``, where ``tests``
+  This fixes running ``testrunner tests/test_foo.py::test_bar``, where ``tests``
   is a symlink to ``project/app/tests``:
   previously ``project/app/conftest.py`` would be ignored for fixtures then.
 
@@ -7294,14 +7294,14 @@ Trivial/Internal Changes
 - :issue:`4093`: Fixed formatting of string literals in internal tests.
 
 
-pytest 3.8.2 (2018-10-02)
+testrunner 3.8.2 (2018-10-02)
 =========================
 
 Deprecations and Removals
 -------------------------
 
-- :issue:`4036`: The ``item`` parameter of ``pytest_warning_captured`` hook is now documented as deprecated. We realized only after
-  the ``3.8`` release that this parameter is incompatible with ``pytest-xdist``.
+- :issue:`4036`: The ``item`` parameter of ``testrunner_warning_captured`` hook is now documented as deprecated. We realized only after
+  the ``3.8`` release that this parameter is incompatible with ``testrunner-xdist``.
 
   Our policy is to not deprecate features during bug-fix releases, but in this case we believe it makes sense as we are
   only documenting it as deprecated, without issuing warnings which might potentially break test suites. This will get
@@ -7323,7 +7323,7 @@ Bug Fixes
   of tuples.  It is now always a list.
 
 
-- :issue:`4039`: No longer issue warnings about using ``pytest_plugins`` in non-top-level directories when using ``--pyargs``: the
+- :issue:`4039`: No longer issue warnings about using ``testrunner_plugins`` in non-top-level directories when using ``--pyargs``: the
   current ``--pyargs`` mechanism is not reliable and might give false negatives.
 
 
@@ -7346,13 +7346,13 @@ Improved Documentation
 - :issue:`3928`: Add possible values for fixture scope to docs.
 
 
-pytest 3.8.1 (2018-09-22)
+testrunner 3.8.1 (2018-09-22)
 =========================
 
 Bug Fixes
 ---------
 
-- :issue:`3286`: ``.pytest_cache`` directory is now automatically ignored by Git. Users who would like to contribute a solution for other SCMs please consult/comment on this issue.
+- :issue:`3286`: ``.testrunner_cache`` directory is now automatically ignored by Git. Users who would like to contribute a solution for other SCMs please consult/comment on this issue.
 
 
 - :issue:`3749`: Fix the following error during collection of tests inside packages::
@@ -7378,7 +7378,7 @@ Improved Documentation
 
 - :issue:`3996`: New :std:doc:`deprecations` page shows all currently
   deprecated features, the rationale to do so, and alternatives to update your code. It also list features removed
-  from pytest in past major releases to help those with ancient pytest versions to upgrade.
+  from testrunner in past major releases to help those with ancient testrunner versions to upgrade.
 
 
 
@@ -7391,7 +7391,7 @@ Trivial/Internal Changes
 - :issue:`3975`: Remove legacy code around im_func as that was python2 only
 
 
-pytest 3.8.0 (2018-09-05)
+testrunner 3.8.0 (2018-09-05)
 =========================
 
 Deprecations and Removals
@@ -7401,7 +7401,7 @@ Deprecations and Removals
   deprecated, see :ref:`config.warn and node.warn deprecated` for rationale and
   examples.
 
-- :issue:`3936`: ``@pytest.mark.filterwarnings`` second parameter is no longer regex-escaped,
+- :issue:`3936`: ``@testrunner.mark.filterwarnings`` second parameter is no longer regex-escaped,
   making it possible to actually use regular expressions to check the warning message.
 
   **Note**: regex-escaping the match string was an implementation oversight that might break test suites which depend
@@ -7412,15 +7412,15 @@ Deprecations and Removals
 Features
 --------
 
-- :issue:`2452`: Internal pytest warnings are now issued using the standard ``warnings`` module, making it possible to use
-  the standard warnings filters to manage those warnings. This introduces ``PytestWarning``,
-  ``PytestDeprecationWarning`` and ``RemovedInPytest4Warning`` warning types as part of the public API.
+- :issue:`2452`: Internal testrunner warnings are now issued using the standard ``warnings`` module, making it possible to use
+  the standard warnings filters to manage those warnings. This introduces ``TestrunnerWarning``,
+  ``TestrunnerDeprecationWarning`` and ``RemovedInTestrunner4Warning`` warning types as part of the public API.
 
   Consult :ref:`the documentation <internal-warnings>` for more info.
 
 
 - :issue:`2908`: ``DeprecationWarning`` and ``PendingDeprecationWarning`` are now shown by default if no other warning filter is
-  configured. This makes pytest more compliant with
+  configured. This makes testrunner more compliant with
   :pep:`506#recommended-filter-settings-for-test-runners`. See
   :ref:`the docs <deprecation-warnings>` for
   more info.
@@ -7429,13 +7429,13 @@ Features
 - :issue:`3251`: Warnings are now captured and displayed during test collection.
 
 
-- :issue:`3784`: ``PYTEST_DISABLE_PLUGIN_AUTOLOAD`` environment variable disables plugin auto-loading when set.
+- :issue:`3784`: ``TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD`` environment variable disables plugin auto-loading when set.
 
 
 - :issue:`3829`: Added the ``count`` option to ``console_output_style`` to enable displaying the progress as a count instead of a percentage.
 
 
-- :issue:`3837`: Added support for 'xfailed' and 'xpassed' outcomes to the ``pytester.RunResult.assert_outcomes`` signature.
+- :issue:`3837`: Added support for 'xfailed' and 'xpassed' outcomes to the ``testrunnerer.RunResult.assert_outcomes`` signature.
 
 
 
@@ -7445,7 +7445,7 @@ Bug Fixes
 - :issue:`3911`: Terminal writer now takes into account unicode character width when writing out progress.
 
 
-- :issue:`3913`: Pytest now returns with correct exit code (EXIT_USAGEERROR, 4) when called with unknown arguments.
+- :issue:`3913`: Testrunner now returns with correct exit code (EXIT_USAGEERROR, 4) when called with unknown arguments.
 
 
 - :issue:`3918`: Improve performance of assertion rewriting.
@@ -7468,7 +7468,7 @@ Trivial/Internal Changes
 - :issue:`3853`: Removed ``"run all (no recorded failures)"`` message printed with ``--failed-first`` and ``--last-failed`` when there are no failed tests.
 
 
-pytest 3.7.4 (2018-08-29)
+testrunner 3.7.4 (2018-08-29)
 =========================
 
 Bug Fixes
@@ -7490,10 +7490,10 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- :issue:`3902`: Fix pytest.org links
+- :issue:`3902`: Fix testrunner.org links
 
 
-pytest 3.7.3 (2018-08-26)
+testrunner 3.7.3 (2018-08-26)
 =========================
 
 Bug Fixes
@@ -7518,7 +7518,7 @@ Bug Fixes
 - :issue:`3843`: Fix collection error when specifying test functions directly in the command line using ``test.py::test`` syntax together with ``--doctest-modules``.
 
 
-- :issue:`3848`: Fix bugs where unicode arguments could not be passed to ``testdir.runpytest`` on Python 2.
+- :issue:`3848`: Fix bugs where unicode arguments could not be passed to ``testdir.runtestrunner`` on Python 2.
 
 
 - :issue:`3854`: Fix double collection of tests within packages when the filename starts with a capital letter.
@@ -7531,7 +7531,7 @@ Improved Documentation
 - :issue:`3824`: Added example for multiple glob pattern matches in ``python_files``.
 
 
-- :issue:`3833`: Added missing docs for ``pytester.Testdir``.
+- :issue:`3833`: Added missing docs for ``testrunnerer.Testdir``.
 
 
 - :issue:`3870`: Correct documentation for setuptools integration.
@@ -7548,7 +7548,7 @@ Trivial/Internal Changes
   fixed.
 
 
-pytest 3.7.2 (2018-08-16)
+testrunner 3.7.2 (2018-08-16)
 =========================
 
 Bug Fixes
@@ -7560,13 +7560,13 @@ Bug Fixes
 - :issue:`3768`, :issue:`3789`: Fix test collection from packages mixed with normal directories.
 
 
-- :issue:`3771`: Fix infinite recursion during collection if a ``pytest_ignore_collect`` hook returns ``False`` instead of ``None``.
+- :issue:`3771`: Fix infinite recursion during collection if a ``testrunner_ignore_collect`` hook returns ``False`` instead of ``None``.
 
 
 - :issue:`3774`: Fix bug where decorated fixtures would lose functionality (for example ``@mock.patch``).
 
 
-- :issue:`3775`: Fix bug where importing modules or other objects with prefix ``pytest_`` prefix would raise a ``PluginValidationError``.
+- :issue:`3775`: Fix bug where importing modules or other objects with prefix ``testrunner_`` prefix would raise a ``PluginValidationError``.
 
 
 - :issue:`3788`: Fix ``AttributeError`` during teardown of ``TestCase`` subclasses which raise an exception during ``__init__``.
@@ -7582,7 +7582,7 @@ Improved Documentation
 - :issue:`3746`: Add documentation for ``metafunc.config`` that had been mistakenly hidden.
 
 
-pytest 3.7.1 (2018-08-02)
+testrunner 3.7.1 (2018-08-02)
 =========================
 
 Bug Fixes
@@ -7601,7 +7601,7 @@ Bug Fixes
 - :issue:`3747`: Fix compatibility problem with plugins and the warning code issued by fixture functions when they are called directly.
 
 
-- :issue:`3748`: Fix infinite recursion in ``pytest.approx`` with arrays in ``numpy<1.13``.
+- :issue:`3748`: Fix infinite recursion in ``testrunner.approx`` with arrays in ``numpy<1.13``.
 
 
 - :issue:`3757`: Pin pathlib2 to ``>=2.2.0`` as we require ``__fspath__`` support.
@@ -7610,16 +7610,16 @@ Bug Fixes
 - :issue:`3763`: Fix ``TypeError`` when the assertion message is ``bytes`` in python 3.
 
 
-pytest 3.7.0 (2018-07-30)
+testrunner 3.7.0 (2018-07-30)
 =========================
 
 Deprecations and Removals
 -------------------------
 
-- :issue:`2639`: ``pytest_namespace`` has been :ref:`deprecated <pytest.namespace deprecated>`.
+- :issue:`2639`: ``testrunner_namespace`` has been :ref:`deprecated <testrunner.namespace deprecated>`.
 
 
-- :issue:`3661`: Calling a fixture function directly, as opposed to request them in a test function, now issues a ``RemovedInPytest4Warning``. See :ref:`the documentation for rationale and examples <calling fixtures directly deprecated>`.
+- :issue:`3661`: Calling a fixture function directly, as opposed to request them in a test function, now issues a ``RemovedInTestrunner4Warning``. See :ref:`the documentation for rationale and examples <calling fixtures directly deprecated>`.
 
 
 
@@ -7638,7 +7638,7 @@ Features
 - :issue:`3610`: New ``--trace`` option to enter the debugger at the start of a test.
 
 
-- :issue:`3623`: Introduce ``pytester.copy_example`` as helper to do acceptance tests against examples from the project.
+- :issue:`3623`: Introduce ``testrunnerer.copy_example`` as helper to do acceptance tests against examples from the project.
 
 
 
@@ -7666,16 +7666,16 @@ Improved Documentation
 Trivial/Internal Changes
 ------------------------
 
-- :issue:`3519`: Now a ``README.md`` file is created in ``.pytest_cache`` to make it clear why the directory exists.
+- :issue:`3519`: Now a ``README.md`` file is created in ``.testrunner_cache`` to make it clear why the directory exists.
 
 
-pytest 3.6.4 (2018-07-28)
+testrunner 3.6.4 (2018-07-28)
 =========================
 
 Bug Fixes
 ---------
 
-- Invoke pytest using ``-mpytest`` so ``sys.path`` does not get polluted by packages installed in ``site-packages``. (:issue:`742`)
+- Invoke testrunner using ``-mtestrunner`` so ``sys.path`` does not get polluted by packages installed in ``site-packages``. (:issue:`742`)
 
 
 Improved Documentation
@@ -7689,14 +7689,14 @@ Trivial/Internal Changes
 
 - Remove obsolete ``__future__`` imports. (:issue:`2319`)
 
-- Add CITATION to provide information on how to formally cite pytest. (:issue:`3402`)
+- Add CITATION to provide information on how to formally cite testrunner. (:issue:`3402`)
 
 - Replace broken type annotations with type comments. (:issue:`3635`)
 
 - Pin ``pluggy`` to ``<0.8``. (:issue:`3727`)
 
 
-pytest 3.6.3 (2018-07-04)
+testrunner 3.6.3 (2018-07-04)
 =========================
 
 Bug Fixes
@@ -7705,7 +7705,7 @@ Bug Fixes
 - Fix ``ImportWarning`` triggered by explicit relative imports in
   assertion-rewritten package modules. (:issue:`3061`)
 
-- Fix error in ``pytest.approx`` when dealing with 0-dimension numpy
+- Fix error in ``testrunner.approx`` when dealing with 0-dimension numpy
   arrays. (:issue:`3593`)
 
 - No longer raise ``ValueError`` when using the ``get_marker`` API. (:issue:`3605`)
@@ -7721,7 +7721,7 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- The description above the example for ``@pytest.mark.skipif`` now better
+- The description above the example for ``@testrunner.mark.skipif`` now better
   matches the code. (:issue:`3611`)
 
 
@@ -7736,7 +7736,7 @@ Trivial/Internal Changes
 - Fix usage of ``attr.ib`` deprecated ``convert`` parameter. (:issue:`3653`)
 
 
-pytest 3.6.2 (2018-06-20)
+testrunner 3.6.2 (2018-06-20)
 =========================
 
 Bug Fixes
@@ -7768,13 +7768,13 @@ Trivial/Internal Changes
 - Improve display of hint about ``--fulltrace`` with ``KeyboardInterrupt``.
   (:issue:`3545`)
 
-- pytest's testsuite is no longer runnable through ``python setup.py test`` --
-  instead invoke ``pytest`` or ``tox`` directly. (:issue:`3552`)
+- testrunner's testsuite is no longer runnable through ``python setup.py test`` --
+  instead invoke ``testrunner`` or ``tox`` directly. (:issue:`3552`)
 
 - Fix typo in documentation (:issue:`3567`)
 
 
-pytest 3.6.1 (2018-06-05)
+testrunner 3.6.1 (2018-06-05)
 =========================
 
 Bug Fixes
@@ -7803,7 +7803,7 @@ Trivial/Internal Changes
 - Enable caching for pip/pre-commit in order to reduce build time on
   travis/appveyor. (:issue:`3502`)
 
-- Switch pytest to the src/ layout as we already suggested it for good practice
+- Switch testrunner to the src/ layout as we already suggested it for good practice
   - now we implement it as well. (:issue:`3513`)
 
 - Fix if in tests to support 3.7.0b5, where a docstring handling in AST got
@@ -7812,13 +7812,13 @@ Trivial/Internal Changes
 - Remove some python2.5 compatibility code. (:issue:`3529`)
 
 
-pytest 3.6.0 (2018-05-23)
+testrunner 3.6.0 (2018-05-23)
 =========================
 
 Features
 --------
 
-- Revamp the internals of the ``pytest.mark`` implementation with correct per
+- Revamp the internals of the ``testrunner.mark`` implementation with correct per
   node handling which fixes a number of long standing bugs caused by the old
   design. This introduces new ``Node.iter_markers(name)`` and
   ``Node.get_closest_marker(name)`` APIs. Users are **strongly encouraged** to
@@ -7827,7 +7827,7 @@ Features
   <update marker code>`.
   (:issue:`3317`)
 
-- Now when ``@pytest.fixture`` is applied more than once to the same function a
+- Now when ``@testrunner.fixture`` is applied more than once to the same function a
   ``ValueError`` is raised. This buggy behavior would cause surprising problems
   and if was working for a test suite it was mostly by accident. (:issue:`2334`)
 
@@ -7842,7 +7842,7 @@ Features
   instead of stopping the test session. On python 2.7, hitting CTRL+C again
   exits the debugger. On python 3.2 and higher, use CTRL+D. (:issue:`3299`)
 
-- pytest no longer changes the log level of the root logger when the
+- testrunner no longer changes the log level of the root logger when the
   ``log-level`` parameter has greater numeric value than that of the level of
   the root logger, which makes it play better with custom logging configuration
   in user code. (:issue:`3307`)
@@ -7873,23 +7873,23 @@ Improved Documentation
 Trivial/Internal Changes
 ------------------------
 
-- ``pytest`` now depends on the `python-atomicwrites
+- ``testrunner`` now depends on the `python-atomicwrites
   <https://github.com/untitaker/python-atomicwrites>`_ library. (:issue:`3008`)
 
 - Update all pypi.python.org URLs to pypi.org. (:issue:`3431`)
 
-- Detect `pytest_` prefixed hooks using the internal plugin manager since
+- Detect `testrunner_` prefixed hooks using the internal plugin manager since
   ``pluggy`` is deprecating the ``implprefix`` argument to ``PluginManager``.
   (:issue:`3487`)
 
-- Import ``Mapping`` and ``Sequence`` from ``_pytest.compat`` instead of
+- Import ``Mapping`` and ``Sequence`` from ``_testrunner.compat`` instead of
   directly from ``collections`` in ``python_api.py::approx``. Add ``Mapping``
-  to ``_pytest.compat``, import it from ``collections`` on python 2, but from
+  to ``_testrunner.compat``, import it from ``collections`` on python 2, but from
   ``collections.abc`` on Python 3 to avoid a ``DeprecationWarning`` on Python
   3.7 or newer. (:issue:`3497`)
 
 
-pytest 3.5.1 (2018-04-23)
+testrunner 3.5.1 (2018-04-23)
 =========================
 
 
@@ -7897,15 +7897,15 @@ Bug Fixes
 ---------
 
 - Reset ``sys.last_type``, ``sys.last_value`` and ``sys.last_traceback`` before
-  each test executes. Those attributes are added by pytest during the test run
+  each test executes. Those attributes are added by testrunner during the test run
   to aid debugging, but were never reset so they would create a leaking
   reference to the last failing test's frame which in turn could never be
   reclaimed by the garbage collector. (:issue:`2798`)
 
-- ``pytest.raises`` now raises ``TypeError`` when receiving an unknown keyword
+- ``testrunner.raises`` now raises ``TypeError`` when receiving an unknown keyword
   argument. (:issue:`3348`)
 
-- ``pytest.raises`` now works with exception classes that look like iterables.
+- ``testrunner.raises`` now works with exception classes that look like iterables.
   (:issue:`3372`)
 
 
@@ -7922,7 +7922,7 @@ Trivial/Internal Changes
 - Added a more indicative error message when parametrizing a function whose
   argument takes a default value. (:issue:`3221`)
 
-- Remove internal ``_pytest.terminal.flatten`` function in favor of
+- Remove internal ``_testrunner.terminal.flatten`` function in favor of
   ``more_itertools.collapse``. (:issue:`3330`)
 
 - Import some modules from ``collections.abc`` instead of ``collections`` as
@@ -7932,10 +7932,10 @@ Trivial/Internal Changes
   forgotten. (:issue:`3360`)
 
 - Mention in documentation and CLI help that fixtures with leading ``_`` are
-  printed by ``pytest --fixtures`` only if the ``-v`` option is added. (:issue:`3398`)
+  printed by ``testrunner --fixtures`` only if the ``-v`` option is added. (:issue:`3398`)
 
 
-pytest 3.5.0 (2018-03-21)
+testrunner 3.5.0 (2018-03-21)
 =========================
 
 Deprecations and Removals
@@ -7944,9 +7944,9 @@ Deprecations and Removals
 - ``record_xml_property`` fixture is now deprecated in favor of the more
   generic ``record_property``. (:issue:`2770`)
 
-- Defining ``pytest_plugins`` is now deprecated in non-top-level conftest.py
+- Defining ``testrunner_plugins`` is now deprecated in non-top-level conftest.py
   files, because they "leak" to the entire directory tree.
-  :ref:`See the docs <pytest_plugins in non-top-level conftest files deprecated>`
+  :ref:`See the docs <testrunner_plugins in non-top-level conftest files deprecated>`
   for the rationale behind this decision (:issue:`3084`)
 
 
@@ -7990,8 +7990,8 @@ Features
   ``<system-err>``. The default value for ``junit_logging`` is ``no``, meaning
   captured logs are not written to the output file. (:issue:`3156`)
 
-- Allow the logging plugin to handle ``pytest_runtest_logstart`` and
-  ``pytest_runtest_logfinish`` hooks when live logs are enabled. (:issue:`3189`)
+- Allow the logging plugin to handle ``testrunner_runtest_logstart`` and
+  ``testrunner_runtest_logfinish`` hooks when live logs are enabled. (:issue:`3189`)
 
 - Passing ``--log-cli-level`` in the command-line now automatically activates
   live logging. (:issue:`3190`)
@@ -8005,14 +8005,14 @@ Features
   items / Y deselected``. (:issue:`3213`)
 
 - The builtin module ``platform`` is now available for use in expressions in
-  ``pytest.mark``. (:issue:`3236`)
+  ``testrunner.mark``. (:issue:`3236`)
 
 - The *short test summary info* section now is displayed after tracebacks and
   warnings in the terminal. (:issue:`3255`)
 
 - New ``--verbosity`` flag to set verbosity level explicitly. (:issue:`3296`)
 
-- ``pytest.approx`` now accepts comparing a numpy array with a scalar. (:issue:`3312`)
+- ``testrunner.approx`` now accepts comparing a numpy array with a scalar. (:issue:`3312`)
 
 
 Bug Fixes
@@ -8046,10 +8046,10 @@ Trivial/Internal Changes
 
 - Internal ``mark.py`` module has been turned into a package. (:issue:`3250`)
 
-- ``pytest`` now depends on the `more-itertools
+- ``testrunner`` now depends on the `more-itertools
   <https://github.com/erikrose/more-itertools>`_ package. (:issue:`3265`)
 
-- Added warning when ``[pytest]`` section is used in a ``.cfg`` file passed
+- Added warning when ``[testrunner]`` section is used in a ``.cfg`` file passed
   with ``-c`` (:issue:`3268`)
 
 - ``nodeids`` can now be passed explicitly to ``FSCollector`` and ``Node``
@@ -8065,7 +8065,7 @@ Trivial/Internal Changes
 - Fix a python example when calling a fixture in doc/en/usage.rst (:issue:`3308`)
 
 
-pytest 3.4.2 (2018-03-04)
+testrunner 3.4.2 (2018-03-04)
 =========================
 
 Bug Fixes
@@ -8080,7 +8080,7 @@ Bug Fixes
 
 - Fix reference cycle generated when using the ``request`` fixture. (:issue:`3249`)
 
-- ``[tool:pytest]`` sections in ``*.cfg`` files passed by the ``-c`` option are
+- ``[tool:testrunner]`` sections in ``*.cfg`` files passed by the ``-c`` option are
   now properly recognized. (:issue:`3260`)
 
 
@@ -8096,7 +8096,7 @@ Trivial/Internal Changes
 - Fix minor typo in fixture.rst (:issue:`3259`)
 
 
-pytest 3.4.1 (2018-02-20)
+testrunner 3.4.1 (2018-02-20)
 =========================
 
 Bug Fixes
@@ -8117,11 +8117,11 @@ Bug Fixes
 - Detect arguments injected by ``unittest.mock.patch`` decorator correctly when
   pypi ``mock.patch`` is installed and imported. (:issue:`3206`)
 
-- Errors shown when a ``pytest.raises()`` with ``match=`` fails are now cleaner
+- Errors shown when a ``testrunner.raises()`` with ``match=`` fails are now cleaner
   on what happened: When no exception was raised, the "matching '...'" part got
   removed as it falsely implies that an exception was raised but it didn't
   match. When a wrong exception was raised, it's now thrown (like
-  ``pytest.raised()`` without ``match=`` would) instead of complaining about
+  ``testrunner.raised()`` without ``match=`` would) instead of complaining about
   the unmatched text. (:issue:`3222`)
 
 - Fixed output capture handling in doctests on macOS. (:issue:`985`)
@@ -8131,13 +8131,13 @@ Improved Documentation
 ----------------------
 
 - Add Sphinx parameter docs for ``match`` and ``message`` args to
-  ``pytest.raises``. (:issue:`3202`)
+  ``testrunner.raises``. (:issue:`3202`)
 
 
 Trivial/Internal Changes
 ------------------------
 
-- pytest has changed the publication procedure and is now being published to
+- testrunner has changed the publication procedure and is now being published to
   PyPI directly from Travis. (:issue:`3060`)
 
 - Rename ``ParameterSet._for_parameterize()`` to ``_for_parametrize()`` in
@@ -8146,13 +8146,13 @@ Trivial/Internal Changes
 - Skip failing pdb/doctest test on mac. (:issue:`985`)
 
 
-pytest 3.4.0 (2018-01-30)
+testrunner 3.4.0 (2018-01-30)
 =========================
 
 Deprecations and Removals
 -------------------------
 
-- All pytest classes now subclass ``object`` for better Python 2/3 compatibility.
+- All testrunner classes now subclass ``object`` for better Python 2/3 compatibility.
   This should not affect user code except in very rare edge cases. (:issue:`2147`)
 
 
@@ -8160,7 +8160,7 @@ Features
 --------
 
 - Introduce ``empty_parameter_set_mark`` ini option to select which mark to
-  apply when ``@pytest.mark.parametrize`` is given an empty set of parameters.
+  apply when ``@testrunner.mark.parametrize`` is given an empty set of parameters.
   Valid options are ``skip`` (default) and ``xfail``. Note that it is planned
   to change the default to ``xfail`` in future releases as this is considered
   less error prone. (:issue:`2527`)
@@ -8172,9 +8172,9 @@ Features
 - Console output falls back to "classic" mode when capturing is disabled (``-s``),
   otherwise the output gets garbled to the point of being useless. (:issue:`3038`)
 
-- New :hook:`pytest_runtest_logfinish`
+- New :hook:`testrunner_runtest_logfinish`
   hook which is called when a test item has finished executing, analogous to
-  :hook:`pytest_runtest_logstart`.
+  :hook:`testrunner_runtest_logstart`.
   (:issue:`3101`)
 
 - Improve performance when collecting tests using many fixtures. (:issue:`3107`)
@@ -8187,8 +8187,8 @@ Features
   attributes on the ``<testcase>`` xml node in JUnit reports. (:issue:`3130`)
 
 - The default cache directory has been renamed from ``.cache`` to
-  ``.pytest_cache`` after community feedback that the name ``.cache`` did not
-  make it clear that it was used by pytest. (:issue:`3138`)
+  ``.testrunner_cache`` after community feedback that the name ``.cache`` did not
+  make it clear that it was used by testrunner. (:issue:`3138`)
 
 - Colorize the levelname column in the live-log output. (:issue:`3142`)
 
@@ -8199,9 +8199,9 @@ Bug Fixes
 - Fix hanging pexpect test on macOS by using flush() instead of wait().
   (:issue:`2022`)
 
-- Fix restoring Python state after in-process pytest runs with the
-  ``pytester`` plugin; this may break tests using multiple inprocess
-  pytest runs if later ones depend on earlier ones leaking global interpreter
+- Fix restoring Python state after in-process testrunner runs with the
+  ``testrunnerer`` plugin; this may break tests using multiple inprocess
+  testrunner runs if later ones depend on earlier ones leaking global interpreter
   changes. (:issue:`3016`)
 
 - Fix skipping plugin reporting hook when test aborted before plugin setup
@@ -8211,10 +8211,10 @@ Bug Fixes
 
 - **Incompatible change**: ``-o/--override`` option no longer eats all the
   remaining options, which can lead to surprising behavior: for example,
-  ``pytest -o foo=1 /path/to/test.py`` would fail because ``/path/to/test.py``
+  ``testrunner -o foo=1 /path/to/test.py`` would fail because ``/path/to/test.py``
   would be considered as part of the ``-o`` command-line argument. One
   consequence of this is that now multiple configuration overrides need
-  multiple ``-o`` flags: ``pytest -o foo=1 -o bar=2``. (:issue:`3103`)
+  multiple ``-o`` flags: ``testrunner -o foo=1 -o bar=2``. (:issue:`3103`)
 
 
 Improved Documentation
@@ -8226,17 +8226,17 @@ Improved Documentation
 - Clarify that warning capturing doesn't change the warning filter by default.
   (:issue:`2457`)
 
-- Clarify a possible confusion when using pytest_fixture_setup with fixture
+- Clarify a possible confusion when using testrunner_fixture_setup with fixture
   functions that return None. (:issue:`2698`)
 
-- Fix the wording of a sentence on doctest flags used in pytest. (:issue:`3076`)
+- Fix the wording of a sentence on doctest flags used in testrunner. (:issue:`3076`)
 
 - Prefer ``https://*.readthedocs.io`` over ``http://*.rtfd.org`` for links in
   the documentation. (:issue:`3092`)
 
 - Improve readability (wording, grammar) of Getting Started guide (:issue:`3131`)
 
-- Added note that calling pytest.main multiple times from the same process is
+- Added note that calling testrunner.main multiple times from the same process is
   not recommended because of import caching. (:issue:`3143`)
 
 
@@ -8256,13 +8256,13 @@ Trivial/Internal Changes
 - Corrected 'you' to 'your' in logging docs. (:issue:`3129`)
 
 
-pytest 3.3.2 (2017-12-25)
+testrunner 3.3.2 (2017-12-25)
 =========================
 
 Bug Fixes
 ---------
 
-- pytester: ignore files used to obtain current user metadata in the fd leak
+- testrunnerer: ignore files used to obtain current user metadata in the fd leak
   detector. (:issue:`2784`)
 
 - Fix **memory leak** where objects returned by fixtures were never destructed
@@ -8270,7 +8270,7 @@ Bug Fixes
 
 - Fix conversion of pyargs to filename to not convert symlinks on Python 2. (:issue:`2985`)
 
-- ``PYTEST_DONT_REWRITE`` is now checked for plugins too rather than only for
+- ``TESTRUNNER_DONT_REWRITE`` is now checked for plugins too rather than only for
   test modules. (:issue:`2995`)
 
 
@@ -8290,7 +8290,7 @@ Trivial/Internal Changes
   (:issue:`3018`)
 
 
-pytest 3.3.1 (2017-12-05)
+testrunner 3.3.1 (2017-12-05)
 =========================
 
 Bug Fixes
@@ -8301,7 +8301,7 @@ Bug Fixes
 - Fix regression with warnings that contained non-strings in their arguments in
   Python 2. (:issue:`2956`)
 
-- Always escape null bytes when setting ``PYTEST_CURRENT_TEST``. (:issue:`2957`)
+- Always escape null bytes when setting ``TESTRUNNER_CURRENT_TEST``. (:issue:`2957`)
 
 - Fix ``ZeroDivisionError`` when using the ``testmon`` plugin when no tests
   were actually collected. (:issue:`2971`)
@@ -8310,14 +8310,14 @@ Bug Fixes
   ``TerminalReporter._tw``. This alias was removed by accident in the ``3.3.0``
   release. (:issue:`2984`)
 
-- The ``pytest-capturelog`` plugin is now also blacklisted, avoiding errors when
-  running pytest with it still installed. (:issue:`3004`)
+- The ``testrunner-capturelog`` plugin is now also blacklisted, avoiding errors when
+  running testrunner with it still installed. (:issue:`3004`)
 
 
 Improved Documentation
 ----------------------
 
-- Fix broken link to plugin ``pytest-localserver``. (:issue:`2963`)
+- Fix broken link to plugin ``testrunner-localserver``. (:issue:`2963`)
 
 
 Trivial/Internal Changes
@@ -8326,20 +8326,20 @@ Trivial/Internal Changes
 - Update github "bugs" link in ``CONTRIBUTING.rst`` (:issue:`2949`)
 
 
-pytest 3.3.0 (2017-11-23)
+testrunner 3.3.0 (2017-11-23)
 =========================
 
 Deprecations and Removals
 -------------------------
 
-- pytest no longer supports Python **2.6** and **3.3**. Those Python versions
+- testrunner no longer supports Python **2.6** and **3.3**. Those Python versions
   are EOL for some time now and incur maintenance and compatibility costs on
-  the pytest core team, and following up with the rest of the community we
+  the testrunner core team, and following up with the rest of the community we
   decided that they will no longer be supported starting on this version. Users
-  which still require those versions should pin pytest to ``<3.3``. (:issue:`2812`)
+  which still require those versions should pin testrunner to ``<3.3``. (:issue:`2812`)
 
 - Remove internal ``_preloadplugins()`` function. This removal is part of the
-  ``pytest_namespace()`` hook deprecation. (:issue:`2636`)
+  ``testrunner_namespace()`` hook deprecation. (:issue:`2636`)
 
 - Internally change ``CallSpec2`` to have a list of marks instead of a broken
   mapping of keywords. This removes the keywords attribute of the internal
@@ -8351,8 +8351,8 @@ Deprecations and Removals
 - Remove the internal multi-typed attribute ``Node._evalskip`` and replace it
   with the boolean ``Node._skipped_by_mark``. (:issue:`2767`)
 
-- The ``params`` list passed to ``pytest.fixture`` is now for
-  all effects considered immutable and frozen at the moment of the ``pytest.fixture``
+- The ``params`` list passed to ``testrunner.fixture`` is now for
+  all effects considered immutable and frozen at the moment of the ``testrunner.fixture``
   call. Previously the list could be changed before the first invocation of the fixture
   allowing for a form of dynamic parametrization (for example, updated from command-line options),
   but this was an unwanted implementation detail which complicated the internals and prevented
@@ -8362,7 +8362,7 @@ Deprecations and Removals
 Features
 --------
 
-- ``pytest_fixture_post_finalizer`` hook can now receive a ``request``
+- ``testrunner_fixture_post_finalizer`` hook can now receive a ``request``
   argument. (:issue:`2124`)
 
 - Replace the old introspection code in compat.py that determines the available
@@ -8370,29 +8370,29 @@ Features
   funcsigs.signature on Python 2. This should respect ``__signature__``
   declarations on functions. (:issue:`2267`)
 
-- Report tests with global ``pytestmark`` variable only once. (:issue:`2549`)
+- Report tests with global ``_testrunner_mark`` variable only once. (:issue:`2549`)
 
-- Now pytest displays the total progress percentage while running tests. The
+- Now testrunner displays the total progress percentage while running tests. The
   previous output style can be set by configuring the ``console_output_style``
   setting to ``classic``. (:issue:`2657`)
 
 - Match ``warns`` signature to ``raises`` by adding ``match`` keyword. (:issue:`2708`)
 
-- pytest now captures and displays output from the standard ``logging`` module.
+- testrunner now captures and displays output from the standard ``logging`` module.
   The user can control the logging level to be captured by specifying options
-  in ``pytest.ini``, the command line and also during individual tests using
+  in ``testrunner.ini``, the command line and also during individual tests using
   markers. Also, a ``caplog`` fixture is available that enables users to test
   the captured log during specific tests (similar to ``capsys`` for example).
   For more information, please see the :doc:`logging docs <how-to/logging>`. This feature was
-  introduced by merging the popular :pypi:`pytest-catchlog` plugin, thanks to :user:`thisch`.
+  introduced by merging the popular :pypi:`testrunner-catchlog` plugin, thanks to :user:`thisch`.
   Be advised that during the merging the
-  backward compatibility interface with the defunct ``pytest-capturelog`` has
+  backward compatibility interface with the defunct ``testrunner-capturelog`` has
   been dropped. (:issue:`2794`)
 
-- Add ``allow_module_level`` kwarg to ``pytest.skip()``, enabling to skip the
+- Add ``allow_module_level`` kwarg to ``testrunner.skip()``, enabling to skip the
   whole module. (:issue:`2808`)
 
-- Allow setting ``file_or_dir``, ``-c``, and ``-o`` in PYTEST_ADDOPTS. (:issue:`2824`)
+- Allow setting ``file_or_dir``, ``-c``, and ``-o`` in TESTRUNNER_ADDOPTS. (:issue:`2824`)
 
 - Return stdout/stderr capture results as a ``namedtuple``, so ``out`` and
   ``err`` can be accessed by attribute. (:issue:`2879`)
@@ -8413,18 +8413,18 @@ Bug Fixes
 - Resume output capturing after ``capsys/capfd.disabled()`` context manager.
   (:issue:`1993`)
 
-- ``pytest_fixture_setup`` and ``pytest_fixture_post_finalizer`` hooks are now
+- ``testrunner_fixture_setup`` and ``testrunner_fixture_post_finalizer`` hooks are now
   called for all ``conftest.py`` files. (:issue:`2124`)
 
-- If an exception happens while loading a plugin, pytest no longer hides the
+- If an exception happens while loading a plugin, testrunner no longer hides the
   original traceback. In Python 2 it will show the original traceback with a new
   message that explains in which plugin. In Python 3 it will show 2 canonized
   exceptions, the original exception while loading the plugin in addition to an
-  exception that pytest throws about loading a plugin. (:issue:`2491`)
+  exception that testrunner throws about loading a plugin. (:issue:`2491`)
 
 - ``capsys`` and ``capfd`` can now be used by other fixtures. (:issue:`2709`)
 
-- Internal ``pytester`` plugin properly encodes ``bytes`` arguments to
+- Internal ``testrunnerer`` plugin properly encodes ``bytes`` arguments to
   ``utf-8``. (:issue:`2738`)
 
 - ``testdir`` now uses use the same method used by ``tmpdir`` to create its
@@ -8432,24 +8432,24 @@ Bug Fixes
   directory slightly, but should not affect usage in normal scenarios and
   avoids a number of potential problems. (:issue:`2751`)
 
-- pytest no longer complains about warnings with unicode messages being
+- testrunner no longer complains about warnings with unicode messages being
   non-ascii compatible even for ascii-compatible messages. As a result of this,
   warnings with unicode messages are converted first to an ascii representation
   for safety. (:issue:`2809`)
 
-- Change return value of pytest command when ``--maxfail`` is reached from
+- Change return value of testrunner command when ``--maxfail`` is reached from
   ``2`` (interrupted) to ``1`` (failed). (:issue:`2845`)
 
 - Fix issue in assertion rewriting which could lead it to rewrite modules which
   should not be rewritten. (:issue:`2939`)
 
-- Handle marks without description in ``pytest.ini``. (:issue:`2942`)
+- Handle marks without description in ``testrunner.ini``. (:issue:`2942`)
 
 
 Trivial/Internal Changes
 ------------------------
 
-- pytest now depends on :pypi:`attrs` for internal
+- testrunner now depends on :pypi:`attrs` for internal
   structures to ease code maintainability. (:issue:`2641`)
 
 - Refactored internal Python 2/3 compatibility code to use ``six``. (:issue:`2642`)
@@ -8463,28 +8463,28 @@ Trivial/Internal Changes
 - Remove unnecessary mark evaluator in unittest plugin (:issue:`2767`)
 
 - Calls to ``Metafunc.addcall`` now emit a deprecation warning. This function
-  is scheduled to be removed in ``pytest-4.0``. (:issue:`2876`)
+  is scheduled to be removed in ``testrunner-4.0``. (:issue:`2876`)
 
 - Internal move of the parameterset extraction to a more maintainable place.
   (:issue:`2877`)
 
 - Internal refactoring to simplify scope node lookup. (:issue:`2910`)
 
-- Configure ``pytest`` to prevent pip from installing pytest in unsupported
+- Configure ``testrunner`` to prevent pip from installing testrunner in unsupported
   Python versions. (:issue:`2922`)
 
 
-pytest 3.2.5 (2017-11-15)
+testrunner 3.2.5 (2017-11-15)
 =========================
 
 Bug Fixes
 ---------
 
-- Remove ``py<1.5`` restriction from ``pytest`` as this can cause version
+- Remove ``py<1.5`` restriction from ``testrunner`` as this can cause version
   conflicts in some installations. (:issue:`2926`)
 
 
-pytest 3.2.4 (2017-11-13)
+testrunner 3.2.4 (2017-11-13)
 =========================
 
 Bug Fixes
@@ -8493,12 +8493,12 @@ Bug Fixes
 - Fix the bug where running with ``--pyargs`` will result in items with
   empty ``parent.nodeid`` if run from a different root directory. (:issue:`2775`)
 
-- Fix issue with ``@pytest.parametrize`` if argnames was specified as keyword arguments.
+- Fix issue with ``@testrunner.parametrize`` if argnames was specified as keyword arguments.
   (:issue:`2819`)
 
 - Strip whitespace from marker names when reading them from INI config. (:issue:`2856`)
 
-- Show full context of doctest source in the pytest output, if the line number of
+- Show full context of doctest source in the testrunner output, if the line number of
   failed example in the docstring is < 9. (:issue:`2882`)
 
 - Match fixture paths against actual path segments in order to avoid matching folders which share a prefix.
@@ -8511,7 +8511,7 @@ Improved Documentation
 
 - Explicitly mention ``xpass`` in the documentation of ``xfail``. (:issue:`1997`)
 
-- Append example for pytest.param in the example/parametrize document. (:issue:`2658`)
+- Append example for testrunner.param in the example/parametrize document. (:issue:`2658`)
 
 - Clarify language of proposal for fixtures parameters (:issue:`2893`)
 
@@ -8520,11 +8520,11 @@ Improved Documentation
 
 - Clarify the documentation of available fixture scopes. (:issue:`538`)
 
-- Add documentation about the ``python -m pytest`` invocation adding the
+- Add documentation about the ``python -m testrunner`` invocation adding the
   current directory to sys.path. (:issue:`911`)
 
 
-pytest 3.2.3 (2017-10-03)
+testrunner 3.2.3 (2017-10-03)
 =========================
 
 Bug Fixes
@@ -8535,7 +8535,7 @@ Bug Fixes
 - The equality checking function (``__eq__``) of ``MarkDecorator`` returns
   ``False`` if one object is not an instance of ``MarkDecorator``. (:issue:`2758`)
 
-- When running ``pytest --fixtures-per-test``: don't crash if an item has no
+- When running ``testrunner --fixtures-per-test``: don't crash if an item has no
   _fixtureinfo attribute (e.g. doctests) (:issue:`2788`)
 
 
@@ -8552,14 +8552,14 @@ Improved Documentation
 Trivial/Internal Changes
 ------------------------
 
-- Set ``xfail_strict=True`` in pytest's own test suite to catch expected
+- Set ``xfail_strict=True`` in testrunner's own test suite to catch expected
   failures as soon as they start to pass. (:issue:`2722`)
 
 - Fix typo in example of passing a callable to markers (in example/markers.rst)
   (:issue:`2765`)
 
 
-pytest 3.2.2 (2017-09-06)
+testrunner 3.2.2 (2017-09-06)
 =========================
 
 Bug Fixes
@@ -8570,7 +8570,7 @@ Bug Fixes
 
 - Allow tests declared as ``@staticmethod`` to use fixtures. (:issue:`2699`)
 
-- Fixed edge-case during collection: attributes which raised ``pytest.fail``
+- Fixed edge-case during collection: attributes which raised ``testrunner.fail``
   when accessed would abort the entire collection. (:issue:`2707`)
 
 - Fix ``ReprFuncArgs`` with mixed unicode and UTF-8 args. (:issue:`2731`)
@@ -8580,12 +8580,12 @@ Improved Documentation
 ----------------------
 
 - In examples on working with custom markers, add examples demonstrating the
-  usage of ``pytest.mark.MARKER_NAME.with_args`` in comparison with
-  ``pytest.mark.MARKER_NAME.__call__`` (:issue:`2604`)
+  usage of ``testrunner.mark.MARKER_NAME.with_args`` in comparison with
+  ``testrunner.mark.MARKER_NAME.__call__`` (:issue:`2604`)
 
-- In one of the simple examples, use ``pytest_collection_modifyitems()`` to skip
+- In one of the simple examples, use ``testrunner_collection_modifyitems()`` to skip
   tests based on a command-line option, allowing its sharing while preventing a
-  user error when accessing ``pytest.config`` before the argument parsing.
+  user error when accessing ``testrunner.config`` before the argument parsing.
   (:issue:`2653`)
 
 
@@ -8600,7 +8600,7 @@ Trivial/Internal Changes
 - Improve user guidance regarding ``--resultlog`` deprecation. (:issue:`2739`)
 
 
-pytest 3.2.1 (2017-08-08)
+testrunner 3.2.1 (2017-08-08)
 =========================
 
 Bug Fixes
@@ -8611,37 +8611,37 @@ Bug Fixes
 - Correctly consider ``/`` as the file separator to automatically mark plugin
   files for rewrite on Windows. (:issue:`2591`)
 
-- Properly escape test names when setting ``PYTEST_CURRENT_TEST`` environment
+- Properly escape test names when setting ``TESTRUNNER_CURRENT_TEST`` environment
   variable. (:issue:`2644`)
 
 - Fix error on Windows and Python 3.6+ when ``sys.stdout`` has been replaced
   with a stream-like object which does not implement the full ``io`` module
-  buffer protocol. In particular this affects ``pytest-xdist`` users on the
+  buffer protocol. In particular this affects ``testrunner-xdist`` users on the
   aforementioned platform. (:issue:`2666`)
 
 
 Improved Documentation
 ----------------------
 
-- Explicitly document which pytest features work with ``unittest``. (:issue:`2626`)
+- Explicitly document which testrunner features work with ``unittest``. (:issue:`2626`)
 
 
-pytest 3.2.0 (2017-07-30)
+testrunner 3.2.0 (2017-07-30)
 =========================
 
 Deprecations and Removals
 -------------------------
 
-- ``pytest.approx`` no longer supports ``>``, ``>=``, ``<`` and ``<=``
-  operators to avoid surprising/inconsistent behavior. See the :func:`~pytest.approx` docs for more
+- ``testrunner.approx`` no longer supports ``>``, ``>=``, ``<`` and ``<=``
+  operators to avoid surprising/inconsistent behavior. See the :func:`~testrunner.approx` docs for more
   information. (:issue:`2003`)
 
-- All old-style specific behavior in current classes in the pytest's API is
+- All old-style specific behavior in current classes in the testrunner's API is
   considered deprecated at this point and will be removed in a future release.
   This affects Python 2 users only and in rare situations. (:issue:`2147`)
 
 - A deprecation warning is now raised when using marks for parameters
-  in ``pytest.mark.parametrize``. Use ``pytest.param`` to apply marks to
+  in ``testrunner.mark.parametrize``. Use ``testrunner.param`` to apply marks to
   parameters instead. (:issue:`2427`)
 
 
@@ -8650,7 +8650,7 @@ Features
 
 - Add support for numpy arrays (and dicts) to approx. (:issue:`1994`)
 
-- Now test function objects have a ``pytestmark`` attribute containing a list
+- Now test function objects have a ``_testrunner_mark`` attribute containing a list
   of marks applied directly to the test function, as opposed to marks inherited
   from parent classes or modules. (:issue:`2516`)
 
@@ -8670,12 +8670,12 @@ Features
   Additionally path may contain environment variables which are expanded during
   runtime. (:issue:`2543`)
 
-- Introduce the ``PYTEST_CURRENT_TEST`` environment variable that is set with
+- Introduce the ``TESTRUNNER_CURRENT_TEST`` environment variable that is set with
   the ``nodeid`` and stage (``setup``, ``call`` and ``teardown``) of the test
-  being currently executed. See the :ref:`documentation <pytest current test env>`
+  being currently executed. See the :ref:`documentation <testrunner current test env>`
   for more info. (:issue:`2583`)
 
-- Introduced ``@pytest.mark.filterwarnings`` mark which allows overwriting the
+- Introduced ``@testrunner.mark.filterwarnings`` mark which allows overwriting the
   warnings filter on a per test, class or module level. See the :ref:`docs <filterwarnings>`
   for more information. (:issue:`2598`)
 
@@ -8683,16 +8683,16 @@ Features
   forgets it if it passes again. This makes it easy to fix a test suite by
   selectively running files and fixing tests incrementally. (:issue:`2621`)
 
-- New ``pytest_report_collectionfinish`` hook which allows plugins to add
+- New ``testrunner_report_collectionfinish`` hook which allows plugins to add
   messages to the terminal reporting after collection has been finished
   successfully. (:issue:`2622`)
 
 - Added support for :pep:`415`\'s
   ``Exception.__suppress_context__``. Now if a ``raise exception from None`` is
-  caught by pytest, pytest will no longer chain the context in the test report.
+  caught by testrunner, testrunner will no longer chain the context in the test report.
   The behavior now matches Python's traceback behavior. (:issue:`2631`)
 
-- Exceptions raised by ``pytest.fail``, ``pytest.skip`` and ``pytest.xfail``
+- Exceptions raised by ``testrunner.fail``, ``testrunner.skip`` and ``testrunner.xfail``
   now subclass BaseException, making them harder to be caught unintentionally
   by normal code. (:issue:`580`)
 
@@ -8700,7 +8700,7 @@ Features
 Bug Fixes
 ---------
 
-- Set ``stdin`` to a closed ``PIPE`` in ``pytester.py.Testdir.popen()`` for
+- Set ``stdin`` to a closed ``PIPE`` in ``testrunnerer.py.Testdir.popen()`` for
   avoid unwanted interactive ``pdb`` (:issue:`2023`)
 
 - Add missing ``encoding`` attribute to ``sys.std*`` streams when using
@@ -8716,8 +8716,8 @@ Bug Fixes
 - The options ``--fixtures`` and ``--fixtures-per-test`` will now keep
   indentation within docstrings. (:issue:`2574`)
 
-- doctests line numbers are now reported correctly, fixing `pytest-sugar#122
-  <https://github.com/Frozenball/pytest-sugar/issues/122>`_. (:issue:`2610`)
+- doctests line numbers are now reported correctly, fixing `testrunner-sugar#122
+  <https://github.com/Frozenball/testrunner-sugar/issues/122>`_. (:issue:`2610`)
 
 - Fix non-determinism in order of fixture collection. Adds new dependency
   (ordereddict) for Python 2.6. (:issue:`920`)
@@ -8726,9 +8726,9 @@ Bug Fixes
 Improved Documentation
 ----------------------
 
-- Clarify ``pytest_configure`` hook call order. (:issue:`2539`)
+- Clarify ``testrunner_configure`` hook call order. (:issue:`2539`)
 
-- Extend documentation for testing plugin code with the ``pytester`` plugin.
+- Extend documentation for testing plugin code with the ``testrunnerer`` plugin.
   (:issue:`971`)
 
 
@@ -8738,10 +8738,10 @@ Trivial/Internal Changes
 - Update help message for ``--strict`` to make it clear it only deals with
   unregistered markers, not warnings. (:issue:`2444`)
 
-- Internal code move: move code for pytest.approx/pytest.raises to own files in
+- Internal code move: move code for testrunner.approx/testrunner.raises to own files in
   order to cut down the size of python.py (:issue:`2489`)
 
-- Renamed the utility function ``_pytest.compat._escape_strings`` to
+- Renamed the utility function ``_testrunner.compat._escape_strings`` to
   ``_ascii_escaped`` to better communicate the function's purpose. (:issue:`2533`)
 
 - Improve error message for CollectError with skip/skipif. (:issue:`2546`)
@@ -8757,13 +8757,13 @@ Trivial/Internal Changes
 - Added ``fix-lint`` tox environment to run automatic pep8 fixes on the code.
   (:issue:`2582`)
 
-- Turn warnings into errors in pytest's own test suite in order to catch
+- Turn warnings into errors in testrunner's own test suite in order to catch
   regressions due to deprecations more promptly. (:issue:`2588`)
 
 - Show multiple issue links in CHANGELOG entries. (:issue:`2620`)
 
 
-pytest 3.1.3 (2017-07-03)
+testrunner 3.1.3 (2017-07-03)
 =========================
 
 Bug Fixes
@@ -8782,7 +8782,7 @@ Bug Fixes
   will always produce the same error message (previously it would produce
   different messages in context-manager vs. function-call mode). (:issue:`2469`)
 
-- Fix issue where paths collected by pytest could have triple leading ``/``
+- Fix issue where paths collected by testrunner could have triple leading ``/``
   characters. (:issue:`2475`)
 
 - Fix internal error when trying to detect the start of a recursive traceback.
@@ -8805,13 +8805,13 @@ Trivial/Internal Changes
   (:issue:`2499`)
 
 
-pytest 3.1.2 (2017-06-08)
+testrunner 3.1.2 (2017-06-08)
 =========================
 
 Bug Fixes
 ---------
 
-- Required options added via ``pytest_addoption`` will no longer prevent using
+- Required options added via ``testrunner_addoption`` will no longer prevent using
   --help without passing them. (#1999)
 
 - Respect ``python_files`` in assertion rewriting. (#2121)
@@ -8819,10 +8819,10 @@ Bug Fixes
 - Fix recursion error detection when frames in the traceback contain objects
   that can't be compared (like ``numpy`` arrays). (#2459)
 
-- ``UnicodeWarning`` is issued from the internal pytest warnings plugin only
+- ``UnicodeWarning`` is issued from the internal testrunner warnings plugin only
   when the message contains non-ascii unicode (Python 2 only). (#2463)
 
-- Added a workaround for Python 3.6 ``WindowsConsoleIO`` breaking due to Pytests's
+- Added a workaround for Python 3.6 ``WindowsConsoleIO`` breaking due to Testrunners's
   ``FDCapture``. Other code using console handles might still be affected by the
   very same issue and might require further workarounds/fixes, i.e. ``colorama``.
   (#2467)
@@ -8833,17 +8833,17 @@ Improved Documentation
 
 - Fix internal API links to ``pluggy`` objects. (#2331)
 
-- Make it clear that ``pytest.xfail`` stops test execution at the calling point
+- Make it clear that ``testrunner.xfail`` stops test execution at the calling point
   and improve overall flow of the ``skipping`` docs. (#810)
 
 
-pytest 3.1.1 (2017-05-30)
+testrunner 3.1.1 (2017-05-30)
 =========================
 
 Bug Fixes
 ---------
 
-- pytest warning capture no longer overrides existing warning filters. The
+- testrunner warning capture no longer overrides existing warning filters. The
   previous behaviour would override all filters and caused regressions in test
   suites which configure warning filters to match their needs. Note that as a
   side-effect of this is that ``DeprecationWarning`` and
@@ -8853,7 +8853,7 @@ Bug Fixes
 
 - Fix encoding errors for unicode warnings in Python 2. (#2436)
 
-- ``pytest.deprecated_call`` now captures ``PendingDeprecationWarning`` in
+- ``testrunner.deprecated_call`` now captures ``PendingDeprecationWarning`` in
   context manager form. (#2441)
 
 
@@ -8870,17 +8870,17 @@ Improved Documentation
 New Features
 ------------
 
-* The ``pytest-warnings`` plugin has been integrated into the core and now ``pytest`` automatically
+* The ``testrunner-warnings`` plugin has been integrated into the core and now ``testrunner`` automatically
   captures and displays warnings at the end of the test session.
 
   .. warning::
 
     This feature may disrupt test suites which apply and treat warnings themselves, and can be
-    disabled in your ``pytest.ini``:
+    disabled in your ``testrunner.ini``:
 
     .. code-block:: ini
 
-      [pytest]
+      [testrunner]
       addopts = -p no:warnings
 
     See the :doc:`warnings documentation page <how-to/capture-warnings>` for more
@@ -8893,24 +8893,24 @@ New Features
 * Added an ini option ``doctest_encoding`` to specify which encoding to use for doctest files.
   Thanks :user:`wheerd` for the PR (:pr:`2101`).
 
-* ``pytest.warns`` now checks for subclass relationship rather than
+* ``testrunner.warns`` now checks for subclass relationship rather than
   class equality. Thanks :user:`lesteve` for the PR (:pr:`2166`)
 
-* ``pytest.raises`` now asserts that the error message matches a text or regex
+* ``testrunner.raises`` now asserts that the error message matches a text or regex
   with the ``match`` keyword argument. Thanks :user:`Kriechi` for the PR.
 
-* ``pytest.param`` can be used to declare test parameter sets with marks and test ids.
+* ``testrunner.param`` can be used to declare test parameter sets with marks and test ids.
   Thanks :user:`RonnyPfannschmidt` for the PR.
 
 
 Changes
 -------
 
-* remove all internal uses of pytest_namespace hooks,
-  this is to prepare the removal of preloadconfig in pytest 4.0
+* remove all internal uses of testrunner_namespace hooks,
+  this is to prepare the removal of preloadconfig in testrunner 4.0
   Thanks to :user:`RonnyPfannschmidt` for the PR.
 
-* pytest now warns when a callable ids raises in a parametrized test. Thanks :user:`fogo` for the PR.
+* testrunner now warns when a callable ids raises in a parametrized test. Thanks :user:`fogo` for the PR.
 
 * It is now possible to skip test classes from being collected by setting a
   ``__test__`` attribute to ``False`` in the class body (:issue:`2007`). Thanks
@@ -8925,26 +8925,26 @@ Changes
   Thanks :user:`fushi` for the PR (:pr:`1874`).
 
 * Remove common items from dict comparison output when verbosity=1. Also update
-  the truncation message to make it clearer that pytest truncates all
+  the truncation message to make it clearer that testrunner truncates all
   assertion messages if verbosity < 2 (:issue:`1512`).
   Thanks :user:`mattduck` for the PR
 
 * ``--pdbcls`` no longer implies ``--pdb``. This makes it possible to use
-  ``addopts=--pdbcls=module.SomeClass`` on ``pytest.ini``. Thanks :user:`davidszotten` for
+  ``addopts=--pdbcls=module.SomeClass`` on ``testrunner.ini``. Thanks :user:`davidszotten` for
   the PR (:pr:`1952`).
 
 * fix :issue:`2013`: turn RecordedWarning into ``namedtuple``,
   to give it a comprehensible repr while preventing unwarranted modification.
 
-* fix :issue:`2208`: ensure an iteration limit for ``_pytest.compat.get_real_func``.
+* fix :issue:`2208`: ensure an iteration limit for ``_testrunner.compat.get_real_func``.
   Thanks :user:`RonnyPfannschmidt` for the report and PR.
 
 * Hooks are now verified after collection is complete, rather than right after loading installed plugins. This
   makes it easy to write hooks for plugins which will be loaded during collection, for example using the
-  ``pytest_plugins`` special variable (:issue:`1821`).
+  ``testrunner_plugins`` special variable (:issue:`1821`).
   Thanks :user:`nicoddemus` for the PR.
 
-* Modify ``pytest_make_parametrize_id()`` hook to accept ``argname`` as an
+* Modify ``testrunner_make_parametrize_id()`` hook to accept ``argname`` as an
   additional parameter.
   Thanks :user:`unsignedint` for the PR.
 
@@ -8962,7 +8962,7 @@ Changes
   the documentation on different platforms.
   Thanks :user:`RonnyPfannschmidt` for the PR.
 
-* fix :issue:`2391`: consider pytest_plugins on all plugin modules
+* fix :issue:`2391`: consider testrunner_plugins on all plugin modules
   Thanks :user:`RonnyPfannschmidt` for the PR.
 
 
@@ -9003,7 +9003,7 @@ Bug Fixes
 * junitxml: Fix problematic case where system-out tag occurred twice per testcase
   element in the XML report. Thanks :user:`kkoukiou` for the PR.
 
-* Fix regression, pytest now skips unittest correctly if run with ``--pdb``
+* Fix regression, testrunner now skips unittest correctly if run with ``--pdb``
   (:issue:`2137`). Thanks to :user:`gst` for the report and :user:`mbyt` for the PR.
 
 * Ignore exceptions raised from descriptors (e.g. properties) during Python test collection (:issue:`2234`).
@@ -9032,32 +9032,32 @@ Bug Fixes
 3.0.6 (2017-01-22)
 ==================
 
-* pytest no longer generates ``PendingDeprecationWarning`` from its own operations, which was introduced by mistake in version ``3.0.5`` (:issue:`2118`).
+* testrunner no longer generates ``PendingDeprecationWarning`` from its own operations, which was introduced by mistake in version ``3.0.5`` (:issue:`2118`).
   Thanks to :user:`nicoddemus` for the report and :user:`RonnyPfannschmidt` for the PR.
 
 
-* pytest no longer recognizes coroutine functions as yield tests (:issue:`2129`).
+* testrunner no longer recognizes coroutine functions as yield tests (:issue:`2129`).
   Thanks to :user:`malinoff` for the PR.
 
-* Plugins loaded by the ``PYTEST_PLUGINS`` environment variable are now automatically
+* Plugins loaded by the ``TESTRUNNER_PLUGINS`` environment variable are now automatically
   considered for assertion rewriting (:issue:`2185`).
   Thanks :user:`nicoddemus` for the PR.
 
-* Improve error message when pytest.warns fails (:issue:`2150`). The type(s) of the
+* Improve error message when testrunner.warns fails (:issue:`2150`). The type(s) of the
   expected warnings and the list of caught warnings is added to the
   error message. Thanks :user:`lesteve` for the PR.
 
-* Fix ``pytester`` internal plugin to work correctly with latest versions of
+* Fix ``testrunnerer`` internal plugin to work correctly with latest versions of
   ``zope.interface`` (:issue:`1989`). Thanks :user:`nicoddemus` for the PR.
 
-* Assert statements of the ``pytester`` plugin again benefit from assertion rewriting (:issue:`1920`).
+* Assert statements of the ``testrunnerer`` plugin again benefit from assertion rewriting (:issue:`1920`).
   Thanks :user:`RonnyPfannschmidt` for the report and :user:`nicoddemus` for the PR.
 
 * Specifying tests with colons like ``test_foo.py::test_bar`` for tests in
   subdirectories with ini configuration files now uses the correct ini file
   (:issue:`2148`).  Thanks :user:`pelme`.
 
-* Fail ``testdir.runpytest().assert_outcomes()`` explicitly if the pytest
+* Fail ``testdir.runtestrunner().assert_outcomes()`` explicitly if the testrunner
   terminal output it relies on is missing. Thanks to :user:`eli-b` for the PR.
 
 
@@ -9078,20 +9078,20 @@ Bug Fixes
 * Provide ``:ref:`` targets for ``recwarn.rst`` so we can use intersphinx referencing.
   Thanks to :user:`dupuy` for the report and :user:`lwm` for the PR.
 
-* In Python 2, use a simple ``+-`` ASCII string in the string representation of ``pytest.approx`` (for example ``"4 +- 4.0e-06"``)
-  because it is brittle to handle that in different contexts and representations internally in pytest
+* In Python 2, use a simple ``+-`` ASCII string in the string representation of ``testrunner.approx`` (for example ``"4 +- 4.0e-06"``)
+  because it is brittle to handle that in different contexts and representations internally in testrunner
   which can result in bugs such as :issue:`2111`. In Python 3, the representation still uses ``±`` (for example ``4 ± 4.0e-06``).
   Thanks :user:`kerrick-lyft` for the report and :user:`nicoddemus` for the PR.
 
 * Using ``item.Function``, ``item.Module``, etc., is now issuing deprecation warnings, prefer
-  ``pytest.Function``, ``pytest.Module``, etc., instead (:issue:`2034`).
+  ``testrunner.Function``, ``testrunner.Module``, etc., instead (:issue:`2034`).
   Thanks :user:`nmundar` for the PR.
 
 * Fix error message using ``approx`` with complex numbers (:issue:`2082`).
   Thanks :user:`adler-j` for the report and :user:`nicoddemus` for the PR.
 
 * Fixed false-positives warnings from assertion rewrite hook for modules imported more than
-  once by the ``pytest_plugins`` mechanism.
+  once by the ``testrunner_plugins`` mechanism.
   Thanks :user:`nicoddemus` for the PR.
 
 * Remove an internal cache which could cause hooks from ``conftest.py`` files in
@@ -9099,8 +9099,8 @@ Bug Fixes
   Thanks :user:`d-b-w` for the report and :user:`nicoddemus` for the PR.
 
 * Remove internal code meant to support earlier Python 3 versions that produced the side effect
-  of leaving ``None`` in ``sys.modules`` when expressions were evaluated by pytest (for example passing a condition
-  as a string to ``pytest.mark.skipif``)(:issue:`2103`).
+  of leaving ``None`` in ``sys.modules`` when expressions were evaluated by testrunner (for example passing a condition
+  as a string to ``testrunner.mark.skipif``)(:issue:`2103`).
   Thanks :user:`jaraco` for the report and :user:`nicoddemus` for the PR.
 
 * Cope gracefully with a .pyc file with no matching .py file (:issue:`2038`). Thanks
@@ -9119,14 +9119,14 @@ Bug Fixes
 * When loading plugins, import errors which contain non-ascii messages are now properly handled in Python 2 (:issue:`1998`).
   Thanks :user:`nicoddemus` for the PR.
 
-* Fixed cyclic reference when ``pytest.raises`` is used in context-manager form (:issue:`1965`). Also as a
+* Fixed cyclic reference when ``testrunner.raises`` is used in context-manager form (:issue:`1965`). Also as a
   result of this fix, ``sys.exc_info()`` is left empty in both context-manager and function call usages.
   Previously, ``sys.exc_info`` would contain the exception caught by the context manager,
   even when the expected exception occurred.
   Thanks :user:`MSeifert04` for the report and the PR.
 
 * Fixed false-positives warnings from assertion rewrite hook for modules that were rewritten but
-  were later marked explicitly by ``pytest.register_assert_rewrite``
+  were later marked explicitly by ``testrunner.register_assert_rewrite``
   or implicitly as a plugin (:issue:`2005`).
   Thanks :user:`RonnyPfannschmidt` for the report and :user:`nicoddemus` for the PR.
 
@@ -9172,19 +9172,19 @@ Bug Fixes
 3.0.2 (2016-09-01)
 ==================
 
-* Improve error message when passing non-string ids to ``pytest.mark.parametrize`` (:issue:`1857`).
+* Improve error message when passing non-string ids to ``testrunner.mark.parametrize`` (:issue:`1857`).
   Thanks :user:`okken` for the report and :user:`nicoddemus` for the PR.
 
-* Add ``buffer`` attribute to stdin stub class ``pytest.capture.DontReadFromInput``
+* Add ``buffer`` attribute to stdin stub class ``testrunner.capture.DontReadFromInput``
   Thanks :user:`joguSD` for the PR.
 
 * Fix ``UnicodeEncodeError`` when string comparison with unicode has failed. (:issue:`1864`)
   Thanks :user:`AiOO` for the PR.
 
-* ``pytest_plugins`` is now handled correctly if defined as a string (as opposed as
+* ``testrunner_plugins`` is now handled correctly if defined as a string (as opposed as
   a sequence of strings) when modules are considered for assertion rewriting.
   Due to this bug, much more modules were being rewritten than necessary
-  if a test suite uses ``pytest_plugins`` to load internal plugins (:issue:`1888`).
+  if a test suite uses ``testrunner_plugins`` to load internal plugins (:issue:`1888`).
   Thanks :user:`jaraco` for the report and :user:`nicoddemus` for the PR (:pr:`1891`).
 
 * Do not call tearDown and cleanups when running tests from
@@ -9210,7 +9210,7 @@ Bug Fixes
 * Fix internal error when parametrizing tests or fixtures using an empty ``ids`` argument (:issue:`1849`).
   Thanks :user:`OPpuolitaival` for the report and :user:`nicoddemus` for the PR.
 
-* Fix loader error when running ``pytest`` embedded in a zipfile.
+* Fix loader error when running ``testrunner`` embedded in a zipfile.
   Thanks :user:`mbachry` for the PR.
 
 
@@ -9229,7 +9229,7 @@ time or change existing behaviors in order to make them less surprising/more use
   mode are available, consequently the ``--assert=reinterp`` option is
   no longer available.  This also means files imported from plugins or
   ``conftest.py`` will not benefit from improved assertions by
-  default, you should use ``pytest.register_assert_rewrite()`` to
+  default, you should use ``testrunner.register_assert_rewrite()`` to
   explicitly turn on assertion rewriting for those files.  Thanks
   :user:`flub` for the PR.
 
@@ -9243,35 +9243,35 @@ time or change existing behaviors in order to make them less surprising/more use
   Thanks to :user:`RedBeardCode` for the PR (:pr:`1664`).
 
 * ImportErrors in plugins now are a fatal error instead of issuing a
-  pytest warning (:issue:`1479`). Thanks to :user:`The-Compiler` for the PR.
+  testrunner warning (:issue:`1479`). Thanks to :user:`The-Compiler` for the PR.
 
 * Removed support code for Python 3 versions < 3.3 (:pr:`1627`).
 
-* Removed all ``py.test-X*`` entry points. The versioned, suffixed entry points
+* Removed all ``testrunner-X*`` entry points. The versioned, suffixed entry points
   were never documented and a leftover from a pre-virtualenv era. These entry
   points also created broken entry points in wheels, so removing them also
   removes a source of confusion for users (:issue:`1632`).
   Thanks :user:`obestwalter` for the PR.
 
-* ``pytest.skip()`` now raises an error when used to decorate a test function,
+* ``testrunner.skip()`` now raises an error when used to decorate a test function,
   as opposed to its original intent (to imperatively skip a test inside a test function). Previously
   this usage would cause the entire module to be skipped (:issue:`607`).
   Thanks :user:`omarkohl` for the complete PR (:pr:`1519`).
 
 * Exit tests if a collection error occurs. A poll indicated most users will hit CTRL-C
-  anyway as soon as they see collection errors, so pytest might as well make that the default behavior (:issue:`1421`).
+  anyway as soon as they see collection errors, so testrunner might as well make that the default behavior (:issue:`1421`).
   A ``--continue-on-collection-errors`` option has been added to restore the previous behaviour.
   Thanks :user:`olegpidsadnyi` and :user:`omarkohl` for the complete PR (:pr:`1628`).
 
-* Renamed the pytest ``pdb`` module (plugin) into ``debugging`` to avoid clashes with the builtin ``pdb`` module.
+* Renamed the testrunner ``pdb`` module (plugin) into ``debugging`` to avoid clashes with the builtin ``pdb`` module.
 
 * Raise a helpful failure message when requesting a parametrized fixture at runtime,
   e.g. with ``request.getfixturevalue``. Previously these parameters were simply
-  never defined, so a fixture decorated like ``@pytest.fixture(params=[0, 1, 2])``
+  never defined, so a fixture decorated like ``@testrunner.fixture(params=[0, 1, 2])``
   only ran once (:pr:`460`).
   Thanks to :user:`nikratio` for the bug report, :user:`RedBeardCode` and :user:`tomviner` for the PR.
 
-* ``_pytest.monkeypatch.monkeypatch`` class has been renamed to ``_pytest.monkeypatch.MonkeyPatch``
+* ``_testrunner.monkeypatch.monkeypatch`` class has been renamed to ``_testrunner.monkeypatch.MonkeyPatch``
   so it doesn't conflict with the ``monkeypatch`` fixture.
 
 * ``--exitfirst / -x`` can now be overridden by a following ``--maxfail=N``
@@ -9292,7 +9292,7 @@ time or change existing behaviors in order to make them less surprising/more use
   when running (failing) doctests (implements :issue:`1749`).
   Thanks :user:`hartym` for the PR.
 
-* New ``name`` argument to ``pytest.fixture`` decorator which allows a custom name
+* New ``name`` argument to ``testrunner.fixture`` decorator which allows a custom name
   for a fixture (to solve the funcarg-shadowing-fixture problem).
   Thanks :user:`novas0x2a` for the complete PR (:pr:`1444`).
 
@@ -9312,7 +9312,7 @@ time or change existing behaviors in order to make them less surprising/more use
   whether to filter the traceback based on the ``ExceptionInfo`` object passed
   to it. Thanks :user:`The-Compiler` for the complete PR (:pr:`1526`).
 
-* New ``pytest_make_parametrize_id(config, val)`` hook which can be used by plugins to provide
+* New ``testrunner_make_parametrize_id(config, val)`` hook which can be used by plugins to provide
   friendly strings for custom types.
   Thanks :user:`palaviv` for the PR.
 
@@ -9325,7 +9325,7 @@ time or change existing behaviors in order to make them less surprising/more use
   Can also show where fixtures are defined if combined with ``-v``.
   Thanks :user:`hackebrot` for the PR.
 
-* Introduce ``pytest`` command as recommended entry point. Note that ``py.test``
+* Introduce ``testrunner`` command as recommended entry point. Note that ``testrunner``
   still works and is not scheduled for removal. Closes proposal
   :issue:`1629`. Thanks :user:`obestwalter` and :user:`davehunt` for the complete PR
   (:pr:`1633`).
@@ -9338,7 +9338,7 @@ time or change existing behaviors in order to make them less surprising/more use
     fixtures and reports them;
   + ``--setup-show``: performs normal test execution and additionally shows
     setup and teardown of fixtures;
-  + ``--keep-duplicates``: py.test now ignores duplicated paths given in the command
+  + ``--keep-duplicates``: testrunner now ignores duplicated paths given in the command
     line. To retain the previous behavior where the same test could be run multiple
     times by specifying it in the command-line multiple times, pass the ``--keep-duplicates``
     argument (:issue:`1609`);
@@ -9351,8 +9351,8 @@ time or change existing behaviors in order to make them less surprising/more use
 
 * New hooks:
 
-  + ``pytest_fixture_setup(fixturedef, request)``: executes fixture setup;
-  + ``pytest_fixture_post_finalizer(fixturedef)``: called after the fixture's
+  + ``testrunner_fixture_setup(fixturedef, request)``: executes fixture setup;
+  + ``testrunner_fixture_post_finalizer(fixturedef)``: called after the fixture's
     finalizer and has access to the fixture's result cache.
 
   Thanks :user:`d6e`, :user:`sallner`.
@@ -9381,9 +9381,9 @@ time or change existing behaviors in order to make them less surprising/more use
 * Highlight path of the file location in the error report to make it easier to copy/paste.
   Thanks :user:`suzaku` for the PR (:pr:`1778`).
 
-* Fixtures marked with ``@pytest.fixture`` can now use ``yield`` statements exactly like
-  those marked with the ``@pytest.yield_fixture`` decorator. This change renders
-  ``@pytest.yield_fixture`` deprecated and makes ``@pytest.fixture`` with ``yield`` statements
+* Fixtures marked with ``@testrunner.fixture`` can now use ``yield`` statements exactly like
+  those marked with the ``@testrunner.yield_fixture`` decorator. This change renders
+  ``@testrunner.yield_fixture`` deprecated and makes ``@testrunner.fixture`` with ``yield`` statements
   the preferred way to write teardown code (:pr:`1461`).
   Thanks :user:`csaftoiu` for bringing this to attention and :user:`nicoddemus` for the PR.
 
@@ -9394,7 +9394,7 @@ time or change existing behaviors in order to make them less surprising/more use
   fixture is declared in a test function.
   Thanks :user:`nicoddemus` for the PR.
 
-* ``pytest_terminal_summary`` hook now receives the ``exitstatus``
+* ``testrunner_terminal_summary`` hook now receives the ``exitstatus``
   of the test session as argument. Thanks :user:`blueyed` for the PR (:pr:`1809`).
 
 * Parametrize ids can accept ``None`` as specific test id, in which case the
@@ -9409,8 +9409,8 @@ time or change existing behaviors in order to make them less surprising/more use
   parametrize.
   Thanks :user:`palaviv` for the complete PR (:pr:`1474`).
 
-* Now pytest warnings summary is shown up by default. Added a new flag
-  ``--disable-pytest-warnings`` to explicitly disable the warnings summary (:issue:`1668`).
+* Now testrunner warnings summary is shown up by default. Added a new flag
+  ``--disable-testrunner-warnings`` to explicitly disable the warnings summary (:issue:`1668`).
 
 * Make ImportError during collection more explicit by reminding
   the user to check the name of the test module/package(s) (:issue:`1426`).
@@ -9419,7 +9419,7 @@ time or change existing behaviors in order to make them less surprising/more use
 * Add ``build/`` and ``dist/`` to the default ``--norecursedirs`` list. Thanks
   :user:`mikofski` for the report and :user:`tomviner` for the PR (:issue:`1544`).
 
-* ``pytest.raises`` in the context manager form accepts a custom
+* ``testrunner.raises`` in the context manager form accepts a custom
   ``message`` to raise when no exception occurred.
   Thanks :user:`palaviv` for the complete PR (:pr:`1616`).
 
@@ -9444,20 +9444,20 @@ time or change existing behaviors in order to make them less surprising/more use
   Before, you only got exceptions later from ``argparse`` library,
   giving no clue about the actual reason for double-added options.
 
-* ``yield``-based tests are considered deprecated and will be removed in pytest-4.0.
+* ``yield``-based tests are considered deprecated and will be removed in testrunner-4.0.
   Thanks :user:`nicoddemus` for the PR.
 
-* ``[pytest]`` sections in ``setup.cfg`` files should now be named ``[tool:pytest]``
-  to avoid conflicts with other distutils commands (see :pr:`567`). ``[pytest]`` sections in
-  ``pytest.ini`` or ``tox.ini`` files are supported and unchanged.
+* ``[testrunner]`` sections in ``setup.cfg`` files should now be named ``[tool:testrunner]``
+  to avoid conflicts with other distutils commands (see :pr:`567`). ``[testrunner]`` sections in
+  ``testrunner.ini`` or ``tox.ini`` files are supported and unchanged.
   Thanks :user:`nicoddemus` for the PR.
 
-* Using ``pytest_funcarg__`` prefix to declare fixtures is considered deprecated and will be
-  removed in pytest-4.0 (:pr:`1684`).
+* Using ``testrunner_funcarg__`` prefix to declare fixtures is considered deprecated and will be
+  removed in testrunner-4.0 (:pr:`1684`).
   Thanks :user:`nicoddemus` for the PR.
 
-* Passing a command-line string to ``pytest.main()`` is considered deprecated and scheduled
-  for removal in pytest-4.0. It is recommended to pass a list of arguments instead (:pr:`1723`).
+* Passing a command-line string to ``testrunner.main()`` is considered deprecated and scheduled
+  for removal in testrunner-4.0. It is recommended to pass a list of arguments instead (:pr:`1723`).
 
 * Rename ``getfuncargvalue`` to ``getfixturevalue``. ``getfuncargvalue`` is
   still present but is now considered deprecated. Thanks to :user:`RedBeardCode` and :user:`tomviner`
@@ -9483,7 +9483,7 @@ time or change existing behaviors in order to make them less surprising/more use
 
 * Updated docstrings with a more uniform style.
 
-* Add stderr write for ``pytest.exit(msg)`` during startup. Previously the message was never shown.
+* Add stderr write for ``testrunner.exit(msg)`` during startup. Previously the message was never shown.
   Thanks :user:`BeyondEvil` for reporting :issue:`1210`. Thanks to @jgsonesen and
   :user:`tomviner` for the PR.
 
@@ -9551,13 +9551,13 @@ time or change existing behaviors in order to make them less surprising/more use
   for PR the (:pr:`1524`).
 
 * Fix win32 path issue when putting custom config file with absolute path
-  in ``pytest.main("-c your_absolute_path")``.
+  in ``testrunner.main("-c your_absolute_path")``.
 
 * Fix maximum recursion depth detection when raised error class is not aware
   of unicode/encoded bytes.
   Thanks :user:`prusse-martin` for the PR (:pr:`1506`).
 
-* Fix ``pytest.mark.skip`` mark when used in strict mode.
+* Fix ``testrunner.mark.skip`` mark when used in strict mode.
   Thanks :user:`pquentin` for the PR and :user:`RonnyPfannschmidt` for
   showing how to fix the bug.
 
@@ -9578,7 +9578,7 @@ time or change existing behaviors in order to make them less surprising/more use
   Thanks :user:`nicoddemus` for the PR.
 
 * Fix (:issue:`1178`):
-  ``pytest.fail`` with non-ascii characters raises an internal pytest error.
+  ``testrunner.fail`` with non-ascii characters raises an internal testrunner error.
   Thanks :user:`nicoddemus` for the PR.
 
 * Fix (:issue:`469`): junit parses report.nodeid incorrectly, when params IDs
@@ -9586,7 +9586,7 @@ time or change existing behaviors in order to make them less surprising/more use
 
 * Fix (:issue:`578`): SyntaxErrors
   containing non-ascii lines at the point of failure generated an internal
-  py.test error.
+  testrunner error.
   Thanks :user:`asottile` for the report and :user:`nicoddemus` for the PR.
 
 * Fix (:issue:`1437`): When passing in a bytestring regex pattern to parameterize
@@ -9602,7 +9602,7 @@ time or change existing behaviors in order to make them less surprising/more use
 
 **New Features**
 
-* New ``pytest.mark.skip`` mark, which unconditionally skips marked tests.
+* New ``testrunner.mark.skip`` mark, which unconditionally skips marked tests.
   Thanks :user:`MichaelAquilina` for the complete PR (:pr:`1040`).
 
 * ``--doctest-glob`` may now be passed multiple times in the command-line.
@@ -9611,7 +9611,7 @@ time or change existing behaviors in order to make them less surprising/more use
 * New ``-rp`` and ``-rP`` reporting options give the summary and full output
   of passing tests, respectively. Thanks to :user:`codewarrior0` for the PR.
 
-* ``pytest.mark.xfail`` now has a ``strict`` option, which makes ``XPASS``
+* ``testrunner.mark.xfail`` now has a ``strict`` option, which makes ``XPASS``
   tests to fail the test suite (defaulting to ``False``). There's also a
   ``xfail_strict`` ini option that can be used to configure it project-wise.
   Thanks :user:`rabbbit` for the request and :user:`nicoddemus` for the PR (:pr:`1355`).
@@ -9628,31 +9628,31 @@ time or change existing behaviors in order to make them less surprising/more use
   Thanks to :user:`hpk42` for the report and :user:`RonnyPfannschmidt` for the PR.
 
 * Catch ``IndexError`` exceptions when getting exception source location.
-  Fixes a pytest internal error for dynamically generated code (fixtures and tests)
+  Fixes a testrunner internal error for dynamically generated code (fixtures and tests)
   where source lines are fake by intention.
 
 **Changes**
 
 * **Important**: `py.code <https://pylib.readthedocs.io/en/stable/code.html>`_ has been
-  merged into the ``pytest`` repository as ``pytest._code``. This decision
-  was made because ``py.code`` had very few uses outside ``pytest`` and the
+  merged into the ``testrunner`` repository as ``testrunner._code``. This decision
+  was made because ``py.code`` had very few uses outside ``testrunner`` and the
   fact that it was in a different repository made it difficult to fix bugs on
   its code in a timely manner. The team hopes with this to be able to better
   refactor out and improve that code.
   This change shouldn't affect users, but it is useful to let users aware
   if they encounter any strange behavior.
 
-  Keep in mind that the code for ``pytest._code`` is **private** and
+  Keep in mind that the code for ``testrunner._code`` is **private** and
   **experimental**, so you definitely should not import it explicitly!
 
   Please note that the original ``py.code`` is still available in
   `pylib <https://pylib.readthedocs.io>`_.
 
-* ``pytest_enter_pdb`` now optionally receives the pytest config object.
+* ``testrunner_enter_pdb`` now optionally receives the testrunner config object.
   Thanks :user:`nicoddemus` for the PR.
 
 * Removed code and documentation for Python 2.5 or lower versions,
-  including removal of the obsolete ``_pytest.assertion.oldinterpret`` module.
+  including removal of the obsolete ``_testrunner.assertion.oldinterpret`` module.
   Thanks :user:`nicoddemus` for the PR (:pr:`1226`).
 
 * Comparisons now always show up in full when ``CI`` or ``BUILD_NUMBER`` is
@@ -9663,7 +9663,7 @@ time or change existing behaviors in order to make them less surprising/more use
   ``--failed-first`` respectively.
   Thanks :user:`MichaelAquilina` for the PR.
 
-* Added expected exceptions to ``pytest.raises`` fail message.
+* Added expected exceptions to ``testrunner.raises`` fail message.
 
 * Collection only displays progress ("collecting X items") when in a terminal.
   This avoids cluttering the output when using ``--color=yes`` to obtain
@@ -9699,7 +9699,7 @@ time or change existing behaviors in order to make them less surprising/more use
 
 - fix #1259: allow for double nodeids in junitxml,
   this was a regression failing plugins combinations
-  like pytest-pep8 + pytest-flakes
+  like testrunner-pep8 + testrunner-flakes
 
 - Workaround for exception that occurs in pyreadline when using
   ``--pdb`` with standard I/O capture enabled.
@@ -9715,7 +9715,7 @@ time or change existing behaviors in order to make them less surprising/more use
   entering pdb when ``--pdb`` is used instead of being thrown away.
   Thanks Cal Leeming for the PR.
 
-- fix #1305: pytest warnings emitted during ``pytest_terminal_summary`` are now
+- fix #1305: testrunner warnings emitted during ``testrunner_terminal_summary`` are now
   properly displayed.
   Thanks Ionel Maries Cristian for the report and Bruno Oliveira for the PR.
 
@@ -9729,13 +9729,13 @@ time or change existing behaviors in order to make them less surprising/more use
 2.8.5 (2015-12-11)
 ==================
 
-- fix #1243: fixed issue where class attributes injected during collection could break pytest.
+- fix #1243: fixed issue where class attributes injected during collection could break testrunner.
   PR by Alexei Kozlenok, thanks Ronny Pfannschmidt and Bruno Oliveira for the review and help.
 
 - fix #1074: precompute junitxml chunks instead of storing the whole tree in objects
   Thanks Bruno Oliveira for the report and Ronny Pfannschmidt for the PR
 
-- fix #1238: fix ``pytest.deprecated_call()`` receiving multiple arguments
+- fix #1238: fix ``testrunner.deprecated_call()`` receiving multiple arguments
   (Regression introduced in 2.8.4). Thanks Alex Gaynor for the report and
   Bruno Oliveira for the PR.
 
@@ -9787,7 +9787,7 @@ time or change existing behaviors in order to make them less surprising/more use
 
 - add more talks to the documentation
 - extend documentation on the --ignore cli option
-- use pytest-runner for setuptools integration
+- use testrunner-runner for setuptools integration
 - minor fixes for interaction with OS X El Capitan
   system integrity protection (thanks Florian)
 
@@ -9796,11 +9796,11 @@ time or change existing behaviors in order to make them less surprising/more use
 ==================
 
 - fix #1085: proper handling of encoding errors when passing encoded byte
-  strings to pytest.parametrize in Python 2.
+  strings to testrunner.parametrize in Python 2.
   Thanks Themanwithoutaplan for the report and Bruno Oliveira for the PR.
 
 - fix #1087: handling SystemError when passing empty byte strings to
-  pytest.parametrize in Python 3.
+  testrunner.parametrize in Python 3.
   Thanks Paul Kehrer for the report and Bruno Oliveira for the PR.
 
 - fix #995: fixed internal error when filtering tracebacks where one entry
@@ -9815,7 +9815,7 @@ time or change existing behaviors in order to make them less surprising/more use
 2.8.1 (2015-09-29)
 ==================
 
-- fix #1034: Add missing nodeid on pytest_logwarning call in
+- fix #1034: Add missing nodeid on testrunner_logwarning call in
   addhook.  Thanks Simon Gomizelj for the PR.
 
 - 'deprecated_call' is now only satisfied with a DeprecationWarning or
@@ -9824,7 +9824,7 @@ time or change existing behaviors in order to make them less surprising/more use
   Thanks Alex Gaynor for the issue and Eric Hunsberger for the PR.
 
 - fix issue #1073: avoid calling __getattr__ on potential plugin objects.
-  This fixes an incompatibility with pytest-django.  Thanks Andreas Pelme,
+  This fixes an incompatibility with testrunner-django.  Thanks Andreas Pelme,
   Bruno Oliveira and Ronny Pfannschmidt for contributing and Holger Krekel
   for the fix.
 
@@ -9832,13 +9832,13 @@ time or change existing behaviors in order to make them less surprising/more use
   gracefully.  Thanks Bruno Oliveira for the PR.
 
 - Fix issue #1064: ""--junitxml" regression when used with the
-  "pytest-xdist" plugin, with test reports being assigned to the wrong tests.
+  "testrunner-xdist" plugin, with test reports being assigned to the wrong tests.
   Thanks Daniel Grunwald for the report and Bruno Oliveira for the PR.
 
 - (experimental) adapt more SEMVER style versioning and change meaning of
   master branch in git repo: "master" branch now keeps the bug fixes, changes
   aimed for micro releases.  "features" branch will only be released
-  with minor or major pytest releases.
+  with minor or major testrunner releases.
 
 - Fix issue #766 by removing documentation references to distutils.
   Thanks Russel Winder.
@@ -9857,15 +9857,15 @@ time or change existing behaviors in order to make them less surprising/more use
 - fix issue 877: properly handle assertion explanations with non-ascii repr
   Thanks Mathieu Agopian for the report and Ronny Pfannschmidt for the PR.
 
-- fix issue 1029: transform errors when writing cache values into pytest-warnings
+- fix issue 1029: transform errors when writing cache values into testrunner-warnings
 
 2.8.0 (2015-09-18)
 ==================
 
 - new ``--lf`` and ``-ff`` options to run only the last failing tests or
   "failing tests first" from the last run.  This functionality is provided
-  through porting the formerly external pytest-cache plugin into pytest core.
-  BACKWARD INCOMPAT: if you used pytest-cache's functionality to persist
+  through porting the formerly external testrunner-cache plugin into testrunner core.
+  BACKWARD INCOMPAT: if you used testrunner-cache's functionality to persist
   data between test runs be aware that we don't serialize sets anymore.
   Thanks Ronny Pfannschmidt for most of the merging work.
 
@@ -9910,7 +9910,7 @@ time or change existing behaviors in order to make them less surprising/more use
   two or more test methods. Thanks Sergey Chipiga for reporting and Jan
   Bednarik for PR.
 
-- fix issue82: avoid loading conftest files from setup.cfg/pytest.ini/tox.ini
+- fix issue82: avoid loading conftest files from setup.cfg/testrunner.ini/tox.ini
   files and upwards by default (--confcutdir can still be set to override this).
   Thanks Bruno Oliveira for the PR.
 
@@ -9924,21 +9924,21 @@ time or change existing behaviors in order to make them less surprising/more use
   deprecated.
   Thanks Bruno Oliveira for the PR.
 
-- fix issue808: pytest's internal assertion rewrite hook now implements the
+- fix issue808: testrunner's internal assertion rewrite hook now implements the
   optional :pep:`302` get_data API so tests can access data files next to them.
   Thanks xmo-odoo for request and example and Bruno Oliveira for
   the PR.
 
 - rootdir and inifile are now displayed during usage errors to help
   users diagnose problems such as unexpected ini files which add
-  unknown options being picked up by pytest. Thanks to Pavel Savchenko for
+  unknown options being picked up by testrunner. Thanks to Pavel Savchenko for
   bringing the problem to attention in #821 and Bruno Oliveira for the PR.
 
 - Summary bar now is colored yellow for warning
   situations such as: all tests either were skipped or xpass/xfailed,
   or no tests were run at all (this is a partial fix for issue500).
 
-- fix issue812: pytest now exits with status code 5 in situations where no
+- fix issue812: testrunner now exits with status code 5 in situations where no
   tests were run at all, such as the directory given in the command line does
   not contain any tests or as result of a command line option filters
   all out all tests (-k for example).
@@ -9950,7 +9950,7 @@ time or change existing behaviors in order to make them less surprising/more use
   Thanks Eric Siegerman.
 
 - New ``testpaths`` ini option: list of directories to search for tests
-  when executing pytest from the root directory. This can be used
+  when executing testrunner from the root directory. This can be used
   to speed up test collection when a project has well specified directories
   for tests, being usually more practical than configuring norecursedirs for
   all directories that do not contain tests.
@@ -9959,9 +9959,9 @@ time or change existing behaviors in order to make them less surprising/more use
 - fix issue713: JUnit XML reports for doctest failures.
   Thanks Punyashloka Biswal.
 
-- fix issue970: internal pytest warnings now appear as "pytest-warnings" in
+- fix issue970: internal testrunner warnings now appear as "testrunner-warnings" in
   the terminal instead of "warnings", so it is clear for users that those
-  warnings are from pytest and not from the builtin "warnings" module.
+  warnings are from testrunner and not from the builtin "warnings" module.
   Thanks Bruno Oliveira.
 
 - Include setup and teardown in junitxml test durations.
@@ -9982,23 +9982,23 @@ time or change existing behaviors in order to make them less surprising/more use
   of pkg_under_test when ``--import-mode=append`` is used whereas
   by default they would always pick up the local version.  Thanks Holger Krekel.
 
-- pytester: add method ``TmpTestdir.delete_loaded_modules()``, and call it
+- testrunnerer: add method ``TmpTestdir.delete_loaded_modules()``, and call it
   from ``inline_run()`` to allow temporary modules to be reloaded.
   Thanks Eduardo Schettino.
 
 - internally refactor pluginmanager API and code so that there
-  is a clear distinction between a pytest-agnostic rather simple
-  pluginmanager and the PytestPluginManager which adds a lot of
+  is a clear distinction between a testrunner-agnostic rather simple
+  pluginmanager and the TestrunnerPluginManager which adds a lot of
   behaviour, among it handling of the local conftest files.
   In terms of documented methods this is a backward compatible
   change but it might still break 3rd party plugins which relied on
   details like especially the pluginmanager.add_shutdown() API.
   Thanks Holger Krekel.
 
-- pluginmanagement: introduce ``pytest.hookimpl`` and
-  ``pytest.hookspec`` decorators for setting impl/spec
+- pluginmanagement: introduce ``testrunner.hookimpl`` and
+  ``testrunner.hookspec`` decorators for setting impl/spec
   specific parameters.  This substitutes the previous
-  now deprecated use of ``pytest.mark`` which is meant to
+  now deprecated use of ``testrunner.mark`` which is meant to
   contain markers for test functions only.
 
 - write/refine docs for "writing plugins" which now have their
@@ -10009,13 +10009,13 @@ time or change existing behaviors in order to make them less surprising/more use
 
 - deprecate and warn about ``__multicall__`` argument in hook
   implementations.  Use the ``hookwrapper`` mechanism instead already
-  introduced with pytest-2.7.
+  introduced with testrunner-2.7.
 
-- speed up pytest's own test suite considerably by using inprocess
-  tests by default (testrun can be modified with --runpytest=subprocess
+- speed up testrunner's own test suite considerably by using inprocess
+  tests by default (testrun can be modified with --runtestrunner=subprocess
   to create subprocesses in many places instead).  The main
-  APIs to run pytest in a test is "runpytest()" or "runpytest_subprocess"
-  and "runpytest_inprocess" if you need a particular way of running
+  APIs to run testrunner in a test is "runtestrunner()" or "runtestrunner_subprocess"
+  and "runtestrunner_inprocess" if you need a particular way of running
   the test.  In all cases you get back a RunResult but the inprocess
   one will also have a "reprec" attribute with the recorded events/reports.
 
@@ -10058,7 +10058,7 @@ time or change existing behaviors in order to make them less surprising/more use
 - fix issue856: consider --color parameter in all outputs (for example
   --fixtures). Thanks Barney Gale for the report and Bruno Oliveira for the PR.
 
-- fix issue855: passing str objects as ``plugins`` argument to pytest.main
+- fix issue855: passing str objects as ``plugins`` argument to testrunner.main
   is now interpreted as a module name to be imported and registered as a
   plugin, instead of silently having no effect.
   Thanks xmo-odoo for the report and Bruno Oliveira for the PR.
@@ -10071,7 +10071,7 @@ time or change existing behaviors in order to make them less surprising/more use
   to superclasses which also have markers.
   Thanks xmo-odoo for the report and Bruno Oliveira for the PR.
 
-- preserve warning functions after call to pytest.deprecated_call. Thanks
+- preserve warning functions after call to testrunner.deprecated_call. Thanks
   Pieter Mulder for PR.
 
 - fix issue854: autouse yield_fixtures defined as class members of
@@ -10087,15 +10087,15 @@ time or change existing behaviors in order to make them less surprising/more use
   Thanks Raphael Pierzina for reporting and Bruno Oliveira for the PR.
 
 - optimized tmpdir fixture initialization, which should make test sessions
-  faster (specially when using pytest-xdist). The only visible effect
-  is that now pytest uses a subdirectory in the $TEMP directory for all
-  directories created by this fixture (defaults to $TEMP/pytest-$USER).
+  faster (specially when using testrunner-xdist). The only visible effect
+  is that now testrunner uses a subdirectory in the $TEMP directory for all
+  directories created by this fixture (defaults to $TEMP/testrunner-$USER).
   Thanks Bruno Oliveira for the PR.
 
 2.7.2 (2015-06-23)
 ==================
 
-- fix issue767: pytest.raises value attribute does not contain the exception
+- fix issue767: testrunner.raises value attribute does not contain the exception
   instance on Python 2.6. Thanks Eric Siegerman for providing the test
   case and Bruno Oliveira for PR.
 
@@ -10111,7 +10111,7 @@ time or change existing behaviors in order to make them less surprising/more use
 - fix issue114: skipif marker reports to internal skipping plugin;
   Thanks Floris Bruynooghe for reporting and Bruno Oliveira for the PR.
 
-- fix issue748: unittest.SkipTest reports to internal pytest unittest plugin.
+- fix issue748: unittest.SkipTest reports to internal testrunner unittest plugin.
   Thanks Thomas De Schampheleire for reporting and Bruno Oliveira for the PR.
 
 - fix issue718: failed to create representation of sets containing unsortable
@@ -10135,12 +10135,12 @@ time or change existing behaviors in order to make them less surprising/more use
 
 - fix issue660: properly report scope-mismatch-access errors
   independently from ordering of fixture arguments.  Also
-  avoid the pytest internal traceback which does not provide
+  avoid the testrunner internal traceback which does not provide
   information to the user. Thanks Holger Krekel.
 
 - streamlined and documented release process.  Also all versions
   (in setup.py and documentation generation) are now read
-  from _pytest/__init__.py. Thanks Holger Krekel.
+  from _testrunner/__init__.py. Thanks Holger Krekel.
 
 - fixed docs to remove the notion that yield-fixtures are experimental.
   They are here to stay :)  Thanks Bruno Oliveira.
@@ -10151,8 +10151,8 @@ time or change existing behaviors in order to make them less surprising/more use
 - fixed regression to 2.6.4 which surfaced e.g. in lost stdout capture printing
   when tests raised SystemExit. Thanks Holger Krekel.
 
-- reintroduced _pytest fixture of the pytester plugin which is used
-  at least by pytest-xdist.
+- reintroduced _testrunner fixture of the testrunnerer plugin which is used
+  at least by testrunner-xdist.
 
 2.7.0 (2015-03-26)
 ==================
@@ -10166,7 +10166,7 @@ time or change existing behaviors in order to make them less surprising/more use
   Many thanks to Eric Siegerman and his PR235 which contains
   systematic tests for conftest visibility and now passes.
   This change also introduces the concept of a ``rootdir`` which
-  is printed as a new pytest header and documented in the pytest
+  is printed as a new testrunner header and documented in the testrunner
   customize web page.
 
 - change reporting of "diverted" tests, i.e. tests that are collected
@@ -10174,10 +10174,10 @@ time or change existing behaviors in order to make them less surprising/more use
   come from a base class in a different file).  We now show the nodeid
   and indicate via a postfix the other file.
 
-- add ability to set command line options by environment variable PYTEST_ADDOPTS.
+- add ability to set command line options by environment variable TESTRUNNER_ADDOPTS.
 
-- added documentation on the new pytest-dev teams on bitbucket and
-  github.  See https://pytest.org/en/stable/contributing.html .
+- added documentation on the new testrunner-dev teams on bitbucket and
+  github.  See https://testrunner.org/en/stable/contributing.html .
   Thanks to Anatoly for pushing and initial work on this.
 
 - fix issue650: new option ``--doctest-ignore-import-errors`` which
@@ -10199,13 +10199,13 @@ time or change existing behaviors in order to make them less surprising/more use
 - introduce and document new hookwrapper mechanism useful for plugins
   which want to wrap the execution of certain hooks for their purposes.
   This supersedes the undocumented ``__multicall__`` protocol which
-  pytest itself and some external plugins use.  Note that pytest-2.8
+  testrunner itself and some external plugins use.  Note that testrunner-2.8
   is scheduled to drop supporting the old ``__multicall__``
   and only support the hookwrapper protocol.
 
 - majorly speed up invocation of plugin hooks
 
-- use hookwrapper mechanism in builtin pytest plugins.
+- use hookwrapper mechanism in builtin testrunner plugins.
 
 - add a doctest ini option for doctest flags, thanks Holger Peters.
 
@@ -10232,7 +10232,7 @@ time or change existing behaviors in order to make them less surprising/more use
 
 - removed outdated japanese docs from source tree.
 
-- docs for "pytest_addhooks" hook.  Thanks Bruno Oliveira.
+- docs for "testrunner_addhooks" hook.  Thanks Bruno Oliveira.
 
 - updated plugin index docs.  Thanks Bruno Oliveira.
 
@@ -10271,10 +10271,10 @@ time or change existing behaviors in order to make them less surprising/more use
   dep).  Thanks Charles Cloud for analysing the issue.
 
 - fix conftest related fixture visibility issue: when running with a
-  CWD outside of a test package pytest would get fixture discovery wrong.
+  CWD outside of a test package testrunner would get fixture discovery wrong.
   Thanks to Wolfgang Schnerring for figuring out a reproducible example.
 
-- Introduce pytest_enter_pdb hook (needed e.g. by pytest_timeout to cancel the
+- Introduce testrunner_enter_pdb hook (needed e.g. by testrunner_timeout to cancel the
   timeout when interactively entering pdb).  Thanks Wolfgang Schnerring.
 
 - check xfail/skip also with non-python function test items. Thanks
@@ -10283,8 +10283,8 @@ time or change existing behaviors in order to make them less surprising/more use
 2.6.2 (2014-09-05)
 ==================
 
-- Added function pytest.freeze_includes(), which makes it easy to embed
-  pytest into executables using tools like cx_freeze.
+- Added function testrunner.freeze_includes(), which makes it easy to embed
+  testrunner into executables using tools like cx_freeze.
   See docs for examples and rationale. Thanks Bruno Oliveira.
 
 - Improve assertion rewriting cache invalidation precision.
@@ -10306,7 +10306,7 @@ time or change existing behaviors in order to make them less surprising/more use
   Thanks sontek.
 
 - Implement issue549: user-provided assertion messages now no longer
-  replace the py.test introspection message but are shown in addition
+  replace the testrunner introspection message but are shown in addition
   to them.
 
 2.6.1 (2014-08-07)
@@ -10316,7 +10316,7 @@ time or change existing behaviors in order to make them less surprising/more use
   purely the nodeid.  The line number is still shown in failure reports.
   Thanks Floris Bruynooghe.
 
-- fix issue437 where assertion rewriting could cause pytest-xdist worker nodes
+- fix issue437 where assertion rewriting could cause testrunner-xdist worker nodes
   to collect different tests. Thanks Bruno Oliveira.
 
 - fix issue555: add "errors" attribute to capture-streams to satisfy
@@ -10324,12 +10324,12 @@ time or change existing behaviors in order to make them less surprising/more use
 
 - fix issue547 capsys/capfd also work when output capturing ("-s") is disabled.
 
-- address issue170: allow pytest.mark.xfail(...) to specify expected exceptions via
+- address issue170: allow testrunner.mark.xfail(...) to specify expected exceptions via
   an optional "raises=EXC" argument where EXC can be a single exception
   or a tuple of exception classes.  Thanks David Mohr for the complete
   PR.
 
-- fix integration of pytest with unittest.mock.patch decorator when
+- fix integration of testrunner with unittest.mock.patch decorator when
   it uses the "new" argument.  Thanks Nicolas Delaby for test and PR.
 
 - fix issue with detecting conftest files if the arguments contain
@@ -10361,7 +10361,7 @@ time or change existing behaviors in order to make them less surprising/more use
   positional argument in order to run only a single test.
 
 - fix issue 475: fail early and comprehensible if calling
-  pytest.raises with wrong exception type.
+  testrunner.raises with wrong exception type.
 
 - fix issue516: tell in getting-started about current dependencies.
 
@@ -10377,12 +10377,12 @@ time or change existing behaviors in order to make them less surprising/more use
 - fix issue498: if a fixture finalizer fails, make sure that
   the fixture is still invalidated.
 
-- fix issue453: the result of the pytest_assertrepr_compare hook now gets
+- fix issue453: the result of the testrunner_assertrepr_compare hook now gets
   it's newlines escaped so that format_exception does not blow up.
 
-- internal new warning system: pytest will now produce warnings when
+- internal new warning system: testrunner will now produce warnings when
   it detects oddities in your test collection or execution.
-  Warnings are ultimately sent to a new pytest_logwarning hook which is
+  Warnings are ultimately sent to a new testrunner_logwarning hook which is
   currently only implemented by the terminal plugin which displays
   warnings in the summary line and shows more details when -rw (report on
   warnings) is specified.
@@ -10399,10 +10399,10 @@ time or change existing behaviors in order to make them less surprising/more use
   during collection/loading of test modules.  Thanks to Marc Schlaich
   for the complete PR.
 
-- fix issue490: include pytest_load_initial_conftests in documentation
+- fix issue490: include testrunner_load_initial_conftests in documentation
   and improve docstring.
 
-- fix issue472: clarify that ``pytest.config.getvalue()`` cannot work
+- fix issue472: clarify that ``testrunner.config.getvalue()`` cannot work
   if it's triggered ahead of command line parsing.
 
 - merge PR123: improved integration with mock.patch decorator on tests.
@@ -10412,15 +10412,15 @@ time or change existing behaviors in order to make them less surprising/more use
 
 - fix issue483: trial/py33 works now properly.  Thanks Daniel Grana for PR.
 
-- improve example for pytest integration with "python setup.py test"
-  which now has a generic "-a" or "--pytest-args" option where you
+- improve example for testrunner integration with "python setup.py test"
+  which now has a generic "-a" or "--testrunner-args" option where you
   can pass additional options as a quoted string.  Thanks Trevor Bekolay.
 
 - simplified internal capturing mechanism and made it more robust
   against tests or setups changing FD1/FD2, also better integrated
-  now with pytest.pdb() in single tests.
+  now with testrunner.pdb() in single tests.
 
-- improvements to pytest's own test-suite leakage detection, courtesy of PRs
+- improvements to testrunner's own test-suite leakage detection, courtesy of PRs
   from Marc Abramowitz
 
 - fix issue492: avoid leak in test_writeorg.  Thanks Marc Abramowitz.
@@ -10453,14 +10453,14 @@ time or change existing behaviors in order to make them less surprising/more use
   trying to import from collections.abc which causes problems
   for py27/cx_freeze.  Thanks Wolfgang L. for reporting and tracking it down.
 
-- fixed docs and code to use "pytest" instead of "py.test" almost everywhere.
+- fixed docs and code to use "testrunner" instead of "testrunner" almost everywhere.
   Thanks Jurko Gospodnetic for the complete PR.
 
-- fix issue425: mention at end of "py.test -h" that --markers
+- fix issue425: mention at end of "testrunner -h" that --markers
   and --fixtures work according to specified test path (or current dir)
 
 - fix issue413: exceptions with unicode attributes are now printed
-  correctly also on python2 and with pytest-xdist runs. (the fix
+  correctly also on python2 and with testrunner-xdist runs. (the fix
   requires py-1.4.20)
 
 - copy, cleanup and integrate py.io capture
@@ -10484,7 +10484,7 @@ time or change existing behaviors in order to make them less surprising/more use
   and analysis.
 
 - Allow parameterized fixtures to specify the ID of the parameters by
-  adding an ids argument to pytest.fixture() and pytest.yield_fixture().
+  adding an ids argument to testrunner.fixture() and testrunner.yield_fixture().
   Thanks Floris Bruynooghe.
 
 - fix issue404 by always using the binary xml escape in the junitxml
@@ -10498,7 +10498,7 @@ time or change existing behaviors in order to make them less surprising/more use
 2.5.0 (2013-12-12)
 ==================
 
-- dropped python2.5 from automated release testing of pytest itself
+- dropped python2.5 from automated release testing of testrunner itself
   which means it's probably going to break soon (but still works
   with this release we believe).
 
@@ -10507,7 +10507,7 @@ time or change existing behaviors in order to make them less surprising/more use
   is now performed lazily at setup time instead of in the "teardown phase".
   While this might sound odd at first, it helps to ensure that we are
   correctly handling setup/teardown even in complex code.  User-level code
-  should not be affected unless it's implementing the pytest_runtest_teardown
+  should not be affected unless it's implementing the testrunner_runtest_teardown
   hook and expecting certain fixture instances are torn down within (very
   unlikely and would have been unreliable anyway).
 
@@ -10531,7 +10531,7 @@ time or change existing behaviors in order to make them less surprising/more use
   with repeated same values (sometimes useful to test if calling
   a second time works as with the first time).
 
-- close issue240 - document precisely how pytest module importing
+- close issue240 - document precisely how testrunner module importing
   works, discuss the two common test directory layouts, and how it
   interacts with :pep:`420`\-namespace packages.
 
@@ -10573,10 +10573,10 @@ time or change existing behaviors in order to make them less surprising/more use
 - fix issue380 by making --resultlog only rely on longrepr instead
   of the "reprcrash" attribute which only exists sometimes.
 
-- address issue122: allow @pytest.fixture(params=iterator) by exploding
+- address issue122: allow @testrunner.fixture(params=iterator) by exploding
   into a list early on.
 
-- fix pexpect-3.0 compatibility for pytest's own tests.
+- fix pexpect-3.0 compatibility for testrunner's own tests.
   (fixes issue386)
 
 - allow nested parametrize-value markers, thanks James Lan for the PR.
@@ -10589,23 +10589,23 @@ time or change existing behaviors in order to make them less surprising/more use
 - In assertion rewriting mode on Python 2, fix the detection of coding
   cookies. See issue #330.
 
-- make "--runxfail" turn imperative pytest.xfail calls into no ops
-  (it already did neutralize pytest.mark.xfail markers)
+- make "--runxfail" turn imperative testrunner.xfail calls into no ops
+  (it already did neutralize testrunner.mark.xfail markers)
 
-- refine pytest / pkg_resources interactions: The AssertionRewritingHook
+- refine testrunner / pkg_resources interactions: The AssertionRewritingHook
   :pep:`302` compliant loader now registers itself with setuptools/pkg_resources
   properly so that the pkg_resources.resource_stream method works properly.
   Fixes issue366.  Thanks for the investigations and full PR to Jason R. Coombs.
 
-- pytestconfig fixture is now session-scoped as it is the same object during the
+- testrunnerconfig fixture is now session-scoped as it is the same object during the
   whole test run.  Fixes issue370.
 
 - avoid one surprising case of marker malfunction/confusion::
 
-      @pytest.mark.some(lambda arg: ...)
+      @testrunner.mark.some(lambda arg: ...)
       def test_function():
 
-  would not work correctly because pytest assumes @pytest.mark.some
+  would not work correctly because testrunner assumes @testrunner.mark.some
   gets a function to be decorated already.  We now at least detect if this
   arg is a lambda and thus the example will work.  Thanks Alex Gaynor
   for bringing it up.
@@ -10614,7 +10614,7 @@ time or change existing behaviors in order to make them less surprising/more use
   not error out). fixes issue385.
 
 - internally make varnames() deal with classes's __init__,
-  although it's not needed by pytest itself atm.  Also
+  although it's not needed by testrunner itself atm.  Also
   fix caching.  Fixes issue376.
 
 - fix issue221 - handle importing of namespace-package with no
@@ -10624,9 +10624,9 @@ time or change existing behaviors in order to make them less surprising/more use
   One of the positive user-facing effects is that the "request" object
   can now be used in closures.
 
-- fixed version comparison in pytest.importskip(modname, minverstring)
+- fixed version comparison in testrunner.importskip(modname, minverstring)
 
-- fix issue377 by clarifying in the nose-compat docs that pytest
+- fix issue377 by clarifying in the nose-compat docs that testrunner
   does not duplicate the unittest-API into the "plain" namespace.
 
 - fix verbose reporting for @mock'd test functions
@@ -10645,13 +10645,13 @@ time or change existing behaviors in order to make them less surprising/more use
 - avoid tmpdir fixture to create too long filenames especially
   when parametrization is used (issue354)
 
-- fix pytest-pep8 and pytest-flakes / pytest interactions
+- fix testrunner-pep8 and testrunner-flakes / testrunner interactions
   (collection names in mark plugin was assuming an item always
   has a function which is not true for those plugins etc.)
   Thanks Andi Zeidler.
 
 - introduce node.get_marker/node.add_marker API for plugins
-  like pytest-pep8 and pytest-flakes to avoid the messy
+  like testrunner-pep8 and testrunner-flakes to avoid the messy
   details of the node.keywords  pseudo-dicts.  Adapted
   docs.
 
@@ -10687,24 +10687,24 @@ known incompatibilities:
   standalone script which works on python2.7 or above.  Use Python2.6
   to also get a python2.5 compatible version.
 
-- all xunit-style teardown methods (nose-style, pytest-style,
+- all xunit-style teardown methods (nose-style, testrunner-style,
   unittest-style) will not be called if the corresponding setup method failed,
   see issue322 below.
 
-- the pytest_plugin_unregister hook wasn't ever properly called
+- the testrunner_plugin_unregister hook wasn't ever properly called
   and there is no known implementation of the hook - so it got removed.
 
-- pytest.fixture-decorated functions cannot be generators (i.e. use
+- testrunner.fixture-decorated functions cannot be generators (i.e. use
   yield) anymore.  This change might be reversed in 2.4.1 if it causes
   unforeseen real-life issues.  However, you can always write and return
   an inner function/generator and change the fixture consumer to iterate
   over the returned generator.  This change was done in lieu of the new
-  ``pytest.yield_fixture`` decorator, see below.
+  ``testrunner.yield_fixture`` decorator, see below.
 
 new features:
 
-- experimentally introduce a new ``pytest.yield_fixture`` decorator
-  which accepts exactly the same parameters as pytest.fixture but
+- experimentally introduce a new ``testrunner.yield_fixture`` decorator
+  which accepts exactly the same parameters as testrunner.fixture but
   mandates a ``yield`` statement instead of a ``return statement`` from
   fixture functions.  This allows direct integration with "with-style"
   context managers in fixture functions and generally avoids registering
@@ -10723,15 +10723,15 @@ new features:
   Theunert.
 
 - make "import pdb ; pdb.set_trace()" work natively wrt capturing (no
-  "-s" needed anymore), making ``pytest.set_trace()`` a mere shortcut.
+  "-s" needed anymore), making ``testrunner.set_trace()`` a mere shortcut.
 
 - fix issue181: --pdb now also works on collect errors (and
   on internal errors) .  This was implemented by a slight internal
   refactoring and the introduction of a new hook
-  ``pytest_exception_interact`` hook (see next item).
+  ``testrunner_exception_interact`` hook (see next item).
 
 - fix issue341: introduce new experimental hook for IDEs/terminals to
-  intercept debugging: ``pytest_exception_interact(node, call, report)``.
+  intercept debugging: ``testrunner_exception_interact(node, call, report)``.
 
 - new monkeypatch.setattr() variant to provide a shorter
   invocation for patching out classes/functions from modules:
@@ -10741,17 +10741,17 @@ new features:
   will replace the "get" function of the "requests" module with ``myfunc``.
 
 - fix issue322: tearDownClass is not run if setUpClass failed. Thanks
-  Mathieu Agopian for the initial fix.  Also make all of pytest/nose
+  Mathieu Agopian for the initial fix.  Also make all of testrunner/nose
   finalizer mimic the same generic behaviour: if a setupX exists and
   fails, don't run teardownX.  This internally introduces a new method
   "node.addfinalizer()" helper which can only be called during the setup
   phase of a node.
 
-- simplify pytest.mark.parametrize() signature: allow to pass a
+- simplify testrunner.mark.parametrize() signature: allow to pass a
   CSV-separated string to specify argnames.  For example:
-  ``pytest.mark.parametrize("input,expected",  [(1,2), (2,3)])``
+  ``testrunner.mark.parametrize("input,expected",  [(1,2), (2,3)])``
   works as well as the previous:
-  ``pytest.mark.parametrize(("input", "expected"), ...)``.
+  ``testrunner.mark.parametrize(("input", "expected"), ...)``.
 
 - add support for setUpModule/tearDownModule detection, thanks Brian Okken.
 
@@ -10759,7 +10759,7 @@ new features:
   Thanks Anthon van der Neut for the PR.
 
 - change option names to be hyphen-separated long options but keep the
-  old spelling backward compatible.  py.test -h will only show the
+  old spelling backward compatible.  testrunner -h will only show the
   hyphenated version, for example "--collect-only" but "--collectonly"
   will remain valid as well (for backward-compat reasons).  Many thanks to
   Anthon van der Neut for the implementation and to Hynek Schlawack for
@@ -10768,7 +10768,7 @@ new features:
 - fix issue 308 - allow to mark/xfail/skip individual parameter sets
   when parametrizing.  Thanks Brianna Laugher.
 
-- call new experimental pytest_load_initial_conftests hook to allow
+- call new experimental testrunner_load_initial_conftests hook to allow
   3rd party plugins to do something before a conftest is loaded.
 
 Bug fixes:
@@ -10776,16 +10776,16 @@ Bug fixes:
 - fix issue358 - capturing options are now parsed more properly
   by using a new parser.parse_known_args method.
 
-- pytest now uses argparse instead of optparse (thanks Anthon) which
+- testrunner now uses argparse instead of optparse (thanks Anthon) which
   means that "argparse" is added as a dependency if installing into python2.6
   environments or below.
 
-- fix issue333: fix a case of bad unittest/pytest hook interaction.
+- fix issue333: fix a case of bad unittest/testrunner hook interaction.
 
 - PR27: correctly handle nose.SkipTest during collection.  Thanks
   Antonio Cuni, Ronny Pfannschmidt.
 
-- fix issue355: junitxml puts name="pytest" attribute to testsuite tag.
+- fix issue355: junitxml puts name="testrunner" attribute to testsuite tag.
 
 - fix issue336: autouse fixture in plugins should work again.
 
@@ -10796,7 +10796,7 @@ Bug fixes:
 - fix issue317: assertion rewriter support for the is_package method
 
 - fix issue335: document py.code.ExceptionInfo() object returned
-  from pytest.raises(), thanks Mathieu Agopian.
+  from testrunner.raises(), thanks Mathieu Agopian.
 
 - remove implicit distribute_setup support from setup.py.
 
@@ -10811,14 +10811,14 @@ Bug fixes:
 - you can specify "-q" or "-qq" to get different levels of "quieter"
   reporting (thanks Katarzyna Jachim)
 
-- fix issue300 - Fix order of conftest loading when starting py.test
+- fix issue300 - Fix order of conftest loading when starting testrunner
   in a subdirectory.
 
 - fix issue323 - sorting of many module-scoped arg parametrizations
 
 - make sessionfinish hooks execute with the same cwd-context as at
   session start (helps fix plugin behaviour which write output files
-  with relative path such as pytest-cov)
+  with relative path such as testrunner-cov)
 
 - fix issue316 - properly reference collection hooks in docs
 
@@ -10843,7 +10843,7 @@ Bug fixes:
 
 - better parametrize error messages, thanks Brianna Laugher
 
-- pytest_terminal_summary(terminalreporter) hooks can now use
+- testrunner_terminal_summary(terminalreporter) hooks can now use
   ".section(title)" and ".line(msg)" methods to print extra
   information at the end of a test run.
 
@@ -10854,7 +10854,7 @@ Bug fixes:
 
 - never consider a fixture function for test function collection
 
-- allow re-running of test items / helps to fix pytest-reruntests plugin
+- allow re-running of test items / helps to fix testrunner-reruntests plugin
   and also help to keep less fixture/resource references alive
 
 - put captured stdout/stderr into junitxml output even for passing tests
@@ -10895,13 +10895,13 @@ Bug fixes:
 
 - improve docstring for metafunc.parametrize()
 
-- fix bug where using capsys with pytest.set_trace() in a test
+- fix bug where using capsys with testrunner.set_trace() in a test
   function would break when looking at capsys.readouterr()
 
 - allow to specify prefixes starting with "_" when
   customizing python_functions test discovery. (thanks Graham Horler)
 
-- improve PYTEST_DEBUG tracing output by putting
+- improve TESTRUNNER_DEBUG tracing output by putting
   extra data on a new lines with additional indent
 
 - ensure OutcomeExceptions like skip/fail have initialized exception attributes
@@ -10918,7 +10918,7 @@ Bug fixes:
 - yielded test functions will now have autouse-fixtures active but
   cannot accept fixtures as funcargs - it's anyway recommended to
   rather use the post-2.0 parametrize features instead of yield, see:
-  http://pytest.org/en/stable/example/how-to/parametrize.html
+  http://testrunner.org/en/stable/example/how-to/parametrize.html
 - fix autouse-issue where autouse-fixtures would not be discovered
   if defined in an a/conftest.py file and tests in a/tests/test_some.py
 - fix issue226 - LIFO ordering for fixture teardowns
@@ -10958,10 +10958,10 @@ Bug fixes:
 - in tracebacks *,** arg values are now shown next to normal arguments
   (thanks Manuel Jacob)
 
-- fix issue217 - support mock.patch with pytest's fixtures - note that
+- fix issue217 - support mock.patch with testrunner's fixtures - note that
   you need either mock-1.0.1 or the python3.3 builtin unittest.mock.
 
-- fix issue127 - improve documentation for pytest_addoption() and
+- fix issue127 - improve documentation for testrunner_addoption() and
   add a ``config.getoption(name)`` helper function for consistency.
 
 2.3.2 (2012-10-25)
@@ -10971,12 +10971,12 @@ Bug fixes:
   when printing tracebacks in long modules
 
 - fix issue205 - conftests in subdirs customizing
-  pytest_pycollect_makemodule and pytest_pycollect_makeitem
+  testrunner_pycollect_makemodule and testrunner_pycollect_makeitem
   now work properly
 
 - fix teardown-ordering for parametrized setups
 
-- fix issue127 - better documentation for pytest_addoption
+- fix issue127 - better documentation for testrunner_addoption
   and related objects.
 
 - fix unittest behaviour: TestCase.runtest only called if there are
@@ -10985,7 +10985,7 @@ Bug fixes:
 - improve trial support: don't collect its empty
   unittest.TestCase.runTest() method
 
-- "python setup.py test" now works with pytest itself
+- "python setup.py test" now works with testrunner itself
 
 - fix/improve internal/packaging related bits:
 
@@ -10994,8 +10994,8 @@ Bug fixes:
   - issue206 - fix test_assertrewrite.py to work when a global
     PYTHONDONTWRITEBYTECODE=1 is present
 
-  - add tox.ini to pytest distribution so that ignore-dirs and others config
-    bits are properly distributed for maintainers who run pytest-own tests
+  - add tox.ini to testrunner distribution so that ignore-dirs and others config
+    bits are properly distributed for maintainers who run testrunner-own tests
 
 2.3.1 (2012-10-20)
 ==================
@@ -11008,13 +11008,13 @@ Bug fixes:
   due to pexpect not supporting it properly (hanging)
 
 - link to web pages from --markers output which provides help for
-  pytest.mark.* usage.
+  testrunner.mark.* usage.
 
 2.3.0 (2012-10-19)
 ==================
 
 - fix issue202 - better automatic names for parametrized test functions
-- fix issue139 - introduce @pytest.fixture which allows direct scoping
+- fix issue139 - introduce @testrunner.fixture which allows direct scoping
   and parametrization of funcarg factories.
 - fix issue198 - conftest fixtures were not found on windows32 in some
   circumstances with nested directory structures due to path manipulation issues
@@ -11024,8 +11024,8 @@ Bug fixes:
   on dict ordering
 - introduce re-ordering of tests by resource and parametrization setup
   which takes precedence to the usual file-ordering
-- fix issue185 monkeypatching time.time does not cause pytest to fail
-- fix issue172 duplicate call of pytest.fixture decoratored setup_module
+- fix issue185 monkeypatching time.time does not cause testrunner to fail
+- fix issue172 duplicate call of testrunner.fixture decoratored setup_module
   functions
 - fix junitxml=path construction so that if tests change the
   current working directory and the path is a relative path
@@ -11034,7 +11034,7 @@ Bug fixes:
 - fix issue165 - fix broken doc links and mention stackoverflow for FAQ
 - catch unicode-issues when writing failure representations
   to terminal to prevent the whole session from crashing
-- fix xfail/skip confusion: a skip-mark or an imperative pytest.skip
+- fix xfail/skip confusion: a skip-mark or an imperative testrunner.skip
   will now take precedence before xfail-markers because we
   can't determine xfail/xpass status in case of a skip. see also:
   http://stackoverflow.com/questions/11105828/in-py-test-when-i-explicitly-skip-a-test-that-is-marked-as-xfail-how-can-i-get
@@ -11051,9 +11051,9 @@ Bug fixes:
 - pluginmanager.register(...) now raises ValueError if the
   plugin has been already registered or the name is taken
 
-- fix issue159: improve https://docs.pytest.org/en/6.0.1/faq.html
+- fix issue159: improve https://github.com/jacksonsr451/test-runner/en/6.0.1/faq.html
   especially with respect to the "magic" history, also mention
-  pytest-django, trial and unittest integration.
+  testrunner-django, trial and unittest integration.
 
 - make request.keywords and node.keywords writable.  All descendant
   collection nodes will see keyword values.  Keywords are dictionaries
@@ -11078,16 +11078,16 @@ Bug fixes:
 
 - reporting refinements:
 
-  - pytest_report_header now receives a "startdir" so that
+  - testrunner_report_header now receives a "startdir" so that
     you can use startdir.bestrelpath(yourpath) to show
     nice relative path
 
-  - allow plugins to implement both pytest_report_header and
-    pytest_sessionstart (sessionstart is invoked first).
+  - allow plugins to implement both testrunner_report_header and
+    testrunner_sessionstart (sessionstart is invoked first).
 
   - don't show deselected reason line if there is none
 
-  - py.test -vv will show all of assert comparisons instead of truncating
+  - testrunner -vv will show all of assert comparisons instead of truncating
 
 2.2.4 (2012-05-22)
 ==================
@@ -11096,7 +11096,7 @@ Bug fixes:
 - fix issue 126: correctly match all invalid xml characters for junitxml
   binary escape
 - fix issue with unittest: now @unittest.expectedFailure markers should
-  be processed correctly (you can also use @pytest.mark markers)
+  be processed correctly (you can also use @testrunner.mark markers)
 - document integration with the extended distribute/setuptools test commands
 - fix issue 140: properly get the real functions
   of bound classmethods for setup/teardown_class
@@ -11129,21 +11129,21 @@ Bug fixes:
 - "-qq --collectonly" now shows only files and the number of tests in them
 - "-q --collectonly" now shows test ids
 - allow adding of attributes to test reports such that it also works
-  with distributed testing (no upgrade of pytest-xdist needed)
+  with distributed testing (no upgrade of testrunner-xdist needed)
 
 2.2.1 (2011-12-16)
 ==================
 
-- fix issue99 (in pytest and py) internallerrors with resultlog now
-  produce better output - fixed by normalizing pytest_internalerror
+- fix issue99 (in testrunner and py) internallerrors with resultlog now
+  produce better output - fixed by normalizing testrunner_internalerror
   input arguments.
-- fix issue97 / traceback issues (in pytest and py) improve traceback output
+- fix issue97 / traceback issues (in testrunner and py) improve traceback output
   in conjunction with jinja2 and cython which hack tracebacks
-- fix issue93 (in pytest and pytest-xdist) avoid "delayed teardowns":
+- fix issue93 (in testrunner and testrunner-xdist) avoid "delayed teardowns":
   the final test in a test node will now run its teardown directly
   instead of waiting for the end of the session. Thanks Dave Hunt for
-  the good reporting and feedback.  The pytest_runtest_protocol as well
-  as the pytest_runtest_teardown hooks now have "nextitem" available
+  the good reporting and feedback.  The testrunner_runtest_protocol as well
+  as the testrunner_runtest_teardown hooks now have "nextitem" available
   which will be None indicating the end of the test run.
 - fix collection crash due to unknown-source collected items, thanks
   to Ralf Schmitt (fixed by depending on a more recent pylib)
@@ -11156,15 +11156,15 @@ Bug fixes:
 - add an all-powerful metafunc.parametrize function which allows to
   parametrize test function arguments in multiple steps and therefore
   from independent plugins and places.
-- add a @pytest.mark.parametrize helper which allows to easily
+- add a @testrunner.mark.parametrize helper which allows to easily
   call a test function with different argument values
 - Add examples to the "parametrize" example page, including a quick port
   of Test scenarios and the new parametrize function and decorator.
-- introduce registration for "pytest.mark.*" helpers via ini-files
+- introduce registration for "testrunner.mark.*" helpers via ini-files
   or through plugin hooks.  Also introduce a "--strict" option which
   will treat unregistered markers as errors
   allowing to avoid typos and maintain a well described set of markers
-  for your test suite.  See examples at http://pytest.org/en/stable/how-to/mark.html
+  for your test suite.  See examples at http://testrunner.org/en/stable/how-to/mark.html
   and its links.
 - issue50: introduce "-m marker" option to select tests based on markers
   (this is a stricter and more predictable version of '-k' in that "-m"
@@ -11175,7 +11175,7 @@ Bug fixes:
   and setup/teardown methods.
 - fix issue87: --pastebin now works with python3
 - fix issue89: --pdb with unexpected exceptions in doctest work more sensibly
-- fix and cleanup pytest's own test suite to not leak FDs
+- fix and cleanup testrunner's own test suite to not leak FDs
 - fix issue83: link to generated funcarg list
 - fix issue74: pyarg module names are now checked against imp.find_module false positives
 - fix compatibility with twisted/trial-11.1.0 use cases
@@ -11187,7 +11187,7 @@ Bug fixes:
 ==================
 
 - fix issue79: assertion rewriting failed on some comparisons in boolops
-- correctly handle zero length arguments (a la pytest '')
+- correctly handle zero length arguments (a la testrunner '')
 - fix issue67 / junitxml now contains correct test durations, thanks ronny
 - fix issue75 / skipping test failure on jython
 - fix issue77 / Allow assertrepr_compare hook to apply to a subset of tests
@@ -11205,7 +11205,7 @@ Bug fixes:
 2.1.1
 =====
 
-- fix issue64 / pytest.set_trace now works within pytest_generate_tests hooks
+- fix issue64 / testrunner.set_trace now works within testrunner_generate_tests hooks
 - fix issue60 / fix error conditions involving the creation of __pycache__
 - fix issue63 / assertion rewriting on inserts involving strings containing '%'
 - fix assertion rewriting on calls with a ** arg
@@ -11268,26 +11268,26 @@ Bug fixes:
   Also you can now access module globals from xfail/skipif
   expressions so that this for example works now::
 
-    import pytest
+    import testrunner
     import mymodule
-    @pytest.mark.skipif("mymodule.__version__[0] == "1")
+    @testrunner.mark.skipif("mymodule.__version__[0] == "1")
     def test_function():
         pass
 
   This will not run the test function if the module's version string
   does not start with a "1".  Note that specifying a string instead
-  of a boolean expressions allows py.test to report meaningful information
+  of a boolean expressions allows testrunner to report meaningful information
   when summarizing a test run as to what conditions lead to skipping
   (or xfail-ing) tests.
 
-- fix issue28 - setup_method and pytest_generate_tests work together
+- fix issue28 - setup_method and testrunner_generate_tests work together
   The setup_method fixture method now gets called also for
-  test function invocations generated from the pytest_generate_tests
+  test function invocations generated from the testrunner_generate_tests
   hook.
 
 - fix issue27 - collectonly and keyword-selection (-k) now work together
-  Also, if you do "py.test --collectonly -q" you now get a flat list
-  of test ids that you can use to paste to the py.test commandline
+  Also, if you do "testrunner --collectonly -q" you now get a flat list
+  of test ids that you can use to paste to the testrunner commandline
   in order to execute a particular test.
 
 - fix issue25 avoid reported problems with --pdb and python3.2/encodings output
@@ -11314,7 +11314,7 @@ Bug fixes:
   even if the logging module is used on an early-loaded conftest.py
   file or plugin.
 - allow to omit "()" in test ids to allow for uniform test ids
-  as produced by Alfredo's nice pytest.vim plugin.
+  as produced by Alfredo's nice testrunner.vim plugin.
 - fix issue12 - show plugin versions with "--version" and
   "--traceconfig" and also document how to add extra information
   to reporting test header
@@ -11330,11 +11330,11 @@ Bug fixes:
 - improve behaviour/warnings when running on top of "python -OO"
   (assertions and docstrings are turned off, leading to potential
   false positives)
-- introduce a pytest_cmdline_processargs(args) hook
+- introduce a testrunner_cmdline_processargs(args) hook
   to allow dynamic computation of command line arguments.
-  This fixes a regression because py.test prior to 2.0
+  This fixes a regression because testrunner prior to 2.0
   allowed to set command line options from conftest.py
-  files which so far pytest-2.0 only allowed from ini-files now.
+  files which so far testrunner-2.0 only allowed from ini-files now.
 - fix issue7: assert failures in doctest modules.
   unexpected failures in doctests will not generally
   show nicer, i.e. within the doctest failing context.
@@ -11347,21 +11347,21 @@ Bug fixes:
 - refinements to "collecting" output on non-ttys
 - refine internal plugin registration and --traceconfig output
 - introduce a mechanism to prevent/unregister plugins from the
-  command line, see http://pytest.org/en/stable/how-to/plugins.html#cmdunregister
+  command line, see http://testrunner.org/en/stable/how-to/plugins.html#cmdunregister
 - activate resultlog plugin by default
 - fix regression wrt yielded tests which due to the
   collection-before-running semantics were not
-  setup as with pytest 1.3.4.  Note, however, that
+  setup as with testrunner 1.3.4.  Note, however, that
   the recommended and much cleaner way to do test
-  parameterization remains the "pytest_generate_tests"
+  parameterization remains the "testrunner_generate_tests"
   mechanism, see the docs.
 
 2.0.0 (2010-11-25)
 ==================
 
-- pytest-2.0 is now its own package and depends on pylib-2.0
-- new ability: python -m pytest / python -m pytest.main ability
-- new python invocation: pytest.main(args, plugins) to load
+- testrunner-2.0 is now its own package and depends on pylib-2.0
+- new ability: python -m testrunner / python -m testrunner.main ability
+- new python invocation: testrunner.main(args, plugins) to load
   some custom plugins early.
 - try harder to run unittest test suites in a more compatible manner
   by deferring setup/teardown semantics to the unittest package.
@@ -11374,9 +11374,9 @@ Bug fixes:
 - add a new "-q" option which decreases verbosity and prints a more
   nose/unittest-style "dot" output.
 - fix issue135 - marks now work with unittest test cases as well
-- fix issue126 - introduce py.test.set_trace() to trace execution via
+- fix issue126 - introduce testrunner.set_trace() to trace execution via
   PDB during the running of tests even if capturing is ongoing.
-- fix issue123 - new "python -m py.test" invocation for py.test
+- fix issue123 - new "python -m testrunner" invocation for testrunner
   (requires Python 2.5 or above)
 - fix issue124 - make reporting more resilient against tests opening
   files on filedescriptor 1 (stdout).
@@ -11387,16 +11387,16 @@ Bug fixes:
   output on assertion failures for comparisons and other cases (Floris Bruynooghe)
 - nose-plugin: pass through type-signature failures in setup/teardown
   functions instead of not calling them (Ed Singleton)
-- remove py.test.collect.Directory (follows from a major refactoring
+- remove testrunner.collect.Directory (follows from a major refactoring
   and simplification of the collection process)
-- majorly reduce py.test core code, shift function/python testing to own plugin
+- majorly reduce testrunner core code, shift function/python testing to own plugin
 - fix issue88 (finding custom test nodes from command line arg)
 - refine 'tmpdir' creation, will now create basenames better associated
   with test names (thanks Ronny)
 - "xpass" (unexpected pass) tests don't cause exitcode!=0
 - fix issue131 / issue60 - importing doctests in __init__ files used as namespace packages
 - fix issue93 stdout/stderr is captured while importing conftest.py
-- fix bug: unittest collected functions now also can have "pytestmark"
+- fix bug: unittest collected functions now also can have "_testrunner_mark"
   applied at class/module level
 - add ability to use "class" level for cached_setup helper
 - fix strangeness: mark.* objects are now immutable, create new instances
@@ -11430,13 +11430,13 @@ Bug fixes:
 
 **New features**
 
-- fix issue103:  introduce py.test.raises as context manager, examples::
+- fix issue103:  introduce testrunner.raises as context manager, examples::
 
-    with py.test.raises(ZeroDivisionError):
+    with testrunner.raises(ZeroDivisionError):
         x = 0
         1 / x
 
-    with py.test.raises(RuntimeError) as excinfo:
+    with testrunner.raises(RuntimeError) as excinfo:
         call_something()
 
     # you may do extra checks on excinfo.value|type|traceback here
@@ -11447,8 +11447,8 @@ Bug fixes:
   test invocation.  This is for example useful if a factory
   provides parameters to a test which are expected-to-fail::
 
-    def pytest_funcarg__arg(request):
-        request.applymarker(py.test.mark.xfail(reason="flaky config"))
+    def testrunner_funcarg__arg(request):
+        request.applymarker(testrunner.mark.xfail(reason="flaky config"))
         ...
 
     def test_function(arg):
@@ -11465,7 +11465,7 @@ Bug fixes:
 
 **Bug fixes**
 
-- make tests and the ``pytest_recwarn`` plugin in particular fully compatible
+- make tests and the ``testrunner_recwarn`` plugin in particular fully compatible
   to Python2.7 (if you use the ``recwarn`` funcarg warnings will be enabled so that
   you can properly check for their existence in a cross-python manner).
 - refine --pdb: ignore xfailed tests, unify its TB-reporting and
@@ -11485,7 +11485,7 @@ Bug fixes:
 - fix terminal writing on win32/python2.4
 - py.process.cmdexec() now tries harder to return properly encoded unicode objects
   on all python versions
-- install plain py.test/py.which scripts also for Jython, this helps to
+- install plain testrunner/py.which scripts also for Jython, this helps to
   get canonical script paths in virtualenv situations
 - make path.bestrelpath(path) return ".", note that when calling
   X.bestrelpath the assumption is that X is a directory.
@@ -11493,7 +11493,7 @@ Bug fixes:
 - fix resultlog plugin when used in a multicpu/multihost xdist situation
   (thanks Jakub Gustak)
 - perform distributed testing related reporting in the xdist-plugin
-  rather than having dist-related code in the generic py.test
+  rather than having dist-related code in the generic testrunner
   distribution
 - fix homedir detection on Windows
 - ship distribute_setup.py version 0.6.13
@@ -11503,12 +11503,12 @@ Bug fixes:
 
 **New features**
 
-- issue91: introduce new py.test.xfail(reason) helper
+- issue91: introduce new testrunner.xfail(reason) helper
   to imperatively mark a test as expected to fail. Can
   be used from within setup and test functions. This is
   useful especially for parametrized tests when certain
   configurations are expected-to-fail.  In this case the
-  declarative approach with the @py.test.mark.xfail cannot
+  declarative approach with the @testrunner.mark.xfail cannot
   be used as it would mark all configurations as xfail.
 
 - issue102: introduce new --maxfail=NUM option to stop
@@ -11517,7 +11517,7 @@ Bug fixes:
   to '--maxfail=1'.  Both '-x' and '--maxfail' will
   now also print a line near the end indicating the Interruption.
 
-- issue89: allow py.test.mark decorators to be used on classes
+- issue89: allow testrunner.mark decorators to be used on classes
   (class decorators were introduced with python2.6) and
   also allow to have multiple markers applied at class/module level
   by specifying a list.
@@ -11534,7 +11534,7 @@ Bug fixes:
   skipped tests in the junitxml output - which also fixes
   issue99.
 
-- make py.test.cmdline.main() return the exitstatus instead of raising
+- make testrunner.cmdline.main() return the exitstatus instead of raising
   SystemExit and also allow it to be called multiple times.  This of
   course requires that your application and tests are properly teared
   down and don't have global state.
@@ -11558,11 +11558,11 @@ Bug fixes:
   conditions).
 
 - fix chaining of conditional skipif/xfail decorators - so it works now
-  as expected to use multiple @py.test.mark.skipif(condition) decorators,
+  as expected to use multiple @testrunner.mark.skipif(condition) decorators,
   including specific reporting which of the conditions lead to skipping.
 
 - fix issue95: late-import zlib so that it's not required
-  for general py.test startup.
+  for general testrunner startup.
 
 - fix issue94: make reporting more robust against bogus source code
   (and internally be more careful when presenting unexpected byte sequences)
@@ -11576,30 +11576,30 @@ Bug fixes:
   combination of 'xfsX' characters.  They relate to the single chars
   you see during the dotted progress printing and will print an extra line
   per test at the end of the test run.  This extra line indicates the exact
-  position or test ID that you directly paste to the py.test cmdline in order
+  position or test ID that you directly paste to the testrunner cmdline in order
   to re-run a particular test.
 
 - allow external plugins to register new hooks via the new
-  pytest_addhooks(pluginmanager) hook.  The new release of
-  the pytest-xdist plugin for distributed and looponfailing
+  testrunner_addhooks(pluginmanager) hook.  The new release of
+  the testrunner-xdist plugin for distributed and looponfailing
   testing requires this feature.
 
-- add a new pytest_ignore_collect(path, config) hook to allow projects and
+- add a new testrunner_ignore_collect(path, config) hook to allow projects and
   plugins to define exclusion behaviour for their directory structure -
   for example you may define in a conftest.py this method::
 
-        def pytest_ignore_collect(path):
+        def testrunner_ignore_collect(path):
             return path.check(link=1)
 
   to prevent even a collection try of any tests in symlinked dirs.
 
-- new pytest_pycollect_makemodule(path, parent) hook for
+- new testrunner_pycollect_makemodule(path, parent) hook for
   allowing customization of the Module collection object for a
   matching test module.
 
 - extend and refine xfail mechanism:
-  ``@py.test.mark.xfail(run=False)`` do not run the decorated test
-  ``@py.test.mark.xfail(reason="...")`` prints the reason string in xfail summaries
+  ``@testrunner.mark.xfail(run=False)`` do not run the decorated test
+  ``@testrunner.mark.xfail(reason="...")`` prints the reason string in xfail summaries
   specifying ``--runxfail`` on command line virtually ignores xfail markers
 
 - expose (previously internal) commonly useful methods:
@@ -11607,8 +11607,8 @@ Bug fixes:
   py.io.ansi_print(...) -> print colored/bold text on linux/win32
   py.io.saferepr(obj) -> return limited representation string
 
-- expose test outcome related exceptions as py.test.skip.Exception,
-  py.test.raises.Exception etc., useful mostly for plugins
+- expose test outcome related exceptions as testrunner.skip.Exception,
+  testrunner.raises.Exception etc., useful mostly for plugins
   doing special outcome interpretation/tweaking
 
 - (issue85) fix junitxml plugin to handle tests with non-ascii output
@@ -11645,7 +11645,7 @@ Bug fixes:
     py.cleanup -a  # synonym for "-s -d -e 'pip-log.txt'"
     py.cleanup -n  # dry run, only show what would be removed
 
-- add a new option "py.test --funcargs" which shows available funcargs
+- add a new option "testrunner --funcargs" which shows available funcargs
   and their help strings (docstrings on their respective factory function)
   for a given test path
 
@@ -11675,76 +11675,76 @@ Bug fixes:
 1.1.1 (2009-11-24)
 ==================
 
-- moved dist/looponfailing from py.test core into a new
-  separately released pytest-xdist plugin.
+- moved dist/looponfailing from testrunner core into a new
+  separately released testrunner-xdist plugin.
 
 - new junitxml plugin: --junitxml=path will generate a junit style xml file
   which is processable e.g. by the Hudson CI system.
 
-- new option: --genscript=path will generate a standalone py.test script
+- new option: --genscript=path will generate a standalone testrunner script
   which will not need any libraries installed.  thanks to Ralf Schmitt.
 
 - new option: --ignore will prevent specified path from collection.
   Can be specified multiple times.
 
-- new option: --confcutdir=dir will make py.test only consider conftest
+- new option: --confcutdir=dir will make testrunner only consider conftest
   files that are relative to the specified dir.
 
-- new funcarg: "pytestconfig" is the pytest config object for access
+- new funcarg: "testrunnerconfig" is the testrunner config object for access
   to command line args and can now be easily used in a test.
 
-- install ``py.test`` and ``py.which`` with a ``-$VERSION`` suffix to
+- install ``testrunner`` and ``py.which`` with a ``-$VERSION`` suffix to
   disambiguate between Python3, python2.X, Jython and PyPy installed versions.
 
-- new "pytestconfig" funcarg allows access to test config object
+- new "testrunnerconfig" funcarg allows access to test config object
 
-- new "pytest_report_header" hook can return additional lines
+- new "testrunner_report_header" hook can return additional lines
   to be displayed at the header of a test run.
 
-- (experimental) allow "py.test path::name1::name2::..." for pointing
+- (experimental) allow "testrunner path::name1::name2::..." for pointing
   to a test within a test collection directly.  This might eventually
   evolve as a full substitute to "-k" specifications.
 
 - streamlined plugin loading: order is now as documented in
   customize.html: setuptools, ENV, commandline, conftest.
-  also setuptools entry point names are turned to canonical names ("pytest_*")
+  also setuptools entry point names are turned to canonical names ("testrunner_*")
 
 - automatically skip tests that need 'capfd' but have no os.dup
 
-- allow pytest_generate_tests to be defined in classes as well
+- allow testrunner_generate_tests to be defined in classes as well
 
-- deprecate usage of 'disabled' attribute in favour of pytestmark
+- deprecate usage of 'disabled' attribute in favour of _testrunner_mark
 - deprecate definition of Directory, Module, Class and Function nodes
-  in conftest.py files.  Use pytest collect hooks instead.
+  in conftest.py files.  Use testrunner collect hooks instead.
 
 - collection/item node specific runtest/collect hooks are only called exactly
   on matching conftest.py files, i.e. ones which are exactly below
   the filesystem path of an item
 
-- change: the first pytest_collect_directory hook to return something
+- change: the first testrunner_collect_directory hook to return something
   will now prevent further hooks to be called.
 
 - change: figleaf plugin now requires --figleaf to run.  Also
-  change its long command line options to be a bit shorter (see py.test -h).
+  change its long command line options to be a bit shorter (see testrunner -h).
 
-- change: pytest doctest plugin is now enabled by default and has a
+- change: testrunner doctest plugin is now enabled by default and has a
   new option --doctest-glob to set a pattern for file matches.
 
 - change: remove internal py._* helper vars, only keep py._pydir
 
-- robustify capturing to survive if custom pytest_runtest_setup
+- robustify capturing to survive if custom testrunner_runtest_setup
   code failed and prevented the capturing setup code from running.
 
-- make py.test.* helpers provided by default plugins visible early -
+- make testrunner.* helpers provided by default plugins visible early -
   works transparently both for pydoc and for interactive sessions
-  which will regularly see e.g. py.test.mark and py.test.importorskip.
+  which will regularly see e.g. testrunner.mark and testrunner.importorskip.
 
 - simplify internal plugin manager machinery
 - simplify internal collection tree by introducing a RootCollector node
 
 - fix assert reinterpreation that sees a call containing "keyword=..."
 
-- fix issue66: invoke pytest_sessionstart and pytest_sessionfinish
+- fix issue66: invoke testrunner_sessionstart and testrunner_sessionfinish
   hooks on worker nodes during dist-testing, report module/session teardown
   hooks correctly.
 
@@ -11759,12 +11759,12 @@ Bug fixes:
 1.1.0 (2009-11-05)
 ==================
 
-- introduce automatic plugin registration via 'pytest11'
+- introduce automatic plugin registration via 'testrunner11'
   entrypoints via setuptools' pkg_resources.iter_entry_points
 
-- fix py.test dist-testing to work with execnet >= 1.0.0b4
+- fix testrunner dist-testing to work with execnet >= 1.0.0b4
 
-- re-introduce py.test.cmdline.main() for better backward compatibility
+- re-introduce testrunner.cmdline.main() for better backward compatibility
 
 - svn paths: fix a bug with path.check(versioned=True) for svn paths,
   allow '%' in svn paths, make svnwc.update() default to interactive mode
@@ -11794,7 +11794,7 @@ Bug fixes:
   nose-style setup_module() and setup() functions are
   supported
 
-* introduce generalized py.test.mark function marking
+* introduce generalized testrunner.mark function marking
 
 * reshuffle / refine command line grouping
 
@@ -11805,7 +11805,7 @@ Bug fixes:
 * generalized skipping: a new way to mark python functions with skipif or xfail
   at function, class and modules level based on platform or sys-module attributes.
 
-* extend py.test.mark decorator to allow for positional args
+* extend testrunner.mark decorator to allow for positional args
 
 * introduce and test "py.cleanup -d" to remove empty directories
 
@@ -11838,7 +11838,7 @@ Bug fixes:
 
 * deprecate py.magic.autopath, remove py/magic directory
 
-* move pytest assertion handling to py/code and a pytest_assertion
+* move testrunner assertion handling to py/code and a testrunner_assertion
   plugin, add "--no-assert" option, deprecate py.magic namespaces
   in favour of (less) py.code ones.
 
@@ -11846,7 +11846,7 @@ Bug fixes:
 
 * cleanup py/misc, move tests to bin-for-dist
 
-* introduce delattr/delitem/delenv methods to py.test's monkeypatch funcarg
+* introduce delattr/delitem/delenv methods to testrunner's monkeypatch funcarg
 
 * consolidate py.log implementation, remove old approach.
 
@@ -11855,7 +11855,7 @@ Bug fixes:
   if available)
 
 * make py.unittest_convert helper script available which converts "unittest.py"
-  style files into the simpler assert/direct-test-classes py.test/nosetests
+  style files into the simpler assert/direct-test-classes testrunner/nosetests
   style.  The script was written by Laura Creighton.
 
 * simplified internal localpath implementation
@@ -11871,7 +11871,7 @@ Bug fixes:
 1.0.1 (2009-08-19)
 ==================
 
-* added a 'pytest_nose' plugin which handles nose.SkipTest,
+* added a 'testrunner_nose' plugin which handles nose.SkipTest,
   nose-style function/method/generator setup/teardown and
   tries to report functions correctly.
 
@@ -11924,7 +11924,7 @@ Bug fixes:
   collected but cannot be collected on the remote side - often
   due to platform/dependency reasons
 
-* simplified py.test.mark API - see keyword plugin documentation
+* simplified testrunner.mark API - see keyword plugin documentation
 
 * integrate better with logging: capturing now by default captures
   test functions and their immediate setup/teardown in a single stream
@@ -11936,7 +11936,7 @@ Bug fixes:
 * make assert-reinterpretation work better with comparisons not
   returning bools (reported with numpy from thanks maciej fijalkowski)
 
-* reworked per-test output capturing into the pytest_iocapture.py plugin
+* reworked per-test output capturing into the testrunner_iocapture.py plugin
   and thus removed capturing code from config object
 
 * item.repr_failure(excinfo) instead of item.repr_failure(excinfo, outerr)
@@ -11945,15 +11945,15 @@ Bug fixes:
 1.0.0b8 (2009-07-22)
 ====================
 
-* pytest_unittest-plugin is now enabled by default
+* testrunner_unittest-plugin is now enabled by default
 
-* introduced pytest_keyboardinterrupt hook and
-  refined pytest_sessionfinish hooked, added tests.
+* introduced testrunner_keyboardinterrupt hook and
+  refined testrunner_sessionfinish hooked, added tests.
 
 * workaround a buggy logging module interaction ("closing already closed
   files").  Thanks to Sridhar Ratnakumar for triggering.
 
-* if plugins use "py.test.importorskip" for importing
+* if plugins use "testrunner.importorskip" for importing
   a dependency only a warning will be issued instead
   of exiting the testing process.
 
@@ -11965,8 +11965,8 @@ Bug fixes:
   - added new plugins page and automatic doc generation script
 
 * fixed teardown problem related to partially failing funcarg setups
-  (thanks MrTopf for reporting), "pytest_runtest_teardown" is now
-  always invoked even if the "pytest_runtest_setup" failed.
+  (thanks MrTopf for reporting), "testrunner_runtest_teardown" is now
+  always invoked even if the "testrunner_runtest_setup" failed.
 
 * tweaked doctest output for docstrings in py modules,
   thanks Radomir.
@@ -11974,10 +11974,10 @@ Bug fixes:
 1.0.0b7
 =======
 
-* renamed py.test.xfail back to py.test.mark.xfail to avoid
+* renamed testrunner.xfail back to testrunner.mark.xfail to avoid
   two ways to decorate for xfail
 
-* re-added py.test.mark decorator for setting keywords on functions
+* re-added testrunner.mark decorator for setting keywords on functions
   (it was actually documented so removing it was not nice)
 
 * remove scope-argument from request.addfinalizer() because
@@ -12000,16 +12000,16 @@ Bug fixes:
 ====================
 
 * plugin classes are removed: one now defines
-  hooks directly in conftest.py or global pytest_*.py
+  hooks directly in conftest.py or global testrunner_*.py
   files.
 
-* added new pytest_namespace(config) hook that allows
-  to inject helpers directly to the py.test.* namespace.
+* added new testrunner_namespace(config) hook that allows
+  to inject helpers directly to the testrunner.* namespace.
 
 * documented and refined many hooks
 
 * added new style of generative tests via
-  pytest_generate_tests hook that integrates
+  testrunner_generate_tests hook that integrates
   well with function arguments.
 
 
@@ -12020,16 +12020,16 @@ Bug fixes:
   see doc/test/funcarg.txt
 
 * introduced plugin architecture and many
-  new py.test plugins, see
+  new testrunner plugins, see
   doc/test/plugins.txt
 
 * teardown_method is now guaranteed to get
   called after a test method has run.
 
-* new method: py.test.importorskip(mod,minversion)
-  will either import or call py.test.skip()
+* new method: testrunner.importorskip(mod,minversion)
+  will either import or call testrunner.skip()
 
-* completely revised internal py.test architecture
+* completely revised internal testrunner architecture
 
 * new py.process.ForkedFunc object allowing to
   fork execution of a function to a sub process
@@ -12058,15 +12058,15 @@ XXX lots of things missing here XXX
 * fix path.relto(otherpath) method on windows to
   use normcase for checking if a path is relative.
 
-* py.test's traceback is better parseable from editors
+* testrunner's traceback is better parseable from editors
   (follows the filenames:LINENO: MSG convention)
   (thanks to Osmo Salomaa)
 
-* fix to javascript-generation, "py.test --runbrowser"
+* fix to javascript-generation, "testrunner --runbrowser"
   should work more reliably now
 
 * removed previously accidentally added
-  py.test.broken and py.test.notimplemented helpers.
+  testrunner.broken and testrunner.notimplemented helpers.
 
 * there now is a py.__version__ attribute
 
@@ -12077,48 +12077,48 @@ This is a fairly complete list of v0.9.1, which can
 serve as a reference for developers.
 
 * allowing + signs in py.path.svn urls [39106]
-* fixed support for Failed exceptions without excinfo in py.test [39340]
+* fixed support for Failed exceptions without excinfo in testrunner [39340]
 * added support for killing processes for Windows (as well as platforms that
   support os.kill) in py.misc.killproc [39655]
-* added setup/teardown for generative tests to py.test [40702]
-* added detection of FAILED TO LOAD MODULE to py.test [40703, 40738, 40739]
+* added setup/teardown for generative tests to testrunner [40702]
+* added detection of FAILED TO LOAD MODULE to testrunner [40703, 40738, 40739]
 * fixed problem with calling .remove() on wcpaths of non-versioned files in
   py.path [44248]
-* fixed some import and inheritance issues in py.test [41480, 44648, 44655]
+* fixed some import and inheritance issues in testrunner [41480, 44648, 44655]
 * fail to run greenlet tests when pypy is available, but without stackless
   [45294]
 * small fixes in rsession tests [45295]
-* fixed issue with 2.5 type representations in py.test [45483, 45484]
-* made that internal reporting issues displaying is done atomically in py.test
+* fixed issue with 2.5 type representations in testrunner [45483, 45484]
+* made that internal reporting issues displaying is done atomically in testrunner
   [45518]
 * made that non-existing files are ignored by the py.lookup script [45519]
-* improved exception name creation in py.test [45535]
+* improved exception name creation in testrunner [45535]
 * made that less threads are used in execnet [merge in 45539]
-* removed lock required for atomic reporting issue displaying in py.test
+* removed lock required for atomic reporting issue displaying in testrunner
   [45545]
 * removed globals from execnet [45541, 45547]
 * refactored cleanup mechanics, made that setDaemon is set to 1 to make atexit
   get called in 2.5 (py.execnet) [45548]
 * fixed bug in joining threads in py.execnet's servemain [45549]
-* refactored py.test.rsession tests to not rely on exact output format anymore
+* refactored testrunner.rsession tests to not rely on exact output format anymore
   [45646]
 * using repr() on test outcome [45647]
-* added 'Reason' classes for py.test.skip() [45648, 45649]
-* killed some unnecessary sanity check in py.test.collect [45655]
+* added 'Reason' classes for testrunner.skip() [45648, 45649]
+* killed some unnecessary sanity check in testrunner.collect [45655]
 * avoid using os.tmpfile() in py.io.fdcapture because on Windows it's only
   usable by Administrators [45901]
 * added support for locking and non-recursive commits to py.path.svnwc [45994]
 * locking files in py.execnet to prevent CPython from segfaulting [46010]
 * added export() method to py.path.svnurl
-* fixed -d -x in py.test [47277]
+* fixed -d -x in testrunner [47277]
 * fixed argument concatenation problem in py.path.svnwc [49423]
-* restore py.test behaviour that it exits with code 1 when there are failures
+* restore testrunner behaviour that it exits with code 1 when there are failures
   [49974]
 * don't fail on html files that don't have an accompanying .txt file [50606]
 * fixed 'utestconvert.py < input' [50645]
 * small fix for code indentation in py.code.source [50755]
 * fix _docgen.py documentation building [51285]
-* improved checks for source representation of code blocks in py.test [51292]
+* improved checks for source representation of code blocks in testrunner [51292]
 * added support for passing authentication to py.path.svn* objects [52000,
   52001]
 * removed sorted() call for py.apigen tests in favour of [].sort() to support

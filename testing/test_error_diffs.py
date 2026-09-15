@@ -1,18 +1,18 @@
 """
 Tests and examples for correct "+/-" usage in error diffs.
 
-See https://github.com/pytest-dev/pytest/issues/3333 for details.
+See https://github.com/jacksonsr451/test-runner/issues/3333 for details.
 
 """
 
 from __future__ import annotations
 
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
 TESTCASES = [
-    pytest.param(
+    testrunner.param(
         """
         def test_this():
             result =   [1, 4, 3]
@@ -35,7 +35,7 @@ TESTCASES = [
         """,
         id="Compare lists, one item differs",
     ),
-    pytest.param(
+    testrunner.param(
         """
         def test_this():
             result =   [1, 2, 3]
@@ -55,7 +55,7 @@ TESTCASES = [
         """,
         id="Compare lists, one extra item",
     ),
-    pytest.param(
+    testrunner.param(
         """
         def test_this():
             result =   [1, 3]
@@ -76,7 +76,7 @@ TESTCASES = [
         """,
         id="Compare lists, one item missing",
     ),
-    pytest.param(
+    testrunner.param(
         """
         def test_this():
             result =   (1, 4, 3)
@@ -99,7 +99,7 @@ TESTCASES = [
         """,
         id="Compare tuples",
     ),
-    pytest.param(
+    testrunner.param(
         """
         def test_this():
             result =   {1, 3, 4}
@@ -123,7 +123,7 @@ TESTCASES = [
         """,
         id="Compare sets",
     ),
-    pytest.param(
+    testrunner.param(
         """
         def test_this():
             result =   {1: 'spam', 3: 'eggs'}
@@ -150,7 +150,7 @@ TESTCASES = [
         """,
         id="Compare dicts with differing keys",
     ),
-    pytest.param(
+    testrunner.param(
         """
         def test_this():
             result =   {1: 'spam', 2: 'eggs'}
@@ -173,7 +173,7 @@ TESTCASES = [
         """,
         id="Compare dicts with differing values",
     ),
-    pytest.param(
+    testrunner.param(
         """
         def test_this():
             result =   {1: 'spam', 2: 'eggs'}
@@ -198,7 +198,7 @@ TESTCASES = [
         """,
         id="Compare dicts with differing items",
     ),
-    pytest.param(
+    testrunner.param(
         """
         def test_this():
             result =   "spmaeggs"
@@ -215,7 +215,7 @@ TESTCASES = [
         """,
         id="Compare strings",
     ),
-    pytest.param(
+    testrunner.param(
         """
         def test_this():
             result =   "spam bacon eggs"
@@ -230,7 +230,7 @@ TESTCASES = [
         """,
         id='Test "not in" string',
     ),
-    pytest.param(
+    testrunner.param(
         """
         from dataclasses import dataclass
 
@@ -256,7 +256,7 @@ TESTCASES = [
         """,
         id="Compare data classes",
     ),
-    pytest.param(
+    testrunner.param(
         """
         import attr
 
@@ -287,10 +287,10 @@ TESTCASES = [
 ]
 
 
-@pytest.mark.parametrize("code, expected", TESTCASES)
-def test_error_diff(code: str, expected: str, pytester: Pytester) -> None:
+@testrunner.mark.parametrize("code, expected", TESTCASES)
+def test_error_diff(code: str, expected: str, testrunnerer: Testrunnerer) -> None:
     expected_lines = [line.lstrip() for line in expected.splitlines()]
-    p = pytester.makepyfile(code)
-    result = pytester.runpytest(p, "-vv")
+    p = testrunnerer.makepyfile(code)
+    result = testrunnerer.runtestrunner(p, "-vv")
     result.stdout.fnmatch_lines(expected_lines)
     assert result.ret == 1

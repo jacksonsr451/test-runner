@@ -5,80 +5,80 @@ import os
 from pathlib import Path
 from textwrap import dedent
 
-from _pytest.config import UsageError
-from _pytest.config.findpaths import ConfigValue
-from _pytest.config.findpaths import get_common_ancestor
-from _pytest.config.findpaths import get_dirs_from_args
-from _pytest.config.findpaths import is_fs_root
-from _pytest.config.findpaths import load_config_dict_from_file
-import pytest
+from _testrunner.config import UsageError
+from _testrunner.config.findpaths import ConfigValue
+from _testrunner.config.findpaths import get_common_ancestor
+from _testrunner.config.findpaths import get_dirs_from_args
+from _testrunner.config.findpaths import is_fs_root
+from _testrunner.config.findpaths import load_config_dict_from_file
+import testrunner
 
 
 class TestLoadConfigDictFromFile:
-    @pytest.mark.parametrize("filename", ["pytest.ini", ".pytest.ini"])
-    def test_empty_pytest_ini(self, tmp_path: Path, filename: str) -> None:
-        """pytest.ini files are always considered for configuration, even if empty"""
+    @testrunner.mark.parametrize("filename", ["testrunner.ini", ".testrunner.ini"])
+    def test_empty_testrunner_ini(self, tmp_path: Path, filename: str) -> None:
+        """testrunner.ini files are always considered for configuration, even if empty"""
         fn = tmp_path / filename
         fn.write_text("", encoding="utf-8")
         assert load_config_dict_from_file(fn) == {}
 
-    def test_pytest_ini(self, tmp_path: Path) -> None:
-        """[pytest] section in pytest.ini files is read correctly"""
-        fn = tmp_path / "pytest.ini"
-        fn.write_text("[pytest]\nx=1", encoding="utf-8")
+    def test_testrunner_ini(self, tmp_path: Path) -> None:
+        """[testrunner] section in testrunner.ini files is read correctly"""
+        fn = tmp_path / "testrunner.ini"
+        fn.write_text("[testrunner]\nx=1", encoding="utf-8")
         assert load_config_dict_from_file(fn) == {
             "x": ConfigValue("1", origin="file", mode="ini")
         }
 
     def test_custom_ini(self, tmp_path: Path) -> None:
-        """[pytest] section in any .ini file is read correctly"""
+        """[testrunner] section in any .ini file is read correctly"""
         fn = tmp_path / "custom.ini"
-        fn.write_text("[pytest]\nx=1", encoding="utf-8")
+        fn.write_text("[testrunner]\nx=1", encoding="utf-8")
         assert load_config_dict_from_file(fn) == {
             "x": ConfigValue("1", origin="file", mode="ini")
         }
 
     def test_custom_ini_without_section(self, tmp_path: Path) -> None:
-        """Custom .ini files without [pytest] section are not considered for configuration"""
+        """Custom .ini files without [testrunner] section are not considered for configuration"""
         fn = tmp_path / "custom.ini"
         fn.write_text("[custom]", encoding="utf-8")
         assert load_config_dict_from_file(fn) is None
 
     def test_custom_cfg_file(self, tmp_path: Path) -> None:
-        """Custom .cfg files without [tool:pytest] section are not considered for configuration"""
+        """Custom .cfg files without [tool:testrunner] section are not considered for configuration"""
         fn = tmp_path / "custom.cfg"
         fn.write_text("[custom]", encoding="utf-8")
         assert load_config_dict_from_file(fn) is None
 
     def test_valid_cfg_file(self, tmp_path: Path) -> None:
-        """Custom .cfg files with [tool:pytest] section are read correctly"""
+        """Custom .cfg files with [tool:testrunner] section are read correctly"""
         fn = tmp_path / "custom.cfg"
-        fn.write_text("[tool:pytest]\nx=1", encoding="utf-8")
+        fn.write_text("[tool:testrunner]\nx=1", encoding="utf-8")
         assert load_config_dict_from_file(fn) == {
             "x": ConfigValue("1", origin="file", mode="ini")
         }
 
-    def test_unsupported_pytest_section_in_cfg_file(self, tmp_path: Path) -> None:
-        """.cfg files with [pytest] section are no longer supported and should fail to alert users"""
+    def test_unsupported_testrunner_section_in_cfg_file(self, tmp_path: Path) -> None:
+        """.cfg files with [testrunner] section are no longer supported and should fail to alert users"""
         fn = tmp_path / "custom.cfg"
-        fn.write_text("[pytest]", encoding="utf-8")
-        with pytest.raises(pytest.fail.Exception):
+        fn.write_text("[testrunner]", encoding="utf-8")
+        with testrunner.raises(testrunner.fail.Exception):
             load_config_dict_from_file(fn)
 
     def test_invalid_toml_file(self, tmp_path: Path) -> None:
         """Invalid .toml files should raise `UsageError`."""
         fn = tmp_path / "myconfig.toml"
         fn.write_text("]invalid toml[", encoding="utf-8")
-        with pytest.raises(UsageError):
+        with testrunner.raises(UsageError):
             load_config_dict_from_file(fn)
 
-    def test_custom_toml_file_reads_pytest_table(self, tmp_path: Path) -> None:
-        """.toml files with an arbitrary name read [pytest], like pytest.toml (#14705)."""
+    def test_custom_toml_file_reads_testrunner_table(self, tmp_path: Path) -> None:
+        """.toml files with an arbitrary name read [testrunner], like testrunner.toml (#14705)."""
         fn = tmp_path / "myconfig.toml"
         fn.write_text(
             dedent(
                 """
-            [pytest]
+            [testrunner]
             xfail_strict = true
             testpaths = ["tests", "integration"]
             """
@@ -93,32 +93,32 @@ class TestLoadConfigDictFromFile:
         }
 
     def test_custom_toml_file_with_both_table_styles(self, tmp_path: Path) -> None:
-        """[pytest] and [tool.pytest] in one file is ambiguous (#14705)."""
+        """[testrunner] and [tool.testrunner] in one file is ambiguous (#14705)."""
         fn = tmp_path / "myconfig.toml"
         fn.write_text(
             dedent(
                 """
-            [pytest]
+            [testrunner]
             xfail_strict = true
 
-            [tool.pytest.ini_options]
+            [tool.testrunner.ini_options]
             xfail_strict = "false"
             """
             ),
             encoding="utf-8",
         )
-        with pytest.raises(UsageError, match="Cannot use both"):
+        with testrunner.raises(UsageError, match="Cannot use both"):
             load_config_dict_from_file(fn)
 
     def test_custom_toml_file_with_top_level_options(self, tmp_path: Path) -> None:
         """Options outside of any table name the table that was meant."""
         fn = tmp_path / "myconfig.toml"
         fn.write_text("xfail_strict = true\n", encoding="utf-8")
-        with pytest.raises(UsageError, match=r"must be under a \[pytest\] table"):
+        with testrunner.raises(UsageError, match=r"must be under a \[testrunner\] table"):
             load_config_dict_from_file(fn)
 
     def test_custom_toml_file(self, tmp_path: Path) -> None:
-        """.toml files with neither [pytest] nor [tool.pytest] hold no configuration."""
+        """.toml files with neither [testrunner] nor [tool.testrunner] hold no configuration."""
         fn = tmp_path / "myconfig.toml"
         fn.write_text(
             dedent(
@@ -132,13 +132,13 @@ class TestLoadConfigDictFromFile:
         assert load_config_dict_from_file(fn) is None
 
     def test_valid_toml_file(self, tmp_path: Path) -> None:
-        """.toml files with [tool.pytest.ini_options] are read correctly, including changing
+        """.toml files with [tool.testrunner.ini_options] are read correctly, including changing
         data types to str/list for compatibility with other configuration options."""
         fn = tmp_path / "myconfig.toml"
         fn.write_text(
             dedent(
                 """
-            [tool.pytest.ini_options]
+            [tool.testrunner.ini_options]
             x = 1
             y = 20.0
             values = ["tests", "integration"]
@@ -157,12 +157,12 @@ class TestLoadConfigDictFromFile:
         }
 
     def test_native_toml_config(self, tmp_path: Path) -> None:
-        """[tool.pytest] sections with native types are parsed correctly without coercion."""
+        """[tool.testrunner] sections with native types are parsed correctly without coercion."""
         fn = tmp_path / "pyproject.toml"
         fn.write_text(
             dedent(
                 """
-                [tool.pytest]
+                [tool.testrunner]
                 minversion = "7.0"
                 xfail_strict = true
                 testpaths = ["tests", "integration"]
@@ -190,26 +190,26 @@ class TestLoadConfigDictFromFile:
         }
 
     def test_native_and_ini_conflict(self, tmp_path: Path) -> None:
-        """Using both [tool.pytest] and [tool.pytest.ini_options] should raise an error."""
+        """Using both [tool.testrunner] and [tool.testrunner.ini_options] should raise an error."""
         fn = tmp_path / "pyproject.toml"
         fn.write_text(
             dedent(
                 """
-            [tool.pytest]
+            [tool.testrunner]
             xfail_strict = true
 
-            [tool.pytest.ini_options]
+            [tool.testrunner.ini_options]
             minversion = "7.0"
             """
             ),
             encoding="utf-8",
         )
-        with pytest.raises(UsageError, match="Cannot use both"):
+        with testrunner.raises(UsageError, match="Cannot use both"):
             load_config_dict_from_file(fn)
 
     def test_invalid_suffix(self, tmp_path: Path) -> None:
         """A file with an unknown suffix is ignored."""
-        fn = tmp_path / "pytest.config"
+        fn = tmp_path / "testrunner.config"
         fn.write_text("", encoding="utf-8")
         assert load_config_dict_from_file(fn) is None
 
@@ -251,11 +251,11 @@ def test_get_dirs_from_args(tmp_path):
     ) == [fn.parent, d]
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "path, expected",
     [
-        pytest.param(
-            f"e:{os.sep}", True, marks=pytest.mark.skipif("sys.platform != 'win32'")
+        testrunner.param(
+            f"e:{os.sep}", True, marks=testrunner.mark.skipif("sys.platform != 'win32'")
         ),
         (f"{os.sep}", True),
         (f"e:{os.sep}projects", False),

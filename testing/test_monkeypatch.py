@@ -10,12 +10,12 @@ import textwrap
 from types import MappingProxyType
 import warnings
 
-from _pytest.monkeypatch import MonkeyPatch
-from _pytest.pytester import Pytester
-import pytest
+from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.testrunnerer import Testrunnerer
+import testrunner
 
 
-@pytest.fixture
+@testrunner.fixture
 def mp() -> Generator[MonkeyPatch]:
     cwd = os.getcwd()
     sys_path = list(sys.path)
@@ -29,7 +29,7 @@ def test_setattr() -> None:
         x = 1
 
     monkeypatch = MonkeyPatch()
-    with pytest.raises(AttributeError):
+    with testrunner.raises(AttributeError):
         monkeypatch.setattr(A, "notexists", 2)
     monkeypatch.setattr(A, "y", 2, raising=False)
     assert A.y == 2  # type: ignore
@@ -48,7 +48,7 @@ def test_setattr() -> None:
     monkeypatch.undo()  # double-undo makes no modification
     assert A.x == 5
 
-    with pytest.raises(TypeError):
+    with testrunner.raises(TypeError):
         monkeypatch.setattr(A, "y")  # type: ignore[call-overload]
 
 
@@ -60,33 +60,33 @@ class TestSetattrWithImportPath:
 
     def test_string_expression_class(self, monkeypatch: MonkeyPatch) -> None:
         with monkeypatch.context() as mp:
-            mp.setattr("_pytest.config.Config", 42)
-            import _pytest
+            mp.setattr("_testrunner.config.Config", 42)
+            import _testrunner
 
-            assert _pytest.config.Config == 42  # type: ignore
+            assert _testrunner.config.Config == 42  # type: ignore
 
     def test_unicode_string(self, monkeypatch: MonkeyPatch) -> None:
         with monkeypatch.context() as mp:
-            mp.setattr("_pytest.config.Config", 42)
-            import _pytest
+            mp.setattr("_testrunner.config.Config", 42)
+            import _testrunner
 
-            assert _pytest.config.Config == 42  # type: ignore
-            mp.delattr("_pytest.config.Config")
+            assert _testrunner.config.Config == 42  # type: ignore
+            mp.delattr("_testrunner.config.Config")
 
     def test_wrong_target(self, monkeypatch: MonkeyPatch) -> None:
-        with pytest.raises(TypeError):
+        with testrunner.raises(TypeError):
             monkeypatch.setattr(None, None)  # type: ignore[call-overload]
 
     def test_unknown_import(self, monkeypatch: MonkeyPatch) -> None:
-        with pytest.raises(ImportError):
+        with testrunner.raises(ImportError):
             monkeypatch.setattr("unkn123.classx", None)
 
     def test_unknown_attr(self, monkeypatch: MonkeyPatch) -> None:
-        with pytest.raises(AttributeError):
+        with testrunner.raises(AttributeError):
             monkeypatch.setattr("os.path.qweqwe", None)
 
     def test_unknown_attr_non_raising(self, monkeypatch: MonkeyPatch) -> None:
-        # https://github.com/pytest-dev/pytest/issues/746
+        # https://github.com/jacksonsr451/test-runner/issues/746
         with monkeypatch.context() as mp:
             mp.setattr("os.path.qweqwe", 42, raising=False)
             assert os.path.qweqwe == 42  # type: ignore
@@ -102,7 +102,7 @@ class TestSetattrWithImportPath:
             __slots__ = ()
 
         target = Immutable()
-        with pytest.raises(AttributeError):
+        with testrunner.raises(AttributeError):
             monkeypatch.setattr(target, "x", 42, raising=False)
         # undo() must not raise — no entry should be on the undo stack.
         monkeypatch.undo()
@@ -127,7 +127,7 @@ def test_delattr() -> None:
 
     monkeypatch = MonkeyPatch()
     monkeypatch.delattr(A, "x")
-    with pytest.raises(AttributeError):
+    with testrunner.raises(AttributeError):
         monkeypatch.delattr(A, "y")
     monkeypatch.delattr(A, "y", raising=False)
     monkeypatch.setattr(A, "x", 5, raising=False)
@@ -163,7 +163,7 @@ def test_setitem_deleted_meanwhile() -> None:
     assert not d
 
 
-@pytest.mark.parametrize("before", [True, False])
+@testrunner.mark.parametrize("before", [True, False])
 def test_setenv_deleted_meanwhile(before: bool) -> None:
     key = "qwpeoip123"
     if before:
@@ -185,7 +185,7 @@ def test_delitem() -> None:
     monkeypatch.delitem(d, "x")
     assert "x" not in d
     monkeypatch.delitem(d, "y", raising=False)
-    with pytest.raises(KeyError):
+    with testrunner.raises(KeyError):
         monkeypatch.delitem(d, "y")
     assert not d
     monkeypatch.setitem(d, "y", 1700)
@@ -205,7 +205,7 @@ def test_failed_delattr(monkeypatch: MonkeyPatch) -> None:
         x = 1
 
     a = A()
-    with pytest.raises(AttributeError):
+    with testrunner.raises(AttributeError):
         monkeypatch.delattr(a, "x")
     assert a.x == 1
     # undo() must not raise — no entry should be on the undo stack.
@@ -215,7 +215,7 @@ def test_failed_delattr(monkeypatch: MonkeyPatch) -> None:
 def test_failed_setitem(monkeypatch: MonkeyPatch) -> None:
     """If setitem() raises, no stale undo entry should be recorded (#14909)."""
     mapping = MappingProxyType({"x": 1})
-    with pytest.raises(TypeError):
+    with testrunner.raises(TypeError):
         monkeypatch.setitem(mapping, "x", 2)
     assert mapping["x"] == 1
     # undo() must not raise — no entry should be on the undo stack.
@@ -225,7 +225,7 @@ def test_failed_setitem(monkeypatch: MonkeyPatch) -> None:
 def test_failed_delitem(monkeypatch: MonkeyPatch) -> None:
     """If delitem() raises, no stale undo entry should be recorded (#14909)."""
     mapping = MappingProxyType({"x": 1})
-    with pytest.raises(TypeError):
+    with testrunner.raises(TypeError):
         monkeypatch.delitem(mapping, "x")
     assert mapping["x"] == 1
     # undo() must not raise — no entry should be on the undo stack.
@@ -239,7 +239,7 @@ def test_setitem_delitem_oldval_captured_before_mutation(
     mutation so undo() restores the correct value (#14909). This case
     exercises both the capture-before line and the append-after line in
     the success path (no exception), so codecov patch coverage for the
-    new lines stays 100% even when the surrounding pytest suite changes.
+    new lines stays 100% even when the surrounding testrunner suite changes.
     """
     inner: dict[str, int] = {"x": 1, "y": 2}
     monkeypatch.setitem(inner, "x", 99)
@@ -250,7 +250,7 @@ def test_setitem_delitem_oldval_captured_before_mutation(
 
 def test_setenv() -> None:
     monkeypatch = MonkeyPatch()
-    with pytest.warns(pytest.PytestWarning):
+    with testrunner.warns(testrunner.TestrunnerWarning):
         monkeypatch.setenv("XYZ123", 2)  # type: ignore[arg-type]
     import os
 
@@ -263,7 +263,7 @@ def test_delenv() -> None:
     name = "xyz1234"
     assert name not in os.environ
     monkeypatch = MonkeyPatch()
-    with pytest.raises(KeyError):
+    with testrunner.raises(KeyError):
         monkeypatch.delenv(name, raising=True)
     monkeypatch.delenv(name, raising=False)
     monkeypatch.undo()
@@ -288,15 +288,15 @@ class TestEnvironWarnings:
     and raises an error.
     """
 
-    VAR_NAME = "PYTEST_INTERNAL_MY_VAR"
+    VAR_NAME = "TESTRUNNER_INTERNAL_MY_VAR"
 
     def test_setenv_non_str_warning(self, monkeypatch: MonkeyPatch) -> None:
         value = 2
         msg = (
-            "Value of environment variable PYTEST_INTERNAL_MY_VAR type should be str, "
+            "Value of environment variable TESTRUNNER_INTERNAL_MY_VAR type should be str, "
             "but got 2 (type: int); converted to str implicitly"
         )
-        with pytest.warns(pytest.PytestWarning, match=re.escape(msg)):
+        with testrunner.warns(testrunner.TestrunnerWarning, match=re.escape(msg)):
             monkeypatch.setenv(str(self.VAR_NAME), value)  # type: ignore[arg-type]
 
 
@@ -311,8 +311,8 @@ def test_setenv_prepend() -> None:
     assert "XYZ123" not in os.environ
 
 
-def test_monkeypatch_plugin(pytester: Pytester) -> None:
-    reprec = pytester.inline_runsource(
+def test_monkeypatch_plugin(testrunnerer: Testrunnerer) -> None:
+    reprec = testrunnerer.inline_runsource(
         """
         def test_method(monkeypatch):
             assert monkeypatch.__class__.__name__ == "MonkeyPatch"
@@ -371,8 +371,8 @@ def test_chdir_double_undo(mp: MonkeyPatch, tmp_path: Path) -> None:
     assert os.getcwd() == str(tmp_path)
 
 
-def test_issue185_time_breaks(pytester: Pytester) -> None:
-    pytester.makepyfile(
+def test_issue185_time_breaks(testrunnerer: Testrunnerer) -> None:
+    testrunnerer.makepyfile(
         """
         import time
         def test_m(monkeypatch):
@@ -381,7 +381,7 @@ def test_issue185_time_breaks(pytester: Pytester) -> None:
             monkeypatch.setattr(time, "time", f)
     """
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         """
         *1 passed*
@@ -389,8 +389,8 @@ def test_issue185_time_breaks(pytester: Pytester) -> None:
     )
 
 
-def test_importerror(pytester: Pytester) -> None:
-    p = pytester.mkpydir("package")
+def test_importerror(testrunnerer: Testrunnerer) -> None:
+    p = testrunnerer.mkpydir("package")
     p.joinpath("a.py").write_text(
         textwrap.dedent(
             """\
@@ -401,7 +401,7 @@ def test_importerror(pytester: Pytester) -> None:
         ),
         encoding="utf-8",
     )
-    pytester.path.joinpath("test_importerror.py").write_text(
+    testrunnerer.path.joinpath("test_importerror.py").write_text(
         textwrap.dedent(
             """\
         def test_importerror(monkeypatch):
@@ -410,7 +410,7 @@ def test_importerror(pytester: Pytester) -> None:
         ),
         encoding="utf-8",
     )
-    result = pytester.runpytest()
+    result = testrunnerer.runtestrunner()
     result.stdout.fnmatch_lines(
         """
         *import error in package.a: No module named 'doesnotexist'*
@@ -428,7 +428,7 @@ class SampleInherit(Sample):
     pass
 
 
-@pytest.mark.parametrize(
+@testrunner.mark.parametrize(
     "Sample",
     [Sample, SampleInherit],
     ids=["new", "new-inherit"],
@@ -608,7 +608,7 @@ def test_undo_slot_attribute_on_instance() -> None:
 
 
 def test_issue1338_name_resolving() -> None:
-    pytest.importorskip("requests")
+    testrunner.importorskip("requests")
     monkeypatch = MonkeyPatch()
     try:
         monkeypatch.delattr("requests.sessions.Session.request")
@@ -638,18 +638,18 @@ def test_context_classmethod() -> None:
     assert A.x == 1
 
 
-@pytest.mark.filterwarnings(
+@testrunner.mark.filterwarnings(
     r"ignore:.*\bpkg_resources\b:DeprecationWarning",
     r"ignore:.*\bpkg_resources\b:UserWarning",
 )
 def test_syspath_prepend_with_namespace_packages(
-    pytester: Pytester, monkeypatch: MonkeyPatch
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
 ) -> None:
     # Needs to be in sys.modules.
-    pytest.importorskip("pkg_resources")
+    testrunner.importorskip("pkg_resources")
 
     for dirname in "hello", "world":
-        d = pytester.mkdir(dirname)
+        d = testrunnerer.mkdir(dirname)
         ns = d.joinpath("ns_pkg")
         ns.mkdir()
         ns.joinpath("__init__.py").write_text(
@@ -668,12 +668,12 @@ def test_syspath_prepend_with_namespace_packages(
 
     assert ns_pkg.hello.check() == "hello"
 
-    with pytest.raises(ImportError):
+    with testrunner.raises(ImportError):
         import ns_pkg.world
 
     # Prepending should call fixup_namespace_packages.
     # This call should warn - ns_pkg is now registered and "world" contains it
-    with pytest.warns(pytest.PytestRemovedIn10Warning, match="legacy namespace"):
+    with testrunner.warns(testrunner.TestrunnerRemovedIn10Warning, match="legacy namespace"):
         monkeypatch.syspath_prepend("world")
     import ns_pkg.world
 
@@ -681,7 +681,7 @@ def test_syspath_prepend_with_namespace_packages(
 
     # Should invalidate caches via importlib.invalidate_caches.
     # Should not warn for path without namespace packages.
-    modules_tmpdir = pytester.mkdir("modules_tmpdir")
+    modules_tmpdir = testrunnerer.mkdir("modules_tmpdir")
     with warnings.catch_warnings():
         warnings.simplefilter("error")
         monkeypatch.syspath_prepend(str(modules_tmpdir))

@@ -1,6 +1,6 @@
 # mypy: disallow-untyped-defs
 """
-This script is part of the pytest release process which is triggered manually in the Actions
+This script is part of the testrunner release process which is triggered manually in the Actions
 tab of the repository.
 
 The user will need to enter the base branch to start the release from (for example
@@ -30,14 +30,14 @@ class InvalidFeatureRelease(Exception):
     pass
 
 
-SLUG = "pytest-dev/pytest"
+SLUG = "jacksonsr451/test-runner"
 
 PR_BODY = """\
 Created by the [prepare release pr]\
-(https://github.com/pytest-dev/pytest/actions/workflows/prepare-release-pr.yml) workflow.
+(https://github.com/jacksonsr451/test-runner/actions/workflows/prepare-release-pr.yml) workflow.
 
 Once all builds pass and it has been **approved** by one or more maintainers, start the \
-[deploy](https://github.com/pytest-dev/pytest/actions/workflows/deploy.yml) workflow, using these parameters:
+[deploy](https://github.com/jacksonsr451/test-runner/actions/workflows/deploy.yml) workflow, using these parameters:
 
 * `Use workflow from`: `release-{version}`.
 * `Release version`: `{version}`.
@@ -77,11 +77,11 @@ def prepare_release_pr(base_branch: str, is_major: bool, prerelease: str) -> Non
     release_branch = f"release-{version}"
 
     run(
-        ["git", "config", "user.name", "pytest bot"],
+        ["git", "config", "user.name", "testrunner bot"],
         check=True,
     )
     run(
-        ["git", "config", "user.email", "pytestbot@gmail.com"],
+        ["git", "config", "user.email", "testrunnerbot@gmail.com"],
         check=True,
     )
 

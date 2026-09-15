@@ -3,8 +3,8 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from _pytest._io import TerminalWriter
-from _pytest.logging import ColoredLevelFormatter
+from _testrunner._io import TerminalWriter
+from _testrunner.logging import ColoredLevelFormatter
 
 
 def test_coloredlogformatter() -> None:
@@ -62,7 +62,7 @@ def test_coloredlogformatter_with_width_precision() -> None:
 
 
 def test_multiline_message() -> None:
-    from _pytest.logging import PercentStyleMultiline
+    from _testrunner.logging import PercentStyleMultiline
 
     logfmt = "%(filename)-25s %(lineno)4d %(levelname)-8s %(message)s"
 

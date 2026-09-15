@@ -1,29 +1,29 @@
-pytest-2.3.5: bug fixes and little improvements
+testrunner-2.3.5: bug fixes and little improvements
 ===========================================================================
 
-pytest-2.3.5 is a maintenance release with many bug fixes and little
+testrunner-2.3.5 is a maintenance release with many bug fixes and little
 improvements.  See the changelog below for details.  No backward
 compatibility issues are foreseen and all plugins which worked with the
 prior version are expected to work unmodified.   Speaking of which, a
 few interesting new plugins saw the light last month:
 
-- pytest-instafail: show failure information while tests are running
-- pytest-qt: testing of GUI applications written with QT/Pyside
-- pytest-xprocess: managing external processes across test runs
-- pytest-random: randomize test ordering
+- testrunner-instafail: show failure information while tests are running
+- testrunner-qt: testing of GUI applications written with QT/Pyside
+- testrunner-xprocess: managing external processes across test runs
+- testrunner-random: randomize test ordering
 
-And several others like pytest-django saw maintenance releases.
+And several others like testrunner-django saw maintenance releases.
 For a more complete list, check out
-https://pypi.org/search/?q=pytest
+https://pypi.org/search/?q=testrunner
 
 For general information see:
 
-     http://pytest.org/
+     http://testrunner.org/
 
-To install or upgrade pytest:
+To install or upgrade testrunner:
 
-    pip install -U pytest # or
-    easy_install -U pytest
+    pip install -U testrunner # or
+    easy_install -U testrunner
 
 Particular thanks to Floris, Ronny, Benjamin and the many bug reporters
 and fix providers.
@@ -37,7 +37,7 @@ Changes between 2.3.4 and 2.3.5
 
 - never consider a fixture function for test function collection
 
-- allow re-running of test items / helps to fix pytest-reruntests plugin
+- allow re-running of test items / helps to fix testrunner-reruntests plugin
   and also help to keep less fixture/resource references alive
 
 - put captured stdout/stderr into junitxml output even for passing tests
@@ -78,13 +78,13 @@ Changes between 2.3.4 and 2.3.5
 
 - improve docstring for metafunc.parametrize()
 
-- fix bug where using capsys with pytest.set_trace() in a test
+- fix bug where using capsys with testrunner.set_trace() in a test
   function would break when looking at capsys.readouterr()
 
 - allow to specify prefixes starting with "_" when
   customizing python_functions test discovery. (thanks Graham Horler)
 
-- improve PYTEST_DEBUG tracing output by putting
+- improve TESTRUNNER_DEBUG tracing output by putting
   extra data on a new lines with additional indent
 
 - ensure OutcomeExceptions like skip/fail have initialized exception attributes

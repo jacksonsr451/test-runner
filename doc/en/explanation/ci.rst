@@ -11,13 +11,13 @@ you can quickly edit some code and run your tests again on your computer, but
 it is not possible with CI pipelines. They run on a separate server and are
 triggered by specific actions.
 
-From that observation, pytest can detect when it is in a CI environment and
+From that observation, testrunner can detect when it is in a CI environment and
 adapt some of its behaviours.
 
 How CI is detected
 ------------------
 
-Pytest knows it is in a CI environment when either one of these environment variables is set to a non-empty value:
+Testrunner knows it is in a CI environment when either one of these environment variables is set to a non-empty value:
 
 * :envvar:`CI`: used by many CI systems.
 * :envvar:`BUILD_NUMBER`: used by Jenkins.
@@ -25,18 +25,18 @@ Pytest knows it is in a CI environment when either one of these environment vari
 Effects on CI
 -------------
 
-For now, the effects on pytest of being in a CI environment are limited.
+For now, the effects on testrunner of being in a CI environment are limited.
 
 When a CI environment is detected, the output of the short test summary info is no longer truncated to the terminal size i.e. the entire message will be shown.
 
   .. code-block:: python
 
         # content of test_ci.py
-        import pytest
+        import testrunner
 
 
         def test_db_initialized():
-            pytest.fail(
+            testrunner.fail(
                 "deliberately failing for demo purpose, Lorem ipsum dolor sit amet, "
                 "consectetur adipiscing elit. Cras facilisis, massa in suscipit "
                 "dignissim, mauris lacus molestie nisi, quis varius metus nulla ut ipsum."
@@ -45,9 +45,9 @@ When a CI environment is detected, the output of the short test summary info is 
 
 Running this locally, without any extra options, will output:
 
-  .. code-block:: pytest
+  .. code-block:: testrunner
 
-     $ pytest test_ci.py
+     $ testrunner test_ci.py
      ...
      ========================= short test summary info ==========================
      FAILED test_ci.py::test_db_initialized - Failed: deliberately f...
@@ -57,10 +57,10 @@ Running this locally, without any extra options, will output:
 
 While running this on CI will output:
 
-  .. code-block:: pytest
+  .. code-block:: testrunner
 
      $ export CI=true
-     $ pytest test_ci.py
+     $ testrunner test_ci.py
      ...
      ========================= short test summary info ==========================
      FAILED test_ci.py::test_db_initialized - Failed: deliberately failing

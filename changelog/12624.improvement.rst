@@ -1,4 +1,4 @@
-The :globalvar:`pytest_plugins` variable and the :envvar:`PYTEST_PLUGINS` environment variable now also accept entry point names of installed plugins (e.g. ``xdist``), in addition to importable module names, matching the behavior of the :option:`-p` command-line option.
+The :globalvar:`testrunner_plugins` variable and the :envvar:`TESTRUNNER_PLUGINS` environment variable now also accept entry point names of installed plugins (e.g. ``xdist``), in addition to importable module names, matching the behavior of the :option:`-p` command-line option.
 
 As part of this change, plugins specified by entry point name through these mechanisms are now also listed in the ``plugins:`` line of the terminal header (:issue:`12615`).
 

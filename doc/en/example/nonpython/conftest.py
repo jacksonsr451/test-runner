@@ -1,15 +1,15 @@
 # content of conftest.py
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-def pytest_collect_file(parent, file_path):
+def testrunner_collect_file(parent, file_path):
     if file_path.suffix == ".yaml" and file_path.name.startswith("test"):
         return YamlFile.from_parent(parent, path=file_path)
 
 
-class YamlFile(pytest.File):
+class YamlFile(testrunner.File):
     def collect(self):
         # We need a yaml parser, e.g. PyYAML.
         import yaml
@@ -19,7 +19,7 @@ class YamlFile(pytest.File):
             yield YamlItem.from_parent(self, name=name, spec=spec)
 
 
-class YamlItem(pytest.Item):
+class YamlItem(testrunner.Item):
     def __init__(self, *, spec, **kwargs):
         super().__init__(**kwargs)
         self.spec = spec

@@ -27,23 +27,23 @@ FILE_HEAD = r"""
 
 .. _plugin-list:
 
-Pytest Plugin List
+Testrunner Plugin List
 ==================
 
-Below is an automated compilation of ``pytest`` plugins available on `PyPI <https://pypi.org>`_.
-It includes PyPI projects whose names begin with ``pytest-`` or ``pytest_`` and a handful of manually selected projects.
+Below is an automated compilation of ``testrunner`` plugins available on `PyPI <https://pypi.org>`_.
+It includes PyPI projects whose names begin with ``testrunner-`` or ``testrunner_`` and a handful of manually selected projects.
 Packages classified as inactive are excluded.
 
 For detailed insights into how this list is generated,
-please refer to `the update script <https://github.com/pytest-dev/pytest/blob/main/scripts/update-plugin-list.py>`_.
+please refer to `the update script <https://github.com/jacksonsr451/test-runner/blob/main/scripts/update-plugin-list.py>`_.
 
 .. warning::
 
    Please be aware that this list is not a curated collection of projects
    and does not undergo a systematic review process.
-   It serves purely as an informational resource to aid in the discovery of ``pytest`` plugins.
+   It serves purely as an informational resource to aid in the discovery of ``testrunner`` plugins.
 
-   Do not presume any endorsement from the ``pytest`` project or its developers,
+   Do not presume any endorsement from the ``testrunner`` project or its developers,
    and always conduct your own quality assessment before incorporating any of these plugins into your own projects.
 
 
@@ -66,7 +66,7 @@ ADDITIONAL_PROJECTS = {  # set of additional projects to consider as plugins
     "logot",
     "nuts",
     "flask_fixture",
-    "databricks-labs-pytester",
+    "databricks-labs-testrunnerer",
     "tursu",
 }
 
@@ -99,13 +99,13 @@ def project_response_with_refresh(
 
 def get_session() -> CachedSession:
     """Configures the requests-cache session"""
-    cache_path = platformdirs.user_cache_path("pytest-plugin-list")
+    cache_path = platformdirs.user_cache_path("testrunner-plugin-list")
     cache_path.mkdir(exist_ok=True, parents=True)
     cache_file = cache_path.joinpath("http_cache.sqlite3")
     return CachedSession(backend=SQLiteCache(cache_file))
 
 
-def pytest_plugin_projects_from_pypi(session: CachedSession) -> dict[str, int]:
+def testrunner_plugin_projects_from_pypi(session: CachedSession) -> dict[str, int]:
     response = session.get(
         "https://pypi.org/simple",
         headers={"Accept": "application/vnd.pypi.simple.v1+json"},
@@ -115,7 +115,7 @@ def pytest_plugin_projects_from_pypi(session: CachedSession) -> dict[str, int]:
         name: p["_last-serial"]
         for p in response.json()["projects"]
         if (
-            (name := p["name"]).startswith(("pytest-", "pytest_"))
+            (name := p["name"]).startswith(("testrunner-", "testrunner_"))
             or name in ADDITIONAL_PROJECTS
         )
     }
@@ -133,12 +133,12 @@ class PluginInfo(TypedDict):
 
 def iter_plugins() -> Iterator[PluginInfo]:
     session = get_session()
-    name_2_serial = pytest_plugin_projects_from_pypi(session)
+    name_2_serial = testrunner_plugin_projects_from_pypi(session)
 
     for name, last_serial in tqdm(name_2_serial.items(), smoothing=0):
         response = project_response_with_refresh(session, name, last_serial)
         if response.status_code == 404:
-            # Some packages, like pytest-azurepipelines42, are included in https://pypi.org/simple
+            # Some packages, like testrunner-azurepipelines42, are included in https://pypi.org/simple
             # but return 404 on the JSON API. Skip.
             continue
         response.raise_for_status()
@@ -154,7 +154,7 @@ def iter_plugins() -> Iterator[PluginInfo]:
         requires = "N/A"
         if info["requires_dist"]:
             for requirement in info["requires_dist"]:
-                if re.match(r"pytest(?![-.\w])", requirement):
+                if re.match(r"testrunner(?![-.\w])", requirement):
                     requires = requirement
                     break
 

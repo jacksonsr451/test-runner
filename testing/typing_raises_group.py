@@ -5,11 +5,11 @@ import sys
 
 from typing_extensions import assert_type
 
-from _pytest.main import Failed as main_Failed
-from _pytest.outcomes import Failed
-from pytest import raises
-from pytest import RaisesExc
-from pytest import RaisesGroup
+from _testrunner.main import Failed as main_Failed
+from _testrunner.outcomes import Failed
+from testrunner import raises
+from testrunner import RaisesExc
+from testrunner import RaisesGroup
 
 
 # does not work

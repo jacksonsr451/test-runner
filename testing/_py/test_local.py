@@ -13,7 +13,7 @@ from py.path import local
 
 from py import error
 
-import pytest
+import testrunner
 
 
 @contextlib.contextmanager
@@ -174,7 +174,7 @@ class CommonFSTests:
         p = path1.listdir()
         assert path1.join("sampledir") in p
         assert path1.join("samplefile") in p
-        with pytest.raises(error.ENOTDIR):
+        with testrunner.raises(error.ENOTDIR):
             path1.join("samplefile").listdir()
 
     def test_listdir_fnmatchstring(self, path1):
@@ -314,7 +314,7 @@ class CommonFSTests:
         assert url.mtime() > 0
 
     def test_relto_wrong_type(self, path1):
-        with pytest.raises(TypeError):
+        with testrunner.raises(TypeError):
             path1.relto(42)
 
     def test_load(self, path1):
@@ -348,7 +348,7 @@ class CommonFSTests:
                     assert path1.sep in lst[j]
                 break
         else:
-            pytest.fail("huh")
+            testrunner.fail("huh")
 
     def test_visit_sort(self, path1):
         lst = []
@@ -416,7 +416,7 @@ class CommonFSTests:
 
     def test_mkdir_and_remove(self, path1):
         tmpdir = path1
-        with pytest.raises(error.EEXIST):
+        with testrunner.raises(error.EEXIST):
             tmpdir.mkdir("sampledir")
         new = tmpdir.join("mktest1")
         new.mkdir()
@@ -514,17 +514,17 @@ value2 = a.result
     )
 
 
-win32only = pytest.mark.skipif(
+win32only = testrunner.mark.skipif(
     "not (sys.platform == 'win32' or getattr(os, '_name', None) == 'nt')"
 )
-skiponwin32 = pytest.mark.skipif(
+skiponwin32 = testrunner.mark.skipif(
     "sys.platform == 'win32' or getattr(os, '_name', None) == 'nt'"
 )
 
 ATIME_RESOLUTION = 0.01
 
 
-@pytest.fixture(scope="session")
+@testrunner.fixture(scope="session")
 def path1(tmpdir_factory):
     path = tmpdir_factory.mktemp("path")
     setuptestfs(path)
@@ -532,7 +532,7 @@ def path1(tmpdir_factory):
     assert path.join("samplefile").check()
 
 
-@pytest.fixture
+@testrunner.fixture
 def fake_fspath_obj(request):
     class FakeFSPathClass:
         def __init__(self, path):
@@ -580,7 +580,7 @@ class TestLocalPath(CommonFSTests):
         fn.write(data, mode="wb")
         assert fn.computehash("md5") == md5(data).hexdigest()
         assert fn.computehash("sha1") == sha(data).hexdigest()
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             fn.computehash("asdasd")
 
     def test_remove_removes_readonly_file(self, tmpdir):
@@ -620,12 +620,12 @@ class TestLocalPath(CommonFSTests):
         p = path1.ensure("dir_to_be_removed", dir=1)
         p.chdir()
         p.remove()
-        with pytest.raises(error.ENOENT):
+        with testrunner.raises(error.ENOENT):
             local()
         assert path1.chdir() is None
         assert os.getcwd() == str(path1)
 
-        with pytest.raises(error.ENOENT):
+        with testrunner.raises(error.ENOENT):
             with p.as_cwd():
                 raise NotImplementedError
 
@@ -649,7 +649,7 @@ class TestLocalPath(CommonFSTests):
     def test_as_cwd_exception(self, path1):
         old = local()
         dir = path1.ensure("subdir", dir=1)
-        with pytest.raises(ValueError):
+        with testrunner.raises(ValueError):
             with dir.as_cwd():
                 raise ValueError()
         assert old == local()
@@ -664,7 +664,7 @@ class TestLocalPath(CommonFSTests):
         p = local("~", expanduser=True)
         assert p == os.path.expanduser("~")
 
-    @pytest.mark.skipif(
+    @testrunner.mark.skipif(
         not sys.platform.startswith("win32"), reason="case-insensitive only on windows"
     )
     def test_eq_hash_are_case_insensitive_on_windows(self):
@@ -718,7 +718,7 @@ class TestLocalPath(CommonFSTests):
         p.write_text("hello", ensure=1, encoding="utf-8")
         assert p.read_text(encoding="utf-8") == "hello"
 
-    @pytest.mark.parametrize("bin", (False, True))
+    @testrunner.mark.parametrize("bin", (False, True))
     def test_dump(self, tmpdir, bin):
         path = tmpdir.join(f"dumpfile{int(bin)}")
         try:
@@ -738,7 +738,7 @@ class TestLocalPath(CommonFSTests):
         fd, name = tempfile.mkstemp()
         os.close(fd)
         try:
-            # Do not use _pytest.timing here, as we do not want time mocking to affect this test.
+            # Do not use _testrunner.timing here, as we do not want time mocking to affect this test.
             mtime = int(time.time()) - 100
             path = local(name)
             assert path.mtime() != mtime
@@ -806,10 +806,10 @@ class TestLocalPath(CommonFSTests):
         assert t == newfile
         assert newfile.check(dir=1)
 
-    @pytest.mark.xfail(run=False, reason="unreliable est for long filenames")
+    @testrunner.mark.xfail(run=False, reason="unreliable est for long filenames")
     def test_long_filenames(self, tmpdir):
         if sys.platform == "win32":
-            pytest.skip("win32: work around needed for path length limit")
+            testrunner.skip("win32: work around needed for path length limit")
         # see http://codespeak.net/pipermail/py-dev/2008q2/000922.html
 
         # testing paths > 260 chars (which is Windows' limitation, but
@@ -864,11 +864,11 @@ class TestLocalPath(CommonFSTests):
             py_path.strpath, str_path
         )
 
-    @pytest.mark.xfail(
+    @testrunner.mark.xfail(
         reason="#11603", raises=(error.EEXIST, error.ENOENT), strict=False
     )
     def test_make_numbered_dir_multiprocess_safe(self, tmpdir):
-        # https://github.com/pytest-dev/py/issues/30
+        # https://github.com/testrunner-dev/py/issues/30
         with multiprocessing.Pool() as pool:
             results = [
                 pool.apply_async(batch_make_numbered_dirs, [tmpdir, 100])
@@ -879,7 +879,7 @@ class TestLocalPath(CommonFSTests):
 
 
 class TestExecutionOnWindows:
-    pytestmark = win32only
+    _testrunner_mark = win32only
 
     def test_sysfind_bat_exe_before(self, tmpdir, monkeypatch):
         monkeypatch.setenv("PATH", str(tmpdir), prepend=os.pathsep)
@@ -890,7 +890,7 @@ class TestExecutionOnWindows:
 
 
 class TestExecution:
-    pytestmark = skiponwin32
+    _testrunner_mark = skiponwin32
 
     def test_sysfind_no_permission_ignored(self, monkeypatch, tmpdir):
         noperm = tmpdir.ensure("noperm", dir=True)
@@ -930,7 +930,7 @@ class TestExecution:
         except ImportError:
             ExecutionFailed = RuntimeError  # py vendored
         x = local.sysfind("false")
-        with pytest.raises(ExecutionFailed):
+        with testrunner.raises(ExecutionFailed):
             x.sysexec("aksjdkasjd")
 
     def test_make_numbered_dir(self, tmpdir):
@@ -954,8 +954,8 @@ class TestExecution:
         insensitive.
 
         See issues:
-        - https://github.com/pytest-dev/pytest/issues/708
-        - https://github.com/pytest-dev/pytest/issues/3451
+        - https://github.com/jacksonsr451/test-runner/issues/708
+        - https://github.com/jacksonsr451/test-runner/issues/3451
         """
         d1 = local.make_numbered_dir(
             prefix="CAse.",
@@ -990,9 +990,9 @@ class TestExecution:
                 assert numdir.new(ext=str(j)).check()
 
     def test_error_preservation(self, path1):
-        with pytest.raises(EnvironmentError):
+        with testrunner.raises(EnvironmentError):
             path1.join("qwoeqiwe").mtime()
-        with pytest.raises(EnvironmentError):
+        with testrunner.raises(EnvironmentError):
             path1.join("qwoeqiwe").read()
 
     # def test_parentdirmatch(self):
@@ -1001,7 +1001,7 @@ class TestExecution:
 
 
 class TestImport:
-    @pytest.fixture(autouse=True)
+    @testrunner.fixture(autouse=True)
     def preserve_sys(self):
         with mock.patch.dict(sys.modules):
             with mock.patch.object(sys, "path", list(sys.path)):
@@ -1016,7 +1016,7 @@ class TestImport:
         p = tmpdir.ensure("a", "test_x123.py")
         p.pyimport()
         tmpdir.join("a").move(tmpdir.join("b"))
-        with pytest.raises(tmpdir.ImportMismatchError):
+        with testrunner.raises(tmpdir.ImportMismatchError):
             tmpdir.join("b", "test_x123.py").pyimport()
 
         # Errors can be ignored.
@@ -1025,7 +1025,7 @@ class TestImport:
 
         # PY_IGNORE_IMPORTMISMATCH=0 does not ignore error.
         monkeypatch.setenv("PY_IGNORE_IMPORTMISMATCH", "0")
-        with pytest.raises(tmpdir.ImportMismatchError):
+        with testrunner.raises(tmpdir.ImportMismatchError):
             tmpdir.join("b", "test_x123.py").pyimport()
 
     def test_pyimport_messy_name(self, tmpdir):
@@ -1093,7 +1093,7 @@ class TestImport:
         pseudopath = tmpdir.ensure(name + "123.py")
         mod.__file__ = str(pseudopath)
         monkeypatch.setitem(sys.modules, name, mod)
-        with pytest.raises(pseudopath.ImportMismatchError) as excinfo:
+        with testrunner.raises(pseudopath.ImportMismatchError) as excinfo:
             p.pyimport()
         modname, modfile, orig = excinfo.value.args
         assert modname == name
@@ -1131,7 +1131,7 @@ class TestImportlibImport:
     def test_pyimport_dir_fails(self, tmpdir):
         p = tmpdir.join("hello_123")
         p.ensure("__init__.py")
-        with pytest.raises(ImportError):
+        with testrunner.raises(ImportError):
             p.pyimport(**self.OPTS)
 
     def test_pyimport_execfile_different_name(self, path1):
@@ -1141,7 +1141,7 @@ class TestImportlibImport:
 
     def test_pyimport_relative_import_fails(self, path1):
         otherdir = path1.join("otherdir")
-        with pytest.raises(ImportError):
+        with testrunner.raises(ImportError):
             otherdir.join("a.py").pyimport(**self.OPTS)
 
     def test_pyimport_doesnt_use_sys_modules(self, tmpdir):
@@ -1209,7 +1209,7 @@ def test_samefile(tmpdir):
         assert p1.samefile(p2)
 
 
-@pytest.mark.skipif(not hasattr(os, "symlink"), reason="os.symlink not available")
+@testrunner.mark.skipif(not hasattr(os, "symlink"), reason="os.symlink not available")
 def test_samefile_symlink(tmpdir):
     p1 = tmpdir.ensure("foo.txt")
     p2 = tmpdir.join("linked.txt")
@@ -1218,7 +1218,7 @@ def test_samefile_symlink(tmpdir):
     except (OSError, NotImplementedError) as e:
         # on Windows this might fail if the user doesn't have special symlink permissions
         # pypy3 on Windows doesn't implement os.symlink and raises NotImplementedError
-        pytest.skip(str(e.args[0]))
+        testrunner.skip(str(e.args[0]))
 
     assert p1.samefile(p2)
 
@@ -1234,12 +1234,12 @@ def test_mkdtemp_rootdir(tmpdir):
 
 
 class TestWINLocalPath:
-    pytestmark = win32only
+    _testrunner_mark = win32only
 
     def test_owner_group_not_implemented(self, path1):
-        with pytest.raises(NotImplementedError):
+        with testrunner.raises(NotImplementedError):
             _ = path1.stat().owner
-        with pytest.raises(NotImplementedError):
+        with testrunner.raises(NotImplementedError):
             _ = path1.stat().group
 
     def test_chmod_simple_int(self, path1):
@@ -1292,7 +1292,7 @@ class TestWINLocalPath:
 
 
 class TestPOSIXLocalPath:
-    pytestmark = skiponwin32
+    _testrunner_mark = skiponwin32
 
     def test_hardlink(self, tmpdir):
         linkpath = tmpdir.join("test")
@@ -1392,7 +1392,7 @@ class TestPOSIXLocalPath:
 
     def test_stat_non_raising(self, tmpdir):
         path1 = tmpdir.join("file")
-        with pytest.raises(error.ENOENT):
+        with testrunner.raises(error.ENOENT):
             path1.stat()
         res = path1.stat(raising=False)
         assert res is None
@@ -1401,7 +1401,7 @@ class TestPOSIXLocalPath:
         import time
 
         path = tmpdir.ensure("samplefile")
-        # Do not use _pytest.timing here, as we do not want time mocking to affect this test.
+        # Do not use _testrunner.timing here, as we do not want time mocking to affect this test.
         now = time.time()
         atime1 = path.atime()
         # we could wait here but timer resolution is very
@@ -1526,7 +1526,7 @@ class TestPOSIXLocalPath:
 class TestUnicode:
     def test_join_ensure(self, tmpdir, monkeypatch):
         if "LANG" not in os.environ:
-            pytest.skip("cannot run test without locale")
+            testrunner.skip("cannot run test without locale")
         x = local(tmpdir.strpath)
         part = "hällo"
         y = x.ensure(part)
@@ -1534,13 +1534,13 @@ class TestUnicode:
 
     def test_listdir(self, tmpdir):
         if "LANG" not in os.environ:
-            pytest.skip("cannot run test without locale")
+            testrunner.skip("cannot run test without locale")
         x = local(tmpdir.strpath)
         part = "hällo"
         y = x.ensure(part)
         assert x.listdir(part)[0] == y
 
-    @pytest.mark.xfail(reason="changing read/write might break existing usages")
+    @testrunner.mark.xfail(reason="changing read/write might break existing usages")
     def test_read_write(self, tmpdir):
         x = tmpdir.join("hello")
         part = "hällo"

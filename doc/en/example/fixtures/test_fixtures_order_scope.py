@@ -1,34 +1,34 @@
 from __future__ import annotations
 
-import pytest
+import testrunner
 
 
-@pytest.fixture(scope="session")
+@testrunner.fixture(scope="session")
 def order():
     return []
 
 
-@pytest.fixture
+@testrunner.fixture
 def func(order):
     order.append("function")
 
 
-@pytest.fixture(scope="class")
+@testrunner.fixture(scope="class")
 def cls(order):
     order.append("class")
 
 
-@pytest.fixture(scope="module")
+@testrunner.fixture(scope="module")
 def mod(order):
     order.append("module")
 
 
-@pytest.fixture(scope="package")
+@testrunner.fixture(scope="package")
 def pack(order):
     order.append("package")
 
 
-@pytest.fixture(scope="session")
+@testrunner.fixture(scope="session")
 def sess(order):
     order.append("session")
 

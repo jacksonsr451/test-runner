@@ -13,7 +13,7 @@ fixtures (setup and teardown test state) on a per-module/class/function basis.
 
     While these setup/teardown methods are simple and familiar to those
     coming from a ``unittest`` or ``nose`` background, you may also consider
-    using pytest's more powerful :ref:`fixture mechanism
+    using testrunner's more powerful :ref:`fixture mechanism
     <fixture>` which leverages the concept of dependency injection, allowing
     for a more modular and more scalable approach for managing test state,
     especially for larger projects and for functional testing.  You can
@@ -40,7 +40,7 @@ which will usually be called once for all the functions:
         method.
         """
 
-As of pytest-3.0, the ``module`` parameter is optional.
+As of testrunner-3.0, the ``module`` parameter is optional.
 
 Class level setup/teardown
 ----------------------------------
@@ -83,7 +83,7 @@ Similarly, the following methods are called around each method invocation:
         call.
         """
 
-As of pytest-3.0, the ``method`` parameter is optional.
+As of testrunner-3.0, the ``method`` parameter is optional.
 
 If you would rather define test functions directly at module level
 you can also use the following functions to implement fixtures:
@@ -101,7 +101,7 @@ you can also use the following functions to implement fixtures:
         call.
         """
 
-As of pytest-3.0, the ``function`` parameter is optional.
+As of testrunner-3.0, the ``function`` parameter is optional.
 
 Remarks:
 
@@ -111,7 +111,7 @@ Remarks:
 * teardown functions are not called if the corresponding setup function existed
   and failed/was skipped.
 
-* Prior to pytest-4.2, xunit-style functions did not obey the scope rules of fixtures, so
+* Prior to testrunner-4.2, xunit-style functions did not obey the scope rules of fixtures, so
   it was possible, for example, for a ``setup_method`` to be called before a
   session-scoped autouse fixture.
 

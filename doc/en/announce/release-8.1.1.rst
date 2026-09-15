@@ -1,13 +1,13 @@
-pytest-8.1.1
+testrunner-8.1.1
 =======================================
 
-pytest 8.1.1 has just been released to PyPI.
+testrunner 8.1.1 has just been released to PyPI.
 
 This is a bug-fix release, being a drop-in replacement. To upgrade::
 
-  pip install --upgrade pytest
+  pip install --upgrade testrunner
 
-The full changelog is available at https://docs.pytest.org/en/stable/changelog.html.
+The full changelog is available at https://github.com/jacksonsr451/test-runner/tree/main/doc/en/changelog.html.
 
 Thanks to all of the contributors to this release:
 
@@ -15,4 +15,4 @@ Thanks to all of the contributors to this release:
 
 
 Happy testing,
-The pytest Development Team
+The testrunner Development Team

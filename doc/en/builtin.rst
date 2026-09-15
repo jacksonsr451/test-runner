@@ -1,8 +1,8 @@
 :orphan:
 
-.. _`pytest helpers`:
+.. _`testrunner helpers`:
 
-Pytest API and builtin fixtures
+Testrunner API and builtin fixtures
 ================================================
 
 
@@ -10,19 +10,19 @@ Most of the information of this page has been moved over to :ref:`api-reference`
 
 For information on plugin hooks and objects, see :ref:`plugins`.
 
-For information on the ``pytest.mark`` mechanism, see :ref:`mark`.
+For information on the ``testrunner.mark`` mechanism, see :ref:`mark`.
 
 For information about fixtures, see :ref:`fixtures`. To see a complete list of available fixtures (add :option:`-v` to also see fixtures with leading ``_``), type :
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    $ pytest  --fixtures -v
+    $ testrunner  --fixtures -v
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python
-    cachedir: .pytest_cache
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y -- $PYTHON_PREFIX/bin/python
+    cachedir: .testrunner_cache
     rootdir: /home/sweet/project
     collected 0 items
-    cache -- .../_pytest/cacheprovider.py:560
+    cache -- .../_testrunner/cacheprovider.py:560
         Return a cache object that can persist state between testing sessions.
 
         cache.get(key, default)
@@ -33,14 +33,14 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
 
         Values can be any object handled by the json stdlib module.
 
-    capsys -- .../_pytest/capture.py:1007
+    capsys -- .../_testrunner/capture.py:1007
         Enable text capturing of writes to ``sys.stdout`` and ``sys.stderr``.
 
         The captured output is made available via ``capsys.readouterr()`` method
         calls, which return a ``(out, err)`` namedtuple.
         ``out`` and ``err`` will be ``text`` objects.
 
-        Returns an instance of :class:`CaptureFixture[str] <pytest.CaptureFixture>`.
+        Returns an instance of :class:`CaptureFixture[str] <testrunner.CaptureFixture>`.
 
         Example:
 
@@ -51,7 +51,7 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
                 captured = capsys.readouterr()
                 assert captured.out == "hello\n"
 
-    capteesys -- .../_pytest/capture.py:1035
+    capteesys -- .../_testrunner/capture.py:1035
         Enable simultaneous text capturing and pass-through of writes
         to ``sys.stdout`` and ``sys.stderr`` as defined by ``--capture=``.
 
@@ -63,7 +63,7 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
         The output is also passed-through, allowing it to be "live-printed",
         reported, or both as defined by ``--capture=``.
 
-        Returns an instance of :class:`CaptureFixture[str] <pytest.CaptureFixture>`.
+        Returns an instance of :class:`CaptureFixture[str] <testrunner.CaptureFixture>`.
 
         Example:
 
@@ -74,14 +74,14 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
                 captured = capteesys.readouterr()
                 assert captured.out == "hello\n"
 
-    capsysbinary -- .../_pytest/capture.py:1070
+    capsysbinary -- .../_testrunner/capture.py:1070
         Enable bytes capturing of writes to ``sys.stdout`` and ``sys.stderr``.
 
         The captured output is made available via ``capsysbinary.readouterr()``
         method calls, which return a ``(out, err)`` namedtuple.
         ``out`` and ``err`` will be ``bytes`` objects.
 
-        Returns an instance of :class:`CaptureFixture[bytes] <pytest.CaptureFixture>`.
+        Returns an instance of :class:`CaptureFixture[bytes] <testrunner.CaptureFixture>`.
 
         Example:
 
@@ -92,14 +92,14 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
                 captured = capsysbinary.readouterr()
                 assert captured.out == b"hello\n"
 
-    capfd -- .../_pytest/capture.py:1098
+    capfd -- .../_testrunner/capture.py:1098
         Enable text capturing of writes to file descriptors ``1`` and ``2``.
 
         The captured output is made available via ``capfd.readouterr()`` method
         calls, which return a ``(out, err)`` namedtuple.
         ``out`` and ``err`` will be ``text`` objects.
 
-        Returns an instance of :class:`CaptureFixture[str] <pytest.CaptureFixture>`.
+        Returns an instance of :class:`CaptureFixture[str] <testrunner.CaptureFixture>`.
 
         Example:
 
@@ -110,14 +110,14 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
                 captured = capfd.readouterr()
                 assert captured.out == "hello\n"
 
-    capfdbinary -- .../_pytest/capture.py:1126
+    capfdbinary -- .../_testrunner/capture.py:1126
         Enable bytes capturing of writes to file descriptors ``1`` and ``2``.
 
         The captured output is made available via ``capfd.readouterr()`` method
         calls, which return a ``(out, err)`` namedtuple.
         ``out`` and ``err`` will be ``byte`` objects.
 
-        Returns an instance of :class:`CaptureFixture[bytes] <pytest.CaptureFixture>`.
+        Returns an instance of :class:`CaptureFixture[bytes] <testrunner.CaptureFixture>`.
 
         Example:
 
@@ -128,7 +128,7 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
                 captured = capfdbinary.readouterr()
                 assert captured.out == b"hello\n"
 
-    doctest_namespace [session scope] -- .../_pytest/doctest.py:721
+    doctest_namespace [session scope] -- .../_testrunner/doctest.py:721
         Fixture that returns a :py:class:`dict` that will be injected into the
         namespace of doctests.
 
@@ -136,23 +136,23 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
 
         .. code-block:: python
 
-            @pytest.fixture(autouse=True)
+            @testrunner.fixture(autouse=True)
             def add_np(doctest_namespace):
                 doctest_namespace["np"] = numpy
 
         For more details: :ref:`doctest_namespace`.
 
-    pytestconfig [session scope] -- .../_pytest/fixtures.py:1564
-        Session-scoped fixture that returns the session's :class:`pytest.Config`
+    testrunnerconfig [session scope] -- .../_testrunner/fixtures.py:1564
+        Session-scoped fixture that returns the session's :class:`testrunner.Config`
         object.
 
         Example::
 
-            def test_foo(pytestconfig):
-                if pytestconfig.get_verbosity() > 0:
+            def test_foo(testrunnerconfig):
+                if testrunnerconfig.get_verbosity() > 0:
                     ...
 
-    record_property -- .../_pytest/junitxml.py:275
+    record_property -- .../_testrunner/junitxml.py:275
         Add extra properties to the calling test.
 
         User properties become part of the test report and are available to the
@@ -166,13 +166,13 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
             def test_function(record_property):
                 record_property("example_key", 1)
 
-    record_xml_attribute -- .../_pytest/junitxml.py:298
+    record_xml_attribute -- .../_testrunner/junitxml.py:298
         Add extra xml attributes to the tag for the calling test.
 
         The fixture is callable with ``name, value``. The value is
         automatically XML-encoded.
 
-    record_testsuite_property [session scope] -- .../_pytest/junitxml.py:336
+    record_testsuite_property [session scope] -- .../_testrunner/junitxml.py:336
         Record a new ``<property>`` tag as child of the root ``<testsuite>``.
 
         This is suitable to writing global information regarding the entire test
@@ -194,13 +194,13 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
         .. warning::
 
             Currently this fixture **does not work** with the
-            `pytest-xdist <https://github.com/pytest-dev/pytest-xdist>`__ plugin. See
+            `testrunner-xdist <https://github.com/jacksonsr451/test-runner-xdist>`__ plugin. See
             :issue:`7767` for details.
 
-    tmpdir_factory [session scope] -- .../_pytest/legacypath.py:298
-        Return a :class:`pytest.TempdirFactory` instance for the test session.
+    tmpdir_factory [session scope] -- .../_testrunner/legacypath.py:298
+        Return a :class:`testrunner.TempdirFactory` instance for the test session.
 
-    tmpdir -- .../_pytest/legacypath.py:305
+    tmpdir -- .../_testrunner/legacypath.py:305
         Return a temporary directory (as `legacy_path`_ object)
         which is unique to each test function invocation.
         The temporary directory is created as a subdirectory
@@ -214,7 +214,7 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
 
         .. _legacy_path: https://py.readthedocs.io/en/latest/path.html
 
-    caplog -- .../_pytest/logging.py:611
+    caplog -- .../_testrunner/logging.py:611
         Access and control log capturing.
 
         Captured logs are available through the following properties/methods::
@@ -225,21 +225,21 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
         * caplog.record_tuples   -> list of (logger_name, level, message) tuples
         * caplog.clear()         -> clear captured records and formatted log output string
 
-    monkeypatch -- .../_pytest/monkeypatch.py:36
+    monkeypatch -- .../_testrunner/monkeypatch.py:36
         A convenient fixture for monkey-patching.
 
         The fixture provides these methods to modify objects, dictionaries, or
         :data:`os.environ`:
 
-        * :meth:`monkeypatch.setattr(obj, name, value, raising=True) <pytest.MonkeyPatch.setattr>`
-        * :meth:`monkeypatch.delattr(obj, name, raising=True) <pytest.MonkeyPatch.delattr>`
-        * :meth:`monkeypatch.setitem(mapping, name, value) <pytest.MonkeyPatch.setitem>`
-        * :meth:`monkeypatch.delitem(obj, name, raising=True) <pytest.MonkeyPatch.delitem>`
-        * :meth:`monkeypatch.setenv(name, value, prepend=None) <pytest.MonkeyPatch.setenv>`
-        * :meth:`monkeypatch.delenv(name, raising=True) <pytest.MonkeyPatch.delenv>`
-        * :meth:`monkeypatch.syspath_prepend(path) <pytest.MonkeyPatch.syspath_prepend>`
-        * :meth:`monkeypatch.chdir(path) <pytest.MonkeyPatch.chdir>`
-        * :meth:`monkeypatch.context() <pytest.MonkeyPatch.context>`
+        * :meth:`monkeypatch.setattr(obj, name, value, raising=True) <testrunner.MonkeyPatch.setattr>`
+        * :meth:`monkeypatch.delattr(obj, name, raising=True) <testrunner.MonkeyPatch.delattr>`
+        * :meth:`monkeypatch.setitem(mapping, name, value) <testrunner.MonkeyPatch.setitem>`
+        * :meth:`monkeypatch.delitem(obj, name, raising=True) <testrunner.MonkeyPatch.delitem>`
+        * :meth:`monkeypatch.setenv(name, value, prepend=None) <testrunner.MonkeyPatch.setenv>`
+        * :meth:`monkeypatch.delenv(name, raising=True) <testrunner.MonkeyPatch.delenv>`
+        * :meth:`monkeypatch.syspath_prepend(path) <testrunner.MonkeyPatch.syspath_prepend>`
+        * :meth:`monkeypatch.chdir(path) <testrunner.MonkeyPatch.chdir>`
+        * :meth:`monkeypatch.context() <testrunner.MonkeyPatch.context>`
 
         All modifications will be undone after the requesting test function or
         fixture has finished. The ``raising`` parameter determines if a :class:`KeyError`
@@ -247,20 +247,20 @@ For information about fixtures, see :ref:`fixtures`. To see a complete list of a
         specified target.
 
         To undo modifications done by the fixture in a contained scope,
-        use :meth:`context() <pytest.MonkeyPatch.context>`.
+        use :meth:`context() <testrunner.MonkeyPatch.context>`.
 
-    recwarn -- .../_pytest/recwarn.py:37
+    recwarn -- .../_testrunner/recwarn.py:37
         Return a :class:`WarningsRecorder` instance that records all warnings emitted by test functions.
 
         See :ref:`warnings` for information on warning categories.
 
-    subtests -- .../_pytest/subtests.py:136
+    subtests -- .../_testrunner/subtests.py:136
         Provides subtests functionality.
 
-    tmp_path_factory [session scope] -- .../_pytest/tmpdir.py:276
-        Return a :class:`pytest.TempPathFactory` instance for the test session.
+    tmp_path_factory [session scope] -- .../_testrunner/tmpdir.py:276
+        Return a :class:`testrunner.TempPathFactory` instance for the test session.
 
-    tmp_path -- .../_pytest/tmpdir.py:291
+    tmp_path -- .../_testrunner/tmpdir.py:291
         Return a temporary directory (as :class:`pathlib.Path` object)
         which is unique to each test function invocation.
         The temporary directory is created as a subdirectory
@@ -274,6 +274,6 @@ You can also interactively ask for help, e.g. by typing on the Python interactiv
 
 .. code-block:: python
 
-    import pytest
+    import testrunner
 
-    help(pytest)
+    help(testrunner)

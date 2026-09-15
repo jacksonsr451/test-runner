@@ -8,7 +8,7 @@ You can get help on command line and configuration options by using the general 
 
 .. code-block:: bash
 
-    pytest -h   # prints options _and_ config file settings
+    testrunner -h   # prints options _and_ config file settings
 
 This will display command line and configuration file settings
 which were registered by installed plugins.
@@ -18,26 +18,26 @@ which were registered by installed plugins.
 Configuration file formats
 --------------------------
 
-Many :ref:`pytest settings <ini options ref>` can be set in a *configuration file*, which
+Many :ref:`testrunner settings <ini options ref>` can be set in a *configuration file*, which
 by convention resides in the root directory of your repository.
 
-A quick example of the configuration files supported by pytest:
+A quick example of the configuration files supported by testrunner:
 
-pytest.toml
+testrunner.toml
 ~~~~~~~~~~~
 
 .. versionadded:: 9.0
 
-``pytest.toml`` files take precedence over other files, even when empty.
+``testrunner.toml`` files take precedence over other files, even when empty.
 
-Alternatively, the hidden version ``.pytest.toml`` can be used.
+Alternatively, the hidden version ``.testrunner.toml`` can be used.
 
 .. tab:: toml
 
     .. code-block:: toml
 
-        # pytest.toml or .pytest.toml
-        [pytest]
+        # testrunner.toml or .testrunner.toml
+        [testrunner]
         minversion = "9.0"
         addopts = ["-ra", "-q"]
         testpaths = [
@@ -45,19 +45,19 @@ Alternatively, the hidden version ``.pytest.toml`` can be used.
             "integration",
         ]
 
-pytest.ini
+testrunner.ini
 ~~~~~~~~~~
 
-``pytest.ini`` files take precedence over other files (except ``pytest.toml`` and ``.pytest.toml``), even when empty.
+``testrunner.ini`` files take precedence over other files (except ``testrunner.toml`` and ``.testrunner.toml``), even when empty.
 
-Alternatively, the hidden version ``.pytest.ini`` can be used.
+Alternatively, the hidden version ``.testrunner.ini`` can be used.
 
 .. tab:: ini
 
     .. code-block:: ini
 
-        # pytest.ini or .pytest.ini
-        [pytest]
+        # testrunner.ini or .testrunner.ini
+        [testrunner]
         minversion = 6.0
         addopts = -ra -q
         testpaths =
@@ -75,12 +75,12 @@ pyproject.toml
 
 .. tab:: toml
 
-    Use ``[tool.pytest]`` to leverage native TOML types (supported since pytest 9.0):
+    Use ``[tool.testrunner]`` to leverage native TOML types (supported since testrunner 9.0):
 
     .. code-block:: toml
 
         # pyproject.toml
-        [tool.pytest]
+        [tool.testrunner]
         minversion = "9.0"
         addopts = ["-ra", "-q"]
         testpaths = [
@@ -90,12 +90,12 @@ pyproject.toml
 
 .. tab:: ini
 
-    Use ``[tool.pytest.ini_options]`` for INI-style configuration (supported since pytest 6.0):
+    Use ``[tool.testrunner.ini_options]`` for INI-style configuration (supported since testrunner 6.0):
 
     .. code-block:: toml
 
         # pyproject.toml
-        [tool.pytest.ini_options]
+        [tool.testrunner.ini_options]
         minversion = "6.0"
         addopts = "-ra -q"
         testpaths = [
@@ -103,22 +103,22 @@ pyproject.toml
             "integration",
         ]
 
-    For projects that still run pytest versions older than 6.0, keep
-    ``minversion`` in ``pytest.ini`` or ``tox.ini`` too. Those versions
+    For projects that still run testrunner versions older than 6.0, keep
+    ``minversion`` in ``testrunner.ini`` or ``tox.ini`` too. Those versions
     do not read ``pyproject.toml``.
 
 tox.ini
 ~~~~~~~
 
 ``tox.ini`` files are the configuration files of the `tox <https://tox.readthedocs.io>`__ project,
-and can also be used to hold pytest configuration if they have a ``[pytest]`` section.
+and can also be used to hold testrunner configuration if they have a ``[testrunner]`` section.
 
 .. tab:: ini
 
     .. code-block:: ini
 
         # tox.ini
-        [pytest]
+        [testrunner]
         minversion = 6.0
         addopts = -ra -q
         testpaths =
@@ -129,15 +129,15 @@ and can also be used to hold pytest configuration if they have a ``[pytest]`` se
 setup.cfg
 ~~~~~~~~~
 
-``setup.cfg`` files are general purpose configuration files, used originally by ``distutils`` (now deprecated) and :std:doc:`setuptools <setuptools:userguide/declarative_config>`, and can also be used to hold pytest configuration
-if they have a ``[tool:pytest]`` section.
+``setup.cfg`` files are general purpose configuration files, used originally by ``distutils`` (now deprecated) and :std:doc:`setuptools <setuptools:userguide/declarative_config>`, and can also be used to hold testrunner configuration
+if they have a ``[tool:testrunner]`` section.
 
 .. tab:: ini
 
     .. code-block:: ini
 
         # setup.cfg
-        [tool:pytest]
+        [tool:testrunner]
         minversion = 6.0
         addopts = -ra -q
         testpaths =
@@ -147,10 +147,10 @@ if they have a ``[tool:pytest]`` section.
 .. warning::
 
     Usage of ``setup.cfg`` is not recommended unless for very simple use cases. ``.cfg``
-    files use a different parser than ``pytest.ini`` and ``tox.ini`` which might cause hard to track
+    files use a different parser than ``testrunner.ini`` and ``tox.ini`` which might cause hard to track
     down problems.
     When possible, it is recommended to use the latter files, or ``pyproject.toml``, to hold your
-    pytest configuration.
+    testrunner configuration.
 
 
 .. _rootdir:
@@ -159,19 +159,19 @@ if they have a ``[tool:pytest]`` section.
 Initialization: determining rootdir and configfile
 --------------------------------------------------
 
-pytest determines a ``rootdir`` for each test run which depends on
+testrunner determines a ``rootdir`` for each test run which depends on
 the command line arguments (specified test files, paths) and on
 the existence of configuration files.  The determined ``rootdir`` and ``configfile`` are
-printed as part of the pytest header during startup.
+printed as part of the testrunner header during startup.
 
-Here's a summary of what ``pytest`` uses ``rootdir`` for:
+Here's a summary of what ``testrunner`` uses ``rootdir`` for:
 
 * Construct *nodeids* during collection; each test is assigned
   a unique *nodeid* which is rooted at the ``rootdir`` and takes into account
   the full path, class name, function name and parametrization (if any).
 
 * Is used by plugins as a stable location to store project/test run specific information;
-  for example, the internal :ref:`cache <cache>` plugin creates a ``.pytest_cache`` subdirectory
+  for example, the internal :ref:`cache <cache>` plugin creates a ``.testrunner_cache`` subdirectory
   in ``rootdir`` to store its cross-test run state.
 
 ``rootdir`` is **NOT** used to modify ``sys.path``/``PYTHONPATH`` or
@@ -193,34 +193,34 @@ Here is the algorithm which finds the rootdir from ``args``:
   recognised as paths that exist in the file system. If no such paths are
   found, the common ancestor directory is set to the current working directory.
 
-- Look for ``pytest.toml``, ``.pytest.toml``, ``pytest.ini``, ``.pytest.ini``, ``pyproject.toml``, ``tox.ini``, and ``setup.cfg`` files in the ancestor
+- Look for ``testrunner.toml``, ``.testrunner.toml``, ``testrunner.ini``, ``.testrunner.ini``, ``pyproject.toml``, ``tox.ini``, and ``setup.cfg`` files in the ancestor
   directory and upwards.  If one is matched, it becomes the ``configfile`` and its
   directory becomes the ``rootdir``.
 
 - If no configuration file was found, look for ``setup.py`` upwards from the common
   ancestor directory to determine the ``rootdir``.
 
-- If no ``setup.py`` was found, look for ``pytest.toml``, ``.pytest.toml``, ``pytest.ini``, ``.pytest.ini``, ``pyproject.toml``, ``tox.ini``, and
+- If no ``setup.py`` was found, look for ``testrunner.toml``, ``.testrunner.toml``, ``testrunner.ini``, ``.testrunner.ini``, ``pyproject.toml``, ``tox.ini``, and
   ``setup.cfg`` in each of the specified ``args`` and upwards. If one is
   matched, it becomes the ``configfile`` and its directory becomes the ``rootdir``.
 
 - If no ``configfile`` was found and no configuration argument is passed, use the already determined common ancestor as root
-  directory. This allows the use of pytest in structures that are not part of
+  directory. This allows the use of testrunner in structures that are not part of
   a package and don't have any particular configuration file.
 
-If no ``args`` are given, pytest collects tests below the current working
+If no ``args`` are given, testrunner collects tests below the current working
 directory and also starts determining the ``rootdir`` from there.
 
 Files will only be matched for configuration if:
 
-* ``pytest.toml``: will always match and take highest precedence, even if empty.
-* ``pytest.ini``: will always match and take precedence (after ``pytest.toml`` and ``.pytest.toml``), even if empty.
-* ``pyproject.toml``: contains a ``[tool.pytest]`` or ``[tool.pytest.ini_options]`` table.
-* ``tox.ini``: contains a ``[pytest]`` section.
-* ``setup.cfg``: contains a ``[tool:pytest]`` section.
+* ``testrunner.toml``: will always match and take highest precedence, even if empty.
+* ``testrunner.ini``: will always match and take precedence (after ``testrunner.toml`` and ``.testrunner.toml``), even if empty.
+* ``pyproject.toml``: contains a ``[tool.testrunner]`` or ``[tool.testrunner.ini_options]`` table.
+* ``tox.ini``: contains a ``[testrunner]`` section.
+* ``setup.cfg``: contains a ``[tool:testrunner]`` section.
 
 Finally, a ``pyproject.toml`` file will be considered the ``configfile`` if no other match was found, in this case
-even if it does not contain a ``[tool.pytest]`` table (since version ``9.0``) or a ``[tool.pytest.ini_options]``
+even if it does not contain a ``[tool.testrunner]`` table (since version ``9.0``) or a ``[tool.testrunner.ini_options]``
 table (since version ``8.1``).
 
 The files are considered in the order above. Options from multiple ``configfiles`` candidates
@@ -228,14 +228,14 @@ are never merged - the first match wins.
 
 The configuration file also determines the value of the ``rootpath``.
 
-The :class:`Config <pytest.Config>` object (accessible via hooks or through the :fixture:`pytestconfig` fixture)
+The :class:`Config <testrunner.Config>` object (accessible via hooks or through the :fixture:`testrunnerconfig` fixture)
 will subsequently carry these attributes:
 
-- :attr:`config.rootpath <pytest.Config.rootpath>`: the determined root directory, guaranteed to exist. It is used as
+- :attr:`config.rootpath <testrunner.Config.rootpath>`: the determined root directory, guaranteed to exist. It is used as
   a reference directory for constructing test addresses ("nodeids") and can be used also by plugins for storing
   per-testrun information.
 
-- :attr:`config.inipath <pytest.Config.inipath>`: the determined ``configfile``, may be ``None``
+- :attr:`config.inipath <testrunner.Config.inipath>`: the determined ``configfile``, may be ``None``
   (it is named ``inipath`` for historical reasons).
 
 .. versionadded:: 6.1
@@ -249,21 +249,21 @@ Example:
 
 .. code-block:: bash
 
-    pytest path/to/testdir path/other/
+    testrunner path/to/testdir path/other/
 
 will determine the common ancestor as ``path`` and then
 check for configuration files as follows:
 
 .. code-block:: text
 
-    # first look for path/pytest.toml
-    path/pytest.toml
-    path/pytest.ini
-    path/pyproject.toml  # must contain a [tool.pytest] table to match
-    path/tox.ini         # must contain [pytest] section to match
-    path/setup.cfg       # must contain [tool:pytest] section to match
-    pytest.toml
-    pytest.ini
+    # first look for path/testrunner.toml
+    path/testrunner.toml
+    path/testrunner.ini
+    path/pyproject.toml  # must contain a [tool.testrunner] table to match
+    path/tox.ini         # must contain [testrunner] section to match
+    path/setup.cfg       # must contain [tool:testrunner] section to match
+    testrunner.toml
+    testrunner.ini
     ... # all the way up to the root
 
     # now look for setup.py
@@ -274,9 +274,9 @@ check for configuration files as follows:
 
 .. warning::
 
-    Custom pytest plugin commandline arguments may include a path, as in
-    ``pytest --log-output ../../test.log args``. Then ``args`` is mandatory,
-    otherwise pytest uses the directory of test.log for rootdir determination
+    Custom testrunner plugin commandline arguments may include a path, as in
+    ``testrunner --log-output ../../test.log args``. Then ``args`` is mandatory,
+    otherwise testrunner uses the directory of test.log for rootdir determination
     (see also :issue:`1435`).
     A dot ``.`` for referencing the current working directory is also
     possible.
@@ -294,7 +294,7 @@ For the full list of options consult the :ref:`reference documentation <ini opti
 Syntax highlighting theme customization
 ---------------------------------------
 
-The syntax highlighting themes used by pytest can be customized using two environment variables:
+The syntax highlighting themes used by testrunner can be customized using two environment variables:
 
-- :envvar:`PYTEST_THEME` sets a `pygment style <https://pygments.org/docs/styles/>`_ to use.
-- :envvar:`PYTEST_THEME_MODE` sets this style to *light* or *dark*.
+- :envvar:`TESTRUNNER_THEME` sets a `pygment style <https://pygments.org/docs/styles/>`_ to use.
+- :envvar:`TESTRUNNER_THEME_MODE` sets this style to *light* or *dark*.

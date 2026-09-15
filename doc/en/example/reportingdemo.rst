@@ -1,15 +1,15 @@
 .. _`tbreportdemo`:
 
-Demo of Python failure reports with pytest
+Demo of Python failure reports with testrunner
 ==========================================
 
-Here is a nice run of several failures and how ``pytest`` presents things:
+Here is a nice run of several failures and how ``testrunner`` presents things:
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    assertion $ pytest failure_demo.py
+    assertion $ testrunner failure_demo.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-9.x.y, pluggy-1.x.y
+    platform linux -- Python 3.x.y, testrunner-9.x.y, pluggy-1.x.y
     rootdir: /home/sweet/project/assertion
     collected 44 items
 
@@ -20,7 +20,7 @@ Here is a nice run of several failures and how ``pytest`` presents things:
 
     param1 = 3, param2 = 6
 
-        @pytest.mark.parametrize("param1, param2", [(3, 6)])
+        @testrunner.mark.parametrize("param1, param2", [(3, 6)])
         def test_generative(param1, param2):
     >       assert param1 * 2 < param2
     E       assert (3 * 2) < 6

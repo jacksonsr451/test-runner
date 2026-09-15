@@ -5,12 +5,12 @@ Backwards Compatibility Policy
 
 .. versionadded: 6.0
 
-Pytest is an actively evolving project that has been decades in the making.
+Testrunner is an actively evolving project that has been decades in the making.
 We keep learning about new and better structures to express different details about testing.
 
 While we implement those modifications, we try to ensure an easy transition and don't want to impose unnecessary churn on our users and community/plugin authors.
 
-As of now, pytest considers multiple types of backward compatibility transitions:
+As of now, testrunner considers multiple types of backward compatibility transitions:
 
 a) trivial: APIs that trivially translate to the new mechanism and do not cause problematic changes.
 
@@ -20,15 +20,15 @@ b) transitional: the old and new APIs don't conflict, and we can help users tran
 
    We will only start the removal of deprecated functionality in major releases (e.g., if we deprecate something in 3.0, we will start to remove it in 4.0), and keep it around for at least two minor releases (e.g., if we deprecate something in 3.9 and 4.0 is the next release, we start to remove it in 5.0, not in 4.0).
 
-   A deprecated feature scheduled to be removed in major version X will use the warning class `PytestRemovedInXWarning` (a subclass of :class:`~pytest.PytestDeprecationWarning`).
+   A deprecated feature scheduled to be removed in major version X will use the warning class `TestrunnerRemovedInXWarning` (a subclass of :class:`~testrunner.TestrunnerDeprecationWarning`).
 
-   When the deprecation expires (e.g., 4.0 is released), we won't remove the deprecated functionality immediately but will use the standard warning filters to turn `PytestRemovedInXWarning` (e.g., `PytestRemovedIn4Warning`) into **errors** by default. This approach makes it explicit that removal is imminent and still gives you time to turn the deprecated feature into a warning instead of an error so it can be dealt with in your own time. In the next minor release (e.g., 4.1), the feature will be effectively removed.
+   When the deprecation expires (e.g., 4.0 is released), we won't remove the deprecated functionality immediately but will use the standard warning filters to turn `TestrunnerRemovedInXWarning` (e.g., `TestrunnerRemovedIn4Warning`) into **errors** by default. This approach makes it explicit that removal is imminent and still gives you time to turn the deprecated feature into a warning instead of an error so it can be dealt with in your own time. In the next minor release (e.g., 4.1), the feature will be effectively removed.
 
 c) True breakage should only be considered when a normal transition is unreasonably unsustainable and would offset important developments or features by years. In addition, they should be limited to APIs where the number of actual users is very small (for example, only impacting some plugins) and can be coordinated with the community in advance.
 
    Examples for such upcoming changes:
 
-   * removal of ``pytest_runtest_protocol/nextitem`` - :issue:`895`
+   * removal of ``testrunner_runtest_protocol/nextitem`` - :issue:`895`
    * rearranging of the node tree to include ``FunctionDefinition``
    * rearranging of ``SetupState`` :issue:`895`
 
@@ -57,9 +57,9 @@ History
 Focus primarily on smooth transition - stance (pre 6.0)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Keeping backwards compatibility has a very high priority in the pytest project. Although we have deprecated functionality over the years, most of it is still supported. All deprecations in pytest were done because simpler or more efficient ways of accomplishing the same tasks have emerged, making the old way of doing things unnecessary.
+Keeping backwards compatibility has a very high priority in the testrunner project. Although we have deprecated functionality over the years, most of it is still supported. All deprecations in testrunner were done because simpler or more efficient ways of accomplishing the same tasks have emerged, making the old way of doing things unnecessary.
 
-With the pytest 3.0 release, we introduced a clear communication scheme for when we will actually remove the old busted joint and politely ask you to use the new hotness instead, while giving you enough time to adjust your tests or raise concerns if there are valid reasons to keep deprecated functionality around.
+With the testrunner 3.0 release, we introduced a clear communication scheme for when we will actually remove the old busted joint and politely ask you to use the new hotness instead, while giving you enough time to adjust your tests or raise concerns if there are valid reasons to keep deprecated functionality around.
 
 To communicate changes, we issue deprecation warnings using a custom warning hierarchy (see :ref:`internal-warnings`). These warnings may be suppressed using the standard means: :option:`-W` command-line flag or :confval:`filterwarnings` configuration option (see :ref:`warnings`), but we suggest to use these sparingly and temporarily, and heed the warnings when possible.
 
@@ -73,16 +73,16 @@ Deprecation Roadmap
 
 Features currently deprecated and removed in previous releases can be found in :ref:`deprecations`.
 
-We track future deprecation and removal of features using milestones and the `deprecation <https://github.com/pytest-dev/pytest/issues?q=label%3A%22type%3A+deprecation%22>`_ and `removal <https://github.com/pytest-dev/pytest/labels/type%3A%20removal>`_ labels on GitHub.
+We track future deprecation and removal of features using milestones and the `deprecation <https://github.com/jacksonsr451/test-runner/issues?q=label%3A%22type%3A+deprecation%22>`_ and `removal <https://github.com/jacksonsr451/test-runner/labels/type%3A%20removal>`_ labels on GitHub.
 
 
 Python version support
 ======================
 
-Released pytest versions support all Python versions that are actively maintained at the time of the release:
+Released testrunner versions support all Python versions that are actively maintained at the time of the release:
 
 ==============  ===================
-pytest version  min. Python version
+testrunner version  min. Python version
 ==============  ===================
 9.0+            3.10+
 8.4             3.9+

@@ -2,7 +2,7 @@
 Flaky tests
 -----------
 
-A "flaky" test is one that exhibits intermittent or sporadic failure, that seems to have non-deterministic behaviour. Sometimes it passes, sometimes it fails, and it's not clear why. This page discusses pytest features that can help and other general strategies for identifying, fixing or mitigating them.
+A "flaky" test is one that exhibits intermittent or sporadic failure, that seems to have non-deterministic behaviour. Sometimes it passes, sometimes it fails, and it's not clear why. This page discusses testrunner features that can help and other general strategies for identifying, fixing or mitigating them.
 
 Why flaky tests are a problem
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -18,7 +18,7 @@ System state
 
 Broadly speaking, a flaky test indicates that the test relies on some system state that is not being appropriately controlled - the test environment is not sufficiently isolated. Higher level tests are more likely to be flaky as they rely on more state.
 
-Flaky tests sometimes appear when a test suite is run in parallel (such as use of `pytest-xdist`_). This can indicate a test is reliant on test ordering.
+Flaky tests sometimes appear when a test suite is run in parallel (such as use of `testrunner-xdist`_). This can indicate a test is reliant on test ordering.
 
 -  Perhaps a different test is failing to clean up after itself and leaving behind data which causes the flaky test to fail.
 - The flaky test is reliant on data from a previous test that doesn't clean up after itself, and in parallel runs that previous test is not always present
@@ -28,21 +28,21 @@ Flaky tests sometimes appear when a test suite is run in parallel (such as use o
 Overly strict assertion
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Overly strict assertions can cause problems with floating point comparison as well as timing issues. :func:`pytest.approx` is useful here.
+Overly strict assertions can cause problems with floating point comparison as well as timing issues. :func:`testrunner.approx` is useful here.
 
 Thread safety
 ~~~~~~~~~~~~~
 
-pytest is single-threaded, executing its tests always in the same thread, sequentially, never spawning any threads itself.
+testrunner is single-threaded, executing its tests always in the same thread, sequentially, never spawning any threads itself.
 
-Even in case of plugins which run tests in parallel, for example `pytest-xdist`_, usually work by spawning multiple *processes* and running tests in batches, without using multiple threads.
+Even in case of plugins which run tests in parallel, for example `testrunner-xdist`_, usually work by spawning multiple *processes* and running tests in batches, without using multiple threads.
 
 It is of course possible (and common) for tests and fixtures to spawn threads themselves as part of their testing workflow (for example, a fixture that starts a server thread in the background, or a test which executes production code that spawns threads), but some care must be taken:
 
 * Make sure to eventually wait on any spawned threads -- for example at the end of a test, or during the teardown of a fixture.
-* Avoid using primitives provided by pytest (:func:`pytest.warns`, :func:`pytest.raises`, etc) from multiple threads, as they are not thread-safe.
+* Avoid using primitives provided by testrunner (:func:`testrunner.warns`, :func:`testrunner.raises`, etc) from multiple threads, as they are not thread-safe.
 
-If your test suite uses threads and you are seeing flaky test results, do not discount the possibility that the test is implicitly using global state in pytest itself.
+If your test suite uses threads and you are seeing flaky test results, do not discount the possibility that the test is implicitly using global state in testrunner itself.
 
 Related features
 ^^^^^^^^^^^^^^^^
@@ -50,29 +50,29 @@ Related features
 Xfail strict
 ~~~~~~~~~~~~
 
-:ref:`pytest.mark.xfail ref` with ``strict=False`` can be used to mark a test so that its failure does not cause the whole build to break. This could be considered like a manual quarantine, and is rather dangerous to use permanently.
+:ref:`testrunner.mark.xfail ref` with ``strict=False`` can be used to mark a test so that its failure does not cause the whole build to break. This could be considered like a manual quarantine, and is rather dangerous to use permanently.
 
 
-PYTEST_CURRENT_TEST
+TESTRUNNER_CURRENT_TEST
 ~~~~~~~~~~~~~~~~~~~
 
-:envvar:`PYTEST_CURRENT_TEST` may be useful for figuring out "which test got stuck".
-See :ref:`pytest current test env` for more details.
+:envvar:`TESTRUNNER_CURRENT_TEST` may be useful for figuring out "which test got stuck".
+See :ref:`testrunner current test env` for more details.
 
 
 Plugins
 ~~~~~~~
 
-Rerunning any failed tests can mitigate the negative effects of flaky tests by giving them additional chances to pass, so that the overall build does not fail. Several pytest plugins support this:
+Rerunning any failed tests can mitigate the negative effects of flaky tests by giving them additional chances to pass, so that the overall build does not fail. Several testrunner plugins support this:
 
-* `pytest-rerunfailures <https://github.com/pytest-dev/pytest-rerunfailures>`_
-* `pytest-replay <https://github.com/ESSS/pytest-replay>`_: This plugin helps to reproduce locally crashes or flaky tests observed during CI runs.
-* `pytest-flakefinder <https://github.com/dropbox/pytest-flakefinder>`_ - `blog post <https://web.archive.org/web/20200313031602/https://blogs.dropbox.com/tech/2016/03/open-sourcing-pytest-tools/>`_
+* `testrunner-rerunfailures <https://github.com/jacksonsr451/test-runner-rerunfailures>`_
+* `testrunner-replay <https://github.com/ESSS/testrunner-replay>`_: This plugin helps to reproduce locally crashes or flaky tests observed during CI runs.
+* `testrunner-flakefinder <https://github.com/dropbox/testrunner-flakefinder>`_ - `blog post <https://web.archive.org/web/20200313031602/https://blogs.dropbox.com/tech/2016/03/open-sourcing-testrunner-tools/>`_
 
 Plugins to deliberately randomize tests can help expose tests with state problems:
 
-* `pytest-random-order <https://github.com/jbasko/pytest-random-order>`_
-* `pytest-randomly <https://github.com/pytest-dev/pytest-randomly>`_
+* `testrunner-random-order <https://github.com/jbasko/testrunner-random-order>`_
+* `testrunner-randomly <https://github.com/jacksonsr451/test-runner-randomly>`_
 
 
 Other general strategies
@@ -87,7 +87,7 @@ It can be common to split a single test suite into two, such as unit vs integrat
 Video/screenshot on failure
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-For UI tests these are important for understanding what the state of the UI was when the test failed. pytest-splinter can be used with plugins like pytest-bdd and can `save a screenshot on test failure <https://pytest-splinter.readthedocs.io/en/latest/#automatic-screenshots-on-test-failure>`_, which can help to isolate the cause.
+For UI tests these are important for understanding what the state of the UI was when the test failed. testrunner-splinter can be used with plugins like testrunner-bdd and can `save a screenshot on test failure <https://testrunner-splinter.readthedocs.io/en/latest/#automatic-screenshots-on-test-failure>`_, which can help to isolate the cause.
 
 
 Delete or rewrite the test
@@ -148,4 +148,4 @@ Resources
   * `Handling Flaky Unit Tests in Java <https://www.uber.com/blog/handling-flaky-tests-java/>`_ by Uber Engineering, 2021
   * `Flaky Tests Overhaul at Uber <https://www.uber.com/blog/flaky-tests-overhaul/>`_ by Uber Engineering, 2024
 
-.. _pytest-xdist: https://github.com/pytest-dev/pytest-xdist
+.. _testrunner-xdist: https://github.com/jacksonsr451/test-runner-xdist

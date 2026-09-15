@@ -6,29 +6,29 @@ How to use skip and xfail to deal with tests that cannot succeed
 =================================================================
 
 You can mark test functions that cannot be run on certain platforms
-or that you expect to fail so pytest can deal with them accordingly and
+or that you expect to fail so testrunner can deal with them accordingly and
 present a summary of the test session, while keeping the test suite *green*.
 
 A **skip** means that you expect your test to pass only if some conditions are met,
-otherwise pytest should skip running the test altogether. Common examples are skipping
+otherwise testrunner should skip running the test altogether. Common examples are skipping
 windows-only tests on non-windows platforms, or skipping tests that depend on an external
 resource which is not available at the moment (for example a database).
 
 An **xfail** means that you expect a test to fail for some reason.
 A common example is a test for a feature not yet implemented, or a bug not yet fixed.
-When a test passes despite being expected to fail (marked with ``pytest.mark.xfail``),
+When a test passes despite being expected to fail (marked with ``testrunner.mark.xfail``),
 it's an **xpass** and will be reported in the test summary.
 
-``pytest`` counts and lists *skip* and *xfail* tests separately. Detailed
+``testrunner`` counts and lists *skip* and *xfail* tests separately. Detailed
 information about skipped/xfailed tests is not shown by default to avoid
 cluttering the output.  You can use the :option:`-r` option to see details
 corresponding to the "short" letters shown in the test progress:
 
 .. code-block:: bash
 
-    pytest -rxXs  # show extra info on xfailed, xpassed, and skipped tests
+    testrunner -rxXs  # show extra info on xfailed, xpassed, and skipped tests
 
-More details on the :option:`-r` option can be found by running ``pytest -h``.
+More details on the :option:`-r` option can be found by running ``testrunner -h``.
 
 (See :ref:`how to change command line options defaults`)
 
@@ -46,36 +46,36 @@ which may be passed an optional ``reason``:
 
 .. code-block:: python
 
-    @pytest.mark.skip(reason="no way of currently testing this")
+    @testrunner.mark.skip(reason="no way of currently testing this")
     def test_the_unknown(): ...
 
 
 Alternatively, it is also possible to skip imperatively during test execution or setup
-by calling the ``pytest.skip(reason)`` function:
+by calling the ``testrunner.skip(reason)`` function:
 
 .. code-block:: python
 
     def test_function():
         if not valid_config():
-            pytest.skip("unsupported configuration")
+            testrunner.skip("unsupported configuration")
 
 The imperative method is useful when it is not possible to evaluate the skip condition
 during import time.
 
 It is also possible to skip the whole module using
-``pytest.skip(reason, allow_module_level=True)`` at the module level:
+``testrunner.skip(reason, allow_module_level=True)`` at the module level:
 
 .. code-block:: python
 
     import sys
 
-    import pytest
+    import testrunner
 
     if not sys.platform.startswith("win"):
-        pytest.skip("skipping windows-only tests", allow_module_level=True)
+        testrunner.skip("skipping windows-only tests", allow_module_level=True)
 
 
-**Reference**: :ref:`pytest.mark.skip ref`
+**Reference**: :ref:`testrunner.mark.skip ref`
 
 ``skipif``
 ~~~~~~~~~~
@@ -91,7 +91,7 @@ when run on an interpreter earlier than Python3.13:
     import sys
 
 
-    @pytest.mark.skipif(sys.version_info < (3, 13), reason="requires python3.13 or higher")
+    @testrunner.mark.skipif(sys.version_info < (3, 13), reason="requires python3.13 or higher")
     def test_function(): ...
 
 If the condition evaluates to ``True`` during collection, the test function will be skipped,
@@ -104,7 +104,7 @@ You can share ``skipif`` markers between modules.  Consider this test module:
     # content of test_mymodule.py
     import mymodule
 
-    minversion = pytest.mark.skipif(
+    minversion = testrunner.mark.skipif(
         mymodule.__versioninfo__ < (1, 1), reason="at least mymodule-1.1 required"
     )
 
@@ -131,7 +131,7 @@ Alternatively, you can use :ref:`condition strings
 <string conditions>` instead of booleans, but they can't be shared between modules easily
 so they are supported mainly for backward compatibility reasons.
 
-**Reference**: :ref:`pytest.mark.skipif ref`
+**Reference**: :ref:`testrunner.mark.skipif ref`
 
 
 Skip all test functions of a class or module
@@ -141,7 +141,7 @@ You can use the ``skipif`` marker (as any other marker) on classes:
 
 .. code-block:: python
 
-    @pytest.mark.skipif(sys.platform == "win32", reason="does not run on windows")
+    @testrunner.mark.skipif(sys.platform == "win32", reason="does not run on windows")
     class TestPosixCalls:
         def test_function(self):
             "will not be setup or run under 'win32' platform"
@@ -150,12 +150,12 @@ If the condition is ``True``, this marker will produce a skip result for
 each of the test methods of that class.
 
 If you want to skip all test functions of a module, you may use the
-:globalvar:`pytestmark` global:
+:globalvar:`_testrunner_mark` global:
 
 .. code-block:: python
 
     # test_module.py
-    pytestmark = pytest.mark.skipif(...)
+    _testrunner_mark = testrunner.mark.skipif(...)
 
 If multiple ``skipif`` decorators are applied to a test function, it
 will be skipped if any of the skip conditions is true.
@@ -168,7 +168,7 @@ Skipping files or directories
 
 Sometimes you may need to skip an entire file or directory, for example if the
 tests rely on Python version-specific features or contain code that you do not
-wish pytest to run. In this case, you must exclude the files and directories
+wish testrunner to run. In this case, you must exclude the files and directories
 from collection. Refer to :ref:`customizing-test-collection` for more
 information.
 
@@ -176,19 +176,19 @@ information.
 Skipping on a missing import dependency
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can skip tests on a missing import by using :ref:`pytest.importorskip ref`
+You can skip tests on a missing import by using :ref:`testrunner.importorskip ref`
 at module level, within a test, or test setup function.
 
 .. code-block:: python
 
-    docutils = pytest.importorskip("docutils")
+    docutils = testrunner.importorskip("docutils")
 
 If ``docutils`` cannot be imported here, this will lead to a skip outcome of
 the test. You can also skip based on the version number of a library:
 
 .. code-block:: python
 
-    docutils = pytest.importorskip("docutils", minversion="0.3")
+    docutils = testrunner.importorskip("docutils", minversion="0.3")
 
 The version will be read from the specified
 module's ``__version__`` attribute.
@@ -202,19 +202,19 @@ Here's a quick guide on how to skip tests in a module in different situations:
 
   .. code-block:: python
 
-        pytestmark = pytest.mark.skip("all tests still WIP")
+        _testrunner_mark = testrunner.mark.skip("all tests still WIP")
 
 2. Skip all tests in a module based on some condition:
 
   .. code-block:: python
 
-        pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="tests for linux only")
+        _testrunner_mark = testrunner.mark.skipif(sys.platform == "win32", reason="tests for linux only")
 
 3. Skip all tests in a module if some import is missing:
 
   .. code-block:: python
 
-        pexpect = pytest.importorskip("pexpect")
+        pexpect = testrunner.importorskip("pexpect")
 
 
 .. _xfail:
@@ -227,7 +227,7 @@ expect a test to fail:
 
 .. code-block:: python
 
-    @pytest.mark.xfail
+    @testrunner.mark.xfail
     def test_function(): ...
 
 This test will run but no traceback will be reported when it fails. Instead, terminal
@@ -241,7 +241,7 @@ imperatively:
 
     def test_function():
         if not valid_config():
-            pytest.xfail("failing configuration (but should work)")
+            testrunner.xfail("failing configuration (but should work)")
 
 .. code-block:: python
 
@@ -249,16 +249,16 @@ imperatively:
         import slow_module
 
         if slow_module.slow_function():
-            pytest.xfail("slow_module taking too long")
+            testrunner.xfail("slow_module taking too long")
 
 These two examples illustrate situations where you don't want to check for a condition
 at the module level, which is when a condition would otherwise be evaluated for marks.
 
 This will make ``test_function`` ``XFAIL``. Note that no other code is executed after
-the :func:`pytest.xfail` call, differently from the marker. That's because it is implemented
+the :func:`testrunner.xfail` call, differently from the marker. That's because it is implemented
 internally by raising a known exception.
 
-**Reference**: :ref:`pytest.mark.xfail ref`
+**Reference**: :ref:`testrunner.mark.xfail ref`
 
 
 ``condition`` parameter
@@ -269,11 +269,11 @@ that condition as the first parameter:
 
 .. code-block:: python
 
-    @pytest.mark.xfail(sys.platform == "win32", reason="bug in a 3rd party library")
+    @testrunner.mark.xfail(sys.platform == "win32", reason="bug in a 3rd party library")
     def test_function(): ...
 
 Note that you have to pass a reason as well (see the parameter description at
-:ref:`pytest.mark.xfail ref`).
+:ref:`testrunner.mark.xfail ref`).
 
 ``reason`` parameter
 ~~~~~~~~~~~~~~~~~~~~
@@ -282,7 +282,7 @@ You can specify the motive of an expected failure with the ``reason`` parameter:
 
 .. code-block:: python
 
-    @pytest.mark.xfail(reason="known parser issue")
+    @testrunner.mark.xfail(reason="known parser issue")
     def test_function(): ...
 
 
@@ -294,7 +294,7 @@ a single exception, or a tuple of exceptions, in the ``raises`` argument.
 
 .. code-block:: python
 
-    @pytest.mark.xfail(raises=RuntimeError)
+    @testrunner.mark.xfail(raises=RuntimeError)
     def test_function(): ...
 
 Then the test will be reported as a regular failure if it fails with an
@@ -308,7 +308,7 @@ be executed, use the ``run`` parameter as ``False``:
 
 .. code-block:: python
 
-    @pytest.mark.xfail(run=False)
+    @testrunner.mark.xfail(run=False)
     def test_function(): ...
 
 This is particularly useful for xfailing tests that are crashing the interpreter and should be
@@ -324,7 +324,7 @@ You can change this by setting the ``strict`` keyword-only parameter to ``True``
 
 .. code-block:: python
 
-    @pytest.mark.xfail(strict=True)
+    @testrunner.mark.xfail(strict=True)
     def test_function(): ...
 
 
@@ -337,14 +337,14 @@ You can change the default value of the ``strict`` parameter using the
 
     .. code-block:: toml
 
-        [pytest]
+        [testrunner]
         xfail_strict = true
 
 .. tab:: ini
 
     .. code-block:: ini
 
-        [pytest]
+        [testrunner]
         strict_xfail = true
 
 
@@ -355,10 +355,10 @@ By specifying on the commandline:
 
 .. code-block:: bash
 
-    pytest --runxfail
+    testrunner --runxfail
 
 you can force the running and reporting of an ``xfail`` marked test
-as if it weren't marked at all. This also causes :func:`pytest.xfail` to produce no effect.
+as if it weren't marked at all. This also causes :func:`testrunner.xfail` to produce no effect.
 
 Examples
 ~~~~~~~~
@@ -370,14 +370,14 @@ Here is a simple test file with the several usages:
 Running it with the report-on-xfail option gives this output:
 
 .. FIXME: Use $ instead of ! again to re-enable regendoc once it's fixed:
-   https://github.com/pytest-dev/pytest/issues/8807
+   https://github.com/jacksonsr451/test-runner/issues/8807
 
-.. code-block:: pytest
+.. code-block:: testrunner
 
-    ! pytest -rx xfail_demo.py
+    ! testrunner -rx xfail_demo.py
     =========================== test session starts ============================
-    platform linux -- Python 3.x.y, pytest-6.x.y, py-1.x.y, pluggy-1.x.y
-    cachedir: $PYTHON_PREFIX/.pytest_cache
+    platform linux -- Python 3.x.y, testrunner-6.x.y, py-1.x.y, pluggy-1.x.y
+    cachedir: $PYTHON_PREFIX/.testrunner_cache
     rootdir: $REGENDOC_TMPDIR/example
     collected 7 items
 
@@ -392,7 +392,7 @@ Running it with the report-on-xfail option gives this output:
     XFAIL xfail_demo.py::test_hello4
       bug 110
     XFAIL xfail_demo.py::test_hello5
-      condition: pytest.__version__[0] != "17"
+      condition: testrunner.__version__[0] != "17"
     XFAIL xfail_demo.py::test_hello6
       reason: reason
     XFAIL xfail_demo.py::test_hello7
@@ -410,20 +410,20 @@ test instances when using parametrize:
 
     import sys
 
-    import pytest
+    import testrunner
 
 
-    @pytest.mark.parametrize(
+    @testrunner.mark.parametrize(
         ("n", "expected"),
         [
             (1, 2),
-            pytest.param(1, 0, marks=pytest.mark.xfail),
-            pytest.param(1, 3, marks=pytest.mark.xfail(reason="some bug")),
+            testrunner.param(1, 0, marks=testrunner.mark.xfail),
+            testrunner.param(1, 3, marks=testrunner.mark.xfail(reason="some bug")),
             (2, 3),
             (3, 4),
             (4, 5),
-            pytest.param(
-                10, 11, marks=pytest.mark.skipif(sys.version_info >= (3, 0), reason="py2k")
+            testrunner.param(
+                10, 11, marks=testrunner.mark.skipif(sys.version_info >= (3, 0), reason="py2k")
             ),
         ],
     )
