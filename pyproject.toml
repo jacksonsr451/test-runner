@@ -618,6 +618,10 @@ filterwarnings = [
     'ignore:The distutils package is deprecated:DeprecationWarning',
     # produced by testrunner-xdist
     'ignore:.*type argument to addoption.*:DeprecationWarning',
+    # Hypothesis performs a slow initialization step when loaded through the
+    # pytest11 entry-point protocol. This is an external plugin warning, not a
+    # TestRunner warning or a test failure.
+    'ignore::hypothesis.errors.HypothesisSideeffectWarning',
     # produced on execnet (testrunner-xdist)
     'ignore:.*inspect.getargspec.*deprecated, use inspect.signature.*:DeprecationWarning',
     # testrunner's own futurewarnings
