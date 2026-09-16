@@ -23,6 +23,13 @@ class PytestCompatibilityPlugin:
         return config.hook.testrunner_report_from_serializable(config=config, data=data)
 
     @hookimpl
+    def pytest_runtest_makereport(self, item: Any, call: Any) -> Any:
+        config = self.config
+        if config is None:
+            return None
+        return config.hook.testrunner_runtest_makereport(item=item, call=call)
+
+    @hookimpl
     def pytest_runtest_logstart(self, nodeid: str, location: Any) -> None:
         config = self.config
         if config is None:
