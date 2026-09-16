@@ -184,6 +184,16 @@ def testrunner_pyfunc_call(pyfuncitem: Function) -> object | None:
         return result
     testfunction = pyfuncitem.obj
     if is_async_function(testfunction):
+        if pyfuncitem.get_closest_marker("anyio") is not None:
+            import anyio
+            from functools import partial
+
+            funcargs = pyfuncitem.funcargs
+            testargs = {
+                arg: funcargs[arg] for arg in pyfuncitem._fixtureinfo.argnames
+            }
+            anyio.run(partial(testfunction, **testargs), backend="asyncio")
+            return True
         async_fail(pyfuncitem.nodeid)
     funcargs = pyfuncitem.funcargs
     testargs = {arg: funcargs[arg] for arg in pyfuncitem._fixtureinfo.argnames}
