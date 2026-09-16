@@ -348,7 +348,8 @@ apply a marker to an individual test instance:
 
     @testrunner.mark.foo
     @testrunner.mark.parametrize(
-        ("n", "expected"), [(1, 2), testrunner.param(1, 3, marks=testrunner.mark.bar), (2, 3)]
+        ("n", "expected"),
+        [(1, 2), testrunner.param(1, 3, marks=testrunner.mark.bar), (2, 3)],
     )
     def test_increment(n, expected):
         assert n + 1 == expected

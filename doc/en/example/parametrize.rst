@@ -619,7 +619,10 @@ For example:
             testrunner.param("1+7", 8, marks=testrunner.mark.basic),
             testrunner.param("2+4", 6, marks=testrunner.mark.basic, id="basic_2+4"),
             testrunner.param(
-                "6*9", 42, marks=[testrunner.mark.basic, testrunner.mark.xfail], id="basic_6*9"
+                "6*9",
+                42,
+                marks=[testrunner.mark.basic, testrunner.mark.xfail],
+                id="basic_6*9",
             ),
         ],
     )

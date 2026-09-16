@@ -27,7 +27,6 @@ release = ".".join(version.split(".")[:2])
 
 root_doc = "index"
 extensions = [
-    "pygments_testrunner",
     "sphinx.ext.autodoc",
     "sphinx.ext.autosummary",
     "sphinx.ext.intersphinx",
@@ -194,7 +193,13 @@ htmlhelp_basename = "testrunnerdoc"
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-manual-page-output
 
 man_pages = [
-    ("how-to/usage", "testrunner", "testrunner usage", ["holger krekel at merlinux eu"], 1)
+    (
+        "how-to/usage",
+        "testrunner",
+        "testrunner usage",
+        ["holger krekel at merlinux eu"],
+        1,
+    )
 ]
 
 # -- Options for epub output ----------------------------------------------------------

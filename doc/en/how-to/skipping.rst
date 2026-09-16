@@ -91,7 +91,9 @@ when run on an interpreter earlier than Python3.13:
     import sys
 
 
-    @testrunner.mark.skipif(sys.version_info < (3, 13), reason="requires python3.13 or higher")
+    @testrunner.mark.skipif(
+        sys.version_info < (3, 13), reason="requires python3.13 or higher"
+    )
     def test_function(): ...
 
 If the condition evaluates to ``True`` during collection, the test function will be skipped,
@@ -208,7 +210,9 @@ Here's a quick guide on how to skip tests in a module in different situations:
 
   .. code-block:: python
 
-        _testrunner_mark = testrunner.mark.skipif(sys.platform == "win32", reason="tests for linux only")
+        _testrunner_mark = testrunner.mark.skipif(
+            sys.platform == "win32", reason="tests for linux only"
+        )
 
 3. Skip all tests in a module if some import is missing:
 
@@ -423,7 +427,9 @@ test instances when using parametrize:
             (3, 4),
             (4, 5),
             testrunner.param(
-                10, 11, marks=testrunner.mark.skipif(sys.version_info >= (3, 0), reason="py2k")
+                10,
+                11,
+                marks=testrunner.mark.skipif(sys.version_info >= (3, 0), reason="py2k"),
             ),
         ],
     )

@@ -191,7 +191,9 @@ Add warning filters to marked test items.
 
         .. code-block:: python
 
-            @testrunner.mark.filterwarnings(r"ignore:.*usage will be deprecated.*:DeprecationWarning")
+            @testrunner.mark.filterwarnings(
+                r"ignore:.*usage will be deprecated.*:DeprecationWarning"
+            )
             def test_foo(): ...
 
 
