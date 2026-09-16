@@ -22,31 +22,6 @@ class PytestCompatibilityPlugin:
     def pytest_report_from_serializable(self, config: Any, data: dict[str, Any]) -> Any:
         return config.hook.testrunner_report_from_serializable(config=config, data=data)
 
-    @hookimpl(tryfirst=True)
-    def testrunner_pyfunc_call(self, pyfuncitem: Any) -> Any:
-        from _testrunner.compat import is_async_function
-        from _testrunner.mark.structures import get_unpacked_marks
-
-        testfunction = pyfuncitem.obj
-        if not is_async_function(testfunction):
-            return None
-        if not (
-            pyfuncitem.get_closest_marker("anyio") is not None
-            or "anyio" in pyfuncitem.keywords
-            or any(mark.name == "anyio" for mark in get_unpacked_marks(testfunction))
-        ):
-            return pyfuncitem.config.hook.pytest_pyfunc_call(pyfuncitem=pyfuncitem)
-
-        import anyio
-        from functools import partial
-
-        funcargs = pyfuncitem.funcargs
-        testargs = {
-            arg: funcargs[arg] for arg in pyfuncitem._fixtureinfo.argnames
-        }
-        anyio.run(partial(testfunction, **testargs), backend="asyncio")
-        return True
-
     @hookimpl(trylast=True)
     def pytest_runtest_makereport(self, item: Any, call: Any) -> Any:
         config = self.config
