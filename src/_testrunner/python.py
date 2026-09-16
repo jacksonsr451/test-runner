@@ -156,6 +156,7 @@ def testrunner_configure(config: Config) -> None:
         "see https://github.com/jacksonsr451/test-runner/tree/main/doc/en/how-to/parametrize.html for more info "
         "and examples.",
     )
+    config.pluginmanager.register(_AnyioPyfuncPlugin(), "_testrunner_anyio")
     config.addinivalue_line(
         "markers",
         "usefixtures(fixturename1, fixturename2, ...): mark tests as needing "
@@ -177,6 +178,29 @@ def async_fail(nodeid: str) -> None:
     fail(msg, pytrace=False)
 
 
+class _AnyioPyfuncPlugin:
+    @hookimpl(tryfirst=True)
+    def testrunner_pyfunc_call(self, pyfuncitem: Function) -> object | None:
+        testfunction = pyfuncitem.obj
+        if not is_async_function(testfunction):
+            return None
+        if not (
+            pyfuncitem.get_closest_marker("anyio") is not None
+            or "anyio" in pyfuncitem.keywords
+            or any(mark.name == "anyio" for mark in get_unpacked_marks(testfunction))
+        ):
+            return pyfuncitem.config.hook.pytest_pyfunc_call(pyfuncitem=pyfuncitem)
+
+        import anyio
+
+        funcargs = pyfuncitem.funcargs
+        testargs = {
+            arg: funcargs[arg] for arg in pyfuncitem._fixtureinfo.argnames
+        }
+        anyio.run(partial(testfunction, **testargs), backend="asyncio")
+        return True
+
+
 @hookimpl(trylast=True)
 def testrunner_pyfunc_call(pyfuncitem: Function) -> object | None:
     result = pyfuncitem.config.hook.pytest_pyfunc_call(pyfuncitem=pyfuncitem)
@@ -184,19 +208,6 @@ def testrunner_pyfunc_call(pyfuncitem: Function) -> object | None:
         return result
     testfunction = pyfuncitem.obj
     if is_async_function(testfunction):
-        if (
-            pyfuncitem.get_closest_marker("anyio") is not None
-            or "anyio" in pyfuncitem.keywords
-        ):
-            import anyio
-            from functools import partial
-
-            funcargs = pyfuncitem.funcargs
-            testargs = {
-                arg: funcargs[arg] for arg in pyfuncitem._fixtureinfo.argnames
-            }
-            anyio.run(partial(testfunction, **testargs), backend="asyncio")
-            return True
         async_fail(pyfuncitem.nodeid)
     funcargs = pyfuncitem.funcargs
     testargs = {arg: funcargs[arg] for arg in pyfuncitem._fixtureinfo.argnames}
