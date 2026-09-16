@@ -22,7 +22,7 @@ class PytestCompatibilityPlugin:
     def pytest_report_from_serializable(self, config: Any, data: dict[str, Any]) -> Any:
         return config.hook.testrunner_report_from_serializable(config=config, data=data)
 
-    @hookimpl
+    @hookimpl(trylast=True)
     def pytest_runtest_makereport(self, item: Any, call: Any) -> Any:
         config = self.config
         if config is None:
