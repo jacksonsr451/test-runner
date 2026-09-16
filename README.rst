@@ -155,7 +155,7 @@ If you have found an issue that you believe is a security vulnerability, please 
 License
 -------
 
-Copyright Holger Krekel and others, 2004.
+Copyright Jackson Severino da Rocha and others, 2026.
 
 Distributed under the terms of the `MIT`_ license, testrunner is free and open source software.
 
