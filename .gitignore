@@ -58,3 +58,7 @@ pip-wheel-metadata/
 
 # testrunner debug logs generated via --debug
 testrunnerdebug.log
+
+.ci-dist-check/
+.ci-clean-venv
+.ci-clean-venv-*

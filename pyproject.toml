@@ -15,6 +15,9 @@ keywords = [
 ]
 license = "MIT"
 license-files = [ "LICENSE" ]
+maintainers = [
+    { name = "Jackson Severino da Rocha" },
+]
 authors = [
     { name = "Brianna Laugher" },
     { name = "Bruno Oliveira" },
@@ -24,9 +27,6 @@ authors = [
     { name = "Jackson Severino da Rocha" },
     { name = "Others (See AUTHORS)" },
     { name = "Ronny Pfannschmidt" },
-]
-maintainers = [
-    { name = "Jackson Severino da Rocha" },
 ]
 requires-python = ">=3.10"
 classifiers = [
@@ -422,94 +422,6 @@ ignore = "W009"
 indent = 4
 max_supported_python = "3.15"
 
-[tool.testrunner]
-minversion = "2.0"
-addopts = [ "-rfEX", "-p", "testrunnerer" ]
-python_files = [
-    "test_*.py",
-    "*_test.py",
-    "testing/python/*.py",
-]
-python_classes = [
-    "Test",
-    "Acceptance",
-]
-python_functions = [
-    "test",
-]
-# NOTE: "doc" is not included here, but gets tested explicitly via "doctesting".
-testpaths = [
-    "testing",
-]
-norecursedirs = [
-    "testing/example_scripts",
-    "testing/plugins_integration",
-    ".*",
-    "build",
-    "dist",
-]
-strict = true
-filterwarnings = [
-    'error',
-    'default:Using or importing the ABCs:DeprecationWarning:unittest2.*',
-    # produced by older pyparsing<=2.2.0.
-    'default:Using or importing the ABCs:DeprecationWarning:pyparsing.*',
-    'default:the imp module is deprecated in favour of importlib:DeprecationWarning:nose.*',
-    # distutils is deprecated in 3.10, scheduled for removal in 3.12
-    'ignore:The distutils package is deprecated:DeprecationWarning',
-    # produced by testrunner-xdist
-    'ignore:.*type argument to addoption.*:DeprecationWarning',
-    # produced on execnet (testrunner-xdist)
-    'ignore:.*inspect.getargspec.*deprecated, use inspect.signature.*:DeprecationWarning',
-    # testrunner's own futurewarnings
-    'ignore::testrunner.TestrunnerExperimentalApiWarning',
-    # Do not cause SyntaxError for invalid escape sequences in py37.
-    # Those are caught/handled by pyupgrade, and not easy to filter with the
-    # module being the filename (with .py removed).
-    'default:invalid escape sequence:DeprecationWarning',
-    # ignore not yet fixed warnings for hook markers
-    'default:.*not marked using testrunner.hook.*',
-    'ignore:.*not marked using testrunner.hook.*::xdist.*',
-    # ignore use of unregistered marks, because we use many to test the implementation
-    'ignore::_testrunner.warning_types.TestrunnerUnknownMarkWarning',
-    # https://github.com/benjaminp/six/issues/341
-    'ignore:_SixMetaPathImporter\.exec_module\(\) not found; falling back to load_module\(\):ImportWarning',
-    # https://github.com/benjaminp/six/pull/352
-    'ignore:_SixMetaPathImporter\.find_spec\(\) not found; falling back to find_module\(\):ImportWarning',
-    # https://github.com/pypa/setuptools/pull/2517
-    'ignore:VendorImporter\.find_spec\(\) not found; falling back to find_module\(\):ImportWarning',
-    # https://github.com/testrunner-dev/execnet/pull/127
-    'ignore:isSet\(\) is deprecated, use is_set\(\) instead:DeprecationWarning',
-    # https://github.com/jacksonsr451/test-runner/issues/2366
-    # https://github.com/jacksonsr451/test-runner/pull/13057
-    'default::testrunner.TestrunnerFDWarning',
-    # https://github.com/pexpect/pexpect/issues/827
-    # CPython emits this from os.forkpty() with stacklevel=1, so it is attributed
-    # to stdlib pty (caller of os.forkpty via pty.fork), not ptyprocess. Match on
-    # message only: module attribution must not be required if stacklevel changes.
-    # Becomes a hard failure under filterwarnings=error only on 3.15+
-    # (python/cpython#136796 stopped clearing the warning). Often seen on macOS
-    # because Mach task_threads counts extra runtime threads.
-    'ignore:.*use of forkpty\(\) may lead to deadlocks in the child:DeprecationWarning',
-]
-testrunnerer_example_dir = "testing/example_scripts"
-markers = [
-    # dummy markers for testing
-    "foo",
-    "bar",
-    "baz",
-    "number_mark",
-    "builtin_matchers_mark",
-    "str_mark",
-    # conftest.py reorders tests moving slow ones to the end of the list
-    "slow",
-    # experimental mark for all tests using pexpect
-    "uses_pexpect",
-    # Disables the `remove_ci_env_var` autouse fixture on a given test that
-    # actually inspects whether the CI environment variable is set.
-    "keep_ci_var",
-]
-
 [tool.coverage.paths]
 source = [
     'src/',
@@ -668,3 +580,91 @@ pythonVersion = "3.10"
 typeCheckingMode = "basic"
 reportMissingImports = "none"
 reportMissingModuleSource = "none"
+
+[tool.testrunner]
+minversion = "2.0"
+addopts = [ "-rfEX", "-p", "testrunnerer" ]
+python_files = [
+    "test_*.py",
+    "*_test.py",
+    "testing/python/*.py",
+]
+python_classes = [
+    "Test",
+    "Acceptance",
+]
+python_functions = [
+    "test",
+]
+# NOTE: "doc" is not included here, but gets tested explicitly via "doctesting".
+testpaths = [
+    "testing",
+]
+norecursedirs = [
+    "testing/example_scripts",
+    "testing/plugins_integration",
+    ".*",
+    "build",
+    "dist",
+]
+strict = true
+filterwarnings = [
+    'error',
+    'default:Using or importing the ABCs:DeprecationWarning:unittest2.*',
+    # produced by older pyparsing<=2.2.0.
+    'default:Using or importing the ABCs:DeprecationWarning:pyparsing.*',
+    'default:the imp module is deprecated in favour of importlib:DeprecationWarning:nose.*',
+    # distutils is deprecated in 3.10, scheduled for removal in 3.12
+    'ignore:The distutils package is deprecated:DeprecationWarning',
+    # produced by testrunner-xdist
+    'ignore:.*type argument to addoption.*:DeprecationWarning',
+    # produced on execnet (testrunner-xdist)
+    'ignore:.*inspect.getargspec.*deprecated, use inspect.signature.*:DeprecationWarning',
+    # testrunner's own futurewarnings
+    'ignore::testrunner.TestrunnerExperimentalApiWarning',
+    # Do not cause SyntaxError for invalid escape sequences in py37.
+    # Those are caught/handled by pyupgrade, and not easy to filter with the
+    # module being the filename (with .py removed).
+    'default:invalid escape sequence:DeprecationWarning',
+    # ignore not yet fixed warnings for hook markers
+    'default:.*not marked using testrunner.hook.*',
+    'ignore:.*not marked using testrunner.hook.*::xdist.*',
+    # ignore use of unregistered marks, because we use many to test the implementation
+    'ignore::_testrunner.warning_types.TestrunnerUnknownMarkWarning',
+    # https://github.com/benjaminp/six/issues/341
+    'ignore:_SixMetaPathImporter\.exec_module\(\) not found; falling back to load_module\(\):ImportWarning',
+    # https://github.com/benjaminp/six/pull/352
+    'ignore:_SixMetaPathImporter\.find_spec\(\) not found; falling back to find_module\(\):ImportWarning',
+    # https://github.com/pypa/setuptools/pull/2517
+    'ignore:VendorImporter\.find_spec\(\) not found; falling back to find_module\(\):ImportWarning',
+    # https://github.com/testrunner-dev/execnet/pull/127
+    'ignore:isSet\(\) is deprecated, use is_set\(\) instead:DeprecationWarning',
+    # https://github.com/jacksonsr451/test-runner/issues/2366
+    # https://github.com/jacksonsr451/test-runner/pull/13057
+    'default::testrunner.TestrunnerFDWarning',
+    # https://github.com/pexpect/pexpect/issues/827
+    # CPython emits this from os.forkpty() with stacklevel=1, so it is attributed
+    # to stdlib pty (caller of os.forkpty via pty.fork), not ptyprocess. Match on
+    # message only: module attribution must not be required if stacklevel changes.
+    # Becomes a hard failure under filterwarnings=error only on 3.15+
+    # (python/cpython#136796 stopped clearing the warning). Often seen on macOS
+    # because Mach task_threads counts extra runtime threads.
+    'ignore:.*use of forkpty\(\) may lead to deadlocks in the child:DeprecationWarning',
+]
+testrunnerer_example_dir = "testing/example_scripts"
+markers = [
+    # dummy markers for testing
+    "foo",
+    "bar",
+    "baz",
+    "number_mark",
+    "builtin_matchers_mark",
+    "str_mark",
+    # conftest.py reorders tests moving slow ones to the end of the list
+    "slow",
+    # experimental mark for all tests using pexpect
+    "uses_pexpect",
+    # Disables the `remove_ci_env_var` autouse fixture on a given test that
+    # actually inspects whether the CI environment variable is set.
+    "keep_ci_var",
+]
