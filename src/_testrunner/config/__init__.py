@@ -111,12 +111,27 @@ def _pytest_hookspecs() -> types.SimpleNamespace:
         pytest_name = "pytest_" + name.removeprefix("testrunner_")
 
         parameters = []
+        keyword_only = False
+        positional_only = True
         for parameter in inspect.signature(function).parameters.values():
+            if parameter.kind is inspect.Parameter.POSITIONAL_ONLY:
+                parameters.append(parameter.name)
+                continue
+            if positional_only and parameters:
+                parameters.append("/")
+                positional_only = False
+            if parameter.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD:
+                parameters.append(parameter.name)
+                continue
             if parameter.kind is inspect.Parameter.VAR_POSITIONAL:
                 parameters.append("*" + parameter.name)
+                keyword_only = True
             elif parameter.kind is inspect.Parameter.VAR_KEYWORD:
                 parameters.append("**" + parameter.name)
             else:
+                if not keyword_only:
+                    parameters.append("*")
+                    keyword_only = True
                 parameters.append(parameter.name)
         namespace: dict[str, Any] = {}
         exec(
