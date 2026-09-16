@@ -591,6 +591,11 @@ class TestrunnerPluginManager(PluginManager):
 
         marker = "testrunner_impl" if is_testrunner_hook else "pytest_impl"
         opts = getattr(method, marker, None)
+        if opts is None and is_pytest_hook:
+            # ``hookimpl`` is the public TestRunner marker and therefore stores
+            # its options under ``testrunner_impl`` even for pytest-prefixed
+            # compatibility hooks.
+            opts = getattr(method, "testrunner_impl", None)
         if opts is None and is_testrunner_hook:
             opts = getattr(method, "pytest_impl", None)
         if opts is not None:
