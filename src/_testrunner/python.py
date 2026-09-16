@@ -179,6 +179,9 @@ def async_fail(nodeid: str) -> None:
 
 @hookimpl(trylast=True)
 def testrunner_pyfunc_call(pyfuncitem: Function) -> object | None:
+    result = pyfuncitem.config.hook.pytest_pyfunc_call(pyfuncitem=pyfuncitem)
+    if result is not None:
+        return result
     testfunction = pyfuncitem.obj
     if is_async_function(testfunction):
         async_fail(pyfuncitem.nodeid)

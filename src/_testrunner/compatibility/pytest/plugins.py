@@ -29,13 +29,6 @@ class PytestCompatibilityPlugin:
             return None
         return config.hook.testrunner_runtest_makereport(item=item, call=call)
 
-    @hookimpl(trylast=True)
-    def pytest_pyfunc_call(self, pyfuncitem: Any) -> Any:
-        config = self.config
-        if config is None:
-            return None
-        return config.hook.testrunner_pyfunc_call(pyfuncitem=pyfuncitem)
-
     @hookimpl
     def pytest_runtest_logstart(self, nodeid: str, location: Any) -> None:
         config = self.config
