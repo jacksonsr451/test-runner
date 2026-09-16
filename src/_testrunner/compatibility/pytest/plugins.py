@@ -12,13 +12,13 @@ class PytestCompatibilityPlugin:
 
     config: Any | None = None
 
-    @hookimpl
+    @hookimpl(optionalhook=True)
     def pytest_report_to_serializable(self, config: Any, report: Any) -> Any:
         return config.hook.testrunner_report_to_serializable(
             config=config, report=report
         )
 
-    @hookimpl
+    @hookimpl(optionalhook=True)
     def pytest_report_from_serializable(self, config: Any, data: dict[str, Any]) -> Any:
         return config.hook.testrunner_report_from_serializable(config=config, data=data)
 

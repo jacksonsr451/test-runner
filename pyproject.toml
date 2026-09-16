@@ -619,9 +619,9 @@ filterwarnings = [
     # produced by testrunner-xdist
     'ignore:.*type argument to addoption.*:DeprecationWarning',
     # Hypothesis performs a slow initialization step when loaded through the
-    # pytest11 entry-point protocol. This is an external plugin warning, not a
-    # TestRunner warning or a test failure.
-    'ignore::hypothesis.errors.HypothesisSideeffectWarning',
+    # pytest11 entry-point protocol. Match the warning text so this config does
+    # not import the optional hypothesis package in the frozen environment.
+    'ignore:Slow code in plugin:Warning',
     # produced on execnet (testrunner-xdist)
     'ignore:.*inspect.getargspec.*deprecated, use inspect.signature.*:DeprecationWarning',
     # testrunner's own futurewarnings
