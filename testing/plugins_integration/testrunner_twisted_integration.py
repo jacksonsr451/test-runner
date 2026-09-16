@@ -1,7 +1,7 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
-import testrunner_twisted
+import pytest_twisted as testrunner_twisted
 from twisted.internet.task import deferLater
 
 

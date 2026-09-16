@@ -1053,11 +1053,15 @@ class Session(nodes.Collector):
 
     def genitems(self, node: nodes.Item | nodes.Collector) -> Iterator[nodes.Item]:
         self.trace("genitems", node)
-        if isinstance(node, nodes.Item):
+        if not hasattr(node, "id") and hasattr(node, "nodeid"):
+            node.id = node.nodeid
+        if isinstance(node, nodes.Item) or (
+            not isinstance(node, nodes.Collector) and hasattr(node, "runtest")
+        ):
             node.ihook.testrunner_itemcollected(item=node)
             yield node
         else:
-            assert isinstance(node, nodes.Collector)
+            assert isinstance(node, nodes.Collector) or hasattr(node, "collect")
             # For backward compat, dedup only applies to files.
             handle_dupes = not isinstance(node, nodes.File)
             rep, duplicate = self._collect_one_node(node, handle_dupes)

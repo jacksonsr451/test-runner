@@ -374,7 +374,9 @@ class LFPlugin:
             report_id = report.id
             if report_id in self.lastfailed:
                 self.lastfailed.pop(report_id)
-                self.lastfailed.update((item.id, True) for item in report.result)
+                self.lastfailed.update(
+                    (getattr(item, "id", item.nodeid), True) for item in report.result
+                )
         else:
             self.lastfailed[report.id] = True
 
@@ -391,7 +393,7 @@ class LFPlugin:
             previously_failed = []
             previously_passed = []
             for item in items:
-                if item.id in self.lastfailed:
+                if getattr(item, "id", item.nodeid) in self.lastfailed:
                     previously_failed.append(item)
                 else:
                     previously_passed.append(item)
@@ -463,17 +465,20 @@ class NFPlugin:
             new_items: dict[NodeId, nodes.Item] = {}
             other_items: dict[NodeId, nodes.Item] = {}
             for item in items:
-                if item.id not in self.cached_nodeids:
-                    new_items[item.id] = item
+                item_id = getattr(item, "id", item.nodeid)
+                if item_id not in self.cached_nodeids:
+                    new_items[item_id] = item
                 else:
-                    other_items[item.id] = item
+                    other_items[item_id] = item
 
             items[:] = self._get_increasing_order(
                 new_items.values()
             ) + self._get_increasing_order(other_items.values())
             self.cached_nodeids.update(new_items)
         else:
-            self.cached_nodeids.update(item.id for item in items)
+            self.cached_nodeids.update(
+                getattr(item, "id", item.nodeid) for item in items
+            )
 
         return res
 
