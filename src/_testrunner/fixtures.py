@@ -189,7 +189,10 @@ def get_scope_node(node: nodes.Node, scope: Scope) -> nodes.Node | None:
 # TODO: Try to use FixtureFunctionDefinition instead of the marker
 def getfixturemarker(obj: object) -> FixtureFunctionMarker | None:
     """Return fixturemarker or None if it doesn't exist"""
-    if isinstance(obj, FixtureFunctionDefinition):
+    if isinstance(obj, FixtureFunctionDefinition) or (
+        type(obj).__name__ == "FixtureFunctionDefinition"
+        and hasattr(obj, "_fixture_function_marker")
+    ):
         return obj._fixture_function_marker
     return None
 
@@ -1647,6 +1650,12 @@ def testrunnerconfig(request: FixtureRequest) -> Config:
     return request.config
 
 
+@fixture(scope="session")
+def pytestconfig(request: FixtureRequest) -> Config:
+    """Compatibility alias for plugins that request pytest's config fixture."""
+    return request.config
+
+
 def testrunner_addoption(parser: Parser) -> None:
     parser.addini(
         "usefixtures",
@@ -2308,7 +2317,10 @@ class FixtureManager:
             # The attribute can be an arbitrary descriptor, so the attribute
             # access below can raise. safe_getattr() ignores such exceptions.
             obj_ub = safe_getattr(holderobj_tp, name, None)
-            if type(obj_ub) is FixtureFunctionDefinition:
+            if isinstance(obj_ub, FixtureFunctionDefinition) or (
+                type(obj_ub).__name__ == "FixtureFunctionDefinition"
+                and hasattr(obj_ub, "_fixture_function_marker")
+            ):
                 # On Python 3.9-3.12, classmethod chains through descriptors, so
                 # getattr may return a FixtureFunctionDefinition even when the
                 # raw __dict__ entry is classmethod(fixture). Do not register
