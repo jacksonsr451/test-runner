@@ -110,15 +110,20 @@ def _pytest_hookspecs() -> types.SimpleNamespace:
             continue
         pytest_name = "pytest_" + name.removeprefix("testrunner_")
 
-        if pytest_name == "pytest_report_to_serializable":
-            def spec(config: Any, report: Any) -> None:
-                pass
-        elif pytest_name == "pytest_report_from_serializable":
-            def spec(config: Any, data: Any) -> None:
-                pass
-        else:
-            def spec(*args: Any, **kwargs: Any) -> None:
-                pass
+        parameters = []
+        for parameter in inspect.signature(function).parameters.values():
+            if parameter.kind is inspect.Parameter.VAR_POSITIONAL:
+                parameters.append("*" + parameter.name)
+            elif parameter.kind is inspect.Parameter.VAR_KEYWORD:
+                parameters.append("**" + parameter.name)
+            else:
+                parameters.append(parameter.name)
+        namespace: dict[str, Any] = {}
+        exec(
+            "def spec(" + ", ".join(parameters) + "): pass",
+            namespace,
+        )
+        spec = namespace["spec"]
 
         spec.__name__ = pytest_name
         spec.__doc__ = function.__doc__
