@@ -12,9 +12,9 @@ from _testrunner.monkeypatch import MonkeyPatch
 import _testrunner.testrunnerer as testrunnerer_mod
 from _testrunner.testrunnerer import HookRecorder
 from _testrunner.testrunnerer import LineMatcher
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.testrunnerer import SysModulesSnapshot
 from _testrunner.testrunnerer import SysPathsSnapshot
+from _testrunner.testrunnerer import Testrunnerer
 import _testrunner.timing
 import testrunner
 
@@ -150,7 +150,9 @@ def test_runresult_assertion_on_xpassed(testrunnerer: Testrunnerer) -> None:
     assert result.ret == 0
 
 
-def test_xpassed_with_strict_is_considered_a_failure(testrunnerer: Testrunnerer) -> None:
+def test_xpassed_with_strict_is_considered_a_failure(
+    testrunnerer: Testrunnerer,
+) -> None:
     testrunnerer.makepyfile(
         """
         import testrunner
@@ -219,7 +221,9 @@ def test_makepyfile_utf8(testrunnerer: Testrunnerer) -> None:
 
 
 class TestInlineRunModulesCleanup:
-    def test_inline_run_test_module_not_cleaned_up(self, testrunnerer: Testrunnerer) -> None:
+    def test_inline_run_test_module_not_cleaned_up(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         test_mod = testrunnerer.makepyfile("def test_foo(): assert True")
         result = testrunnerer.inline_run(str(test_mod))
         assert result.ret == ExitCode.OK
@@ -421,7 +425,9 @@ def test_testrunnerer_subprocess(testrunnerer: Testrunnerer) -> None:
     assert testrunnerer.runtestrunner_subprocess(testfile).ret == 0
 
 
-def test_testrunnerer_subprocess_via_runtestrunner_arg(testrunnerer: Testrunnerer) -> None:
+def test_testrunnerer_subprocess_via_runtestrunner_arg(
+    testrunnerer: Testrunnerer,
+) -> None:
     testfile = testrunnerer.makepyfile(
         """
         def test_testrunnerer_subprocess(testrunnerer):
@@ -611,7 +617,9 @@ def test_linematcher_string_api() -> None:
     assert str(lm) == "foo\nbar"
 
 
-def test_testrunner_addopts_before_testrunnerer(request, monkeypatch: MonkeyPatch) -> None:
+def test_testrunner_addopts_before_testrunnerer(
+    request, monkeypatch: MonkeyPatch
+) -> None:
     monkeypatch.setenv("TESTRUNNER_ADDOPTS", "--orig-unused")
     _: Testrunnerer = request.getfixturevalue("testrunnerer")
     assert "TESTRUNNER_ADDOPTS" not in os.environ
@@ -842,7 +850,9 @@ def test_testrunnerer_outcomes_deselected(testrunnerer: Testrunnerer) -> None:
     result.assert_outcomes(passed=1)
 
 
-def test_testrunnerer_subprocess_with_string_plugins(testrunnerer: Testrunnerer) -> None:
+def test_testrunnerer_subprocess_with_string_plugins(
+    testrunnerer: Testrunnerer,
+) -> None:
     """Test that testrunnerer.runtestrunner_subprocess is OK with named (string)
     `.plugins`."""
     testrunnerer.plugins = ["testrunnerer"]
@@ -851,7 +861,9 @@ def test_testrunnerer_subprocess_with_string_plugins(testrunnerer: Testrunnerer)
     assert result.ret == ExitCode.NO_TESTS_COLLECTED
 
 
-def test_testrunnerer_subprocess_with_non_string_plugins(testrunnerer: Testrunnerer) -> None:
+def test_testrunnerer_subprocess_with_non_string_plugins(
+    testrunnerer: Testrunnerer,
+) -> None:
     """Test that testrunnerer.runtestrunner_subprocess fails with a proper error given
     non-string `.plugins`."""
 

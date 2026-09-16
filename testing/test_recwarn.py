@@ -649,7 +649,9 @@ def test_multiple_arg_custom_warning() -> None:
             pass
 
     with testrunner.warns(CustomWarning):
-        with testrunner.raises(testrunner.fail.Exception, match="Regex pattern did not match"):
+        with testrunner.raises(
+            testrunner.fail.Exception, match="Regex pattern did not match"
+        ):
             with testrunner.warns(CustomWarning, match="not gonna match"):
                 a, b = 1, 2
                 warnings.warn(CustomWarning(a, b))

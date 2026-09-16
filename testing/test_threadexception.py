@@ -4,7 +4,9 @@ from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
-@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "default::testrunner.TestrunnerUnhandledThreadExceptionWarning"
+)
 def test_unhandled_thread_exception(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it="""
@@ -38,7 +40,9 @@ def test_unhandled_thread_exception(testrunnerer: Testrunnerer) -> None:
     )
 
 
-@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "default::testrunner.TestrunnerUnhandledThreadExceptionWarning"
+)
 def test_unhandled_thread_exception_in_setup(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it="""
@@ -74,7 +78,9 @@ def test_unhandled_thread_exception_in_setup(testrunnerer: Testrunnerer) -> None
     )
 
 
-@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "default::testrunner.TestrunnerUnhandledThreadExceptionWarning"
+)
 def test_unhandled_thread_exception_in_teardown(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it="""
@@ -111,7 +117,9 @@ def test_unhandled_thread_exception_in_teardown(testrunnerer: Testrunnerer) -> N
     )
 
 
-@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "error::testrunner.TestrunnerUnhandledThreadExceptionWarning"
+)
 def test_unhandled_thread_exception_warning_error(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it="""
@@ -133,7 +141,9 @@ def test_unhandled_thread_exception_warning_error(testrunnerer: Testrunnerer) ->
     result.assert_outcomes(passed=1, failed=1)
 
 
-@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "error::testrunner.TestrunnerUnhandledThreadExceptionWarning"
+)
 def test_threadexception_warning_multiple_errors(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it="""
@@ -220,7 +230,9 @@ def test_unhandled_thread_exception_after_teardown(testrunnerer: Testrunnerer) -
     result.stderr.fnmatch_lines("ValueError: Oops")
 
 
-@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnhandledThreadExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "error::testrunner.TestrunnerUnhandledThreadExceptionWarning"
+)
 def test_possibly_none_excinfo(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it="""

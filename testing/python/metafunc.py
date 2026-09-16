@@ -22,10 +22,10 @@ from _testrunner.compat import NOTSET
 from _testrunner.nodeid import NodeId
 from _testrunner.outcomes import fail
 from _testrunner.outcomes import Failed
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.python import Function
 from _testrunner.python import IdMaker
 from _testrunner.scope import Scope
+from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
@@ -167,7 +167,9 @@ class TestMetafunc:
         with testrunner.raises(testrunner.Collector.CollectError):
             metafunc.parametrize("y", [5, 6])
 
-        with testrunner.raises(TypeError, match=r"^ids must be a callable or an iterable$"):
+        with testrunner.raises(
+            TypeError, match=r"^ids must be a callable or an iterable$"
+        ):
             metafunc.parametrize("y", [5, 6], ids=42)  # type: ignore[arg-type]
 
     def test_parametrize_error_iterator(self) -> None:
@@ -813,7 +815,9 @@ class TestMetafunc:
             ]
         )
 
-    def test_parametrize_ids_returns_non_string(self, testrunnerer: Testrunnerer) -> None:
+    def test_parametrize_ids_returns_non_string(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """\
             import testrunner
@@ -945,7 +949,9 @@ class TestMetafunc:
         with testrunner.raises(TypeError, match="positional arguments"):
             metafunc.parametrize("x, y", [("a", "b")], ["x"])  # type: ignore[call-arg]
 
-    def test_parametrize_indirect_list_functional(self, testrunnerer: Testrunnerer) -> None:
+    def test_parametrize_indirect_list_functional(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """
         #714
         Test parametrization with 'indirect' parameter applied on
@@ -1148,7 +1154,9 @@ class TestMetafunc:
         assert metafunc._calls[1].params == dict(x=3, y=4)
         assert metafunc._calls[1].id == "3-4"
 
-    def test_high_scoped_parametrize_reordering(self, testrunnerer: Testrunnerer) -> None:
+    def test_high_scoped_parametrize_reordering(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -1374,7 +1382,9 @@ class TestMetafuncFunctional:
             ["*test_func*0*PASS*", "*test_func*1*PASS*", "*2 pass*"]
         )
 
-    def test_issue28_setup_method_in_generate_tests(self, testrunnerer: Testrunnerer) -> None:
+    def test_issue28_setup_method_in_generate_tests(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             def testrunner_generate_tests(metafunc):
@@ -1440,7 +1450,9 @@ class TestMetafuncFunctional:
         result = testrunnerer.runtestrunner("-v")
         result.assert_outcomes(passed=6)
 
-    def test_parametrize_and_inner_getfixturevalue(self, testrunnerer: Testrunnerer) -> None:
+    def test_parametrize_and_inner_getfixturevalue(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             def testrunner_generate_tests(metafunc):
@@ -1669,7 +1681,9 @@ class TestMetafuncFunctional:
         reprec = testrunnerer.inline_run("--collect-only")
         assert not reprec.getcalls("testrunner_internalerror")
 
-    def test_usefixtures_seen_in_generate_tests(self, testrunnerer: Testrunnerer) -> None:
+    def test_usefixtures_seen_in_generate_tests(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -1685,7 +1699,9 @@ class TestMetafuncFunctional:
         reprec = testrunnerer.runtestrunner()
         reprec.assert_outcomes(passed=1)
 
-    def test_generate_tests_only_done_in_subdir(self, testrunnerer: Testrunnerer) -> None:
+    def test_generate_tests_only_done_in_subdir(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         sub1 = testrunnerer.mkpydir("sub1")
         sub2 = testrunnerer.mkpydir("sub2")
         sub1.joinpath("conftest.py").write_text(
@@ -1712,10 +1728,14 @@ class TestMetafuncFunctional:
         sub2.joinpath("test_in_sub2.py").write_text(
             "def test_2(): pass", encoding="utf-8"
         )
-        result = testrunnerer.runtestrunner("--keep-duplicates", "-v", "-s", sub1, sub2, sub1)
+        result = testrunnerer.runtestrunner(
+            "--keep-duplicates", "-v", "-s", sub1, sub2, sub1
+        )
         result.assert_outcomes(passed=3)
 
-    def test_generate_same_function_names_issue403(self, testrunnerer: Testrunnerer) -> None:
+    def test_generate_same_function_names_issue403(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -1796,7 +1816,9 @@ class TestMetafuncFunctional:
                 pass
         """
         )
-        test_1_0, _, test_2_0, _ = testrunnerer.genitems((testrunnerer.getmodulecol(module),))
+        test_1_0, _, test_2_0, _ = testrunnerer.genitems(
+            (testrunnerer.getmodulecol(module),)
+        )
 
         assert isinstance(test_1_0, Function)
         assert test_1_0.name == "test_1[0]"
@@ -1869,7 +1891,9 @@ class TestMetafuncFunctional:
             ]
         )
 
-    def test_parametrize_generator_multiple_runs(self, testrunnerer: Testrunnerer) -> None:
+    def test_parametrize_generator_multiple_runs(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test that generators in parametrize work with multiple testrunner.main() (deprecated)."""
         testfile = testrunnerer.makepyfile(
             """
@@ -1978,7 +2002,9 @@ class TestMetafuncFunctionalAuto:
         result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["* 3 passed *"])
 
-    def test_parametrize_auto_scope_override_fixture(self, testrunnerer: Testrunnerer) -> None:
+    def test_parametrize_auto_scope_override_fixture(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -2217,7 +2243,9 @@ class TestMarkersWithParametrization:
         reprec.assertoutcome(passed=2, skipped=1)
 
     @testrunner.mark.parametrize("strict", [True, False])
-    def test_xfail_passing_is_xpass(self, testrunnerer: Testrunnerer, strict: bool) -> None:
+    def test_xfail_passing_is_xpass(
+        self, testrunnerer: Testrunnerer, strict: bool
+    ) -> None:
         s = f"""
             import testrunner
 
@@ -2236,7 +2264,9 @@ class TestMarkersWithParametrization:
         passed, failed = (2, 1) if strict else (3, 0)
         reprec.assertoutcome(passed=passed, failed=failed)
 
-    def test_parametrize_called_in_generate_tests(self, testrunnerer: Testrunnerer) -> None:
+    def test_parametrize_called_in_generate_tests(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         s = """
             import testrunner
 
@@ -2280,7 +2310,9 @@ class TestMarkersWithParametrization:
         reprec.assertoutcome(passed=2)
 
     @testrunner.mark.parametrize("strict", [True, False])
-    def test_parametrize_marked_value(self, testrunnerer: Testrunnerer, strict: bool) -> None:
+    def test_parametrize_marked_value(
+        self, testrunnerer: Testrunnerer, strict: bool
+    ) -> None:
         s = f"""
             import testrunner
 
@@ -2321,7 +2353,9 @@ class TestMarkersWithParametrization:
         result = testrunnerer.runtestrunner("-v")
         result.stdout.fnmatch_lines(["*test_func*0*PASS*", "*test_func*2*PASS*"])
 
-    def test_testrunner_make_parametrize_id_with_argname(self, testrunnerer: Testrunnerer) -> None:
+    def test_testrunner_make_parametrize_id_with_argname(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             def testrunner_make_parametrize_id(config, val, argname):
@@ -2450,7 +2484,9 @@ class TestHiddenParam:
             "test_func[c-z]",
         ]
 
-    def test_multiple_hidden_param_is_forbidden(self, testrunnerer: Testrunnerer) -> None:
+    def test_multiple_hidden_param_is_forbidden(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner

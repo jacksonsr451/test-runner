@@ -27,10 +27,10 @@ from _testrunner.monkeypatch import MonkeyPatch
 from _testrunner.nodes import Collector
 from _testrunner.nodes import Item
 from _testrunner.nodes import Node
-from _testrunner.testrunnerer import HookRecorder
-from _testrunner.testrunnerer import Testrunnerer
-from _testrunner.testrunnerer import RunResult
 from _testrunner.terminal import TerminalReporter
+from _testrunner.testrunnerer import HookRecorder
+from _testrunner.testrunnerer import RunResult
+from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.tmpdir import TempPathFactory
 
 
@@ -52,7 +52,9 @@ class Testdir:
     CLOSE_STDIN: Final = Testrunnerer.CLOSE_STDIN
     TimeoutExpired: Final = Testrunnerer.TimeoutExpired
 
-    def __init__(self, testrunnerer: Testrunnerer, *, _istestrunner: bool = False) -> None:
+    def __init__(
+        self, testrunnerer: Testrunnerer, *, _istestrunner: bool = False
+    ) -> None:
         check_istestrunner(_istestrunner)
         self._testrunnerer = testrunnerer
 
@@ -235,9 +237,13 @@ class Testdir:
         """See :meth:`Testrunnerer.runtestrunner_subprocess`."""
         return self._testrunnerer.runtestrunner_subprocess(*args, timeout=timeout)
 
-    def spawn_testrunner(self, string: str, expect_timeout: float = 10.0) -> pexpect.spawn:
+    def spawn_testrunner(
+        self, string: str, expect_timeout: float = 10.0
+    ) -> pexpect.spawn:
         """See :meth:`Testrunnerer.spawn_testrunner`."""
-        return self._testrunnerer.spawn_testrunner(string, expect_timeout=expect_timeout)
+        return self._testrunnerer.spawn_testrunner(
+            string, expect_timeout=expect_timeout
+        )
 
     def spawn(self, cmd: str, expect_timeout: float = 10.0) -> pexpect.spawn:
         """See :meth:`Testrunnerer.spawn`."""
@@ -463,7 +469,9 @@ def testrunner_configure(config: Config) -> None:
 
 
 @hookimpl
-def testrunner_plugin_registered(plugin: object, manager: TestrunnerPluginManager) -> None:
+def testrunner_plugin_registered(
+    plugin: object, manager: TestrunnerPluginManager
+) -> None:
     # testrunnerer is not loaded by default and is commonly loaded from a conftest,
     # so checking for it in `testrunner_configure` is not enough.
     is_testrunnerer = plugin is manager.get_plugin("testrunnerer")

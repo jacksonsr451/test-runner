@@ -454,7 +454,9 @@ class NFPlugin:
         }
 
     @hookimpl(wrapper=True, tryfirst=True)
-    def testrunner_collection_modifyitems(self, items: list[nodes.Item]) -> Generator[None]:
+    def testrunner_collection_modifyitems(
+        self, items: list[nodes.Item]
+    ) -> Generator[None]:
         res = yield
 
         if self.active:

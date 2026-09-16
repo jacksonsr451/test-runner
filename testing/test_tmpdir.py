@@ -164,7 +164,9 @@ class TestConfigTmpPath:
             base_dir = filter(lambda x: not x.is_symlink(), child.iterdir())
             assert len(list(base_dir)) == count
 
-    def test_policy_failed_removes_only_passed_dir(self, testrunnerer: Testrunnerer) -> None:
+    def test_policy_failed_removes_only_passed_dir(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             def test_1(tmp_path):
@@ -398,7 +400,9 @@ def break_getuser(monkeypatch):
 
 
 @testrunner.mark.usefixtures("break_getuser")
-@testrunner.mark.skipif(sys.platform.startswith("win"), reason="no os.getuid on windows")
+@testrunner.mark.skipif(
+    sys.platform.startswith("win"), reason="no os.getuid on windows"
+)
 def test_tmp_path_fallback_uid_not_found(testrunnerer: Testrunnerer) -> None:
     """Test that tmp_path works even if the current process's user id does not
     correspond to a valid user.
@@ -414,7 +418,9 @@ def test_tmp_path_fallback_uid_not_found(testrunnerer: Testrunnerer) -> None:
 
 
 @testrunner.mark.usefixtures("break_getuser")
-@testrunner.mark.skipif(sys.platform.startswith("win"), reason="no os.getuid on windows")
+@testrunner.mark.skipif(
+    sys.platform.startswith("win"), reason="no os.getuid on windows"
+)
 def test_get_user_uid_not_found():
     """Test that get_user() function works even if the current process's
     user id does not correspond to a valid user (e.g. running testrunner in a
@@ -806,7 +812,9 @@ def test_tmp_path_factory_create_directory_with_safe_permissions(
     """Verify that testrunner creates directories under /tmp with private permissions."""
     # Use the test's tmp_path as the system temproot (/tmp).
     monkeypatch.setenv("TESTRUNNER_DEBUG_TEMPROOT", str(tmp_path))
-    tmp_factory = TempPathFactory(None, 3, "all", lambda *args: None, _istestrunner=True)
+    tmp_factory = TempPathFactory(
+        None, 3, "all", lambda *args: None, _istestrunner=True
+    )
     basetemp = tmp_factory.getbasetemp()
 
     # No world-readable permissions.
@@ -826,14 +834,18 @@ def test_tmp_path_factory_fixes_up_world_readable_permissions(
     """
     # Use the test's tmp_path as the system temproot (/tmp).
     monkeypatch.setenv("TESTRUNNER_DEBUG_TEMPROOT", str(tmp_path))
-    tmp_factory = TempPathFactory(None, 3, "all", lambda *args: None, _istestrunner=True)
+    tmp_factory = TempPathFactory(
+        None, 3, "all", lambda *args: None, _istestrunner=True
+    )
     basetemp = tmp_factory.getbasetemp()
 
     # Before - simulate bad perms.
     os.chmod(basetemp.parent, 0o777)
     assert (basetemp.parent.stat().st_mode & 0o077) != 0
 
-    tmp_factory = TempPathFactory(None, 3, "all", lambda *args: None, _istestrunner=True)
+    tmp_factory = TempPathFactory(
+        None, 3, "all", lambda *args: None, _istestrunner=True
+    )
     basetemp = tmp_factory.getbasetemp()
 
     # After - fixed.
@@ -856,7 +868,9 @@ def test_tmp_path_factory_doesnt_follow_symlinks(
     monkeypatch.setenv("TESTRUNNER_DEBUG_TEMPROOT", str(tmp_path))
 
     # First just get the testrunner-of-user path.
-    tmp_factory = TempPathFactory(None, 3, "all", lambda *args: None, _istestrunner=True)
+    tmp_factory = TempPathFactory(
+        None, 3, "all", lambda *args: None, _istestrunner=True
+    )
     testrunner_of_user = tmp_factory.getbasetemp().parent
     # Just for safety in the test, before we nuke it.
     assert "testrunner-of-" in str(testrunner_of_user)
@@ -865,7 +879,9 @@ def test_tmp_path_factory_doesnt_follow_symlinks(
     testrunner_of_user.symlink_to(attacker_controlled)
 
     # This now tries to use the directory when it's a symlink.
-    tmp_factory = TempPathFactory(None, 3, "all", lambda *args: None, _istestrunner=True)
+    tmp_factory = TempPathFactory(
+        None, 3, "all", lambda *args: None, _istestrunner=True
+    )
     with testrunner.raises(OSError, match=r"temporary directory .* is a symbolic link"):
         tmp_factory.getbasetemp()
 

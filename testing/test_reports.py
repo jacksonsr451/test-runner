@@ -7,9 +7,9 @@ from _testrunner._code.code import ExceptionChainRepr
 from _testrunner._code.code import ExceptionRepr
 from _testrunner.approx import approx
 from _testrunner.config import Config
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.reports import CollectReport
 from _testrunner.reports import TestReport
+from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
@@ -37,7 +37,9 @@ class TestReportSerialization:
         assert test_b_call.outcome == "passed"
         assert test_b_call._to_json()["longrepr"] is None
 
-    def test_xdist_report_longrepr_reprcrash_130(self, testrunnerer: Testrunnerer) -> None:
+    def test_xdist_report_longrepr_reprcrash_130(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Regarding issue testrunner-xdist#130
 
         This test came originally from test_remote.py in xdist (ca03269).
@@ -367,7 +369,9 @@ class TestReportSerialization:
         # elsewhere and we do check the contents of the longrepr object after loading it.
         loaded_report.longrepr.toterminal(tw_mock)
 
-    def test_chained_exceptions_no_reprcrash(self, testrunnerer: Testrunnerer, tw_mock) -> None:
+    def test_chained_exceptions_no_reprcrash(
+        self, testrunnerer: Testrunnerer, tw_mock
+    ) -> None:
         """Regression test for tracebacks without a reprcrash (#5971)
 
         This happens notably on exceptions raised by multiprocess.pool: the exception transfer
@@ -435,7 +439,9 @@ class TestReportSerialization:
         result.stdout.fnmatch_lines(["E   *Error: No module named 'unknown'"])
         result.stdout.no_fnmatch_line("ERROR  - *ConftestImportFailure*")
 
-    def test_report_timestamps_match_duration(self, testrunnerer: Testrunnerer, mock_timing):
+    def test_report_timestamps_match_duration(
+        self, testrunnerer: Testrunnerer, mock_timing
+    ):
         reprec = testrunnerer.inline_runsource(
             """
             import testrunner
@@ -497,7 +503,10 @@ class TestReportSerialization:
         [(True, "test_it.py"), (False, "runner.py")],
     )
     def test_exception_group_skips_use_item_location(
-        self, testrunnerer: Testrunnerer, use_item_location: bool, skip_file_location: str
+        self,
+        testrunnerer: Testrunnerer,
+        use_item_location: bool,
+        skip_file_location: str,
     ):
         """
         Regression for #13537:
@@ -536,7 +545,9 @@ class TestReportSerialization:
 class TestHooks:
     """Test that the hooks are working correctly for plugins"""
 
-    def test_test_report(self, testrunnerer: Testrunnerer, testrunnerconfig: Config) -> None:
+    def test_test_report(
+        self, testrunnerer: Testrunnerer, testrunnerconfig: Config
+    ) -> None:
         testrunnerer.makepyfile(
             """
             def test_a(): assert False
@@ -558,7 +569,9 @@ class TestHooks:
             assert new_rep.when == rep.when
             assert new_rep.outcome == rep.outcome
 
-    def test_collect_report(self, testrunnerer: Testrunnerer, testrunnerconfig: Config) -> None:
+    def test_collect_report(
+        self, testrunnerer: Testrunnerer, testrunnerconfig: Config
+    ) -> None:
         testrunnerer.makepyfile(
             """
             def test_a(): assert False

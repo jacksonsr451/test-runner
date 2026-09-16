@@ -94,7 +94,9 @@ def testrunner_plugin_registered(
 
 
 @hookspec(historic=True)
-def testrunner_addoption(parser: Parser, pluginmanager: TestrunnerPluginManager) -> None:
+def testrunner_addoption(
+    parser: Parser, pluginmanager: TestrunnerPluginManager
+) -> None:
     """Register argparse-style options and config-style config values,
     called once at the beginning of a test run.
 
@@ -565,7 +567,9 @@ def testrunner_generate_tests(metafunc: Metafunc) -> None:
 
 
 @hookspec(firstresult=True)
-def testrunner_make_parametrize_id(config: Config, val: object, argname: str) -> str | None:
+def testrunner_make_parametrize_id(
+    config: Config, val: object, argname: str
+) -> str | None:
     """Return a user-friendly string representation of the given ``val``
     that will be used by @testrunner.mark.parametrize calls, or None if the hook
     doesn't know about ``val``.
@@ -657,7 +661,9 @@ def testrunner_runtest_protocol(item: Item, nextitem: Item | None) -> object | N
     """
 
 
-def testrunner_runtest_logstart(nodeid: str, location: tuple[str, int | None, str]) -> None:
+def testrunner_runtest_logstart(
+    nodeid: str, location: tuple[str, int | None, str]
+) -> None:
     """Called at the start of running the runtest protocol for a single item.
 
     See :hook:`testrunner_runtest_protocol` for a description of the runtest protocol.
@@ -755,7 +761,9 @@ def testrunner_runtest_teardown(item: Item, nextitem: Item | None) -> None:
 
 
 @hookspec(firstresult=True)
-def testrunner_runtest_makereport(item: Item, call: CallInfo[None]) -> TestReport | None:
+def testrunner_runtest_makereport(
+    item: Item, call: CallInfo[None]
+) -> TestReport | None:
     """Called to create a :class:`~testrunner.TestReport` for each of
     the setup, call and teardown runtest phases of a test item.
 

@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 from _testrunner import deprecated
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.scope import Scope
+from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 from testrunner import TestrunnerDeprecationWarning
 from testrunner import TestrunnerRemovedIn10Warning
@@ -76,7 +76,9 @@ def test_hookimpl_via_function_attributes_are_deprecated():
 
 
 def test_yield_fixture_is_deprecated() -> None:
-    with testrunner.warns(TestrunnerRemovedIn10Warning, match=r"yield_fixture is deprecated"):
+    with testrunner.warns(
+        TestrunnerRemovedIn10Warning, match=r"yield_fixture is deprecated"
+    ):
 
         @testrunner.yield_fixture  # type: ignore[deprecated]
         def fix():
@@ -89,7 +91,8 @@ def test_private_is_deprecated() -> None:
             deprecated.check_istestrunner(_istestrunner)
 
     with testrunner.warns(
-        testrunner.TestrunnerDeprecationWarning, match="private testrunner class or function"
+        testrunner.TestrunnerDeprecationWarning,
+        match="private testrunner class or function",
     ):
         PrivateInit(10)
 
@@ -116,10 +119,14 @@ def test_higher_scope_instance_method_is_deprecated(
                 pass
         """
     )
-    result = testrunnerer.runtestrunner("-Werror::testrunner.TestrunnerRemovedIn10Warning")
+    result = testrunnerer.runtestrunner(
+        "-Werror::testrunner.TestrunnerRemovedIn10Warning"
+    )
     result.assert_outcomes(errors=1)
     result.stdout.fnmatch_lines(
-        ["*TestrunnerRemovedIn10Warning: *-scoped fixtures defined as instance methods*"]
+        [
+            "*TestrunnerRemovedIn10Warning: *-scoped fixtures defined as instance methods*"
+        ]
     )
 
 
@@ -144,12 +151,16 @@ def test_higher_scope_classmethod_fixture_not_deprecated(
                 assert type(self).attr is True
         """
     )
-    result = testrunnerer.runtestrunner("-Werror::testrunner.TestrunnerRemovedIn10Warning")
+    result = testrunnerer.runtestrunner(
+        "-Werror::testrunner.TestrunnerRemovedIn10Warning"
+    )
     result.assert_outcomes(passed=1)
 
 
 @testrunner.mark.parametrize("scope", list(Scope))
-def test_staticmethod_fixture_not_deprecated(testrunnerer: Testrunnerer, scope: Scope) -> None:
+def test_staticmethod_fixture_not_deprecated(
+    testrunnerer: Testrunnerer, scope: Scope
+) -> None:
     """A fixture at any scope defined as @staticmethod does NOT warn."""
     testrunnerer.makepyfile(
         f"""
@@ -165,7 +176,9 @@ def test_staticmethod_fixture_not_deprecated(testrunnerer: Testrunnerer, scope: 
                 pass
         """
     )
-    result = testrunnerer.runtestrunner("-Werror::testrunner.TestrunnerRemovedIn10Warning")
+    result = testrunnerer.runtestrunner(
+        "-Werror::testrunner.TestrunnerRemovedIn10Warning"
+    )
     result.assert_outcomes(passed=1)
 
 
@@ -185,7 +198,9 @@ class TestFixtureNodeidDeprecations:
     - _matchfactories string-based fallback (match + non-match branches)
     """
 
-    def test_parsefactories_nodeid_deprecation(self, testrunnerer: Testrunnerer) -> None:
+    def test_parsefactories_nodeid_deprecation(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """parsefactories(obj, "path") warns; parsefactories(obj, None) does not."""
         testrunnerer.makeconftest(
             """
@@ -224,10 +239,14 @@ class TestFixtureNodeidDeprecations:
                 assert fix_b == "b"
             """
         )
-        result = testrunnerer.runtestrunner("-W", "default::testrunner.TestrunnerRemovedIn10Warning")
+        result = testrunnerer.runtestrunner(
+            "-W", "default::testrunner.TestrunnerRemovedIn10Warning"
+        )
         result.assert_outcomes(passed=1)
 
-    def test_parsefactories_no_args_raises_typeerror(self, testrunnerer: Testrunnerer) -> None:
+    def test_parsefactories_no_args_raises_typeerror(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """parsefactories() with no holder and no node_or_obj raises TypeError."""
         testrunnerer.makeconftest(
             """
@@ -286,7 +305,9 @@ class TestFixtureNodeidDeprecations:
                 assert "legacy_autouse" in request.fixturenames
             """
         )
-        result = testrunnerer.runtestrunner("-W", "default::testrunner.TestrunnerRemovedIn10Warning")
+        result = testrunnerer.runtestrunner(
+            "-W", "default::testrunner.TestrunnerRemovedIn10Warning"
+        )
         result.assert_outcomes(passed=1)
 
     def test_matchfactories_string_fallback(self, testrunnerer: Testrunnerer) -> None:
@@ -326,10 +347,14 @@ class TestFixtureNodeidDeprecations:
                 assert defs == []
             """
         )
-        result = testrunnerer.runtestrunner("-W", "ignore::testrunner.TestrunnerRemovedIn10Warning")
+        result = testrunnerer.runtestrunner(
+            "-W", "ignore::testrunner.TestrunnerRemovedIn10Warning"
+        )
         result.assert_outcomes(passed=2)
 
-    def test_fixturedef_has_location_deprecated(self, testrunnerer: Testrunnerer) -> None:
+    def test_fixturedef_has_location_deprecated(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Accessing FixtureDef.has_location warns."""
         testrunnerer.makepyfile(
             """

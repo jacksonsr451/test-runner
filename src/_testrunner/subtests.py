@@ -140,7 +140,9 @@ def subtests(request: SubRequest) -> Subtests:
     suspend_capture_ctx = (
         capmam.global_and_fixture_disabled if capmam is not None else nullcontext
     )
-    return Subtests(request.node.ihook, suspend_capture_ctx, request, _istestrunner=True)
+    return Subtests(
+        request.node.ihook, suspend_capture_ctx, request, _istestrunner=True
+    )
 
 
 class Subtests:

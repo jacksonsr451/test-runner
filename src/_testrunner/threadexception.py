@@ -33,7 +33,9 @@ thread_exceptions: StashKey[collections.deque[ThreadExceptionMeta | BaseExceptio
 
 def collect_thread_exception(config: Config) -> None:
     pop_thread_exception = config.stash[thread_exceptions].pop
-    errors: list[testrunner.TestrunnerUnhandledThreadExceptionWarning | RuntimeError] = []
+    errors: list[
+        testrunner.TestrunnerUnhandledThreadExceptionWarning | RuntimeError
+    ] = []
     meta = None
     hook_error = None
     try:

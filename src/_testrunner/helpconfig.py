@@ -144,7 +144,9 @@ def testrunner_cmdline_parse() -> Generator[None, Config, Config]:
 
         def unset_tracing() -> None:
             debugfile.close()
-            sys.stderr.write(f"wrote testrunner debug information to {debugfile.name}\n")
+            sys.stderr.write(
+                f"wrote testrunner debug information to {debugfile.name}\n"
+            )
             config.trace.root.setwriter(None)
             undo_tracing()
 
@@ -242,7 +244,10 @@ def showhelp(config: Config) -> None:
         ("TESTRUNNER_DEBUG", "Set to enable debug tracing of testrunner's internals"),
         ("TESTRUNNER_DEBUG_TEMPROOT", "Override the system temporary directory"),
         ("TESTRUNNER_THEME", "The Pygments style to use for code output"),
-        ("TESTRUNNER_THEME_MODE", "Set the TESTRUNNER_THEME to be either 'dark' or 'light'"),
+        (
+            "TESTRUNNER_THEME_MODE",
+            "Set the TESTRUNNER_THEME to be either 'dark' or 'light'",
+        ),
     ]
     for name, help in vars:
         tw.line(f"  {name:<24} {help}")

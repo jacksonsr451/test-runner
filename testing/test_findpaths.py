@@ -114,7 +114,9 @@ class TestLoadConfigDictFromFile:
         """Options outside of any table name the table that was meant."""
         fn = tmp_path / "myconfig.toml"
         fn.write_text("xfail_strict = true\n", encoding="utf-8")
-        with testrunner.raises(UsageError, match=r"must be under a \[testrunner\] table"):
+        with testrunner.raises(
+            UsageError, match=r"must be under a \[testrunner\] table"
+        ):
             load_config_dict_from_file(fn)
 
     def test_custom_toml_file(self, tmp_path: Path) -> None:

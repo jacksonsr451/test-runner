@@ -44,7 +44,9 @@ class TestSetupState:
         ss.teardown_exact(None)
         ss.teardown_exact(None)
 
-    def test_setup_fails_and_failure_is_cached(self, testrunnerer: Testrunnerer) -> None:
+    def test_setup_fails_and_failure_is_cached(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         item = testrunnerer.getitem(
             """
             def setup_module(mod):
@@ -102,7 +104,9 @@ class TestSetupState:
         assert err1.args == ("oops1",)
         assert err2.args == ("oops2",)
 
-    def test_teardown_multiple_scopes_one_fails(self, testrunnerer: Testrunnerer) -> None:
+    def test_teardown_multiple_scopes_one_fails(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         module_teardown = []
 
         def fin_func():
@@ -133,14 +137,18 @@ class TestSetupState:
         ss.addfinalizer(partial(raiser, TypeError("from function scope 1")), item)
         ss.addfinalizer(partial(raiser, ValueError("from function scope 2")), item)
 
-        with testrunner.raises(ExceptionGroup, match="errors during test teardown") as e:
+        with testrunner.raises(
+            ExceptionGroup, match="errors during test teardown"
+        ) as e:
             ss.teardown_exact(None)
         mod, func = e.value.exceptions
         assert isinstance(mod, KeyError)
         assert isinstance(func.exceptions[0], TypeError)
         assert isinstance(func.exceptions[1], ValueError)
 
-    def test_cached_exception_doesnt_get_longer(self, testrunnerer: Testrunnerer) -> None:
+    def test_cached_exception_doesnt_get_longer(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Regression test for #12204 (the "BTW" case)."""
         testrunnerer.makepyfile(test="")
         # If the collector.setup() raises, all collected items error with this
@@ -844,14 +852,18 @@ class TestImportOrSkipExcType:
                 "TestImportOrSkipExcType_test_module_not_found_skips_without_warning"
             )
 
-    def test_import_error_is_propagated_by_default(self, testrunnerer: Testrunnerer) -> None:
+    def test_import_error_is_propagated_by_default(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         fn = testrunnerer.makepyfile("raise ImportError('some specific problem')")
         testrunnerer.syspathinsert()
 
         with testrunner.raises(ImportError, match="some specific problem"):
             testrunner.importorskip(fn.stem)
 
-    def test_import_error_can_be_captured_explicitly(self, testrunnerer: Testrunnerer) -> None:
+    def test_import_error_can_be_captured_explicitly(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         fn = testrunnerer.makepyfile("raise ImportError('some specific problem')")
         testrunnerer.syspathinsert()
 
@@ -1058,7 +1070,9 @@ def test_store_except_info_on_error() -> None:
     assert not hasattr(sys, "last_traceback")
 
 
-def test_current_test_env_var(testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
+def test_current_test_env_var(
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
+) -> None:
     testrunner_current_test_vars: list[tuple[str, str]] = []
     monkeypatch.setattr(
         sys, "testrunner_current_test_vars", testrunner_current_test_vars, raising=False
@@ -1212,7 +1226,9 @@ def test_outcome_exception_bad_msg() -> None:
     assert str(excinfo.value) == expected
 
 
-def test_testrunner_version_env_var(testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
+def test_testrunner_version_env_var(
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
+) -> None:
     monkeypatch.setenv("TESTRUNNER_VERSION", "old version")
     testrunnerer.makepyfile(
         """

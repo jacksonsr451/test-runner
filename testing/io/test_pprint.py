@@ -384,7 +384,9 @@ class DataclassWithTwoItems:
             " b'zzzzzzzzzzzzzzzzzzzzzzzzzz')",
             id="bytes-long-unaligned",
         ),
-        testrunner.param(bytearray(b"short"), "bytearray(b'short')", id="bytearray-short"),
+        testrunner.param(
+            bytearray(b"short"), "bytearray(b'short')", id="bytearray-short"
+        ),
         testrunner.param(
             bytearray(b"y" * 100),
             "bytearray(b'yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy'\n"
@@ -675,7 +677,9 @@ class _HashableList(list[Any]):
     ("key", "expected"),
     [
         testrunner.param(_HashableDict(), "{\n    {}: 0,\n}", id="empty-dict-key"),
-        testrunner.param(_HashableDict({"a": 1}), "{\n    {'a': 1}: 0,\n}", id="dict-key"),
+        testrunner.param(
+            _HashableDict({"a": 1}), "{\n    {'a': 1}: 0,\n}", id="dict-key"
+        ),
         testrunner.param(_HashableList(), "{\n    []: 0,\n}", id="empty-list-key"),
         testrunner.param(_HashableList([1, 2]), "{\n    [1, 2]: 0,\n}", id="list-key"),
     ],

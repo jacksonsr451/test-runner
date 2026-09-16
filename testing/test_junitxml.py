@@ -19,12 +19,12 @@ from _testrunner.junitxml import _JunitLogging
 from _testrunner.junitxml import bin_xml_escape
 from _testrunner.junitxml import LogXML
 from _testrunner.monkeypatch import MonkeyPatch
-from _testrunner.testrunnerer import Testrunnerer
-from _testrunner.testrunnerer import RunResult
 from _testrunner.reports import BaseReport
 from _testrunner.reports import CollectReport
 from _testrunner.reports import TestReport
 from _testrunner.stash import Stash
+from _testrunner.testrunnerer import RunResult
+from _testrunner.testrunnerer import Testrunnerer
 import _testrunner.timing
 import testrunner
 
@@ -66,7 +66,9 @@ class RunAndParse:
 
 
 @testrunner.fixture
-def run_and_parse(testrunnerer: Testrunnerer, schema: xmlschema.XMLSchema) -> RunAndParse:
+def run_and_parse(
+    testrunnerer: Testrunnerer, schema: xmlschema.XMLSchema
+) -> RunAndParse:
     """Fixture that returns a function that can be used to execute testrunner and
     return the parsed ``DomNode`` of the root xml node.
 
@@ -211,7 +213,10 @@ parametrize_families = testrunner.mark.parametrize("xunit_family", ["xunit1", "x
 class TestPython:
     @parametrize_families
     def test_summing_simple(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -237,7 +242,10 @@ class TestPython:
 
     @parametrize_families
     def test_summing_simple_with_errors(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -266,7 +274,10 @@ class TestPython:
 
     @parametrize_families
     def test_hostname_in_xml(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -280,7 +291,10 @@ class TestPython:
 
     @parametrize_families
     def test_timestamp_in_xml(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -354,7 +368,10 @@ class TestPython:
 
     @parametrize_families
     def test_setup_error(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -379,7 +396,10 @@ class TestPython:
 
     @parametrize_families
     def test_teardown_error(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -405,7 +425,10 @@ class TestPython:
 
     @parametrize_families
     def test_call_failure_teardown_error(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -436,7 +459,10 @@ class TestPython:
 
     @parametrize_families
     def test_skip_contains_name_reason(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -456,7 +482,10 @@ class TestPython:
 
     @parametrize_families
     def test_mark_skip_contains_name_reason(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -479,7 +508,10 @@ class TestPython:
 
     @parametrize_families
     def test_mark_skipif_contains_name_reason(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -503,7 +535,10 @@ class TestPython:
 
     @parametrize_families
     def test_mark_skip_doesnt_capture_output(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -520,7 +555,10 @@ class TestPython:
 
     @parametrize_families
     def test_classname_instance(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -540,7 +578,10 @@ class TestPython:
 
     @parametrize_families
     def test_classname_nested_dir(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         p = testrunnerer.mkdir("sub").joinpath("test_hello.py")
         p.write_text("def test_func(): 0/0", encoding="utf-8")
@@ -553,7 +594,10 @@ class TestPython:
 
     @parametrize_families
     def test_internal_error(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makeconftest("def testrunner_runtest_protocol(): 0 / 0")
         testrunnerer.makepyfile("def test_function(): pass")
@@ -640,7 +684,10 @@ class TestPython:
 
     @parametrize_families
     def test_failure_verbose_message(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -657,7 +704,10 @@ class TestPython:
 
     @parametrize_families
     def test_failure_escape(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -685,7 +735,10 @@ class TestPython:
 
     @parametrize_families
     def test_junit_prefixing(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -709,7 +762,10 @@ class TestPython:
 
     @parametrize_families
     def test_xfailure_function(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -729,7 +785,10 @@ class TestPython:
 
     @parametrize_families
     def test_xfailure_marker(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -784,7 +843,10 @@ class TestPython:
 
     @parametrize_families
     def test_xfailure_xpass(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -803,7 +865,10 @@ class TestPython:
 
     @parametrize_families
     def test_xfailure_xpass_strict(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile(
             """
@@ -824,7 +889,10 @@ class TestPython:
 
     @parametrize_families
     def test_collect_error(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makepyfile("syntax error")
         result, dom = run_and_parse(family=xunit_family)
@@ -836,7 +904,9 @@ class TestPython:
         fnode.assert_attr(message="collection failure")
         assert "SyntaxError" in fnode.toxml()
 
-    def test_unicode(self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse) -> None:
+    def test_unicode(
+        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse
+    ) -> None:
         value = "hx\xc4\x85\xc4\x87\n"
         testrunnerer.makepyfile(
             f"""\
@@ -1062,7 +1132,10 @@ def test_dont_configure_on_workers(tmp_path: Path) -> None:
 class TestNonPython:
     @parametrize_families
     def test_summing_simple(
-        self, testrunnerer: Testrunnerer, run_and_parse: RunAndParse, xunit_family: _JunitFamily
+        self,
+        testrunnerer: Testrunnerer,
+        run_and_parse: RunAndParse,
+        xunit_family: _JunitFamily,
     ) -> None:
         testrunnerer.makeconftest(
             """
@@ -1102,7 +1175,9 @@ def test_nullbyte(testrunnerer: Testrunnerer, junit_logging: _JunitLogging) -> N
     """
     )
     xmlf = testrunnerer.path.joinpath("junit.xml")
-    testrunnerer.runtestrunner(f"--junitxml={xmlf}", "-o", f"junit_logging={junit_logging}")
+    testrunnerer.runtestrunner(
+        f"--junitxml={xmlf}", "-o", f"junit_logging={junit_logging}"
+    )
     text = xmlf.read_text(encoding="utf-8")
     assert "\x00" not in text
     if junit_logging == "system-out":
@@ -1112,7 +1187,9 @@ def test_nullbyte(testrunnerer: Testrunnerer, junit_logging: _JunitLogging) -> N
 
 
 @testrunner.mark.parametrize("junit_logging", ["no", "system-out"])
-def test_nullbyte_replace(testrunnerer: Testrunnerer, junit_logging: _JunitLogging) -> None:
+def test_nullbyte_replace(
+    testrunnerer: Testrunnerer, junit_logging: _JunitLogging
+) -> None:
     # Check if the null byte gets replaced
     testrunnerer.makepyfile(
         """
@@ -1124,7 +1201,9 @@ def test_nullbyte_replace(testrunnerer: Testrunnerer, junit_logging: _JunitLoggi
     """
     )
     xmlf = testrunnerer.path.joinpath("junit.xml")
-    testrunnerer.runtestrunner(f"--junitxml={xmlf}", "-o", f"junit_logging={junit_logging}")
+    testrunnerer.runtestrunner(
+        f"--junitxml={xmlf}", "-o", f"junit_logging={junit_logging}"
+    )
     text = xmlf.read_text(encoding="utf-8")
     if junit_logging == "system-out":
         assert "#x0" in text
@@ -1292,7 +1371,9 @@ def test_unicode_issue368(testrunnerer: Testrunnerer) -> None:
     log.testrunner_sessionfinish()
 
 
-def test_record_property(testrunnerer: Testrunnerer, run_and_parse: RunAndParse) -> None:
+def test_record_property(
+    testrunnerer: Testrunnerer, run_and_parse: RunAndParse
+) -> None:
     testrunnerer.makepyfile(
         """
         import testrunner
@@ -1363,7 +1444,9 @@ def test_record_property_same_name(
     pnodes[1].assert_attr(name="foo", value="baz")
 
 
-@testrunner.mark.parametrize("fixture_name", ["record_property", "record_xml_attribute"])
+@testrunner.mark.parametrize(
+    "fixture_name", ["record_property", "record_xml_attribute"]
+)
 def test_record_fixtures_without_junitxml(
     testrunnerer: Testrunnerer, fixture_name: str
 ) -> None:
@@ -1378,7 +1461,9 @@ def test_record_fixtures_without_junitxml(
 
 
 @testrunner.mark.filterwarnings("default")
-def test_record_attribute(testrunnerer: Testrunnerer, run_and_parse: RunAndParse) -> None:
+def test_record_attribute(
+    testrunnerer: Testrunnerer, run_and_parse: RunAndParse
+) -> None:
     testrunnerer.makeini(
         """
         [testrunner]
@@ -1407,7 +1492,9 @@ def test_record_attribute(testrunnerer: Testrunnerer, run_and_parse: RunAndParse
 
 
 @testrunner.mark.filterwarnings("default")
-@testrunner.mark.parametrize("fixture_name", ["record_xml_attribute", "record_property"])
+@testrunner.mark.parametrize(
+    "fixture_name", ["record_xml_attribute", "record_property"]
+)
 def test_record_fixtures_xunit2(
     testrunnerer: Testrunnerer, fixture_name: str, run_and_parse: RunAndParse
 ) -> None:
@@ -1519,7 +1606,9 @@ def test_runs_twice_xdist(
     assert first == second
 
 
-def test_fancy_items_regression(testrunnerer: Testrunnerer, run_and_parse: RunAndParse) -> None:
+def test_fancy_items_regression(
+    testrunnerer: Testrunnerer, run_and_parse: RunAndParse
+) -> None:
     # issue 1259
     testrunnerer.makeconftest(
         """
@@ -1577,7 +1666,9 @@ def test_fancy_items_regression(testrunnerer: Testrunnerer, run_and_parse: RunAn
 
 
 @parametrize_families
-def test_global_properties(testrunnerer: Testrunnerer, xunit_family: _JunitFamily) -> None:
+def test_global_properties(
+    testrunnerer: Testrunnerer, xunit_family: _JunitFamily
+) -> None:
     path = testrunnerer.path.joinpath("test_global_properties.xml")
     log = LogXML(str(path), None, family=xunit_family)
 
@@ -1737,7 +1828,9 @@ def test_escaped_skipreason_issue3533(
     snode.assert_attr(message="1 <> 2")
 
 
-def test_bin_escaped_skipreason(testrunnerer: Testrunnerer, run_and_parse: RunAndParse) -> None:
+def test_bin_escaped_skipreason(
+    testrunnerer: Testrunnerer, run_and_parse: RunAndParse
+) -> None:
     """Escape special characters from mark.skip reason (#11842)."""
     testrunnerer.makepyfile(
         """
@@ -1868,7 +1961,9 @@ def test_no_message_quiet(testrunnerer: Testrunnerer) -> None:
         ("junit_family", "xunit3"),
     ],
 )
-def test_invalid_junit_option_value(testrunnerer: Testrunnerer, name: str, value: str) -> None:
+def test_invalid_junit_option_value(
+    testrunnerer: Testrunnerer, name: str, value: str
+) -> None:
     """Invalid junit option values fail with a clean usage error."""
     testrunnerer.makeini(
         f"""

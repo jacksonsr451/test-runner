@@ -166,7 +166,9 @@ def test_override_ini_paths(testrunnerer: testrunner.Testrunnerer) -> None:
                 print('\nuser_path:%s' % cpf.basename)
         """
     )
-    result = testrunnerer.runtestrunner("--override-ini", "paths=foo/bar1.py foo/bar2.py", "-s")
+    result = testrunnerer.runtestrunner(
+        "--override-ini", "paths=foo/bar1.py foo/bar2.py", "-s"
+    )
     result.stdout.fnmatch_lines(["user_path:bar1.py", "user_path:bar2.py"])
 
 

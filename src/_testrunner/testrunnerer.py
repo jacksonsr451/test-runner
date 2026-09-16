@@ -102,7 +102,8 @@ def testrunner_addoption(parser: Parser) -> None:
     )
 
     parser.addini(
-        "testrunnerer_example_dir", help="Directory to take the testrunnerer example files from"
+        "testrunnerer_example_dir",
+        help="Directory to take the testrunnerer example files from",
     )
 
 
@@ -166,7 +167,9 @@ class LsofFdLeakChecker:
             return True
 
     @hookimpl(wrapper=True, tryfirst=True)
-    def testrunner_runtest_protocol(self, item: Item) -> Generator[None, object, object]:
+    def testrunner_runtest_protocol(
+        self, item: Item
+    ) -> Generator[None, object, object]:
         lines1 = self.get_open_files()
         try:
             return (yield)
@@ -755,7 +758,9 @@ class Testrunnerer:
 
         return SysModulesSnapshot(preserve=preserve_module)
 
-    def make_hook_recorder(self, pluginmanager: TestrunnerPluginManager) -> HookRecorder:
+    def make_hook_recorder(
+        self, pluginmanager: TestrunnerPluginManager
+    ) -> HookRecorder:
         """Create a new :class:`HookRecorder` for a :class:`TestrunnerPluginManager`."""
         pluginmanager.reprec = reprec = HookRecorder(pluginmanager, _istestrunner=True)  # type: ignore[attr-defined]
         self._request.addfinalizer(reprec.finish_recording)
@@ -970,7 +975,9 @@ class Testrunnerer:
             raise ValueError("testrunnerer_example_dir is unset, can't copy examples")
         example_dir: Path = self._request.config.rootpath / example_dir_
 
-        for extra_element in self._request.node.iter_markers("testrunnerer_example_path"):
+        for extra_element in self._request.node.iter_markers(
+            "testrunnerer_example_path"
+        ):
             assert extra_element.args
             example_dir = example_dir.joinpath(*extra_element.args)
 
@@ -1377,6 +1384,7 @@ class Testrunnerer:
         env["PYTHONPATH"] = os.pathsep.join(
             filter(None, [os.getcwd(), env.get("PYTHONPATH", "")])
         )
+        env["PYTHONIOENCODING"] = "utf-8"
         kw["env"] = env
 
         if stdin is self.CLOSE_STDIN:
@@ -1532,7 +1540,9 @@ class Testrunnerer:
         args = self._gettestrunnerargs() + args
         return self.run(*args, timeout=timeout)
 
-    def spawn_testrunner(self, string: str, expect_timeout: float = 10.0) -> pexpect.spawn:
+    def spawn_testrunner(
+        self, string: str, expect_timeout: float = 10.0
+    ) -> pexpect.spawn:
         """Run testrunner using pexpect.
 
         This makes sure to use the right testrunner and sets up the temporary

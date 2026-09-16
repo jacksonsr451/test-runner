@@ -158,7 +158,9 @@ class TestImportHookInstallation:
             assert 0
         result.stdout.fnmatch_lines([expected])
 
-    def test_rewrite_assertions_testrunnerer_plugin(self, testrunnerer: Testrunnerer) -> None:
+    def test_rewrite_assertions_testrunnerer_plugin(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """
         Assertions in the testrunnerer plugin must also benefit from assertion
         rewriting (#1920).
@@ -420,14 +422,19 @@ class TestImportHookInstallation:
 
     def test_register_assert_rewrite_checks_types(self) -> None:
         with testrunner.raises(TypeError):
-            testrunner.register_assert_rewrite(["testrunner_tests_internal_non_existing"])  # type: ignore
+            testrunner.register_assert_rewrite(
+                ["testrunner_tests_internal_non_existing"]  # type: ignore[arg-type]
+            )
         testrunner.register_assert_rewrite(
-            "testrunner_tests_internal_non_existing", "testrunner_tests_internal_non_existing2"
+            "testrunner_tests_internal_non_existing",
+            "testrunner_tests_internal_non_existing2",
         )
 
 
 class TestBinReprIntegration:
-    def test_testrunner_assertrepr_compare_called(self, testrunnerer: Testrunnerer) -> None:
+    def test_testrunner_assertrepr_compare_called(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             import testrunner
@@ -1259,7 +1266,9 @@ class TestAssert_reprcompare_dataclass:
         )
 
     def test_recursive_dataclasses(self, testrunnerer: Testrunnerer) -> None:
-        p = testrunnerer.copy_example("dataclasses/test_compare_recursive_dataclasses.py")
+        p = testrunnerer.copy_example(
+            "dataclasses/test_compare_recursive_dataclasses.py"
+        )
         result = testrunnerer.runtestrunner(p)
         result.assert_outcomes(failed=1, passed=0)
         result.stdout.fnmatch_lines(
@@ -1277,7 +1286,9 @@ class TestAssert_reprcompare_dataclass:
         )
 
     def test_recursive_dataclasses_verbose(self, testrunnerer: Testrunnerer) -> None:
-        p = testrunnerer.copy_example("dataclasses/test_compare_recursive_dataclasses.py")
+        p = testrunnerer.copy_example(
+            "dataclasses/test_compare_recursive_dataclasses.py"
+        )
         result = testrunnerer.runtestrunner(p, "-vv")
         result.assert_outcomes(failed=1, passed=0)
         result.stdout.fnmatch_lines(
@@ -1328,7 +1339,9 @@ class TestAssert_reprcompare_dataclass:
         result = testrunnerer.runtestrunner(p, "-vv")
         result.assert_outcomes(failed=0, passed=1)
 
-    def test_comparing_two_different_data_classes(self, testrunnerer: Testrunnerer) -> None:
+    def test_comparing_two_different_data_classes(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.copy_example(
             "dataclasses/test_compare_two_different_dataclasses.py"
         )
@@ -1740,7 +1753,9 @@ class TestTruncateExplanation:
         last_line_before_trunc_msg = result[-self.LINES_IN_TRUNCATION_MSG - 1]
         assert last_line_before_trunc_msg.endswith("...")
 
-    def test_full_output_truncated(self, monkeypatch, testrunnerer: Testrunnerer) -> None:
+    def test_full_output_truncated(
+        self, monkeypatch, testrunnerer: Testrunnerer
+    ) -> None:
         """Test against full runtestrunner() output."""
         line_count = 7
         line_len = 100
@@ -2295,7 +2310,9 @@ class TestSetAssertions:
             ]
         )
 
-    def test_testrunner_assertrepr_compare_integration(self, testrunnerer: Testrunnerer) -> None:
+    def test_testrunner_assertrepr_compare_integration(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             def test_hello():
@@ -2703,7 +2720,9 @@ def test_plugin_hook_returning_none_is_skipped(testrunnerer: Testrunnerer) -> No
     )
 
 
-def test_plugin_hook_returning_empty_iterator_is_skipped(testrunnerer: Testrunnerer) -> None:
+def test_plugin_hook_returning_empty_iterator_is_skipped(
+    testrunnerer: Testrunnerer,
+) -> None:
     """A plugin returning a truthy but ultimately empty iterable is
     skipped after materialisation."""
     testrunnerer.makeconftest(

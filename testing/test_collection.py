@@ -164,7 +164,9 @@ class TestCollectFS:
     )
 
     @known_environment_types
-    def test_ignored_virtualenvs(self, testrunnerer: Testrunnerer, env_path: PurePath) -> None:
+    def test_ignored_virtualenvs(
+        self, testrunnerer: Testrunnerer, env_path: PurePath
+    ) -> None:
         ensure_file(testrunnerer.path / "virtual" / env_path)
         testfile = ensure_file(testrunnerer.path / "virtual" / "test_invenv.py")
         testfile.write_text("def test_hello(): pass", encoding="utf-8")
@@ -225,7 +227,9 @@ class TestCollectFS:
         rec = testrunnerer.inline_run("xyz123/test_2.py")
         rec.assertoutcome(failed=1)
 
-    def test_testpaths_ini(self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
+    def test_testpaths_ini(
+        self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
+    ) -> None:
         testrunnerer.makeini(
             """
             [testrunner]
@@ -342,7 +346,9 @@ class TestPrunetraceback:
         result = testrunnerer.runtestrunner(p)
         result.stdout.fnmatch_lines(["*ERROR collecting*", "*header1*"])
 
-    def test_collection_error_traceback_is_clean(self, testrunnerer: Testrunnerer) -> None:
+    def test_collection_error_traceback_is_clean(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """When a collection error occurs, the report traceback doesn't contain
         internal testrunner stack entries.
 
@@ -383,7 +389,9 @@ class TestCustomConftests:
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*1 passed*"])
 
-    def test_ignore_collect_not_called_on_argument(self, testrunnerer: Testrunnerer) -> None:
+    def test_ignore_collect_not_called_on_argument(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             def testrunner_ignore_collect(collection_path, config):
@@ -428,7 +436,9 @@ class TestCustomConftests:
         assert result.ret == 0
         assert "passed" in result.stdout.str()
 
-    def test_collectignoreglob_exclude_on_option(self, testrunnerer: Testrunnerer) -> None:
+    def test_collectignoreglob_exclude_on_option(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             collect_ignore_glob = ['*w*l[dt]*']
@@ -448,7 +458,9 @@ class TestCustomConftests:
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*2 passed*"])
 
-    def test_testrunner_fs_collect_hooks_are_seen(self, testrunnerer: Testrunnerer) -> None:
+    def test_testrunner_fs_collect_hooks_are_seen(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             import testrunner
@@ -464,7 +476,9 @@ class TestCustomConftests:
         result = testrunnerer.runtestrunner("--co")
         result.stdout.fnmatch_lines(["*MyModule*", "*test_x*"])
 
-    def test_testrunner_collect_file_from_sister_dir(self, testrunnerer: Testrunnerer) -> None:
+    def test_testrunner_collect_file_from_sister_dir(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         sub1 = testrunnerer.mkpydir("sub1")
         sub2 = testrunnerer.mkpydir("sub2")
         conf1 = testrunnerer.makeconftest(
@@ -611,7 +625,10 @@ class TestSession:
             [
                 ("testrunner_collectstart", "collector.path == test_aaa"),
                 ("testrunner_pycollect_makeitem", "name == 'test_func'"),
-                ("testrunner_collectreport", "report.nodeid.startswith('aaa/test_aaa.py')"),
+                (
+                    "testrunner_collectreport",
+                    "report.nodeid.startswith('aaa/test_aaa.py')",
+                ),
             ]
         )
 
@@ -650,7 +667,9 @@ class TestSession:
         assert item2.name == item.name
         assert item2.path == item.path
 
-    def test_find_byid_without_instance_parents(self, testrunnerer: Testrunnerer) -> None:
+    def test_find_byid_without_instance_parents(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             class TestClass(object):
@@ -698,7 +717,9 @@ class Test_getinitialnodes:
         for parent in col.listchain():
             assert parent.config is config
 
-    def test_pkgfile(self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
+    def test_pkgfile(
+        self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
+    ) -> None:
         """Verify nesting when a module is within a package.
         The parent chain should match: Module<x.py> -> Package<subdir> -> Session.
             Session's parent should always be None.
@@ -792,7 +813,9 @@ class Test_genitems:
         ids = [x.getmodpath() for x in items]  # type: ignore[attr-defined]
         assert ids == ["TestCase.test_classmethod"]
 
-    def test_class_and_functions_discovery_using_glob(self, testrunnerer: Testrunnerer) -> None:
+    def test_class_and_functions_discovery_using_glob(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test that Python_classes and Python_functions config options work
         as prefixes and glob-like patterns (#600)."""
         testrunnerer.makeini(
@@ -1588,7 +1611,9 @@ def test_does_not_put_src_on_path(testrunnerer: Testrunnerer) -> None:
     assert result.ret == ExitCode.OK
 
 
-def test_fscollector_from_parent(testrunnerer: Testrunnerer, request: FixtureRequest) -> None:
+def test_fscollector_from_parent(
+    testrunnerer: Testrunnerer, request: FixtureRequest
+) -> None:
     """Ensure File.from_parent can forward custom arguments to the constructor.
 
     Context: https://github.com/jacksonsr451/test-runner-cpp/pull/47
@@ -1676,14 +1701,18 @@ class TestImportModeImportlib:
             }
         )
 
-    def test_modules_importable_as_side_effect(self, testrunnerer: Testrunnerer) -> None:
+    def test_modules_importable_as_side_effect(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """In import-modes `prepend` and `append`, we are able to import modules from directories
         containing conftest.py files due to the side effect of changing sys.path."""
         self.setup_conftest_and_foo(testrunnerer)
         result = testrunnerer.runtestrunner("-v", "--import-mode=prepend")
         result.stdout.fnmatch_lines(["* 1 passed in *"])
 
-    def test_modules_not_importable_as_side_effect(self, testrunnerer: Testrunnerer) -> None:
+    def test_modules_not_importable_as_side_effect(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """In import-mode `importlib`, modules in directories containing conftest.py are not
         importable, as don't change sys.path or sys.modules as side effect of importing
         the conftest.py file.
@@ -1728,7 +1757,9 @@ class TestImportModeImportlib:
         result.stdout.fnmatch_lines("*1 passed in*")
 
 
-def test_does_not_crash_on_error_from_decorated_function(testrunnerer: Testrunnerer) -> None:
+def test_does_not_crash_on_error_from_decorated_function(
+    testrunnerer: Testrunnerer,
+) -> None:
     """Regression test for an issue around bad exception formatting due to
     assertion rewriting mangling lineno's (#4984)."""
     testrunnerer.makepyfile(
@@ -1817,7 +1848,9 @@ def test_collect_short_file_windows_multi_level_symlink(
     result.assert_outcomes(passed=1)
 
 
-def test_pyargs_collection_tree(testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
+def test_pyargs_collection_tree(
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
+) -> None:
     """When using `--pyargs`, the collection tree of a pyargs collection
     argument should only include parents in the import path, not up to confcutdir.
 
@@ -2013,7 +2046,9 @@ def test_namespace_packages(testrunnerer: Testrunnerer, import_mode: str):
     )
 
     # should also work when called against a more specific subpackage/module
-    result = testrunnerer.runtestrunner("--collect-only", "--pyargs", "pkg.subpkg_namespace")
+    result = testrunnerer.runtestrunner(
+        "--collect-only", "--pyargs", "pkg.subpkg_namespace"
+    )
     result.stdout.fnmatch_lines(
         [
             "collected 1 item",
@@ -2024,7 +2059,9 @@ def test_namespace_packages(testrunnerer: Testrunnerer, import_mode: str):
         ]
     )
 
-    result = testrunnerer.runtestrunner("--collect-only", "--pyargs", "pkg.subpkg_regular")
+    result = testrunnerer.runtestrunner(
+        "--collect-only", "--pyargs", "pkg.subpkg_regular"
+    )
     result.stdout.fnmatch_lines(
         [
             "collected 1 item",
@@ -2041,7 +2078,9 @@ class TestOverlappingCollectionArguments:
     a/c::TestIt) are handled correctly (#12083)."""
 
     @testrunner.mark.parametrize("args", [("a", "a/b"), ("a/b", "a")])
-    def test_parent_child(self, testrunnerer: Testrunnerer, args: tuple[str, ...]) -> None:
+    def test_parent_child(
+        self, testrunnerer: Testrunnerer, args: tuple[str, ...]
+    ) -> None:
         """Test that 'testrunner a a/b' and `testrunner a/b a` collects all tests from 'a'."""
         testrunnerer.makepyfile(
             **{
@@ -2145,7 +2184,9 @@ class TestOverlappingCollectionArguments:
             }
         )
 
-        result = testrunnerer.runtestrunner("--collect-only", "--keep-duplicates", "a", "a/b")
+        result = testrunnerer.runtestrunner(
+            "--collect-only", "--keep-duplicates", "a", "a/b"
+        )
 
         result.stdout.fnmatch_lines(
             [
@@ -2239,7 +2280,9 @@ class TestOverlappingCollectionArguments:
             }
         )
 
-        result = testrunnerer.runtestrunner("--collect-only", "b", "a", "b/test_b.py::test_b")
+        result = testrunnerer.runtestrunner(
+            "--collect-only", "b", "a", "b/test_b.py::test_b"
+        )
 
         result.stdout.fnmatch_lines(
             [
@@ -2255,7 +2298,9 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    def test_overlapping_node_ids_class_and_method(self, testrunnerer: Testrunnerer) -> None:
+    def test_overlapping_node_ids_class_and_method(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test that overlapping node IDs are handled correctly."""
         testrunnerer.makepyfile(
             test_nodeids="""
@@ -2306,7 +2351,9 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-    def test_overlapping_node_ids_file_and_class(self, testrunnerer: Testrunnerer) -> None:
+    def test_overlapping_node_ids_file_and_class(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test that file-level and class-level selections work correctly."""
         testrunnerer.makepyfile(
             test_file="""
@@ -2432,7 +2479,9 @@ class TestOverlappingCollectionArguments:
         )
 
     @testrunner.mark.parametrize("order", [(".", "a"), ("a", ".")])
-    def test_root_and_subdir(self, testrunnerer: Testrunnerer, order: tuple[str, ...]) -> None:
+    def test_root_and_subdir(
+        self, testrunnerer: Testrunnerer, order: tuple[str, ...]
+    ) -> None:
         """Test that '. a' and 'a .' both collect all tests."""
         testrunnerer.makepyfile(
             test_root="""
@@ -2609,7 +2658,9 @@ class TestOverlappingCollectionArguments:
             consecutive=True,
         )
 
-        result = testrunnerer.runtestrunner_inprocess("--collect-only", "top2/", "top2/")
+        result = testrunnerer.runtestrunner_inprocess(
+            "--collect-only", "top2/", "top2/"
+        )
         result.stdout.fnmatch_lines(
             [
                 "<Dir *>",
@@ -2770,7 +2821,9 @@ def test_strict_parametrization_ids(
     )
 
 
-def test_strict_parametrization_ids_with_hidden_param(testrunnerer: Testrunnerer) -> None:
+def test_strict_parametrization_ids_with_hidden_param(
+    testrunnerer: Testrunnerer,
+) -> None:
     testrunnerer.makeini(
         """
         [testrunner]

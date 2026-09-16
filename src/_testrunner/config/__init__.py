@@ -115,7 +115,7 @@ def _pytest_hookspecs() -> types.SimpleNamespace:
 
         spec.__name__ = pytest_name
         spec.__doc__ = function.__doc__
-        spec.__signature__ = inspect.signature(function)
+        setattr(spec, "__signature__", inspect.signature(function))
         setattr(spec, "pytest_spec", getattr(function, "testrunner_spec", {}))
         specs[pytest_name] = spec
     return types.SimpleNamespace(**specs)
@@ -625,16 +625,23 @@ class TestrunnerPluginManager(PluginManager):
         return opts
 
     def add_hookspecs(self, module_or_class: object) -> None:
-        super().add_hookspecs(module_or_class)
+        # Pluggy accepts the generated SimpleNamespace at runtime, although its
+        # narrow type annotation only describes modules and classes.
+        super().add_hookspecs(module_or_class)  # type: ignore[arg-type]
         if (
             hasattr(self.hook, "pytest_xdist_getremotemodule")
             and self.get_plugin("_testrunner_xdist_compat") is None
         ):
-            from _testrunner.compatibility.pytest.plugins import XdistCompatibilityPlugin
+            from _testrunner.compatibility.pytest.plugins import (
+                XdistCompatibilityPlugin,
+            )
 
             self.register(XdistCompatibilityPlugin(), "_testrunner_xdist_compat")
 
     def register(self, plugin: _PluggyPlugin, name: str | None = None) -> str | None:
+        for registered_name, registered_plugin in self.list_name_plugin():
+            if registered_plugin is plugin:
+                return registered_name
         if name in _testrunner.deprecated.DEPRECATED_EXTERNAL_PLUGINS:
             warnings.warn(
                 TestrunnerConfigWarning(
@@ -645,7 +652,8 @@ class TestrunnerPluginManager(PluginManager):
                 )
             )
             return None
-        self._add_pytest_hook_aliases(plugin)
+        if name != "_testrunner_pytest_compat":
+            self._add_pytest_hook_aliases(plugin)
         plugin_name = super().register(plugin, name)
         if plugin_name is not None:
             self.hook.testrunner_plugin_registered.call_historic(
@@ -666,7 +674,9 @@ class TestrunnerPluginManager(PluginManager):
             if not name.startswith("pytest_") or name == "pytest_plugins":
                 continue
             testrunner_name = "testrunner_" + name.removeprefix("pytest_")
-            if not hasattr(self.hook, testrunner_name) or hasattr(plugin, testrunner_name):
+            if not hasattr(self.hook, testrunner_name) or hasattr(
+                plugin, testrunner_name
+            ):
                 continue
             try:
                 setattr(plugin, testrunner_name, getattr(plugin, name))
@@ -876,13 +886,18 @@ class TestrunnerPluginManager(PluginManager):
         mod: types.ModuleType,
         conftestpath: pathlib.Path,
     ) -> None:
+        plugin_spec_name = (
+            "testrunner_plugins"
+            if hasattr(mod, "testrunner_plugins")
+            else "pytest_plugins"
+        )
         if (
             (hasattr(mod, "testrunner_plugins") or hasattr(mod, "pytest_plugins"))
             and self._configured
             and not self._using_pyargs
         ):
             msg = (
-                "Defining plugin specifications in a non-top-level conftest is no longer supported:\n"
+                f"Defining '{plugin_spec_name}' in a non-top-level conftest is no longer supported:\n"
                 "It affects the entire test suite instead of just below the conftest as expected.\n"
                 "  {}\n"
                 "Please move it to a top level conftest file at the rootdir:\n"
@@ -1269,6 +1284,12 @@ class Config:
         :type: TestrunnerPluginManager
         """
 
+        compatibility_plugin = self.pluginmanager.get_plugin(
+            "_testrunner_pytest_compat"
+        )
+        if compatibility_plugin is not None:
+            compatibility_plugin.config = self
+
         self.stash = Stash()
         """A place where plugins can store information on the config for their
         own use.
@@ -1638,7 +1659,8 @@ class Config:
 
             if Version(minver) > Version(testrunner.__version__):
                 raise testrunner.UsageError(
-                    f"{self.inipath}: 'minversion' requires testrunner-{minver}, actual testrunner-{testrunner.__version__}'"
+                    f"{self.inipath}: 'minversion' requires testrunner-{minver}, "
+                    f"actual testrunner-{testrunner.__version__}'"
                 )
 
     def _validate_config_options(self) -> None:
@@ -1712,7 +1734,9 @@ class Config:
             )
             if len(env_addopts):
                 args[:] = (
-                    self._validate_args(shlex.split(env_addopts), "via TESTRUNNER_ADDOPTS")
+                    self._validate_args(
+                        shlex.split(env_addopts), "via TESTRUNNER_ADDOPTS"
+                    )
                     + args
                 )
 
@@ -1817,7 +1841,9 @@ class Config:
                 # we don't want to prevent --help/--version to work
                 # so just let it pass and print a warning at the end
                 self.issue_config_time_warning(
-                    TestrunnerConfigWarning(f"could not load initial conftests: {e.path}"),
+                    TestrunnerConfigWarning(
+                        f"could not load initial conftests: {e.path}"
+                    ),
                     stacklevel=2,
                 )
             else:
@@ -2508,7 +2534,8 @@ def apply_warning_filters(
             warnings.filterwarnings(*parse_warning_filter(arg, escape=False))
         except ImportError as e:
             warnings.warn(
-                f"Failed to import filter module '{e.name}': {arg}", TestrunnerConfigWarning
+                f"Failed to import filter module '{e.name}': {arg}",
+                TestrunnerConfigWarning,
             )
             continue
 
@@ -2517,6 +2544,7 @@ def apply_warning_filters(
             warnings.filterwarnings(*parse_warning_filter(arg, escape=True))
         except ImportError as e:
             warnings.warn(
-                f"Failed to import filter module '{e.name}': {arg}", TestrunnerConfigWarning
+                f"Failed to import filter module '{e.name}': {arg}",
+                TestrunnerConfigWarning,
             )
             continue

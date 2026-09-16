@@ -13,9 +13,9 @@ from _testrunner.fixtures import deduplicate_names
 from _testrunner.fixtures import ParamValueKey
 from _testrunner.fixtures import TopRequest
 from _testrunner.monkeypatch import MonkeyPatch
+from _testrunner.python import Function
 from _testrunner.testrunnerer import get_public_names
 from _testrunner.testrunnerer import Testrunnerer
-from _testrunner.python import Function
 import testrunner
 
 
@@ -146,7 +146,9 @@ class TestFillFixtures:
             """
         )
 
-    def test_fixture_not_found_nodeid_fallback(self, testrunnerer: Testrunnerer) -> None:
+    def test_fixture_not_found_nodeid_fallback(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test for fallback string nodeid handling in fixture not found error.
 
         This test can be deleted with FIXTURE_NODEID_DEPRECATED deprecation.
@@ -177,7 +179,9 @@ class TestFillFixtures:
             ]
         )
 
-    def test_detect_recursive_dependency_error(self, testrunnerer: Testrunnerer) -> None:
+    def test_detect_recursive_dependency_error(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.copy_example()
         result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(
@@ -782,7 +786,9 @@ class TestRequestBasic:
         assert req.cls.__name__ == "TestB"
         assert req.instance.__class__ == req.cls
 
-    def test_request_contains_funcarg_arg2fixturedefs(self, testrunnerer: Testrunnerer) -> None:
+    def test_request_contains_funcarg_arg2fixturedefs(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         modcol = testrunnerer.getmodulecol(
             """
             import testrunner
@@ -1073,7 +1079,9 @@ class TestRequestBasic:
         print(ss.stack)
         assert teardownlist == [1]
 
-    def test_request_addfinalizer_failing_setup(self, testrunnerer: Testrunnerer) -> None:
+    def test_request_addfinalizer_failing_setup(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -1207,7 +1215,9 @@ class TestRequestBasic:
         reprec = testrunnerer.inline_run()
         reprec.assertoutcome(passed=1)
 
-    def test_request_fixturenames_dynamic_fixture(self, testrunnerer: Testrunnerer) -> None:
+    def test_request_fixturenames_dynamic_fixture(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Regression test for #3057"""
         testrunnerer.copy_example("fixtures/test_getfixturevalue_dynamic.py")
         result = testrunnerer.runtestrunner("-vv")
@@ -1258,7 +1268,9 @@ class TestRequestBasic:
         reprec = testrunnerer.inline_run("-v")
         reprec.assertoutcome(passed=3)
 
-    def test_fixtures_sub_subdir_normalize_sep(self, testrunnerer: Testrunnerer) -> None:
+    def test_fixtures_sub_subdir_normalize_sep(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         # this tests that normalization of nodeids takes place
         b = testrunnerer.path.joinpath("tests", "unit")
         b.mkdir(parents=True)
@@ -1520,7 +1532,9 @@ class TestFixtureUsages:
         )
 
     @testrunner.mark.parametrize("scope", ["function", "session"])
-    def test_parameters_without_eq_semantics(self, scope, testrunnerer: Testrunnerer) -> None:
+    def test_parameters_without_eq_semantics(
+        self, scope, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             f"""
             class NoEq1:  # fails on `a == b` statement
@@ -1549,7 +1563,9 @@ class TestFixtureUsages:
         result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["*4 passed*"])
 
-    def test_funcarg_parametrized_and_used_twice(self, testrunnerer: Testrunnerer) -> None:
+    def test_funcarg_parametrized_and_used_twice(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -1712,7 +1728,9 @@ class TestFixtureUsages:
         reprec = testrunnerer.inline_run()
         reprec.assertoutcome(passed=1)
 
-    def test_fixture_parametrized_with_iterator(self, testrunnerer: Testrunnerer) -> None:
+    def test_fixture_parametrized_with_iterator(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -1902,7 +1920,9 @@ class TestFixtureManagerParseFactories:
         )
         return testrunnerer
 
-    def test_parsefactories_evil_objects_issue214(self, testrunnerer: Testrunnerer) -> None:
+    def test_parsefactories_evil_objects_issue214(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             class A(object):
@@ -1959,7 +1979,9 @@ class TestFixtureManagerParseFactories:
         reprec = testrunnerer.inline_run("-s")
         reprec.assertoutcome(passed=1)
 
-    def test_register_fixture_ordered_by_visibility(self, testrunnerer: Testrunnerer) -> None:
+    def test_register_fixture_ordered_by_visibility(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """A fixturedef registered for a more specific node takes precedence
         over one registered for a more general (ancestor) node, regardless of
         the order in which they were registered (#14513)."""
@@ -2304,7 +2326,9 @@ class TestAutouseDiscovery:
         """
         )
 
-    def test_autouse_in_module_and_two_classes(self, testrunnerer: Testrunnerer) -> None:
+    def test_autouse_in_module_and_two_classes(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -2508,7 +2532,9 @@ class TestAutouseManagement:
         reprec = testrunnerer.inline_run()
         reprec.assertoutcome(passed=1)
 
-    def test_parametrization_setup_teardown_ordering(self, testrunnerer: Testrunnerer) -> None:
+    def test_parametrization_setup_teardown_ordering(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -2598,7 +2624,9 @@ class TestAutouseManagement:
         reprec = testrunnerer.inline_run("-s")
         reprec.assertoutcome(passed=2)
 
-    def test_reordering_catastrophic_performance(self, testrunnerer: Testrunnerer) -> None:
+    def test_reordering_catastrophic_performance(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Check that a certain high-scope parametrization pattern doesn't cause
         a catasrophic slowdown.
 
@@ -2636,7 +2664,9 @@ class TestFixtureMarker:
         reprec = testrunnerer.inline_run()
         reprec.assertoutcome(passed=4)
 
-    def test_multiple_parametrization_issue_736(self, testrunnerer: Testrunnerer) -> None:
+    def test_multiple_parametrization_issue_736(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -2898,7 +2928,9 @@ class TestFixtureMarker:
             ["*ScopeMismatch*You tried*function*session*request*"]
         )
 
-    def test_scope_mismatch_already_computed_dynamic(self, testrunnerer: Testrunnerer) -> None:
+    def test_scope_mismatch_already_computed_dynamic(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             test_it="""
                 import testrunner
@@ -3318,7 +3350,9 @@ class TestFixtureMarker:
         pprint.pprint(list(zip_longest(values, expected)))
         assert values == expected
 
-    def test_parametrized_fixture_teardown_order(self, testrunnerer: Testrunnerer) -> None:
+    def test_parametrized_fixture_teardown_order(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -3536,7 +3570,9 @@ class TestFixtureMarker:
         reprec = testrunnerer.inline_run("-lvs")
         reprec.assertoutcome(passed=3)
 
-    def test_class_scope_parametrization_ordering(self, testrunnerer: Testrunnerer) -> None:
+    def test_class_scope_parametrization_ordering(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """#396"""
         testrunnerer.makepyfile(
             """
@@ -3774,7 +3810,9 @@ class TestErrors:
             ["*def gen(qwe123):*", "*fixture*qwe123*not found*", "*1 error*"]
         )
 
-    def test_issue498_fixture_finalizer_failing(self, testrunnerer: Testrunnerer) -> None:
+    def test_issue498_fixture_finalizer_failing(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -3822,7 +3860,9 @@ class TestErrors:
             ["*def gen(qwe123):*", "*fixture*qwe123*not found*", "*1 error*"]
         )
 
-    def test_cached_exception_doesnt_get_longer(self, testrunnerer: Testrunnerer) -> None:
+    def test_cached_exception_doesnt_get_longer(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Regression test for #12204."""
         testrunnerer.makepyfile(
             """
@@ -4136,7 +4176,9 @@ class TestShowFixtures:
             def foo():
                 raise NotImplementedError()
 
-    def test_show_fixtures_deprecated_nodeid_fixture(self, testrunnerer: Testrunnerer) -> None:
+    def test_show_fixtures_deprecated_nodeid_fixture(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test for fallback string nodeid handling in showfixtures.
 
         This test can be deleted with FIXTURE_NODEID_DEPRECATED deprecation.
@@ -4443,7 +4485,9 @@ class TestParameterizedSubRequest:
         )
 
 
-def test_testrunner_fixture_setup_and_post_finalizer_hook(testrunnerer: Testrunnerer) -> None:
+def test_testrunner_fixture_setup_and_post_finalizer_hook(
+    testrunnerer: Testrunnerer,
+) -> None:
     testrunnerer.makeconftest(
         """
         def testrunner_fixture_setup(fixturedef, request):
@@ -4697,7 +4741,9 @@ class TestScopeOrdering:
         request = TopRequest(items[0], _istestrunner=True)
         assert request.fixturenames == ["m1", "f1"]
 
-    def test_func_closure_with_native_fixtures(self, testrunnerer: Testrunnerer) -> None:
+    def test_func_closure_with_native_fixtures(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Sanity check that verifies the order returned by the closures and the
         actual fixture execution order: the execution order may differ because
         of fixture inter-dependencies."""
@@ -4908,7 +4954,9 @@ class TestScopeOrdering:
         request = TopRequest(items[0], _istestrunner=True)
         assert request.fixturenames == ["s1", "p1", "m1", "m2", "c1", "f2", "f1"]
 
-    def test_parametrized_package_scope_reordering(self, testrunnerer: Testrunnerer) -> None:
+    def test_parametrized_package_scope_reordering(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """A parameterized package-scoped fixture correctly reorders items to
         minimize setups & teardowns.
 
@@ -5018,7 +5066,9 @@ class TestScopeOrdering:
             ],
         )
 
-    def test_reorder_mixed_hashable_unhashable_params(self, testrunnerer: Testrunnerer) -> None:
+    def test_reorder_mixed_hashable_unhashable_params(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Hashable and unhashable values parametrizing the same fixture only
         group with their own kind: values with values, unhashables by index.
         """
@@ -5774,7 +5824,9 @@ def test_fixture_closure_with_overrides(testrunnerer: Testrunnerer) -> None:
     result.assert_outcomes(passed=1)
 
 
-def test_fixture_closure_with_overrides_and_intermediary(testrunnerer: Testrunnerer) -> None:
+def test_fixture_closure_with_overrides_and_intermediary(
+    testrunnerer: Testrunnerer,
+) -> None:
     """Test that an item's static fixture closure properly includes transitive
     dependencies through overridden fixtures (#13773).
 
@@ -5820,7 +5872,9 @@ def test_fixture_closure_with_overrides_and_intermediary(testrunnerer: Testrunne
     result.assert_outcomes(passed=1)
 
 
-def test_fixture_closure_with_overrides_and_parametrization(testrunnerer: Testrunnerer) -> None:
+def test_fixture_closure_with_overrides_and_parametrization(
+    testrunnerer: Testrunnerer,
+) -> None:
     """Test that an item's static fixture closure properly includes transitive
     dependencies through overridden fixtures (#13773) when also including
     parametrization (#14248)."""
@@ -5904,7 +5958,9 @@ def test_fixture_closure_with_broken_override_chain(testrunnerer: Testrunnerer) 
     result.assert_outcomes(passed=1)
 
 
-def test_fixture_closure_handles_circular_dependencies(testrunnerer: Testrunnerer) -> None:
+def test_fixture_closure_handles_circular_dependencies(
+    testrunnerer: Testrunnerer,
+) -> None:
     """Test that getfixtureclosure properly handles circular dependencies.
 
     The test will error in the runtest phase due to the fixture loop,
@@ -5940,7 +5996,9 @@ def test_fixture_closure_handles_circular_dependencies(testrunnerer: Testrunnere
     assert items[0].fixturenames == ["fix_a", "fix_b", "fix_x", "fix_y", "fix_z"]
 
 
-def test_fixture_closure_handles_diamond_dependencies(testrunnerer: Testrunnerer) -> None:
+def test_fixture_closure_handles_diamond_dependencies(
+    testrunnerer: Testrunnerer,
+) -> None:
     """Test that getfixtureclosure properly handles diamond dependencies."""
     testrunnerer.makepyfile(
         """
@@ -6063,7 +6121,9 @@ def test_overridden_fixture_depends_on_parametrized(testrunnerer: Testrunnerer) 
     result.assert_outcomes(passed=1)
 
 
-@testrunner.mark.filterwarnings("default:cannot discover fixture *:testrunner.TestrunnerWarning")
+@testrunner.mark.filterwarnings(
+    "default:cannot discover fixture *:testrunner.TestrunnerWarning"
+)
 def test_custom_decorated_fixture_warning(testrunnerer: Testrunnerer) -> None:
     """Fixtures wrapped by custom decorators using functools.wraps warn."""
     testrunnerer.makepyfile(
@@ -6103,7 +6163,9 @@ def test_custom_decorated_fixture_warning(testrunnerer: Testrunnerer) -> None:
     result.assert_outcomes(errors=1)
 
 
-@testrunner.mark.filterwarnings("default:cannot discover fixture *:testrunner.TestrunnerWarning")
+@testrunner.mark.filterwarnings(
+    "default:cannot discover fixture *:testrunner.TestrunnerWarning"
+)
 def test_custom_decorated_fixture_above_classmethod_warning(
     testrunnerer: Testrunnerer,
 ) -> None:
@@ -6148,7 +6210,9 @@ def test_custom_decorated_fixture_above_classmethod_warning(
     result.assert_outcomes(errors=1)
 
 
-@testrunner.mark.filterwarnings("default:cannot discover fixture *:testrunner.TestrunnerWarning")
+@testrunner.mark.filterwarnings(
+    "default:cannot discover fixture *:testrunner.TestrunnerWarning"
+)
 def test_classmethod_above_fixture_warning(testrunnerer: Testrunnerer) -> None:
     """@classmethod above @testrunner.fixture hides the fixture (#13507)."""
     testrunnerer.makepyfile(
@@ -6254,12 +6318,18 @@ def test_fixture_above_staticmethod_still_works(testrunnerer: Testrunnerer) -> N
                 assert fixt == 1
         """
     )
-    result = testrunnerer.runtestrunner("-W", "error::testrunner.TestrunnerWarning", "-v")
+    result = testrunnerer.runtestrunner(
+        "-W", "error::testrunner.TestrunnerWarning", "-v"
+    )
     result.assert_outcomes(passed=1)
 
 
-@testrunner.mark.filterwarnings("default:cannot discover fixture *:testrunner.TestrunnerWarning")
-def test_classmethod_above_fixture_warning_inherited(testrunnerer: Testrunnerer) -> None:
+@testrunner.mark.filterwarnings(
+    "default:cannot discover fixture *:testrunner.TestrunnerWarning"
+)
+def test_classmethod_above_fixture_warning_inherited(
+    testrunnerer: Testrunnerer,
+) -> None:
     """MRO ``__dict__`` lookup finds @classmethod wrappers on a base class."""
     testrunnerer.makepyfile(
         """

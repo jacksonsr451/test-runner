@@ -9,8 +9,8 @@ from typing import cast
 from _testrunner.capture import CaptureManager
 from _testrunner.config import ExitCode
 from _testrunner.fixtures import FixtureRequest
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.terminal import TerminalReporter
+from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
@@ -70,7 +70,9 @@ def test_root_logger_affected(testrunnerer: Testrunnerer) -> None:
     """
     )
     log_file = str(testrunnerer.path.joinpath("testrunner.log"))
-    result = testrunnerer.runtestrunner("--log-level=ERROR", "--log-file=testrunner.log")
+    result = testrunnerer.runtestrunner(
+        "--log-level=ERROR", "--log-file=testrunner.log"
+    )
     assert result.ret == 1
 
     # The capture log calls in the stdout section only contain the
@@ -748,7 +750,9 @@ def test_log_file_cli_level(testrunnerer: Testrunnerer) -> None:
 
     log_file = str(testrunnerer.path.joinpath("testrunner.log"))
 
-    result = testrunnerer.runtestrunner("-s", f"--log-file={log_file}", "--log-file-level=INFO")
+    result = testrunnerer.runtestrunner(
+        "-s", f"--log-file={log_file}", "--log-file-level=INFO"
+    )
 
     # fnmatch_lines does an assertion internally
     result.stdout.fnmatch_lines(["test_log_file_cli_level.py PASSED"])
@@ -988,7 +992,9 @@ def test_collection_live_logging(testrunnerer: Testrunnerer) -> None:
 
 
 @testrunner.mark.parametrize("verbose", ["", "-q", "-qq"])
-def test_collection_collect_only_live_logging(testrunnerer: Testrunnerer, verbose: str) -> None:
+def test_collection_collect_only_live_logging(
+    testrunnerer: Testrunnerer, verbose: str
+) -> None:
     testrunnerer.makepyfile(
         """
         def test_simple():
@@ -996,7 +1002,9 @@ def test_collection_collect_only_live_logging(testrunnerer: Testrunnerer, verbos
     """
     )
 
-    result = testrunnerer.runtestrunner("--collect-only", "--log-cli-level=INFO", verbose)
+    result = testrunnerer.runtestrunner(
+        "--collect-only", "--log-cli-level=INFO", verbose
+    )
 
     expected_lines = []
 

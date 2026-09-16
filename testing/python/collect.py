@@ -12,9 +12,9 @@ from _testrunner.config.exceptions import UsageError
 from _testrunner.main import Session
 from _testrunner.monkeypatch import MonkeyPatch
 from _testrunner.nodes import Collector
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.python import Class
 from _testrunner.python import Function
+from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
@@ -79,7 +79,9 @@ class TestModule:
         with testrunner.raises(modcol.CollectError):
             modcol.collect()
 
-    def test_module_considers_pluginmanager_at_import(self, testrunnerer: Testrunnerer) -> None:
+    def test_module_considers_pluginmanager_at_import(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         modcol = testrunnerer.getmodulecol("testrunner_plugins='xasdlkj',")
         with testrunner.raises(UsageError):
             modcol.obj()
@@ -132,7 +134,9 @@ class TestModule:
         else:
             assert "_testrunner" not in stdout
 
-    def test_show_traceback_import_error_unicode(self, testrunnerer: Testrunnerer) -> None:
+    def test_show_traceback_import_error_unicode(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Check test modules collected which raise ImportError with unicode messages
         are handled properly (#2336).
         """
@@ -213,7 +217,9 @@ class TestClass:
         result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["*collected 2 items*", "*2 passed in*"])
 
-    def test_setup_teardown_class_as_classmethod(self, testrunnerer: Testrunnerer) -> None:
+    def test_setup_teardown_class_as_classmethod(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             test_mod1="""
             class TestClassMethod(object):
@@ -281,7 +287,9 @@ class TestClass:
         result = testrunnerer.runtestrunner()
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
 
-    def test_does_not_discover_instance_descriptors(self, testrunnerer: Testrunnerer) -> None:
+    def test_does_not_discover_instance_descriptors(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Regression test for #12446."""
         testrunnerer.makepyfile(
             """\
@@ -365,7 +373,9 @@ class TestFunction:
         assert hasattr(modcol.obj, "test_func")
 
     @testrunner.mark.filterwarnings("default")
-    def test_function_as_object_instance_ignored(self, testrunnerer: Testrunnerer) -> None:
+    def test_function_as_object_instance_ignored(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             class A(object):
@@ -410,7 +420,9 @@ class TestFunction:
 
     def test_repr_produces_actual_test_id(self, testrunnerer: Testrunnerer) -> None:
         f = self.make_function(
-            testrunnerer, name=r"test[\xe5]", callobj=self.test_repr_produces_actual_test_id
+            testrunnerer,
+            name=r"test[\xe5]",
+            callobj=self.test_repr_produces_actual_test_id,
         )
         assert repr(f) == r"<Function test[\xe5]>"
 
@@ -438,7 +450,9 @@ class TestFunction:
         reprec = testrunnerer.inline_run()
         reprec.assertoutcome(passed=1)
 
-    def test_issue213_parametrize_value_no_equal(self, testrunnerer: Testrunnerer) -> None:
+    def test_issue213_parametrize_value_no_equal(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             import testrunner
@@ -453,7 +467,9 @@ class TestFunction:
         reprec = testrunnerer.inline_run("--fulltrace")
         reprec.assertoutcome(passed=1)
 
-    def test_parametrize_with_non_hashable_values(self, testrunnerer: Testrunnerer) -> None:
+    def test_parametrize_with_non_hashable_values(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test parametrization with non-hashable values."""
         testrunnerer.makepyfile(
             """
@@ -644,7 +660,9 @@ class TestFunction:
         )
         assert "foo" in keywords[1] and "bar" in keywords[1] and "baz" in keywords[1]
 
-    def test_parametrize_with_empty_string_arguments(self, testrunnerer: Testrunnerer) -> None:
+    def test_parametrize_with_empty_string_arguments(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         items = testrunnerer.getitems(
             """\
             import testrunner
@@ -702,7 +720,9 @@ class TestFunction:
         assert colitems[2].name == "test1[3-0]"
         assert colitems[3].name == "test1[3-1]"
 
-    def test_issue751_multiple_parametrize_with_ids(self, testrunnerer: Testrunnerer) -> None:
+    def test_issue751_multiple_parametrize_with_ids(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         modcol = testrunnerer.getmodulecol(
             """
             import testrunner
@@ -879,7 +899,9 @@ class TestSorting:
             assert [1, 2, 3] != fn  # type: ignore[comparison-overlap]
             assert modcol != fn
 
-    def test_allow_sane_sorting_for_decorators(self, testrunnerer: Testrunnerer) -> None:
+    def test_allow_sane_sorting_for_decorators(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         modcol = testrunnerer.getmodulecol(
             """
             def dec(f):
@@ -949,7 +971,9 @@ class TestConftestCustomization:
         result = testrunnerer.runtestrunner("--collect-only")
         result.stdout.fnmatch_lines(["*<Module*test_testrunner*", "*<MyModule*xyz*"])
 
-    def test_customized_pymakemodule_issue205_subdir(self, testrunnerer: Testrunnerer) -> None:
+    def test_customized_pymakemodule_issue205_subdir(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         b = testrunnerer.path.joinpath("a", "b")
         b.mkdir(parents=True)
         b.joinpath("conftest.py").write_text(
@@ -1245,7 +1269,9 @@ class TestTracebackCutting:
         assert isinstance(traceback[-1].path, str)
         assert not filter_traceback(traceback[-1])
 
-    def test_filter_traceback_path_no_longer_valid(self, testrunnerer: Testrunnerer) -> None:
+    def test_filter_traceback_path_no_longer_valid(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test that filter_traceback() works with the fact that
         _testrunner._code.code.Code.path attribute might return an str object.
 

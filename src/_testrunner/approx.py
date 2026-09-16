@@ -402,7 +402,10 @@ class ApproxSequenceLike(Approx[Sequence[Any]]):
 
         for index, x in enumerate(expected):
             if _is_nested_container(x):
-                msg = "testrunner.approx() does not support nested data structures: {!r} at index {}\n  full sequence: {}"
+                msg = (
+                    "testrunner.approx() does not support nested data structures: "
+                    "{!r} at index {}\n  full sequence: {}"
+                )
                 raise TypeError(msg.format(x, index, pprint.pformat(expected)))
 
         super().__init__(expected, rel=rel, abs=abs, nan_ok=nan_ok)

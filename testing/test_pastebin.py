@@ -71,7 +71,9 @@ class TestPasteCapture:
             ]
         )
 
-    def test_non_ascii_paste_text(self, testrunnerer: Testrunnerer, pastebinlist) -> None:
+    def test_non_ascii_paste_text(
+        self, testrunnerer: Testrunnerer, pastebinlist
+    ) -> None:
         """Make sure that text which contains non-ascii characters is pasted
         correctly. See #1219.
         """

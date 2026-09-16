@@ -53,11 +53,6 @@ from _testrunner.outcomes import fail
 from _testrunner.outcomes import importorskip
 from _testrunner.outcomes import skip
 from _testrunner.outcomes import xfail
-from _testrunner.testrunnerer import HookRecorder
-from _testrunner.testrunnerer import LineMatcher
-from _testrunner.testrunnerer import Testrunnerer
-from _testrunner.testrunnerer import RecordedHookCall
-from _testrunner.testrunnerer import RunResult
 from _testrunner.python import Class
 from _testrunner.python import Function
 from _testrunner.python import Metafunc
@@ -79,6 +74,11 @@ from _testrunner.subtests import SubtestReport
 from _testrunner.subtests import Subtests
 from _testrunner.terminal import TerminalReporter
 from _testrunner.terminal import TestShortLogReport
+from _testrunner.testrunnerer import HookRecorder
+from _testrunner.testrunnerer import LineMatcher
+from _testrunner.testrunnerer import RecordedHookCall
+from _testrunner.testrunnerer import RunResult
+from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.tmpdir import TempPathFactory
 from _testrunner.warning_types import TestrunnerApproxDecimalToleranceWarning
 from _testrunner.warning_types import TestrunnerAssertRewriteWarning
@@ -133,22 +133,6 @@ __all__ = [
     "OptionGroup",
     "Package",
     "Parser",
-    "TestrunnerApproxDecimalToleranceWarning",
-    "TestrunnerAssertRewriteWarning",
-    "TestrunnerCacheWarning",
-    "TestrunnerCollectionWarning",
-    "TestrunnerConfigWarning",
-    "TestrunnerDeprecationWarning",
-    "TestrunnerExperimentalApiWarning",
-    "TestrunnerFDWarning",
-    "TestrunnerPluginManager",
-    "TestrunnerRemovedIn10Warning",
-    "TestrunnerReturnNotNoneWarning",
-    "TestrunnerUnhandledThreadExceptionWarning",
-    "TestrunnerUnknownMarkWarning",
-    "TestrunnerUnraisableExceptionWarning",
-    "TestrunnerWarning",
-    "Testrunnerer",
     "RaisesExc",
     "RaisesGroup",
     "RecordedHookCall",
@@ -165,6 +149,22 @@ __all__ = [
     "TestReport",
     "TestShortLogReport",
     "Testdir",
+    "TestrunnerApproxDecimalToleranceWarning",
+    "TestrunnerAssertRewriteWarning",
+    "TestrunnerCacheWarning",
+    "TestrunnerCollectionWarning",
+    "TestrunnerConfigWarning",
+    "TestrunnerDeprecationWarning",
+    "TestrunnerExperimentalApiWarning",
+    "TestrunnerFDWarning",
+    "TestrunnerPluginManager",
+    "TestrunnerRemovedIn10Warning",
+    "TestrunnerReturnNotNoneWarning",
+    "TestrunnerUnhandledThreadExceptionWarning",
+    "TestrunnerUnknownMarkWarning",
+    "TestrunnerUnraisableExceptionWarning",
+    "TestrunnerWarning",
+    "Testrunnerer",
     "UsageError",
     "WarningsRecorder",
     "__version__",

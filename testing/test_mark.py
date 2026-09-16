@@ -202,7 +202,9 @@ def test_mark_on_pseudo_function(testrunnerer: Testrunnerer) -> None:
         "addopts = --strict-markers",
     ],
 )
-def test_strict_prohibits_unregistered_markers(testrunnerer: Testrunnerer, option: str) -> None:
+def test_strict_prohibits_unregistered_markers(
+    testrunnerer: Testrunnerer, option: str
+) -> None:
     testrunnerer.makepyfile(
         """
         import testrunner
@@ -314,7 +316,9 @@ def markexpr_testrunnerer(testrunnerer: Testrunnerer) -> Testrunnerer:
 def test_strict_prohibits_unregistered_markers_in_markexpr(
     markexpr_testrunnerer: Testrunnerer, option: str
 ) -> None:
-    result = markexpr_testrunnerer.runtestrunner(option, "-m", "registered or unregisteredmark")
+    result = markexpr_testrunnerer.runtestrunner(
+        option, "-m", "registered or unregisteredmark"
+    )
     assert result.ret == ExitCode.USAGE_ERROR
     result.stderr.fnmatch_lines(
         ["*Unknown marker(s) in '-m' expression: unregisteredmark*"]
@@ -612,7 +616,9 @@ def test_parametrized_collect_with_wrong_args(testrunnerer: Testrunnerer) -> Non
     )
 
 
-def test_parametrized_collect_with_non_sequence_values(testrunnerer: Testrunnerer) -> None:
+def test_parametrized_collect_with_non_sequence_values(
+    testrunnerer: Testrunnerer,
+) -> None:
     """Test collect parametrized func with tuple-style argnames and scalar values."""
     py_file = testrunnerer.makepyfile(
         """
@@ -720,7 +726,9 @@ class TestFunctional:
         items, _rec = testrunnerer.inline_genitems(p)
         self.assert_markers(items, test_foo=("a", "b"), test_bar=("a",))
 
-    def test_mark_should_not_pass_to_siebling_class(self, testrunnerer: Testrunnerer) -> None:
+    def test_mark_should_not_pass_to_siebling_class(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """#568"""
         p = testrunnerer.makepyfile(
             """
@@ -748,7 +756,9 @@ class TestFunctional:
         assert not list(sub_item_other.iter_markers(name="b"))
         assert list(sub_item.iter_markers(name="b"))
 
-    def test_mark_decorator_baseclasses_merged(self, testrunnerer: Testrunnerer) -> None:
+    def test_mark_decorator_baseclasses_merged(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             import testrunner
@@ -797,7 +807,9 @@ class TestFunctional:
         assert has_inherited_marker.kwargs == {"location": "class"}
         assert has_own.get_closest_marker("missing") is None
 
-    def test_mark_closest_default_mark_decorator(self, testrunnerer: Testrunnerer) -> None:
+    def test_mark_closest_default_mark_decorator(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             def test_without_mark():
@@ -844,7 +856,9 @@ class TestFunctional:
         result = testrunnerer.runtestrunner()
         result.stdout.fnmatch_lines(["keyword: *hello*"])
 
-    def test_no_marker_match_on_unmarked_names(self, testrunnerer: Testrunnerer) -> None:
+    def test_no_marker_match_on_unmarked_names(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             import testrunner
@@ -1364,7 +1378,9 @@ def test_testrunner_param_id_allows_none_or_string(s) -> None:
     assert testrunner.param(id=s)
 
 
-@testrunner.mark.parametrize("expr", ("NOT internal_err", "NOT (internal_err)", "bogus="))
+@testrunner.mark.parametrize(
+    "expr", ("NOT internal_err", "NOT (internal_err)", "bogus=")
+)
 def test_marker_expr_eval_failure_handling(testrunnerer: Testrunnerer, expr) -> None:
     foo = testrunnerer.makepyfile(
         """
@@ -1534,7 +1550,9 @@ def test_module_getattr_without_attributeerror(testrunnerer: Testrunnerer) -> No
             assert True
         """
     )
-    result = testrunnerer.runtestrunner("-W", "always::testrunner.TestrunnerCollectionWarning")
+    result = testrunnerer.runtestrunner(
+        "-W", "always::testrunner.TestrunnerCollectionWarning"
+    )
     result.stdout.fnmatch_lines(
         [
             "*TestrunnerCollectionWarning*__getattr__*returns None*AttributeError*",

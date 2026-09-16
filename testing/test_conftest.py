@@ -40,6 +40,14 @@ def conftest_setinitial(
     )
 
 
+def _user_plugins(pluginmanager: TestrunnerPluginManager) -> set[object]:
+    internal_plugins = {
+        pluginmanager.get_plugin("_testrunner_pytest_compat"),
+        pluginmanager.get_plugin("_testrunner_xdist_compat"),
+    }
+    return set(pluginmanager.get_plugins()) - internal_plugins - {pluginmanager}
+
+
 @testrunner.mark.usefixtures("_sys_snapshot")
 class TestConftestValueAccessGlobal:
     @testrunner.fixture(scope="module", params=["global", "inpackage"])
@@ -160,7 +168,7 @@ def test_issue151_load_all_conftests(testrunnerer: Testrunnerer) -> None:
 
     pm = TestrunnerPluginManager()
     conftest_setinitial(pm, names)
-    assert len(set(pm.get_plugins()) - {pm}) == len(names)
+    assert len(_user_plugins(pm)) == len(names)
 
 
 def test_conftest_global_import(testrunnerer: Testrunnerer) -> None:
@@ -259,10 +267,10 @@ def test_setinitial_conftest_subdirs(testrunnerer: Testrunnerer, name: str) -> N
     key = subconftest.resolve()
     if name not in ("whatever", ".dotdir"):
         assert pm.has_plugin(str(key))
-        assert len(set(pm.get_plugins()) - {pm}) == 1
+        assert len(_user_plugins(pm)) == 1
     else:
         assert not pm.has_plugin(str(key))
-        assert len(set(pm.get_plugins()) - {pm}) == 0
+        assert len(_user_plugins(pm)) == 0
 
 
 def test_conftest_confcutdir(testrunnerer: Testrunnerer) -> None:
@@ -282,7 +290,9 @@ def test_conftest_confcutdir(testrunnerer: Testrunnerer) -> None:
     result.stdout.no_fnmatch_line("*warning: could not load initial*")
 
 
-def test_installed_conftest_is_picked_up(testrunnerer: Testrunnerer, tmp_path: Path) -> None:
+def test_installed_conftest_is_picked_up(
+    testrunnerer: Testrunnerer, tmp_path: Path
+) -> None:
     """When using `--pyargs` to run tests in an installed packages (located e.g.
     in a site-packages in the PYTHONPATH), conftest files in there are picked
     up.
@@ -441,7 +451,9 @@ def test_conftest_existing_junitxml(testrunnerer: Testrunnerer) -> None:
     result.stdout.fnmatch_lines(["*--xyz*"])
 
 
-def test_conftests_in_invocation_dir_tests_is_initial(testrunnerer: Testrunnerer) -> None:
+def test_conftests_in_invocation_dir_tests_is_initial(
+    testrunnerer: Testrunnerer,
+) -> None:
     """An option registered in a conftest under ``test*`` subdir of the
     invocation dir is loaded as initial when no command-line arguments
     or `testpaths` are given (#14608).
@@ -463,7 +475,9 @@ def test_conftests_in_invocation_dir_tests_is_initial(testrunnerer: Testrunnerer
     result.assert_outcomes(passed=1)
 
 
-def test_conftest_import_order(testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
+def test_conftest_import_order(
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
+) -> None:
     ct1 = testrunnerer.makeconftest("")
     sub = testrunnerer.mkdir("sub")
     ct2 = sub / "conftest.py"
@@ -555,7 +569,9 @@ def test_conftest_found_with_double_dash(testrunnerer: Testrunnerer) -> None:
 
 
 class TestConftestVisibility:
-    def _setup_tree(self, testrunnerer: Testrunnerer) -> dict[str, Path]:  # for issue616
+    def _setup_tree(
+        self, testrunnerer: Testrunnerer
+    ) -> dict[str, Path]:  # for issue616
         # example mostly taken from:
         # https://mail.python.org/pipermail/testrunner-dev/2014-September/002617.html
         runner = testrunnerer.mkdir("empty")
@@ -653,7 +669,11 @@ class TestConftestVisibility:
         ],
     )
     def test_parsefactories_relative_node_ids(
-        self, testrunnerer: Testrunnerer, chdir: str, testarg: str, expect_ntests_passed: int
+        self,
+        testrunnerer: Testrunnerer,
+        chdir: str,
+        testarg: str,
+        expect_ntests_passed: int,
     ) -> None:
         """#616"""
         dirs = self._setup_tree(testrunnerer)
@@ -908,7 +928,9 @@ def test_conftest_fixture_from_ancestor_above_rootdir(
         encoding="utf-8",
     )
 
-    result = testrunnerer.runtestrunner("--rootdir", str(sub), "--confcutdir", str(root), "-v")
+    result = testrunnerer.runtestrunner(
+        "--rootdir", str(sub), "--confcutdir", str(root), "-v"
+    )
     result.stdout.fnmatch_lines(["*test_uses_ancestor*PASSED*", "*1 passed*"])
 
 

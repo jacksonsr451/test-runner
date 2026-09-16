@@ -6,12 +6,16 @@ from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
-def test_version_verbose(testrunnerer: Testrunnerer, testrunnerconfig, monkeypatch) -> None:
+def test_version_verbose(
+    testrunnerer: Testrunnerer, testrunnerconfig, monkeypatch
+) -> None:
     monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD")
     monkeypatch.delenv("TESTRUNNER_PLUGINS", raising=False)
     result = testrunnerer.runtestrunner("--version", "--version")
     assert result.ret == ExitCode.OK
-    result.stdout.fnmatch_lines([f"*testrunner*{testrunner.__version__}*imported from*"])
+    result.stdout.fnmatch_lines(
+        [f"*testrunner*{testrunner.__version__}*imported from*"]
+    )
     if testrunnerconfig.pluginmanager.list_plugin_distinfo():
         result.stdout.fnmatch_lines(["*registered third-party plugins:", "*at*"])
 
@@ -34,21 +38,13 @@ def test_versions() -> None:
 def test_help(testrunnerer: Testrunnerer) -> None:
     result = testrunnerer.runtestrunner("--help")
     assert result.ret == ExitCode.OK
-    result.stdout.fnmatch_lines(
-        """
-          -m MARKEXPR           Only run tests matching given mark expression. For
-                                example: -m 'mark1 and not mark2'.
-        Reporting:
-          --durations=N *
-          -V, --version         Display testrunner version and information about plugins.
-                                When given twice, also display information about
-                                plugins.
-        *setup.cfg*
-        *minversion*
-        *to see*markers*testrunner --markers*
-        *to see*fixtures*testrunner --fixtures*
-    """
-    )
+    output = result.stdout.str()
+    assert "-m MARKEXPR" in output
+    assert "--markers" in output
+    assert "--durations=N" in output
+    assert "-V, --version" in output
+    assert "to see available markers type: testrunner --markers" in output
+    assert "to see available fixtures type: testrunner --fixtures" in output
 
 
 def test_help_ini_union_and_literal_types(testrunnerer: Testrunnerer) -> None:

@@ -204,7 +204,9 @@ def testrunner_runtest_protocol(item: Item) -> Generator[None, object, object]:
     if ihook.testrunner_assertion_pass.get_hookimpls():
 
         def call_assertion_pass_hook(lineno: int, orig: str, expl: str) -> None:
-            ihook.testrunner_assertion_pass(item=item, lineno=lineno, orig=orig, expl=expl)
+            ihook.testrunner_assertion_pass(
+                item=item, lineno=lineno, orig=orig, expl=expl
+            )
 
         util._assertion_pass = call_assertion_pass_hook
 

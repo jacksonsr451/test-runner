@@ -56,7 +56,9 @@ def test_excinfo_from_exc_info_simple() -> None:
         raise ValueError
     except ValueError as e:
         assert e.__traceback__ is not None
-        info = _testrunner._code.ExceptionInfo.from_exc_info((type(e), e, e.__traceback__))
+        info = _testrunner._code.ExceptionInfo.from_exc_info(
+            (type(e), e, e.__traceback__)
+        )
     assert info.type == ValueError
 
 
@@ -183,7 +185,9 @@ class TestTraceback_f_g_h:
     def test_traceback_cut_excludepath(self, testrunnerer: Testrunnerer) -> None:
         p = testrunnerer.makepyfile("def f(): raise ValueError")
         with testrunner.raises(ValueError) as excinfo:
-            import_path(p, root=testrunnerer.path, consider_namespace_packages=False).f()
+            import_path(
+                p, root=testrunnerer.path, consider_namespace_packages=False
+            ).f()
         basedir = Path(testrunner.__file__).parent
         newtraceback = excinfo.traceback.cut(excludepath=basedir)
         for x in newtraceback:
@@ -2011,7 +2015,9 @@ def _exceptiongroup_common(
 )
 @testrunner.mark.parametrize("outer_chain", ["none", "from", "another"])
 @testrunner.mark.parametrize("inner_chain", ["none", "from", "another"])
-def test_native_exceptiongroup(testrunnerer: Testrunnerer, outer_chain, inner_chain) -> None:
+def test_native_exceptiongroup(
+    testrunnerer: Testrunnerer, outer_chain, inner_chain
+) -> None:
     _exceptiongroup_common(testrunnerer, outer_chain, inner_chain, native=True)
 
 
@@ -2102,7 +2108,9 @@ def test_exceptiongroup_short_summary_info(testrunnerer: Testrunnerer):
 
 @testrunner.mark.parametrize("tbstyle", ("long", "short", "auto", "line", "native"))
 @testrunner.mark.parametrize("group", (True, False), ids=("group", "bare"))
-def test_all_entries_hidden(testrunnerer: Testrunnerer, tbstyle: str, group: bool) -> None:
+def test_all_entries_hidden(
+    testrunnerer: Testrunnerer, tbstyle: str, group: bool
+) -> None:
     """Regression test for #10903."""
     testrunnerer.makepyfile(
         f"""
@@ -2122,7 +2130,9 @@ def test_all_entries_hidden(testrunnerer: Testrunnerer, tbstyle: str, group: boo
         result.stdout.fnmatch_lines(["All traceback entries are hidden.*"])
 
 
-def test_hidden_entries_of_chained_exceptions_are_not_shown(testrunnerer: Testrunnerer) -> None:
+def test_hidden_entries_of_chained_exceptions_are_not_shown(
+    testrunnerer: Testrunnerer,
+) -> None:
     """Hidden entries of chained exceptions are not shown (#1904)."""
     p = testrunnerer.makepyfile(
         """
@@ -2167,7 +2177,9 @@ def test_hidden_entries_of_chained_exceptions_are_not_shown(testrunnerer: Testru
     )
 
 
-def test_tracebackhide_in_exceptiongroup_is_respected(testrunnerer: Testrunnerer) -> None:
+def test_tracebackhide_in_exceptiongroup_is_respected(
+    testrunnerer: Testrunnerer,
+) -> None:
     """ExceptionGroup tracebacks respect __tracebackhide__ (#14036)."""
     p = testrunnerer.makepyfile(
         """

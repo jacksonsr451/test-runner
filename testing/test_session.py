@@ -137,7 +137,9 @@ class SessionTests:
         out = failed[0].longrepr.reprcrash.message  # type: ignore[union-attr]
         assert out.find("<[reprexc() raised in repr()] BrokenRepr1") != -1
 
-    def test_broken_repr_with_showlocals_verbose(self, testrunnerer: Testrunnerer) -> None:
+    def test_broken_repr_with_showlocals_verbose(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             class ObjWithErrorInRepr:
@@ -209,7 +211,9 @@ class TestNewSession(SessionTests):
         assert failed == skipped == 0
         assert passed == 7
 
-    def test_collect_only_with_various_situations(self, testrunnerer: Testrunnerer) -> None:
+    def test_collect_only_with_various_situations(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             test_one="""
                 def test_one():

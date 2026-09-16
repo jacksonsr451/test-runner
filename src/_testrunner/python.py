@@ -192,7 +192,8 @@ def testrunner_pyfunc_call(pyfuncitem: Function) -> object | None:
             TestrunnerReturnNotNoneWarning(
                 f"Test functions should return None, but {pyfuncitem.nodeid} returned {type(result)!r}.\n"
                 "Did you mean to use `assert` instead of `return`?\n"
-                "See https://github.com/jacksonsr451/test-runner/tree/main/doc/en/how-to/assert.html#return-not-none for more information."
+                "See https://github.com/jacksonsr451/test-runner/tree/main/doc/en/"
+                "how-to/assert.html#return-not-none for more information."
             )
         )
     return True
@@ -497,7 +498,9 @@ class PyCollector(PyobjMixin, nodes.Collector, abc.ABC):
             methods.append(module.testrunner_generate_tests)
         if cls is not None and hasattr(cls, "testrunner_generate_tests"):
             methods.append(cls().testrunner_generate_tests)
-        self.ihook.testrunner_generate_tests.call_extra(methods, dict(metafunc=metafunc))
+        self.ihook.testrunner_generate_tests.call_extra(
+            methods, dict(metafunc=metafunc)
+        )
 
         if not metafunc._calls:
             yield Function.from_parent(self, name=name, fixtureinfo=fixtureinfo)
@@ -729,7 +732,9 @@ class Package(nodes.Directory):
             if direntry.is_dir():
                 path = Path(direntry.path)
                 if not self.session.isinitpath(path, with_parents=True):
-                    if ihook.testrunner_ignore_collect(collection_path=path, config=config):
+                    if ihook.testrunner_ignore_collect(
+                        collection_path=path, config=config
+                    ):
                         continue
                 col = ihook.testrunner_collect_directory(path=path, parent=self)
                 if col is not None:
@@ -738,7 +743,9 @@ class Package(nodes.Directory):
             elif direntry.is_file():
                 path = Path(direntry.path)
                 if not self.session.isinitpath(path):
-                    if ihook.testrunner_ignore_collect(collection_path=path, config=config):
+                    if ihook.testrunner_ignore_collect(
+                        collection_path=path, config=config
+                    ):
                         continue
                 cols = ihook.testrunner_collect_file(file_path=path, parent=self)
                 yield from cols

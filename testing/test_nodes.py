@@ -63,7 +63,8 @@ def test_subclassing_both_item_and_collector_deprecated(
 
 
 @testrunner.mark.parametrize(
-    "warn_type, msg", [(DeprecationWarning, "deprecated"), (TestrunnerWarning, "testrunner")]
+    "warn_type, msg",
+    [(DeprecationWarning, "deprecated"), (TestrunnerWarning, "testrunner")],
 )
 def test_node_warn_is_no_longer_only_testrunner_warnings(
     testrunnerer: Testrunnerer, warn_type: type[Warning], msg: str

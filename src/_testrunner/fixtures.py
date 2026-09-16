@@ -1493,7 +1493,8 @@ class FixtureFunctionDefinition:
         message = (
             f'Fixture "{self.name}" called directly. Fixtures are not meant to be called directly,\n'
             "but are created automatically when test functions request them as parameters.\n"
-            "See https://github.com/jacksonsr451/test-runner/tree/main/doc/en/explanation/fixtures.html for more information about fixtures, and\n"
+            "See https://github.com/jacksonsr451/test-runner/tree/main/doc/en/"
+            "explanation/fixtures.html for more information about fixtures, and\n"
             "https://github.com/jacksonsr451/test-runner/tree/main/doc/en/deprecations.html#calling-fixtures-directly"
         )
         fail(message, pytrace=False)
@@ -1855,7 +1856,9 @@ class FixtureManager:
 
         return FuncFixtureInfo(argnames, initialnames, names_closure, arg2fixturedefs)
 
-    def testrunner_plugin_registered(self, plugin: _PluggyPlugin, plugin_name: str) -> None:
+    def testrunner_plugin_registered(
+        self, plugin: _PluggyPlugin, plugin_name: str
+    ) -> None:
         # Fixtures defined in conftest plugins are only visible to within the
         # conftest's directory. This is unlike fixtures in non-conftest plugins
         # which have global visibility. Conftest fixtures are deferred until

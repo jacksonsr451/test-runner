@@ -7,8 +7,8 @@ from pathlib import Path
 
 from _testrunner.cacheprovider import Cache
 from _testrunner.monkeypatch import MonkeyPatch
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.stepwise import STEPWISE_CACHE_DIR
+from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
@@ -148,7 +148,9 @@ def test_fail_and_continue_with_stepwise(stepwise_testrunnerer: Testrunnerer) ->
 
 
 @testrunner.mark.parametrize("stepwise_skip", ["--stepwise-skip", "--sw-skip"])
-def test_run_with_skip_option(stepwise_testrunnerer: Testrunnerer, stepwise_skip: str) -> None:
+def test_run_with_skip_option(
+    stepwise_testrunnerer: Testrunnerer, stepwise_skip: str
+) -> None:
     result = stepwise_testrunnerer.runtestrunner(
         "-v",
         "--strict-markers",
@@ -206,7 +208,9 @@ def test_stop_on_collection_errors(
     files = ["working_testfile.py", "broken_testfile.py"]
     if broken_first:
         files.reverse()
-    result = broken_testrunnerer.runtestrunner("-v", "--strict-markers", "--stepwise", *files)
+    result = broken_testrunnerer.runtestrunner(
+        "-v", "--strict-markers", "--stepwise", *files
+    )
     result.stdout.fnmatch_lines("*error during collection*")
 
 

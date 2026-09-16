@@ -43,8 +43,8 @@ from _testrunner.pathlib import scandir
 from _testrunner.pathlib import spec_matches_module_path
 from _testrunner.pathlib import symlink_or_skip
 from _testrunner.pathlib import visit
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.testrunnerer import RunResult
+from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.tmpdir import TempPathFactory
 import testrunner
 
@@ -1309,7 +1309,9 @@ def test_import_sets_module_as_attribute(testrunnerer: Testrunnerer) -> None:
     assert bar_2 is bar
 
 
-def test_import_sets_module_as_attribute_without_init_files(testrunnerer: Testrunnerer) -> None:
+def test_import_sets_module_as_attribute_without_init_files(
+    testrunnerer: Testrunnerer,
+) -> None:
     """Similar to test_import_sets_module_as_attribute, but without __init__.py files."""
     testrunnerer.path.joinpath("foo/bar").mkdir(parents=True)
     testrunnerer.path.joinpath("foo/bar/baz.py").touch()
@@ -1412,10 +1414,15 @@ class TestNamespacePackages:
 
     @testrunner.fixture(autouse=True)
     def setup_imports_tracking(self, monkeypatch: MonkeyPatch) -> None:
-        monkeypatch.setattr(sys, "testrunner_namespace_packages_test", [], raising=False)
+        monkeypatch.setattr(
+            sys, "testrunner_namespace_packages_test", [], raising=False
+        )
 
     def setup_directories(
-        self, tmp_path: Path, monkeypatch: MonkeyPatch | None, testrunnerer: Testrunnerer
+        self,
+        tmp_path: Path,
+        monkeypatch: MonkeyPatch | None,
+        testrunnerer: Testrunnerer,
     ) -> tuple[Path, Path]:
         # Use a code to guard against modules being imported more than once.
         # This is a safeguard in case future changes break this invariant.
@@ -1688,7 +1695,11 @@ class TestNamespacePackages:
 
     @testrunner.mark.parametrize("insert", [True, False])
     def test_full_ns_packages_without_init_files(
-        self, testrunnerer: Testrunnerer, tmp_path: Path, monkeypatch: MonkeyPatch, insert: bool
+        self,
+        testrunnerer: Testrunnerer,
+        tmp_path: Path,
+        monkeypatch: MonkeyPatch,
+        insert: bool,
     ) -> None:
         (tmp_path / "src/dist1/ns/b/app/bar/test").mkdir(parents=True)
         (tmp_path / "src/dist1/ns/b/app/bar/m.py").touch()

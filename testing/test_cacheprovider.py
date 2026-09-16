@@ -499,7 +499,9 @@ class TestLastFailed:
         result.stdout.fnmatch_lines(["*1 failed in*"])
 
     @testrunner.mark.parametrize("parent", ("directory", "package"))
-    def test_terminal_report_lastfailed(self, testrunnerer: Testrunnerer, parent: str) -> None:
+    def test_terminal_report_lastfailed(
+        self, testrunnerer: Testrunnerer, parent: str
+    ) -> None:
         if parent == "package":
             testrunnerer.makepyfile(
                 __init__="",
@@ -666,7 +668,9 @@ class TestLastFailed:
         assert list(lastfailed) == ["test_maybe.py"]
         result.stdout.fnmatch_lines(["*2 passed*"])
 
-    def test_lastfailed_creates_cache_when_needed(self, testrunnerer: Testrunnerer) -> None:
+    def test_lastfailed_creates_cache_when_needed(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         # Issue #1342
         testrunnerer.makepyfile(test_empty="")
         testrunnerer.runtestrunner("-q", "--lf")
@@ -932,7 +936,9 @@ class TestLastFailed:
             ]
         )
 
-    def test_lastfailed_skip_collection_with_nesting(self, testrunnerer: Testrunnerer) -> None:
+    def test_lastfailed_skip_collection_with_nesting(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Check that file skipping works even when the file with failures is
         nested at a different level of the collection tree."""
         testrunnerer.makepyfile(
@@ -993,7 +999,9 @@ class TestLastFailed:
         )
 
         # Remove/rename test: collects the file again.
-        testrunnerer.makepyfile(**{"pkg1/test_1.py": """def test_renamed(): assert 0"""})
+        testrunnerer.makepyfile(
+            **{"pkg1/test_1.py": """def test_renamed(): assert 0"""}
+        )
         result = testrunnerer.runtestrunner("--lf", "-rf")
         result.stdout.fnmatch_lines(
             [
@@ -1245,10 +1253,12 @@ class TestNewFirst:
             """
         )
         testrunnerer.syspathinsert()
-        result = testrunnerer.runtestrunner("--nf", "-p", "myplugin", "--collect-only", "-q")
+        result = testrunnerer.runtestrunner(
+            "--nf", "-p", "myplugin", "--collect-only", "-q"
+        )
         result.stdout.fnmatch_lines(
             [
-                "new_items: *test_1.testrunner_1.testrunner_2.py*",
+                "new_items: *test_1/test_1.py::test_1*",
                 "test_1/test_1.py::test_2",
                 "test_2/test_2.py::test_1",
                 "test_1/test_1.py::test_1",
@@ -1387,7 +1397,9 @@ def test_preserve_keys_order(testrunnerer: Testrunnerer) -> None:
     assert list(read_back.items()) == [("z", 1), ("b", 2), ("a", 3), ("d", 10)]
 
 
-def test_does_not_create_boilerplate_in_existing_dirs(testrunnerer: Testrunnerer) -> None:
+def test_does_not_create_boilerplate_in_existing_dirs(
+    testrunnerer: Testrunnerer,
+) -> None:
     from _testrunner.cacheprovider import Cache
 
     testrunnerer.makeini(

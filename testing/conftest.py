@@ -240,7 +240,9 @@ def mock_timing(monkeypatch: MonkeyPatch):
 
 
 @testrunner.fixture(autouse=True)
-def remove_ci_env_var(monkeypatch: MonkeyPatch, request: testrunner.FixtureRequest) -> None:
+def remove_ci_env_var(
+    monkeypatch: MonkeyPatch, request: testrunner.FixtureRequest
+) -> None:
     """Make the test insensitive if it is running in CI or not.
 
     Use `@testrunner.mark.keep_ci_var` in a test to avoid applying this fixture, letting the test

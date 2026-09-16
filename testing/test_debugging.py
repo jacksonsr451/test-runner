@@ -237,7 +237,9 @@ class TestPDB:
         child.sendeof()
         self.flush(child)
 
-    def test_pdb_print_captured_stdout_and_stderr(self, testrunnerer: Testrunnerer) -> None:
+    def test_pdb_print_captured_stdout_and_stderr(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p1 = testrunnerer.makepyfile(
             """
             def test_1():
@@ -293,7 +295,9 @@ class TestPDB:
                 assert False
         """
         )
-        child = testrunnerer.spawn_testrunner(f"--show-capture={showcapture} --pdb {p1}")
+        child = testrunnerer.spawn_testrunner(
+            f"--show-capture={showcapture} --pdb {p1}"
+        )
         if showcapture in ("all", "log"):
             child.expect("captured log")
             child.expect("get rekt")
@@ -303,7 +307,9 @@ class TestPDB:
         assert "1 failed" in rest
         self.flush(child)
 
-    def test_pdb_print_captured_logs_nologging(self, testrunnerer: Testrunnerer) -> None:
+    def test_pdb_print_captured_logs_nologging(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p1 = testrunnerer.makepyfile(
             """
             def test_1():
@@ -312,7 +318,9 @@ class TestPDB:
                 assert False
         """
         )
-        child = testrunnerer.spawn_testrunner(f"--show-capture=all --pdb -p no:logging {p1}")
+        child = testrunnerer.spawn_testrunner(
+            f"--show-capture=all --pdb -p no:logging {p1}"
+        )
         child.expect("get rekt")
         output = child.before.decode("utf8")
         assert "captured log" not in output
@@ -343,7 +351,9 @@ class TestPDB:
         child.expect("1 failed")
         self.flush(child)
 
-    def test_pdb_interaction_on_collection_issue181(self, testrunnerer: Testrunnerer) -> None:
+    def test_pdb_interaction_on_collection_issue181(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p1 = testrunnerer.makepyfile(
             """
             import testrunner
@@ -357,7 +367,9 @@ class TestPDB:
         child.expect("1 error")
         self.flush(child)
 
-    def test_pdb_interaction_on_internal_error(self, testrunnerer: Testrunnerer) -> None:
+    def test_pdb_interaction_on_internal_error(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             def testrunner_runtest_protocol():
@@ -482,7 +494,9 @@ class TestPDB:
         child.read()
         self.flush(child)
 
-    def test_pdb_with_caplog_on_pdb_invocation(self, testrunnerer: Testrunnerer) -> None:
+    def test_pdb_with_caplog_on_pdb_invocation(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p1 = testrunnerer.makepyfile(
             """
             def test_1(capsys, caplog):
@@ -876,7 +890,9 @@ class TestPDB:
         """
         )
         if post_mortem:
-            child = testrunnerer.spawn_testrunner(str(p1) + " --pdb -s -k test_post_mortem")
+            child = testrunnerer.spawn_testrunner(
+                str(p1) + " --pdb -s -k test_post_mortem"
+            )
         else:
             child = testrunnerer.spawn_testrunner(str(p1) + " -k test_set_trace")
         child.expect("enter_pdb_hook")
@@ -921,7 +937,9 @@ class TestPDB:
         self, testrunnerer: Testrunnerer, custom_pdb_calls: list[str]
     ) -> None:
         p1 = testrunnerer.makepyfile("""xxx """)
-        result = testrunnerer.runtestrunner_inprocess("--pdbcls=_testrunner:_CustomPdb", p1)
+        result = testrunnerer.runtestrunner_inprocess(
+            "--pdbcls=_testrunner:_CustomPdb", p1
+        )
         result.stdout.fnmatch_lines(["*NameError*xxx*", "*1 error*"])
         assert custom_pdb_calls == []
 
@@ -1281,7 +1299,9 @@ def test_quit_with_swallowed_SystemExit(testrunnerer: Testrunnerer) -> None:
 
 @testrunner.mark.parametrize("fixture", ("capfd", "capsys"))
 @testrunner.mark.xfail(reason="#10042", strict=False)
-def test_pdb_suspends_fixture_capturing(testrunnerer: Testrunnerer, fixture: str) -> None:
+def test_pdb_suspends_fixture_capturing(
+    testrunnerer: Testrunnerer, fixture: str
+) -> None:
     """Using "-s" with testrunner should suspend/resume fixture capturing."""
     p1 = testrunnerer.makepyfile(
         f"""
@@ -1435,7 +1455,9 @@ def test_pdb_wrapper_class_is_reused(testrunnerer: Testrunnerer) -> None:
                 pass
         """,
     )
-    result = testrunnerer.runtestrunner(str(p1), "--pdbcls=mypdb:MyPdb", syspathinsert=True)
+    result = testrunnerer.runtestrunner(
+        str(p1), "--pdbcls=mypdb:MyPdb", syspathinsert=True
+    )
     assert result.ret == 0
     result.stdout.fnmatch_lines(
         ["*set_trace_called*", "*set_trace_called*", "* 1 passed in *"]

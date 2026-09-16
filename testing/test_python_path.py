@@ -108,7 +108,9 @@ def test_clean_up(testrunnerer: Testrunnerer) -> None:
     # - Cleanup is done in testrunner_unconfigure().
     # - Not a hook wrapper.
     # So we can add a hook wrapper ourselves to test what it does.
-    testrunnerer.makefile(".ini", testrunner="[testrunner]\npythonpath=I_SHALL_BE_REMOVED\n")
+    testrunnerer.makefile(
+        ".ini", testrunner="[testrunner]\npythonpath=I_SHALL_BE_REMOVED\n"
+    )
     testrunnerer.makepyfile(test_foo="""def test_foo(): pass""")
 
     before: list[str] | None = None

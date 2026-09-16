@@ -60,7 +60,9 @@ class TestGeneralUsage:
             ["*INTERNALERROR*def testrunner_sessionstart():*", "*INTERNALERROR*0 / 0*"]
         )
 
-    def test_early_hook_configure_error_issue38(self, testrunnerer: Testrunnerer) -> None:
+    def test_early_hook_configure_error_issue38(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             def testrunner_configure():
@@ -79,7 +81,9 @@ class TestGeneralUsage:
         assert result.ret != 0
         result.stderr.fnmatch_lines(["ERROR: file or directory not found: asd"])
 
-    def test_file_not_found_unconfigure_issue143(self, testrunnerer: Testrunnerer) -> None:
+    def test_file_not_found_unconfigure_issue143(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             def testrunner_configure():
@@ -106,7 +110,9 @@ class TestGeneralUsage:
                 assert testrunnerconfig.option.xyz == "123"
         """
         )
-        result = testrunnerer.runtestrunner("-p", "testrunner_xyz", "--xyz=123", syspathinsert=True)
+        result = testrunnerer.runtestrunner(
+            "-p", "testrunner_xyz", "--xyz=123", syspathinsert=True
+        )
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*1 passed*"])
 
@@ -250,7 +256,9 @@ class TestGeneralUsage:
         result = testrunnerer.runtestrunner(p, "--collect-only")
         result.stdout.fnmatch_lines(["*MyFile*test_issue88*", "*Module*test_issue88*"])
 
-    def test_issue93_initialnode_importing_capturing(self, testrunnerer: Testrunnerer) -> None:
+    def test_issue93_initialnode_importing_capturing(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             import sys
@@ -274,7 +282,9 @@ class TestGeneralUsage:
         assert result.ret != 0
         assert "should be seen" in result.stdout.str()
 
-    def test_issue109_sibling_conftests_not_loaded(self, testrunnerer: Testrunnerer) -> None:
+    def test_issue109_sibling_conftests_not_loaded(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         sub1 = testrunnerer.mkdir("sub1")
         sub2 = testrunnerer.mkdir("sub2")
         sub1.joinpath("conftest.py").write_text("assert 0", encoding="utf-8")
@@ -301,7 +311,9 @@ class TestGeneralUsage:
         assert result.ret == ExitCode.NO_TESTS_COLLECTED
         result.stdout.fnmatch_lines(["*1 skipped*"])
 
-    def test_multiple_items_per_collector_byid(self, testrunnerer: Testrunnerer) -> None:
+    def test_multiple_items_per_collector_byid(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         c = testrunnerer.makeconftest(
             """
             import testrunner
@@ -351,7 +363,9 @@ class TestGeneralUsage:
         assert res.ret == 0
         res.stdout.fnmatch_lines(["*1 passed*"])
 
-    def test_direct_addressing_selects_duplicates(self, testrunnerer: Testrunnerer) -> None:
+    def test_direct_addressing_selects_duplicates(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             import testrunner
@@ -364,7 +378,9 @@ class TestGeneralUsage:
         result = testrunnerer.runtestrunner(p)
         result.assert_outcomes(failed=0, passed=8)
 
-    def test_direct_addressing_selects_duplicates_1(self, testrunnerer: Testrunnerer) -> None:
+    def test_direct_addressing_selects_duplicates_1(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             import testrunner
@@ -377,7 +393,9 @@ class TestGeneralUsage:
         result = testrunnerer.runtestrunner(p)
         result.assert_outcomes(failed=0, passed=9)
 
-    def test_direct_addressing_selects_duplicates_2(self, testrunnerer: Testrunnerer) -> None:
+    def test_direct_addressing_selects_duplicates_2(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             import testrunner
@@ -436,7 +454,9 @@ class TestGeneralUsage:
             result.stderr.fnmatch_lines(["*ERROR*"])
             assert result.ret == 4  # usage error only if item not found
 
-    def test_report_all_failed_collections_initargs(self, testrunnerer: Testrunnerer) -> None:
+    def test_report_all_failed_collections_initargs(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             from _testrunner.config import ExitCode
@@ -664,7 +684,9 @@ class TestInvocationVariants:
         path = testrunnerer.mkpydir("tpkg")
         path.joinpath("test_hello.py").write_text("raise ImportError", encoding="utf-8")
 
-        result = testrunnerer.runtestrunner("--pyargs", "tpkg.test_hello", syspathinsert=True)
+        result = testrunnerer.runtestrunner(
+            "--pyargs", "tpkg.test_hello", syspathinsert=True
+        )
         assert result.ret != 0
 
         result.stdout.fnmatch_lines(["collected*0*items*/*1*error"])
@@ -686,13 +708,19 @@ class TestInvocationVariants:
         # should only configure once
         assert result.outlines.count("configuring") == 1
 
-    def test_pyargs_filename_looks_like_module(self, testrunnerer: Testrunnerer) -> None:
+    def test_pyargs_filename_looks_like_module(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.path.joinpath("conftest.py").touch()
-        testrunnerer.path.joinpath("t.py").write_text("def test(): pass", encoding="utf-8")
+        testrunnerer.path.joinpath("t.py").write_text(
+            "def test(): pass", encoding="utf-8"
+        )
         result = testrunnerer.runtestrunner("--pyargs", "t.py")
         assert result.ret == ExitCode.OK
 
-    def test_cmdline_python_package(self, testrunnerer: Testrunnerer, monkeypatch) -> None:
+    def test_cmdline_python_package(
+        self, testrunnerer: Testrunnerer, monkeypatch
+    ) -> None:
         import warnings
 
         monkeypatch.delenv("PYTHONDONTWRITEBYTECODE", False)
@@ -706,7 +734,9 @@ class TestInvocationVariants:
         result = testrunnerer.runtestrunner("--pyargs", "tpkg")
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*2 passed*"])
-        result = testrunnerer.runtestrunner("--pyargs", "tpkg.test_hello", syspathinsert=True)
+        result = testrunnerer.runtestrunner(
+            "--pyargs", "tpkg.test_hello", syspathinsert=True
+        )
         assert result.ret == 0
         result.stdout.fnmatch_lines(["*1 passed*"])
 
@@ -721,7 +751,9 @@ class TestInvocationVariants:
         result.stdout.fnmatch_lines(["*2 passed*"])
 
         monkeypatch.setenv("PYTHONPATH", str(testrunnerer), prepend=os.pathsep)
-        result = testrunnerer.runtestrunner("--pyargs", "tpkg.test_missing", syspathinsert=True)
+        result = testrunnerer.runtestrunner(
+            "--pyargs", "tpkg.test_missing", syspathinsert=True
+        )
         assert result.ret != 0
         result.stderr.fnmatch_lines(["*not*found*test_missing*"])
 
@@ -842,7 +874,8 @@ class TestInvocationVariants:
             "def test_bar(): pass\ndef test_other(a_fixture):pass", encoding="utf-8"
         )
         lib.joinpath("conftest.py").write_text(
-            "import testrunner\n@testrunner.fixture\ndef a_fixture():pass", encoding="utf-8"
+            "import testrunner\n@testrunner.fixture\ndef a_fixture():pass",
+            encoding="utf-8",
         )
 
         d_local = testrunnerer.mkdir("symlink_root")
@@ -880,13 +913,17 @@ class TestInvocationVariants:
             ]
         )
 
-    def test_cmdline_python_package_not_exists(self, testrunnerer: Testrunnerer) -> None:
+    def test_cmdline_python_package_not_exists(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         result = testrunnerer.runtestrunner("--pyargs", "tpkgwhatv")
         assert result.ret
         result.stderr.fnmatch_lines(["ERROR*module*or*package*not*found*"])
 
     @testrunner.mark.xfail(reason="decide: feature or bug")
-    def test_noclass_discovery_if_not_testcase(self, testrunnerer: Testrunnerer) -> None:
+    def test_noclass_discovery_if_not_testcase(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testpath = testrunnerer.makepyfile(
             """
             import unittest
@@ -980,15 +1017,21 @@ class TestDurations:
         assert result.ret == 0
         TestDurations.check_tests_in_output(result.stdout.lines, 2, 3)
 
-    def test_calls_showall_verbose(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+    def test_calls_showall_verbose(
+        self, testrunnerer: Testrunnerer, mock_timing
+    ) -> None:
         testrunnerer.makepyfile(self.source)
         result = testrunnerer.runtestrunner_inprocess("--durations=0", "-vv")
         assert result.ret == 0
         TestDurations.check_tests_in_output(result.stdout.lines, 1, 2, 3)
 
-    def test_calls_showall_durationsmin(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+    def test_calls_showall_durationsmin(
+        self, testrunnerer: Testrunnerer, mock_timing
+    ) -> None:
         testrunnerer.makepyfile(self.source)
-        result = testrunnerer.runtestrunner_inprocess("--durations=0", "--durations-min=0.015")
+        result = testrunnerer.runtestrunner_inprocess(
+            "--durations=0", "--durations-min=0.015"
+        )
         assert result.ret == 0
         TestDurations.check_tests_in_output(result.stdout.lines, 3)
 
@@ -1023,7 +1066,9 @@ class TestDurations:
 
         result.stdout.fnmatch_lines(["*durations*", "*call*test_3*"])
 
-    def test_with_failing_collection(self, testrunnerer: Testrunnerer, mock_timing) -> None:
+    def test_with_failing_collection(
+        self, testrunnerer: Testrunnerer, mock_timing
+    ) -> None:
         testrunnerer.makepyfile(self.source)
         testrunnerer.makepyfile(test_collecterror="""xyz""")
         result = testrunnerer.runtestrunner_inprocess("--durations=2", "-k test_1")
@@ -1196,7 +1241,9 @@ class TestStartupPluginImportErrors:
         result.stderr.no_fnmatch_line("*IndexError*")
         result.stderr.fnmatch_lines(['Error while loading plugin "myplugin".'])
 
-    def test_missing_dependency_is_not_a_usage_error(self, testrunnerer: Testrunnerer) -> None:
+    def test_missing_dependency_is_not_a_usage_error(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """The plugin was found; one of *its* imports is unsatisfied (#993)."""
         testrunnerer.syspathinsert()
         testrunnerer.makepyfile(myplugin="import nosuchdependency")
@@ -1204,7 +1251,9 @@ class TestStartupPluginImportErrors:
         result = testrunnerer.runtestrunner("-p", "myplugin")
         assert result.ret == ExitCode.INTERNAL_ERROR
 
-    def test_missing_submodule_of_existing_package(self, testrunnerer: Testrunnerer) -> None:
+    def test_missing_submodule_of_existing_package(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """The package exists but the requested plugin module within it does not."""
         testrunnerer.syspathinsert()
         testrunnerer.mkpydir("mypkg")

@@ -9,10 +9,10 @@ import sys
 
 from _testrunner._code import ExceptionInfo
 from _testrunner.outcomes import Failed
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.raises import RaisesExc
 from _testrunner.raises import RaisesGroup
 from _testrunner.raises import repr_callable
+from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
@@ -1229,7 +1229,9 @@ def test_assert_matches() -> None:
     assert RaisesExc(ValueError).matches(e)
 
     # but you don't get a helpful error
-    with testrunner.raises(AssertionError, match=r"assert False\n \+  where False = .*"):
+    with testrunner.raises(
+        AssertionError, match=r"assert False\n \+  where False = .*"
+    ):
         assert RaisesExc(TypeError).matches(e)
 
     with testrunner.raises(

@@ -30,7 +30,9 @@ TRACEMALLOC_LINES = (
 
 
 @testrunner.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
-@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnraisableExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "default::testrunner.TestrunnerUnraisableExceptionWarning"
+)
 def test_unraisable(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it="""
@@ -64,7 +66,9 @@ def test_unraisable(testrunnerer: Testrunnerer) -> None:
 
 
 @testrunner.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
-@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnraisableExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "default::testrunner.TestrunnerUnraisableExceptionWarning"
+)
 def test_unraisable_in_setup(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it="""
@@ -102,7 +106,9 @@ def test_unraisable_in_setup(testrunnerer: Testrunnerer) -> None:
 
 
 @testrunner.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
-@testrunner.mark.filterwarnings("default::testrunner.TestrunnerUnraisableExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "default::testrunner.TestrunnerUnraisableExceptionWarning"
+)
 def test_unraisable_in_teardown(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it="""
@@ -140,7 +146,9 @@ def test_unraisable_in_teardown(testrunnerer: Testrunnerer) -> None:
     )
 
 
-@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnraisableExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "error::testrunner.TestrunnerUnraisableExceptionWarning"
+)
 def test_unraisable_warning_error(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it=f"""
@@ -161,7 +169,9 @@ def test_unraisable_warning_error(testrunnerer: Testrunnerer) -> None:
     result.assert_outcomes(passed=1, failed=1)
 
 
-@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnraisableExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "error::testrunner.TestrunnerUnraisableExceptionWarning"
+)
 def test_unraisable_warning_multiple_errors(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it=f"""
@@ -290,7 +300,9 @@ def test_refcycle_unraisable_warning_filter(testrunnerer: Testrunnerer) -> None:
     result.stderr.fnmatch_lines("ValueError: del is broken")
 
 
-def test_create_task_raises_unraisable_warning_filter(testrunnerer: Testrunnerer) -> None:
+def test_create_task_raises_unraisable_warning_filter(
+    testrunnerer: Testrunnerer,
+) -> None:
     # note that the host testrunner warning filter is disabled and the testrunnerer
     # warning filter applies during config teardown of unraisablehook.
     # see: https://github.com/jacksonsr451/test-runner/issues/10404
@@ -361,7 +373,9 @@ def test_refcycle_unraisable_warning_filter_default(testrunnerer: Testrunnerer) 
     result.stderr.fnmatch_lines("ValueError: del is broken")
 
 
-def test_unraisable_warning_without_filter_still_wraps(testrunnerer: Testrunnerer) -> None:
+def test_unraisable_warning_without_filter_still_wraps(
+    testrunnerer: Testrunnerer,
+) -> None:
     # A Warning raised from ``__del__`` gets wrapped in
     # TestrunnerUnraisableExceptionWarning like any other unraisable exception.
     # testrunner does not unwrap it to honor a filter on the inner class, so with
@@ -400,7 +414,9 @@ def test_unraisable_warning_without_filter_still_wraps(testrunnerer: Testrunnere
 
 
 @testrunner.mark.skipif(PYPY, reason="garbage-collection differences make this flaky")
-def test_unraisable_decouples_from_cleanup_stack_order(testrunnerer: Testrunnerer) -> None:
+def test_unraisable_decouples_from_cleanup_stack_order(
+    testrunnerer: Testrunnerer,
+) -> None:
     # Regression test for the structural fix. The garbage-collection step
     # that surfaces queued unraisables must run before _cleanup_stack.close()
     # so warning filters installed via cleanup-stack-managed contexts are
@@ -493,7 +509,9 @@ def test_testrunner_unconfigure_survives_failed_testrunner_configure(
     result.stderr.no_fnmatch_line("*KeyError*")
 
 
-@testrunner.mark.filterwarnings("error::testrunner.TestrunnerUnraisableExceptionWarning")
+@testrunner.mark.filterwarnings(
+    "error::testrunner.TestrunnerUnraisableExceptionWarning"
+)
 def test_possibly_none_excinfo(testrunnerer: Testrunnerer) -> None:
     testrunnerer.makepyfile(
         test_it="""

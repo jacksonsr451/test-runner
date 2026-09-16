@@ -32,8 +32,8 @@ from _testrunner.assertion.rewrite import _saferepr
 from _testrunner.assertion.rewrite import AssertionRewritingHook
 from _testrunner.assertion.rewrite import get_cache_dir
 from _testrunner.assertion.rewrite import PYC_TAIL
-from _testrunner.assertion.rewrite import TESTRUNNER_TAG
 from _testrunner.assertion.rewrite import rewrite_asserts
+from _testrunner.assertion.rewrite import TESTRUNNER_TAG
 from _testrunner.config import Config
 from _testrunner.config import ExitCode
 from _testrunner.pathlib import make_numbered_dir
@@ -540,7 +540,9 @@ class TestAssertionRewrite:
         )
 
     def test_assertion_messages_bytes(self, testrunnerer: Testrunnerer) -> None:
-        testrunnerer.makepyfile("def test_bytes_assertion():\n    assert False, b'ohai!'\n")
+        testrunnerer.makepyfile(
+            "def test_bytes_assertion():\n    assert False, b'ohai!'\n"
+        )
         result = testrunnerer.runtestrunner()
         assert result.ret == 1
         result.stdout.fnmatch_lines(["*AssertionError: b'ohai!'", "*assert False"])
@@ -573,7 +575,9 @@ class TestAssertionRewrite:
         assert result.ret == 1
         result.stdout.re_match_lines([r".*AssertionError: A+$", ".*assert False"])
 
-    def test_assertion_message_verbosity_collection(self, testrunnerer: Testrunnerer) -> None:
+    def test_assertion_message_verbosity_collection(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """
         With -vv, the "message" part of assertions must not elide collection
         elements with "..." either (#12307).
@@ -1058,7 +1062,9 @@ class TestRewriteOnImport:
         )
         assert testrunnerer.runtestrunner().ret == ExitCode.NO_TESTS_COLLECTED
 
-    def test_load_resource_via_files_with_rewrite(self, testrunnerer: Testrunnerer) -> None:
+    def test_load_resource_via_files_with_rewrite(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         example = testrunnerer.path.joinpath("demo") / "example"
         init = testrunnerer.path.joinpath("demo") / "__init__.py"
         testrunnerer.makepyfile(
@@ -1156,7 +1162,9 @@ def test_rewritten():
         )
         result = testrunnerer.runtestrunner_subprocess()
         assert result.ret == 0
-        found_names = glob.glob(f"__pycache__/*-testrunner-{testrunner.__version__}.pyc")
+        found_names = glob.glob(
+            f"__pycache__/*-testrunner-{testrunner.__version__}.pyc"
+        )
         assert found_names, "pyc with expected tag not found in names: {}".format(
             glob.glob("__pycache__/*.pyc")
         )
@@ -1233,13 +1241,16 @@ def test_rewritten():
         # needs to be a subprocess because testrunnerer explicitly disables this warning
         result = testrunnerer.runtestrunner_subprocess(
             "-W",
-            "ignore:Module already imported so cannot be rewritten; _testrunner:testrunner.TestrunnerAssertRewriteWarning",
+            "ignore:Module already imported so cannot be rewritten; _testrunner:"
+            "testrunner.TestrunnerAssertRewriteWarning",
         )
         # Previously, when the message pattern used to contain an extra `:`, an error was raised.
         assert not result.stderr.str().strip()
         result.stdout.no_fnmatch_line("*Module already imported*; _testrunner")
 
-    def test_rewrite_module_imported_from_conftest(self, testrunnerer: Testrunnerer) -> None:
+    def test_rewrite_module_imported_from_conftest(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             import test_rewrite_module_imported
@@ -1273,7 +1284,9 @@ def test_rewritten():
         hook.mark_rewrite("test_remember_rewritten_modules")
         assert warnings == []
 
-    def test_rewrite_warning_using_testrunner_plugins(self, testrunnerer: Testrunnerer) -> None:
+    def test_rewrite_warning_using_testrunner_plugins(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             **{
                 "conftest.py": "testrunner_plugins = ['core', 'gui', 'sci']",
@@ -1413,7 +1426,9 @@ class TestAssertionRewriteHookDetails:
         assert pyc_bytes[4] == 3  # checked-hash flag set
         assert pyc_bytes[8:16] == hash[:8]
 
-    def test_read_pyc_ignores_mtime(self, tmp_path: Path, testrunnerer: Testrunnerer) -> None:
+    def test_read_pyc_ignores_mtime(
+        self, tmp_path: Path, testrunnerer: Testrunnerer
+    ) -> None:
         """A pyc stays valid when only the mtime of the source changes.
 
         This is what makes the cache survive a fresh checkout or a restored
@@ -1618,7 +1633,9 @@ class TestIssue925:
 
 
 class TestIssue2121:
-    def test_rewrite_python_files_contain_subdirs(self, testrunnerer: Testrunnerer) -> None:
+    def test_rewrite_python_files_contain_subdirs(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             **{
                 "tests/file.py": """
@@ -1663,7 +1680,9 @@ def test_walrus_rebinding_does_not_outlive_its_statement(
 
 
 class TestIssue11028:
-    def test_assertion_walrus_operator_in_operand(self, testrunnerer: Testrunnerer) -> None:
+    def test_assertion_walrus_operator_in_operand(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             def test_in_string():
@@ -1750,7 +1769,9 @@ class TestIssue11028:
 
 
 class TestIssue11239:
-    def test_assertion_walrus_different_test_cases(self, testrunnerer: Testrunnerer) -> None:
+    def test_assertion_walrus_different_test_cases(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Regression for (#11239)
 
         Walrus operator rewriting would leak to separate test cases if they used the same variables.
@@ -1793,7 +1814,9 @@ class TestIssue14445:
         result = testrunnerer.runtestrunner()
         assert result.ret == 0
 
-    def test_walrus_no_double_eval_running_counter(self, testrunnerer: Testrunnerer) -> None:
+    def test_walrus_no_double_eval_running_counter(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Walrus increments fire exactly once per assert statement."""
         testrunnerer.makepyfile(
             """
@@ -1904,7 +1927,9 @@ class TestEarlyRewriteBailout:
             testrunnerer.syspathinsert()
             yield hook
 
-    def test_basic(self, testrunnerer: Testrunnerer, hook: AssertionRewritingHook) -> None:
+    def test_basic(
+        self, testrunnerer: Testrunnerer, hook: AssertionRewritingHook
+    ) -> None:
         """
         Ensure we avoid calling PathFinder.find_spec when we know for sure a certain
         module will not be rewritten to optimize assertion rewriting (#3918).
@@ -2027,7 +2052,9 @@ class TestAssertionPass:
             "*Assertion Passed: a+b == c+d (1 + 2) == (3 + 0) at line 7*"
         )
 
-    def test_hook_call_with_parens(self, testrunnerer: Testrunnerer, flag_on, hook_on) -> None:
+    def test_hook_call_with_parens(
+        self, testrunnerer: Testrunnerer, flag_on, hook_on
+    ) -> None:
         testrunnerer.makepyfile(
             """\
             def f(): return 1
@@ -2048,7 +2075,9 @@ class TestAssertionPass:
             raise Exception("Assertion passed called when it shouldn't!")
 
         monkeypatch.setattr(
-            _testrunner.assertion.rewrite, "_call_assertion_pass", raise_on_assertionpass
+            _testrunner.assertion.rewrite,
+            "_call_assertion_pass",
+            raise_on_assertionpass,
         )
 
         testrunnerer.makepyfile(
@@ -2075,7 +2104,9 @@ class TestAssertionPass:
             raise Exception("Assertion passed called when it shouldn't!")
 
         monkeypatch.setattr(
-            _testrunner.assertion.rewrite, "_call_assertion_pass", raise_on_assertionpass
+            _testrunner.assertion.rewrite,
+            "_call_assertion_pass",
+            raise_on_assertionpass,
         )
 
         testrunnerer.makeconftest(
@@ -2337,7 +2368,9 @@ class TestReprSizeVerbosity:
 
 
 class TestIssue11140:
-    def test_constant_not_picked_as_module_docstring(self, testrunnerer: Testrunnerer) -> None:
+    def test_constant_not_picked_as_module_docstring(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """\
             0

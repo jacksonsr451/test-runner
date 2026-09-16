@@ -673,7 +673,9 @@ def test_syspath_prepend_with_namespace_packages(
 
     # Prepending should call fixup_namespace_packages.
     # This call should warn - ns_pkg is now registered and "world" contains it
-    with testrunner.warns(testrunner.TestrunnerRemovedIn10Warning, match="legacy namespace"):
+    with testrunner.warns(
+        testrunner.TestrunnerRemovedIn10Warning, match="legacy namespace"
+    ):
         monkeypatch.syspath_prepend("world")
     import ns_pkg.world
 

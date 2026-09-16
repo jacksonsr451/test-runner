@@ -389,7 +389,10 @@ def parse_override_ini(override_ini: Sequence[str] | None) -> ConfigDict:
     return overrides
 
 
-CFG_TESTRUNNER_SECTION = "[testrunner] section in {filename} files is no longer supported, change to [tool:testrunner] instead."
+CFG_TESTRUNNER_SECTION = (
+    "[testrunner] section in {filename} files is no longer supported, "
+    "change to [tool:testrunner] instead."
+)
 
 
 def determine_setup(

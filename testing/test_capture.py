@@ -120,7 +120,9 @@ def test_capturing_unicode(testrunnerer: Testrunnerer, method: str) -> None:
 
 
 @testrunner.mark.parametrize("method", ["fd", "sys"])
-def test_capturing_bytes_in_utf8_encoding(testrunnerer: Testrunnerer, method: str) -> None:
+def test_capturing_bytes_in_utf8_encoding(
+    testrunnerer: Testrunnerer, method: str
+) -> None:
     testrunnerer.makepyfile(
         """\
         def test_unicode():
@@ -310,7 +312,9 @@ class TestLoggingInteraction:
         result = testrunnerer.runtestrunner_subprocess(p)
         assert result.stderr.str().find("atexit") == -1
 
-    def test_logging_and_immediate_setupteardown(self, testrunnerer: Testrunnerer) -> None:
+    def test_logging_and_immediate_setupteardown(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """\
             import logging
@@ -461,12 +465,16 @@ class TestCaptureFixture:
         )
         # -rN and --capture=tee-sys means we'll read them on stdout/stderr,
         # as opposed to both being reported on stdout
-        result = testrunnerer.runtestrunner(p, "--quiet", "--quiet", "-rN", "--capture=tee-sys")
+        result = testrunnerer.runtestrunner(
+            p, "--quiet", "--quiet", "-rN", "--capture=tee-sys"
+        )
         assert result.ret == ExitCode.OK
         result.stdout.fnmatch_lines(["sTdoUt"])  # tee'd out
         result.stderr.fnmatch_lines(["sTdeRr"])  # tee'd out
 
-        result = testrunnerer.runtestrunner(p, "--quiet", "--quiet", "-rA", "--capture=tee-sys")
+        result = testrunnerer.runtestrunner(
+            p, "--quiet", "--quiet", "-rA", "--capture=tee-sys"
+        )
         assert result.ret == ExitCode.OK
         result.stdout.fnmatch_lines(
             ["sTdoUt", "sTdoUt", "sTdeRr"]
@@ -474,7 +482,9 @@ class TestCaptureFixture:
         result.stderr.fnmatch_lines(["sTdeRr"])  # tee'd out
 
         # -rA and --capture=sys means we'll read them on stdout.
-        result = testrunnerer.runtestrunner(p, "--quiet", "--quiet", "-rA", "--capture=sys")
+        result = testrunnerer.runtestrunner(
+            p, "--quiet", "--quiet", "-rA", "--capture=sys"
+        )
         assert result.ret == ExitCode.OK
         result.stdout.fnmatch_lines(["sTdoUt", "sTdeRr"])  # no tee, just reported
         assert not result.stderr.lines
@@ -647,7 +657,9 @@ class TestCaptureFixture:
         result = testrunnerer.runtestrunner(p)
         result.stdout.fnmatch_lines(["*test_partial_setup_failure*", "*1 error*"])
 
-    def test_keyboardinterrupt_disables_capturing(self, testrunnerer: Testrunnerer) -> None:
+    def test_keyboardinterrupt_disables_capturing(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """\
             def test_hello(capfd):
@@ -729,7 +741,9 @@ class TestCaptureFixture:
         )
 
     @testrunner.mark.parametrize("fixture", ["capsys", "capfd"])
-    def test_fixture_use_by_other_fixtures(self, testrunnerer: Testrunnerer, fixture) -> None:
+    def test_fixture_use_by_other_fixtures(
+        self, testrunnerer: Testrunnerer, fixture
+    ) -> None:
         """Ensure that capsys and capfd can be used by other fixtures during
         setup and teardown."""
         testrunnerer.makepyfile(
@@ -1362,7 +1376,9 @@ class TestStdCaptureFDinvalidFD:
         assert result.ret == 0
         assert result.parseoutcomes()["passed"] == 3
 
-    def test_fdcapture_invalid_fd_with_fd_reuse(self, testrunnerer: Testrunnerer) -> None:
+    def test_fdcapture_invalid_fd_with_fd_reuse(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         with saved_fd(1):
             os.close(1)
             cap = capture.FDCaptureBinary(1)
@@ -1377,7 +1393,9 @@ class TestStdCaptureFDinvalidFD:
             with testrunner.raises(OSError):
                 os.write(1, b"done")
 
-    def test_fdcapture_invalid_fd_without_fd_reuse(self, testrunnerer: Testrunnerer) -> None:
+    def test_fdcapture_invalid_fd_without_fd_reuse(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         with saved_fd(1), saved_fd(2):
             os.close(1)
             os.close(2)
@@ -1456,7 +1474,9 @@ def test_close_and_capture_again(testrunnerer: Testrunnerer) -> None:
 @testrunner.mark.parametrize(
     "method", ["SysCapture(2)", "SysCapture(2, tee=True)", "FDCapture(2)"]
 )
-def test_capturing_and_logging_fundamentals(testrunnerer: Testrunnerer, method: str) -> None:
+def test_capturing_and_logging_fundamentals(
+    testrunnerer: Testrunnerer, method: str
+) -> None:
     # here we check a fundamental feature
     p = testrunnerer.makepyfile(
         f"""

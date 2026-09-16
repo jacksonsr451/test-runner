@@ -368,5 +368,7 @@ def test_very_long_cmdline_arg(testrunnerer: Testrunnerer) -> None:
             assert len(specified_feeds) == 100_000
         """
     )
-    result = testrunnerer.runtestrunner("--long-list", ",".join(["helloworld"] * 100_000))
+    result = testrunnerer.runtestrunner(
+        "--long-list", ",".join(["helloworld"] * 100_000)
+    )
     result.stdout.fnmatch_lines("* 1 passed *")

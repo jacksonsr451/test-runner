@@ -94,7 +94,7 @@ class ErrorsHelper:
 
 def test_helper_failures() -> None:
     helper = ErrorsHelper()
-    with testrunner.raises(Exception):  # noqa: B017
+    with testrunner.raises(Exception):
         _ = helper.raise_exception
     with testrunner.raises(OutcomeException):
         _ = helper.raise_fail_outcome
@@ -104,7 +104,7 @@ def test_safe_getattr() -> None:
     helper = ErrorsHelper()
     assert safe_getattr(helper, "raise_exception", "default") == "default"
     assert safe_getattr(helper, "raise_fail_outcome", "default") == "default"
-    with testrunner.raises(BaseException):  # noqa: B017
+    with testrunner.raises(BaseException):
         assert safe_getattr(helper, "raise_baseexception", "default")
 
 

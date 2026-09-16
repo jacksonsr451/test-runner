@@ -93,7 +93,7 @@ class NodeMeta(abc.ABCMeta):
         msg = (
             "Direct construction of {name} has been deprecated, please use {name}.from_parent.\n"
             "See "
-            "https://github.com/jacksonsr451/test-runner/tree/main/doc/en/deprecations.html#node-construction-changed-to-node-from-parent"
+            "https://docs.testrunner.org/en/stable/deprecations.html#node-construction-changed-to-node-from-parent"
             " for more details."
         ).format(name=f"{cls.__module__}.{cls.__name__}")
         fail(msg, pytrace=False)

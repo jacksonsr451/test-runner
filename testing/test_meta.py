@@ -18,7 +18,9 @@ def _modules() -> list[str]:
     testrunner_pkg: str = _testrunner.__path__  # type: ignore
     return sorted(
         n
-        for _, n, _ in pkgutil.walk_packages(testrunner_pkg, prefix=_testrunner.__name__ + ".")
+        for _, n, _ in pkgutil.walk_packages(
+            testrunner_pkg, prefix=_testrunner.__name__ + "."
+        )
     )
 
 

@@ -243,7 +243,9 @@ class _NodeReporter:
             xfailreason = report.wasxfail
             xfailreason = xfailreason.removeprefix("reason: ")
             xfailreason = bin_xml_escape(xfailreason)
-            skipped = ET.Element("skipped", type="testrunner.xfail", message=xfailreason)
+            skipped = ET.Element(
+                "skipped", type="testrunner.xfail", message=xfailreason
+            )
             self.append(skipped)
         else:
             assert isinstance(report.longrepr, tuple)
@@ -314,7 +316,9 @@ def record_xml_attribute(request: FixtureRequest) -> Callable[[str, object], Non
     from _testrunner.warning_types import TestrunnerExperimentalApiWarning
 
     request.node.warn(
-        TestrunnerExperimentalApiWarning("record_xml_attribute is an experimental feature")
+        TestrunnerExperimentalApiWarning(
+            "record_xml_attribute is an experimental feature"
+        )
     )
 
     _warn_incompatibility_with_xunit2(request, "record_xml_attribute")

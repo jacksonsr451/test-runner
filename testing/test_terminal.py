@@ -21,7 +21,6 @@ import _testrunner.config
 from _testrunner.config import Config
 from _testrunner.config import ExitCode
 from _testrunner.monkeypatch import MonkeyPatch
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.reports import BaseReport
 from _testrunner.reports import CollectReport
 from _testrunner.reports import TestReport
@@ -34,6 +33,7 @@ from _testrunner.terminal import _plugin_nameversions
 from _testrunner.terminal import getreportopt
 from _testrunner.terminal import TerminalProgressPlugin
 from _testrunner.terminal import TerminalReporter
+from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
@@ -240,7 +240,9 @@ class TestTerminal:
         result = testrunnerer.runtestrunner("tests/test_p2.py", "--rootdir=tests")
         result.stdout.fnmatch_lines(["tests/test_p2.py .*", "=* 1 passed in *"])
 
-        result = testrunnerer.runtestrunner("-vv", "-rA", "tests/test_p2.py", "--rootdir=tests")
+        result = testrunnerer.runtestrunner(
+            "-vv", "-rA", "tests/test_p2.py", "--rootdir=tests"
+        )
         result.stdout.fnmatch_lines(
             [
                 "tests/test_p2.py::TestMore::test_p1 <- test_p1.py PASSED *",
@@ -248,7 +250,9 @@ class TestTerminal:
                 "PASSED tests/test_p2.py::TestMore::test_p1",
             ]
         )
-        result = testrunnerer.runtestrunner("-vv", "-rA", "tests/test_p3.py", "--rootdir=tests")
+        result = testrunnerer.runtestrunner(
+            "-vv", "-rA", "tests/test_p3.py", "--rootdir=tests"
+        )
         result.stdout.fnmatch_lines(
             [
                 "tests/test_p3.py::TestMore::test_p1 <- test_p1.py FAILED *",
@@ -356,7 +360,11 @@ class TestTerminal:
 
     @testrunner.mark.parametrize("category", ["foo", "failed", "error", "passed"])
     def test_report_teststatus_explicit_markup(
-        self, monkeypatch: MonkeyPatch, testrunnerer: Testrunnerer, color_mapping, category: str
+        self,
+        monkeypatch: MonkeyPatch,
+        testrunnerer: Testrunnerer,
+        color_mapping,
+        category: str,
     ) -> None:
         """Test that TerminalReporter handles markup explicitly provided by
         a testrunner_report_teststatus hook."""
@@ -471,7 +479,9 @@ class TestTerminal:
         )
 
     @testrunner.mark.parametrize("isatty", [True, False])
-    def test_isatty(self, testrunnerer: Testrunnerer, monkeypatch, isatty: bool) -> None:
+    def test_isatty(
+        self, testrunnerer: Testrunnerer, monkeypatch, isatty: bool
+    ) -> None:
         config = testrunnerer.parseconfig()
         f = StringIO()
         monkeypatch.setattr(f, "isatty", lambda: isatty)
@@ -697,7 +707,9 @@ class TestFixtureReporting:
             ]
         )
 
-    def test_teardown_fixture_error_and_test_failure(self, testrunnerer: Testrunnerer) -> None:
+    def test_teardown_fixture_error_and_test_failure(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             def test_fail():
@@ -723,7 +735,9 @@ class TestFixtureReporting:
             ]
         )
 
-    def test_setup_teardown_output_and_test_failure(self, testrunnerer: Testrunnerer) -> None:
+    def test_setup_teardown_output_and_test_failure(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test for issue #442."""
         testrunnerer.makepyfile(
             """
@@ -909,7 +923,8 @@ class TestTerminalFunctional:
         result.stdout.fnmatch_lines(
             [
                 "*===== test session starts ====*",
-                f"platform {sys.platform} -- Python {verinfo}*testrunner-{testrunner.__version__}**pluggy-{pluggy.__version__}",
+                f"platform {sys.platform} -- Python {verinfo}*"
+                f"testrunner-{testrunner.__version__}**pluggy-{pluggy.__version__}",
                 "*test_header_trailer_info.py .*",
                 "=* 1 passed*in *.[0-9][0-9]s *=",
             ]
@@ -930,7 +945,8 @@ class TestTerminalFunctional:
         result = testrunnerer.runtestrunner("--no-header")
         verinfo = ".".join(map(str, sys.version_info[:3]))
         result.stdout.no_fnmatch_line(
-            f"platform {sys.platform} -- Python {verinfo}*testrunner-{testrunner.__version__}**pluggy-{pluggy.__version__}"
+            f"platform {sys.platform} -- Python {verinfo}*"
+            f"testrunner-{testrunner.__version__}**pluggy-{pluggy.__version__}"
         )
         if request.config.pluginmanager.list_plugin_distinfo():
             result.stdout.no_fnmatch_line("plugins: *")
@@ -1099,7 +1115,9 @@ class TestTerminalFunctional:
         """
         )
 
-    def test_verbose_reporting(self, verbose_testfile, testrunnerer: Testrunnerer) -> None:
+    def test_verbose_reporting(
+        self, verbose_testfile, testrunnerer: Testrunnerer
+    ) -> None:
         result = testrunnerer.runtestrunner(
             verbose_testfile, "-v", "-Walways::testrunner.TestrunnerWarning"
         )
@@ -1152,7 +1170,9 @@ class TestTerminalFunctional:
     @testrunner.mark.parametrize(
         "params", [(), ("--collect-only",)], ids=["no-params", "collect-only"]
     )
-    def test_report_collectionfinish_hook(self, testrunnerer: Testrunnerer, params) -> None:
+    def test_report_collectionfinish_hook(
+        self, testrunnerer: Testrunnerer, params
+    ) -> None:
         testrunnerer.makeconftest(
             """
             def testrunner_report_collectionfinish(config, start_path, items):
@@ -1635,7 +1655,9 @@ class TestGenericReporting:
         s = result.stdout.str()
         assert "def test_func2" not in s
 
-    def test_tb_crashline_pytrace_false(self, testrunnerer: Testrunnerer, option) -> None:
+    def test_tb_crashline_pytrace_false(
+        self, testrunnerer: Testrunnerer, option
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             import testrunner
@@ -1698,22 +1720,30 @@ def testrunner_report_header(config, start_path):
             ]
         )
 
-        stdout = testrunnerer.runtestrunner("--show-capture=stdout", "--tb=short").stdout.str()
+        stdout = testrunnerer.runtestrunner(
+            "--show-capture=stdout", "--tb=short"
+        ).stdout.str()
         assert "!This is stderr!" not in stdout
         assert "!This is stdout!" in stdout
         assert "!This is a warning log msg!" not in stdout
 
-        stdout = testrunnerer.runtestrunner("--show-capture=stderr", "--tb=short").stdout.str()
+        stdout = testrunnerer.runtestrunner(
+            "--show-capture=stderr", "--tb=short"
+        ).stdout.str()
         assert "!This is stdout!" not in stdout
         assert "!This is stderr!" in stdout
         assert "!This is a warning log msg!" not in stdout
 
-        stdout = testrunnerer.runtestrunner("--show-capture=log", "--tb=short").stdout.str()
+        stdout = testrunnerer.runtestrunner(
+            "--show-capture=log", "--tb=short"
+        ).stdout.str()
         assert "!This is stdout!" not in stdout
         assert "!This is stderr!" not in stdout
         assert "!This is a warning log msg!" in stdout
 
-        stdout = testrunnerer.runtestrunner("--show-capture=no", "--tb=short").stdout.str()
+        stdout = testrunnerer.runtestrunner(
+            "--show-capture=no", "--tb=short"
+        ).stdout.str()
         assert "!This is stdout!" not in stdout
         assert "!This is stderr!" not in stdout
         assert "!This is a warning log msg!" not in stdout
@@ -1738,22 +1768,30 @@ def testrunner_report_header(config, start_path):
         """
         )
 
-        result = testrunnerer.runtestrunner("--show-capture=stdout", "--tb=short").stdout.str()
+        result = testrunnerer.runtestrunner(
+            "--show-capture=stdout", "--tb=short"
+        ).stdout.str()
         assert "!stdout!" in result
         assert "!stderr!" not in result
         assert "!log!" not in result
 
-        result = testrunnerer.runtestrunner("--show-capture=stderr", "--tb=short").stdout.str()
+        result = testrunnerer.runtestrunner(
+            "--show-capture=stderr", "--tb=short"
+        ).stdout.str()
         assert "!stdout!" not in result
         assert "!stderr!" in result
         assert "!log!" not in result
 
-        result = testrunnerer.runtestrunner("--show-capture=log", "--tb=short").stdout.str()
+        result = testrunnerer.runtestrunner(
+            "--show-capture=log", "--tb=short"
+        ).stdout.str()
         assert "!stdout!" not in result
         assert "!stderr!" not in result
         assert "!log!" in result
 
-        result = testrunnerer.runtestrunner("--show-capture=no", "--tb=short").stdout.str()
+        result = testrunnerer.runtestrunner(
+            "--show-capture=no", "--tb=short"
+        ).stdout.str()
         assert "!stdout!" not in result
         assert "!stderr!" not in result
         assert "!log!" not in result
@@ -2469,7 +2507,9 @@ class TestProgressWithTeardown:
         )
 
     @testrunner.fixture
-    def many_files(self, testrunnerer: Testrunnerer, contest_with_teardown_fixture) -> None:
+    def many_files(
+        self, testrunnerer: Testrunnerer, contest_with_teardown_fixture
+    ) -> None:
         testrunnerer.makepyfile(
             test_bar="""
                 import testrunner
@@ -2538,7 +2578,9 @@ class TestProgressWithTeardown:
             )
         )
 
-    def test_xdist_normal(self, many_files, testrunnerer: Testrunnerer, monkeypatch) -> None:
+    def test_xdist_normal(
+        self, many_files, testrunnerer: Testrunnerer, monkeypatch
+    ) -> None:
         testrunner.importorskip("xdist")
         monkeypatch.delenv("TESTRUNNER_DISABLE_PLUGIN_AUTOLOAD", raising=False)
         output = testrunnerer.runtestrunner("-n2")
@@ -2726,7 +2768,9 @@ def test_full_sequence_print_with_vv(
     )
 
 
-def test_force_short_summary(monkeypatch: MonkeyPatch, testrunnerer: Testrunnerer) -> None:
+def test_force_short_summary(
+    monkeypatch: MonkeyPatch, testrunnerer: Testrunnerer
+) -> None:
     monkeypatch.setattr(_testrunner.terminal, "running_on_ci", lambda: False)
 
     testrunnerer.makepyfile(
@@ -2813,7 +2857,9 @@ def test_via_exec(testrunnerer: Testrunnerer) -> None:
 
 
 class TestCodeHighlight:
-    def test_code_highlight_simple(self, testrunnerer: Testrunnerer, color_mapping) -> None:
+    def test_code_highlight_simple(
+        self, testrunnerer: Testrunnerer, color_mapping
+    ) -> None:
         testrunnerer.makepyfile(
             """
             def test_foo():
@@ -3156,7 +3202,9 @@ class TestFineGrainedTestCase:
         )
 
     @testrunner.mark.parametrize("verbosity", [-1, -2])
-    def test_execute_skipped_negative(self, verbosity, testrunnerer: Testrunnerer) -> None:
+    def test_execute_skipped_negative(
+        self, verbosity, testrunnerer: Testrunnerer
+    ) -> None:
         # expected: single character describing result (no reason)
         p = TestFineGrainedTestCase._initialize_files(
             testrunnerer,
@@ -3174,7 +3222,9 @@ class TestFineGrainedTestCase:
         )
 
     @testrunner.mark.parametrize("verbosity", [1, 2])
-    def test__collect_only_positive(self, verbosity, testrunnerer: Testrunnerer) -> None:
+    def test__collect_only_positive(
+        self, verbosity, testrunnerer: Testrunnerer
+    ) -> None:
         p = TestFineGrainedTestCase._initialize_files(testrunnerer, verbosity=verbosity)
         result = testrunnerer.runtestrunner("--collect-only", p)
 
@@ -3248,7 +3298,9 @@ class TestFineGrainedTestCase:
 
     @staticmethod
     def _initialize_files(
-        testrunnerer: Testrunnerer, verbosity: int, file_contents: str = DEFAULT_FILE_CONTENTS
+        testrunnerer: Testrunnerer,
+        verbosity: int,
+        file_contents: str = DEFAULT_FILE_CONTENTS,
     ) -> Path:
         p = testrunnerer.makepyfile(file_contents)
         testrunnerer.makeini(
@@ -3403,7 +3455,9 @@ def test_xpass_output(testrunnerer: Testrunnerer) -> None:
 
 
 class TestNodeIDHandling:
-    def test_nodeid_handling_windows_paths(self, testrunnerer: Testrunnerer, tmp_path) -> None:
+    def test_nodeid_handling_windows_paths(
+        self, testrunnerer: Testrunnerer, tmp_path
+    ) -> None:
         """Test the correct handling of Windows-style paths with backslashes."""
         testrunnerer.makeini("[testrunner]")  # Change `config.rootpath`
 
@@ -3446,7 +3500,9 @@ class TestTerminalProgressPlugin:
 
     @testrunner.fixture
     def mock_tr(self, mock_file: StringIO) -> testrunner.TerminalReporter:
-        tr: testrunner.TerminalReporter = mock.create_autospec(testrunner.TerminalReporter)
+        tr: testrunner.TerminalReporter = mock.create_autospec(
+            testrunner.TerminalReporter
+        )
 
         def write_raw(content: str, *, flush: bool = False) -> None:
             mock_file.write(content)

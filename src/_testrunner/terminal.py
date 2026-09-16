@@ -638,7 +638,9 @@ class TerminalReporter:
         rep = report
 
         res = TestShortLogReport(
-            *self.config.hook.testrunner_report_teststatus(report=rep, config=self.config)
+            *self.config.hook.testrunner_report_teststatus(
+                report=rep, config=self.config
+            )
         )
         category, letter, word = res.category, res.letter, res.word
         if not isinstance(word, tuple):
@@ -1027,7 +1029,9 @@ class TerminalReporter:
                 # Display any extra warnings from teardown here (if any).
                 self.summary_warnings()
 
-    def testrunner_keyboard_interrupt(self, excinfo: ExceptionInfo[BaseException]) -> None:
+    def testrunner_keyboard_interrupt(
+        self, excinfo: ExceptionInfo[BaseException]
+    ) -> None:
         self._keyboardinterrupt_memo = excinfo.getrepr(funcargs=True)
 
     def testrunner_unconfigure(self) -> None:

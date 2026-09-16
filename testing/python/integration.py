@@ -3,8 +3,8 @@ from __future__ import annotations
 
 from _testrunner._code import getfslineno
 from _testrunner.fixtures import getfixturemarker
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.python import Function
+from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
@@ -119,7 +119,9 @@ class TestMockDecoration:
         reprec = testrunnerer.inline_run()
         reprec.assertoutcome(passed=2)
 
-    def test_mock_sentinel_check_against_numpy_like(self, testrunnerer: Testrunnerer) -> None:
+    def test_mock_sentinel_check_against_numpy_like(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Ensure our function that detects mock arguments compares against sentinels using
         identity to circumvent objects which can't be compared with equality against others
         in a truth context, like with numpy arrays (#5606).

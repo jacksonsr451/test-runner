@@ -4,11 +4,11 @@ from __future__ import annotations
 import textwrap
 
 from _testrunner._code import ExceptionInfo
-from _testrunner.testrunnerer import Testrunnerer
 from _testrunner.runner import runtestprotocol
 from _testrunner.skipping import evaluate_skip_marks
 from _testrunner.skipping import evaluate_xfail_marks
 from _testrunner.skipping import testrunner_runtest_setup
+from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
@@ -123,7 +123,9 @@ class TestEvaluation:
             in excinfo.value.msg
         )
 
-    def test_marked_skipif_with_invalid_boolean(self, testrunnerer: Testrunnerer) -> None:
+    def test_marked_skipif_with_invalid_boolean(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         item = testrunnerer.getitem(
             """
             import testrunner
@@ -185,7 +187,9 @@ class TestEvaluation:
         res.stdout.fnmatch_lines(["*1 skipped*"])
         res.stdout.fnmatch_lines(["*1 passed*"])
 
-    def test_skipif_markeval_namespace_multiple(self, testrunnerer: Testrunnerer) -> None:
+    def test_skipif_markeval_namespace_multiple(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Keys defined by ``testrunner_markeval_namespace()`` in nested plugins override top-level ones."""
         root = testrunnerer.mkdir("root")
         root.joinpath("__init__.py").touch()
@@ -268,7 +272,9 @@ class TestEvaluation:
         reprec = testrunnerer.inline_run("-vs", "--capture=no")
         reprec.assertoutcome(skipped=3)
 
-    def test_skipif_markeval_namespace_ValueError(self, testrunnerer: Testrunnerer) -> None:
+    def test_skipif_markeval_namespace_ValueError(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             import testrunner
@@ -522,7 +528,9 @@ class TestXFail:
         result = testrunnerer.runtestrunner(p, "--runxfail")
         result.stdout.fnmatch_lines(["*1 pass*"])
 
-    def test_xfail_imperative_in_setup_function(self, testrunnerer: Testrunnerer) -> None:
+    def test_xfail_imperative_in_setup_function(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             import testrunner
@@ -574,7 +582,9 @@ class TestXFail:
         result = testrunnerer.runtestrunner(p, "-rxX")
         result.stdout.fnmatch_lines(["*XFAIL*test_this*NOTRUN*"])
 
-    def test_dynamic_xfail_set_during_funcarg_setup(self, testrunnerer: Testrunnerer) -> None:
+    def test_dynamic_xfail_set_during_funcarg_setup(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p = testrunnerer.makepyfile(
             """
             import testrunner
@@ -588,7 +598,9 @@ class TestXFail:
         result = testrunnerer.runtestrunner(p)
         result.stdout.fnmatch_lines(["*1 xfailed*"])
 
-    def test_dynamic_xfail_set_during_runtest_failed(self, testrunnerer: Testrunnerer) -> None:
+    def test_dynamic_xfail_set_during_runtest_failed(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         # Issue #7486.
         p = testrunnerer.makepyfile(
             """
@@ -681,7 +693,9 @@ class TestXFail:
         assert testrunnerer.path.joinpath("foo_executed").exists()
 
     @testrunner.mark.parametrize("strict", [True, False])
-    def test_strict_xfail_condition(self, testrunnerer: Testrunnerer, strict: bool) -> None:
+    def test_strict_xfail_condition(
+        self, testrunnerer: Testrunnerer, strict: bool
+    ) -> None:
         p = testrunnerer.makepyfile(
             f"""
             import testrunner
@@ -696,7 +710,9 @@ class TestXFail:
         assert result.ret == 0
 
     @testrunner.mark.parametrize("strict", [True, False])
-    def test_xfail_condition_keyword(self, testrunnerer: Testrunnerer, strict: bool) -> None:
+    def test_xfail_condition_keyword(
+        self, testrunnerer: Testrunnerer, strict: bool
+    ) -> None:
         p = testrunnerer.makepyfile(
             f"""
             import testrunner
@@ -968,7 +984,9 @@ class TestSkipif:
                 pass
         """
         )
-        x = testrunner.raises(testrunner.skip.Exception, lambda: testrunner_runtest_setup(item))
+        x = testrunner.raises(
+            testrunner.skip.Exception, lambda: testrunner_runtest_setup(item)
+        )
         assert x.value.msg == "condition: hasattr(os, 'sep')"
 
     @testrunner.mark.parametrize(

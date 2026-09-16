@@ -472,7 +472,9 @@ class TestDeprecationWarningsByDefault:
         )
 
     @testrunner.mark.parametrize("customize_filters", [True, False])
-    def test_shown_by_default(self, testrunnerer: Testrunnerer, customize_filters) -> None:
+    def test_shown_by_default(
+        self, testrunnerer: Testrunnerer, customize_filters
+    ) -> None:
         """Show deprecation warnings by default, even if user has customized the warnings filters (#4013)."""
         self.create_file(testrunnerer)
         if customize_filters:
@@ -565,7 +567,9 @@ class TestDeprecationWarningsByDefault:
 
 @testrunner.mark.skip("not relevant until testrunner 10.0")
 @testrunner.mark.parametrize("change_default", [None, "ini", "cmdline"])
-def test_removed_in_x_warning_as_error(testrunnerer: Testrunnerer, change_default) -> None:
+def test_removed_in_x_warning_as_error(
+    testrunnerer: Testrunnerer, change_default
+) -> None:
     """This ensures that TestrunnerRemovedInXWarnings raised by testrunner are turned into errors.
 
     This test should be enabled as part of each major release, and skipped again afterwards
@@ -701,7 +705,9 @@ def test_testrunner_configure_warning(testrunnerer: Testrunnerer, recwarn) -> No
 
 
 @testrunner.mark.parametrize("tryfirst", [True, False])
-def test_testrunner_configure_warning_filter(testrunnerer: Testrunnerer, tryfirst: bool) -> None:
+def test_testrunner_configure_warning_filter(
+    testrunnerer: Testrunnerer, tryfirst: bool
+) -> None:
     """Issue 10128.
 
     Parametrize over ``tryfirst`` to guard against hooks that run early
@@ -815,7 +821,9 @@ class TestStackLevel:
             ] = []
 
             @classmethod
-            def testrunner_warning_recorded(cls, warning_message, when, nodeid, location):
+            def testrunner_warning_recorded(
+                cls, warning_message, when, nodeid, location
+            ):
                 cls.captured.append((warning_message, location))
 
         testrunnerer.plugins = [CapturedWarnings()]
@@ -848,7 +856,9 @@ class TestStackLevel:
         assert func == "<module>"  # the above conftest.py
         assert lineno == 4
 
-    def test_issue4445_initial_conftest(self, testrunnerer: Testrunnerer, capwarn) -> None:
+    def test_issue4445_initial_conftest(
+        self, testrunnerer: Testrunnerer, capwarn
+    ) -> None:
         """#4445: Make sure the warning points to a reasonable location."""
         testrunnerer.makeconftest(
             """
@@ -903,7 +913,9 @@ class TestStackLevel:
         assert f"config{os.sep}__init__.py" in file
         assert func == "_warn_about_skipped_plugins"
 
-    def test_issue4445_issue5928_mark_generator(self, testrunnerer: Testrunnerer) -> None:
+    def test_issue4445_issue5928_mark_generator(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """#4445 and #5928: Make sure the warning from an unknown mark points to
         the test file where this mark is used.
         """
@@ -940,7 +952,9 @@ def test_warning_on_testpaths_not_found(testrunnerer: Testrunnerer) -> None:
     )
 
 
-def test_resource_warning(testrunnerer: Testrunnerer, monkeypatch: testrunner.MonkeyPatch) -> None:
+def test_resource_warning(
+    testrunnerer: Testrunnerer, monkeypatch: testrunner.MonkeyPatch
+) -> None:
     # Some platforms (notably PyPy) don't have tracemalloc.
     # We choose to explicitly not skip this in case tracemalloc is not
     # available, using `importorskip("tracemalloc")` for example,
@@ -1067,7 +1081,9 @@ class TestMaxWarnings:
 
     @testrunner.mark.filterwarnings("default::UserWarning")
     @testrunner.mark.parametrize("value", ["1", '"1"'])
-    def test_max_warnings_toml_option(self, testrunnerer: Testrunnerer, value: str) -> None:
+    def test_max_warnings_toml_option(
+        self, testrunnerer: Testrunnerer, value: str
+    ) -> None:
         """max_warnings can be set via TOML configuration.
 
         Supports both int and str (for backward compat).
@@ -1097,7 +1113,9 @@ class TestMaxWarnings:
         assert result.ret == ExitCode.TESTS_FAILED
 
     @testrunner.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_with_filterwarnings_ignore(self, testrunnerer: Testrunnerer) -> None:
+    def test_max_warnings_with_filterwarnings_ignore(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Filtered (ignored) warnings don't count toward max_warnings."""
         testrunnerer.makepyfile(
             """
@@ -1117,7 +1135,9 @@ class TestMaxWarnings:
         assert result.ret == ExitCode.OK
 
     @testrunner.mark.filterwarnings("default::UserWarning")
-    def test_max_warnings_with_filterwarnings_error(self, testrunnerer: Testrunnerer) -> None:
+    def test_max_warnings_with_filterwarnings_error(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Warnings turned into errors via filterwarnings don't count as warnings."""
         testrunnerer.makepyfile(
             """

@@ -39,7 +39,8 @@ import testrunner
 
 class TestParseIni:
     @testrunner.mark.parametrize(
-        "section, filename", [("testrunner", "testrunner.ini"), ("tool:testrunner", "setup.cfg")]
+        "section, filename",
+        [("testrunner", "testrunner.ini"), ("tool:testrunner", "setup.cfg")],
     )
     def test_getcfg_and_config(
         self,
@@ -66,7 +67,9 @@ class TestParseIni:
         config = testrunnerer.parseconfigure(str(sub))
         assert config._inicfg["name"] == ConfigValue("value", origin="file", mode="ini")
 
-    def test_setupcfg_uses_tooltestrunner_with_testrunner(self, testrunnerer: Testrunnerer) -> None:
+    def test_setupcfg_uses_tooltestrunner_with_testrunner(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         p1 = testrunnerer.makepyfile("def test(): pass")
         testrunnerer.makefile(
             ".cfg",
@@ -240,7 +243,9 @@ class TestParseIni:
         config = testrunnerer.parseconfig()
         assert config.inipath == testrunner_toml
 
-    def test_testrunner_toml_trumps_pyproject_toml(self, testrunnerer: Testrunnerer) -> None:
+    def test_testrunner_toml_trumps_pyproject_toml(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """A testrunner.toml always takes precedence over a pyproject.toml file."""
         testrunnerer.makepyprojecttoml(
             """
@@ -258,7 +263,9 @@ class TestParseIni:
         assert config.inipath == testrunner_toml
         assert config.getini("minversion") == "2.0"
 
-    def test_testrunner_toml_trumps_testrunner_ini(self, testrunnerer: Testrunnerer) -> None:
+    def test_testrunner_toml_trumps_testrunner_ini(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """A testrunner.toml always takes precedence over a testrunner.ini file."""
         testrunnerer.makeini(
             """
@@ -276,7 +283,9 @@ class TestParseIni:
         assert config.inipath == testrunner_toml
         assert config.getini("minversion") == "2.0"
 
-    def test_dot_testrunner_toml_trumps_testrunner_ini(self, testrunnerer: Testrunnerer) -> None:
+    def test_dot_testrunner_toml_trumps_testrunner_ini(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """A .testrunner.toml always takes precedence over a testrunner.ini file."""
         testrunnerer.makeini(
             """
@@ -294,7 +303,9 @@ class TestParseIni:
         assert config.inipath == testrunner_toml
         assert config.getini("minversion") == "2.0"
 
-    def test_testrunner_ini_trumps_pyproject_toml(self, testrunnerer: Testrunnerer) -> None:
+    def test_testrunner_ini_trumps_pyproject_toml(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """A testrunner.ini always take precedence over a pyproject.toml file."""
         testrunnerer.makepyprojecttoml(
             """
@@ -306,7 +317,9 @@ class TestParseIni:
         config = testrunnerer.parseconfig()
         assert config.inipath == testrunner_ini
 
-    def test_toxini_before_lower_testrunnerini(self, testrunnerer: Testrunnerer) -> None:
+    def test_toxini_before_lower_testrunnerini(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         sub = testrunnerer.mkdir("sub")
         sub.joinpath("tox.ini").write_text(
             textwrap.dedent(
@@ -335,7 +348,9 @@ class TestParseIni:
         )
         result = testrunnerer.runtestrunner()
         assert result.ret != 0
-        result.stderr.fnmatch_lines("ERROR: *testrunner.ini:1: no section header defined")
+        result.stderr.fnmatch_lines(
+            "ERROR: *testrunner.ini:1: no section header defined"
+        )
 
     def test_toml_parse_error(self, testrunnerer: Testrunnerer) -> None:
         testrunnerer.makepyprojecttoml(
@@ -358,7 +373,9 @@ class TestParseIni:
         assert result.ret != 0
         result.stderr.fnmatch_lines("ERROR: *testrunner.toml: Invalid statement*")
 
-    def test_confcutdir_default_without_configfile(self, testrunnerer: Testrunnerer) -> None:
+    def test_confcutdir_default_without_configfile(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         # If --confcutdir is not specified, and there is no configfile, default
         # to the rootpath.
         sub = testrunnerer.mkdir("sub")
@@ -366,7 +383,9 @@ class TestParseIni:
         config = testrunnerer.parseconfigure()
         assert config.pluginmanager._confcutdir == sub
 
-    def test_confcutdir_default_with_configfile(self, testrunnerer: Testrunnerer) -> None:
+    def test_confcutdir_default_with_configfile(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         # If --confcutdir is not specified, and there is a configfile, default
         # to the configfile's directory.
         testrunnerer.makeini("[testrunner]")
@@ -508,7 +527,9 @@ class TestParseIni:
             "addopts = --strict-config",
         ],
     )
-    def test_strict_config_ini_option(self, testrunnerer: Testrunnerer, option: str) -> None:
+    def test_strict_config_ini_option(
+        self, testrunnerer: Testrunnerer, option: str
+    ) -> None:
         """Test that strict_config and strict ini options enable strict config checking."""
         testrunnerer.makeini(
             f"""
@@ -761,7 +782,9 @@ class TestConfigCmdlineParsing:
         )
         config = testrunnerer.parseconfig("-c", "custom_tool_testrunner_section.cfg")
         assert config.getini("custom") == "1"
-        config = testrunnerer.parseconfig("--config-file", "custom_tool_testrunner_section.cfg")
+        config = testrunnerer.parseconfig(
+            "--config-file", "custom_tool_testrunner_section.cfg"
+        )
         assert config.getini("custom") == "1"
 
         testrunnerer.makefile(
@@ -791,7 +814,9 @@ class TestConfigCmdlineParsing:
         )
         config = testrunnerer.parseconfig("-c", "custom_testrunner_table.toml")
         assert config.getini("custom") == "1"
-        config = testrunnerer.parseconfig("--config-file", "custom_testrunner_table.toml")
+        config = testrunnerer.parseconfig(
+            "--config-file", "custom_testrunner_table.toml"
+        )
         assert config.getini("custom") == "1"
 
     @testrunner.mark.parametrize(
@@ -837,7 +862,9 @@ class TestConfigCmdlineParsing:
         write to ``/dev/.testrunner_cache`` (#11502).
         """
         testrunnerer.makepyfile(test_it="def test(): pass")
-        config = testrunnerer.parseconfig("--config-file", os.devnull, str(testrunnerer.path))
+        config = testrunnerer.parseconfig(
+            "--config-file", os.devnull, str(testrunnerer.path)
+        )
         assert config.rootpath == testrunnerer.path
         assert config.inipath == Path(os.devnull)
 
@@ -861,7 +888,9 @@ class TestConfigAPI:
         assert len(values) == 1
         assert values[0] == "hello [config]\n"
 
-    def test_config_getoption_declared_option_name(self, testrunnerer: Testrunnerer) -> None:
+    def test_config_getoption_declared_option_name(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(
             """
             def testrunner_addoption(parser):
@@ -879,7 +908,9 @@ class TestConfigAPI:
         assert config_novalue.getoption("hello", default=1) is None
         assert config_novalue.getoption("hello", default=1, skip=True) == 1
 
-    def test_config_getoption_undeclared_option_name(self, testrunnerer: Testrunnerer) -> None:
+    def test_config_getoption_undeclared_option_name(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         config = testrunnerer.parseconfig()
         with testrunner.raises(ValueError):
             config.getoption("x")
@@ -914,7 +945,9 @@ class TestConfigAPI:
         with testrunner.raises(testrunner.skip.Exception):
             config.getvalueorskip("hello")
 
-    def test_getconftest_pathlist(self, testrunnerer: Testrunnerer, tmp_path: Path) -> None:
+    def test_getconftest_pathlist(
+        self, testrunnerer: Testrunnerer, tmp_path: Path
+    ) -> None:
         somepath = tmp_path.joinpath("x", "y", "z")
         p = tmp_path.joinpath("conftest.py")
         p.write_text(f"mylist = {['.', str(somepath)]}", encoding="utf-8")
@@ -1078,7 +1111,9 @@ class TestConfigAPI:
         assert config.getini("strip") is bool_val
 
     @testrunner.mark.parametrize("str_val, int_val", [("10", 10), ("no-ini", 2)])
-    def test_addini_int(self, testrunnerer: Testrunnerer, str_val: str, int_val: bool) -> None:
+    def test_addini_int(
+        self, testrunnerer: Testrunnerer, str_val: str, int_val: bool
+    ) -> None:
         testrunnerer.makeconftest(
             """
             def testrunner_addoption(parser):
@@ -1114,7 +1149,9 @@ class TestConfigAPI:
         ):
             _ = config.getini("ini_param")
 
-    @testrunner.mark.parametrize("str_val, float_val", [("10.5", 10.5), ("no-ini", 2.2)])
+    @testrunner.mark.parametrize(
+        "str_val, float_val", [("10.5", 10.5), ("no-ini", 2.2)]
+    )
     def test_addini_float(
         self, testrunnerer: Testrunnerer, str_val: str, float_val: bool
     ) -> None:
@@ -1253,7 +1290,9 @@ class TestConfigAPI:
     @testrunner.mark.parametrize("bad_type", ["integer", dict, int | dict])
     def test_addini_invalid_type(self, bad_type: object) -> None:
         parser = Parser(_istestrunner=True)
-        with testrunner.raises(ValueError, match="invalid type for ini option 'ini_param'"):
+        with testrunner.raises(
+            ValueError, match="invalid type for ini option 'ini_param'"
+        ):
             parser.addini("ini_param", "", type=bad_type)  # type: ignore[arg-type]
 
     def test_addini_union_type_requires_default(self) -> None:
@@ -1278,7 +1317,9 @@ class TestConfigAPI:
         config = testrunnerer.parseconfig()
         assert config.getini("ini_param") == expected
 
-    def test_addini_literal_type_ini_and_override(self, testrunnerer: Testrunnerer) -> None:
+    def test_addini_literal_type_ini_and_override(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(self.LITERAL_CONFTEST)
         testrunnerer.makeini(
             """
@@ -1288,7 +1329,8 @@ class TestConfigAPI:
         )
         assert testrunnerer.parseconfig().getini("ini_param") == "long"
         assert (
-            testrunnerer.parseconfig("-o", "ini_param=auto").getini("ini_param") == "auto"
+            testrunnerer.parseconfig("-o", "ini_param=auto").getini("ini_param")
+            == "auto"
         )
 
     @testrunner.mark.parametrize(
@@ -1343,10 +1385,13 @@ class TestConfigAPI:
         )
         assert testrunnerer.parseconfig().getini("ini_param") == 3
         assert (
-            testrunnerer.parseconfig("-o", "ini_param=auto").getini("ini_param") == "auto"
+            testrunnerer.parseconfig("-o", "ini_param=auto").getini("ini_param")
+            == "auto"
         )
 
-    def test_addini_union_with_literal_invalid_value(self, testrunnerer: Testrunnerer) -> None:
+    def test_addini_union_with_literal_invalid_value(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeconftest(self.UNION_LITERAL_CONFTEST)
         testrunnerer.makepyprojecttoml('[tool.testrunner]\nini_param = "3"')
         config = testrunnerer.parseconfig()
@@ -1480,7 +1525,9 @@ class TestConfigAPI:
         # Should also be able to access via alias.
         assert config.getini("old_name") == "hello"
 
-    def test_addini_aliases_with_canonical_in_file(self, testrunnerer: Testrunnerer) -> None:
+    def test_addini_aliases_with_canonical_in_file(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test that canonical name takes precedence over alias in configuration file."""
         testrunnerer.makeconftest(
             """
@@ -1519,7 +1566,9 @@ class TestConfigAPI:
         assert config.getini("old_name") == "value1"
         assert config.getini("legacy_name") == "value1"
 
-    def test_addini_aliases_with_override_of_old(self, testrunnerer: Testrunnerer) -> None:
+    def test_addini_aliases_with_override_of_old(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test that aliases work with --override-ini -- ini sets old."""
         testrunnerer.makeconftest(
             """
@@ -1542,7 +1591,9 @@ class TestConfigAPI:
         config = testrunnerer.parseconfig("-o", "new_name=overridden2")
         assert config.getini("new_name") == "overridden2"
 
-    def test_addini_aliases_with_override_of_new(self, testrunnerer: Testrunnerer) -> None:
+    def test_addini_aliases_with_override_of_new(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test that aliases work with --override-ini -- ini sets new."""
         testrunnerer.makeconftest(
             """
@@ -1641,7 +1692,9 @@ class TestConfigAPI:
         with testrunner.raises(testrunner.UsageError, match=exp_match):
             testrunnerer.parseconfig("--confcutdir", testrunnerer.path.joinpath("file"))
         with testrunner.raises(testrunner.UsageError, match=exp_match):
-            testrunnerer.parseconfig("--confcutdir", testrunnerer.path.joinpath("nonexistent"))
+            testrunnerer.parseconfig(
+                "--confcutdir", testrunnerer.path.joinpath("nonexistent")
+            )
 
         p = testrunnerer.mkdir("dir")
         config = testrunnerer.parseconfig("--confcutdir", p)
@@ -2122,7 +2175,10 @@ def test_config_in_subdirectory_colon_command_line_issue2148(
 
     testrunnerer.makefile(
         ".ini",
-        **{"testrunner": "[testrunner]\nfoo = root", "subdir/testrunner": "[testrunner]\nfoo = subdir"},
+        **{
+            "testrunner": "[testrunner]\nfoo = root",
+            "subdir/testrunner": "[testrunner]\nfoo = subdir",
+        },
     )
 
     testrunnerer.makepyfile(
@@ -2251,9 +2307,13 @@ class TestRootdir:
     @testrunner.mark.parametrize(
         "name, contents",
         [
-            testrunner.param("testrunner.ini", "[testrunner]\nx=10", id="testrunner.ini"),
             testrunner.param(
-                "pyproject.toml", "[tool.testrunner.ini_options]\nx=10", id="pyproject.toml"
+                "testrunner.ini", "[testrunner]\nx=10", id="testrunner.ini"
+            ),
+            testrunner.param(
+                "pyproject.toml",
+                "[tool.testrunner.ini_options]\nx=10",
+                id="pyproject.toml",
             ),
             testrunner.param("tox.ini", "[testrunner]\nx=10", id="tox.ini"),
             testrunner.param("setup.cfg", "[tool:testrunner]\nx=10", id="setup.cfg"),
@@ -2288,7 +2348,9 @@ class TestRootdir:
         assert parsed_inipath == inipath
         assert ini_config["x"] == ConfigValue("10", origin="file", mode="ini")
 
-    @testrunner.mark.parametrize("testrunner_ini", ["testrunner.ini", ".testrunner.ini"])
+    @testrunner.mark.parametrize(
+        "testrunner_ini", ["testrunner.ini", ".testrunner.ini"]
+    )
     @testrunner.mark.parametrize("other", ["setup.cfg", "tox.ini"])
     def test_testrunnerini_overrides_empty_other(
         self, tmp_path: Path, testrunner_ini: str, other: str
@@ -2342,7 +2404,9 @@ class TestRootdir:
         [
             # testrunner.param("testrunner.ini", "[testrunner]\nx=10", id="testrunner.ini"),
             testrunner.param(
-                "pyproject.toml", "[tool.testrunner.ini_options]\nx=10", id="pyproject.toml"
+                "pyproject.toml",
+                "[tool.testrunner.ini_options]\nx=10",
+                id="pyproject.toml",
             ),
             # testrunner.param("tox.ini", "[testrunner]\nx=10", id="tox.ini"),
             # testrunner.param("setup.cfg", "[tool:testrunner]\nx=10", id="setup.cfg"),
@@ -2503,7 +2567,9 @@ class TestRootdir:
         """Regression test for #7807."""
         (tmp_path / "setup.cfg").write_text("[tool:testrunner]\n", "utf-8")
         (tmp_path / "myproject").mkdir()
-        (tmp_path / "myproject" / "setup.cfg").write_text("[tool:testrunner]\n", "utf-8")
+        (tmp_path / "myproject" / "setup.cfg").write_text(
+            "[tool:testrunner]\n", "utf-8"
+        )
         (tmp_path / "myproject" / "tests").mkdir()
         monkeypatch.chdir(tmp_path / "myproject")
 
@@ -2624,7 +2690,9 @@ class TestOverrideIniArgs:
             ]
         )
 
-    def test_override_ini_usage_error_bad_style(self, testrunnerer: Testrunnerer) -> None:
+    def test_override_ini_usage_error_bad_style(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makeini(
             """
             [testrunner]
@@ -2656,7 +2724,9 @@ class TestOverrideIniArgs:
                 pass
         """
         )
-        result = testrunnerer.runtestrunner("--override-ini", "python_files=unittest_*.py")
+        result = testrunnerer.runtestrunner(
+            "--override-ini", "python_files=unittest_*.py"
+        )
         result.stdout.fnmatch_lines(["*1 passed in*"])
 
     def test_addopts_before_initini(
@@ -2684,7 +2754,9 @@ class TestOverrideIniArgs:
         )
         assert "via TESTRUNNER_ADDOPTS" in excinfo.value.args[0]
 
-    def test_addopts_from_ini_not_concatenated(self, testrunnerer: Testrunnerer) -> None:
+    def test_addopts_from_ini_not_concatenated(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """`addopts` from configuration should not take values from normal args (#4265)."""
         testrunnerer.makeini(
             """
@@ -2811,7 +2883,9 @@ def test_help_and_version_after_argument_error(testrunnerer: Testrunnerer) -> No
         ]
     )
     # Does not display full/default help.
-    assert "to see available markers type: testrunner --markers" not in result.stdout.lines
+    assert (
+        "to see available markers type: testrunner --markers" not in result.stdout.lines
+    )
     assert result.ret == ExitCode.USAGE_ERROR
 
     result = testrunnerer.runtestrunner("--version")
@@ -2834,7 +2908,9 @@ def test_help_formatter_uses_py_get_terminal_width(monkeypatch: MonkeyPatch) -> 
     assert formatter._width == 42
 
 
-def test_config_does_not_load_blocked_plugin_from_args(testrunnerer: Testrunnerer) -> None:
+def test_config_does_not_load_blocked_plugin_from_args(
+    testrunnerer: Testrunnerer,
+) -> None:
     """This tests that testrunner's config setup handles "-p no:X"."""
     p = testrunnerer.makepyfile("def test(capfd): pass")
     result = testrunnerer.runtestrunner(str(p), "-pno:capture")
@@ -2890,7 +2966,9 @@ def test_invocation_args(testrunnerer: Testrunnerer) -> None:
         if x not in _testrunner.config.essential_plugins
     ],
 )
-def test_config_blocked_default_plugins(testrunnerer: Testrunnerer, plugin: str) -> None:
+def test_config_blocked_default_plugins(
+    testrunnerer: Testrunnerer, plugin: str
+) -> None:
     p = testrunnerer.makepyfile("def test(): pass")
     result = testrunnerer.runtestrunner(str(p), f"-pno:{plugin}")
 
@@ -2929,7 +3007,9 @@ class TestSetupCfg:
         with testrunner.raises(testrunner.fail.Exception):
             testrunnerer.runtestrunner()
 
-    def test_testrunner_custom_cfg_unsupported(self, testrunnerer: Testrunnerer) -> None:
+    def test_testrunner_custom_cfg_unsupported(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makefile(
             ".cfg",
             custom="""
@@ -3123,7 +3203,9 @@ class TestDebugOptions:
         )
         assert not [f.name for f in testrunnerer.path.glob("**/*.log")]
 
-    def test_with_only_debug_writes_testrunnerdebug_log(self, testrunnerer: Testrunnerer) -> None:
+    def test_with_only_debug_writes_testrunnerdebug_log(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         result = testrunnerer.runtestrunner("--debug")
         result.stderr.fnmatch_lines(
             [
@@ -3131,7 +3213,9 @@ class TestDebugOptions:
                 "*wrote testrunner debug information to*testrunnerdebug.log",
             ]
         )
-        assert "testrunnerdebug.log" in [f.name for f in testrunnerer.path.glob("**/*.log")]
+        assert "testrunnerdebug.log" in [
+            f.name for f in testrunnerer.path.glob("**/*.log")
+        ]
 
     def test_multiple_custom_debug_logs(self, testrunnerer: Testrunnerer) -> None:
         result = testrunnerer.runtestrunner("--debug", "bar.log")
@@ -3291,7 +3375,9 @@ class TestNativeTomlConfig:
         config = testrunnerer.parseconfig("-o", "test_override_list=tests integration")
         assert config.getini("test_override_list") == ["tests", "integration"]
 
-    def test_conflict_between_native_and_ini_options(self, testrunnerer: Testrunnerer) -> None:
+    def test_conflict_between_native_and_ini_options(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Test that using both [tool.testrunner] and [tool.testrunner.ini_options] fails."""
         testrunnerer.makepyprojecttoml(
             """
@@ -3470,7 +3556,9 @@ class TestProgName:
         """When argv is empty, should default to 'testrunner'."""
         assert _get_prog_name([]) == "testrunner"
 
-    def test_prog_in_error_message_programmatic(self, testrunnerer: Testrunnerer) -> None:
+    def test_prog_in_error_message_programmatic(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Error messages should show 'testrunner.main()' when called programmatically.
 
         runtestrunner_inprocess calls testrunner.main() directly, so it should show
@@ -3486,7 +3574,9 @@ class TestProgName:
         show 'python -m testrunner' as the program name.
         """
         result = testrunnerer.runtestrunner_subprocess("--invalid-option-xyz")
-        result.stderr.fnmatch_lines(["*python -m testrunner: error:*invalid-option-xyz*"])
+        result.stderr.fnmatch_lines(
+            ["*python -m testrunner: error:*invalid-option-xyz*"]
+        )
 
     def test_prog_in_usage_programmatic(self, testrunnerer: Testrunnerer) -> None:
         """Usage line should show 'testrunner.main()' when called programmatically."""

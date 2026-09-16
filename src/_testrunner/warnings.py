@@ -118,5 +118,6 @@ def testrunner_configure(config: Config) -> None:
     config.addinivalue_line(
         "markers",
         "filterwarnings(warning): add a warning filter to the given test. "
-        "see https://github.com/jacksonsr451/test-runner/tree/main/doc/en/how-to/capture-warnings.html#testrunner-mark-filterwarnings ",
+        "see https://github.com/jacksonsr451/test-runner/tree/main/doc/en/"
+        "how-to/capture-warnings.html#testrunner-mark-filterwarnings ",
     )

@@ -183,7 +183,9 @@ class testrunnerPDB:
                     else:
                         tw.sep(">", "PDB continue")
                 assert cls._pluginmanager is not None
-                cls._pluginmanager.hook.testrunner_leave_pdb(config=cls._config, pdb=self)
+                cls._pluginmanager.hook.testrunner_leave_pdb(
+                    config=cls._config, pdb=self
+                )
                 self._continued = True
                 return ret
 

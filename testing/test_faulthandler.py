@@ -155,7 +155,9 @@ def test_timeout_and_exit(testrunnerer: Testrunnerer, exit_on_timeout: bool) -> 
     assert result.ret == 1
 
 
-@testrunner.mark.parametrize("hook_name", ["testrunner_enter_pdb", "testrunner_exception_interact"])
+@testrunner.mark.parametrize(
+    "hook_name", ["testrunner_enter_pdb", "testrunner_exception_interact"]
+)
 def test_cancel_timeout_on_hook(monkeypatch, hook_name) -> None:
     """Make sure that we are cancelling any scheduled traceback dumping due
     to timeout before entering pdb (jacksonsr451/test-runner-faulthandler#12) or any

@@ -381,7 +381,9 @@ def test_setup_class(testrunnerer: Testrunnerer) -> None:
 
 
 @testrunner.mark.parametrize("type", ["Error", "Failure"])
-def test_testcase_adderrorandfailure_defers(testrunnerer: Testrunnerer, type: str) -> None:
+def test_testcase_adderrorandfailure_defers(
+    testrunnerer: Testrunnerer, type: str
+) -> None:
     testrunnerer.makepyfile(
         f"""
         from unittest import TestCase
@@ -447,7 +449,9 @@ def test_testcase_custom_exception_info(testrunnerer: Testrunnerer, type: str) -
     )
 
 
-def test_testcase_totally_incompatible_exception_info(testrunnerer: Testrunnerer) -> None:
+def test_testcase_totally_incompatible_exception_info(
+    testrunnerer: Testrunnerer,
+) -> None:
     import _testrunner.unittest
 
     (item,) = testrunnerer.getitems(
@@ -487,7 +491,9 @@ class TestTrialUnittest:
         # https://twistedmatrix.com/trac/ticket/9227
         cls.ignore_unclosed_socket_warning = ("-W", "always")
 
-    def test_trial_testcase_runtest_not_collected(self, testrunnerer: Testrunnerer) -> None:
+    def test_trial_testcase_runtest_not_collected(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testrunnerer.makepyfile(
             """
             from twisted.trial.unittest import TestCase
@@ -546,7 +552,9 @@ class TestTrialUnittest:
                     pass
         """
         )
-        result = testrunnerer.runtestrunner("-rxs", *self.ignore_unclosed_socket_warning)
+        result = testrunnerer.runtestrunner(
+            "-rxs", *self.ignore_unclosed_socket_warning
+        )
         result.stdout.fnmatch_lines_random(
             [
                 "*XFAIL*test_trial_todo*",
@@ -1243,7 +1251,9 @@ def test_exit_outcome(testrunnerer: Testrunnerer) -> None:
     """
     )
     result = testrunnerer.runtestrunner()
-    result.stdout.fnmatch_lines(["*Exit: testrunner_exit called*", "*= no tests ran in *"])
+    result.stdout.fnmatch_lines(
+        ["*Exit: testrunner_exit called*", "*= no tests ran in *"]
+    )
 
 
 def test_trace(testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
@@ -1275,7 +1285,9 @@ def test_trace(testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
     assert result.ret == 0
 
 
-def test_pdb_teardown_called(testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
+def test_pdb_teardown_called(
+    testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
+) -> None:
     """Ensure tearDown() is always called when --pdb is given in the command-line.
 
     We delay the normal tearDown() calls when --pdb is given, so this ensures we are calling
@@ -1319,7 +1331,9 @@ def test_pdb_teardown_skipped_for_functions(
     via a decorator (#7215).
     """
     tracked: list[str] = []
-    monkeypatch.setattr(testrunner, "track_pdb_teardown_skipped", tracked, raising=False)
+    monkeypatch.setattr(
+        testrunner, "track_pdb_teardown_skipped", tracked, raising=False
+    )
 
     testrunnerer.makepyfile(
         f"""
@@ -1354,7 +1368,9 @@ def test_pdb_teardown_skipped_for_classes(
     via a decorator on the class (#10060).
     """
     tracked: list[str] = []
-    monkeypatch.setattr(testrunner, "track_pdb_teardown_skipped", tracked, raising=False)
+    monkeypatch.setattr(
+        testrunner, "track_pdb_teardown_skipped", tracked, raising=False
+    )
 
     testrunnerer.makepyfile(
         f"""
@@ -1613,7 +1629,9 @@ class TestClassCleanupErrors:
             ]
         )
 
-    def test_class_cleanups_failure_in_teardown(self, testrunnerer: Testrunnerer) -> None:
+    def test_class_cleanups_failure_in_teardown(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testpath = testrunnerer.makepyfile(
             """
             import unittest
@@ -1638,7 +1656,9 @@ class TestClassCleanupErrors:
             ]
         )
 
-    def test_class_cleanup_1_failure_in_teardown(self, testrunnerer: Testrunnerer) -> None:
+    def test_class_cleanup_1_failure_in_teardown(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         testpath = testrunnerer.makepyfile(
             """
             import unittest

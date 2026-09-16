@@ -573,7 +573,9 @@ class Dir(nodes.Directory):
             if direntry.is_dir():
                 path = Path(direntry.path)
                 if not self.session.isinitpath(path, with_parents=True):
-                    if ihook.testrunner_ignore_collect(collection_path=path, config=config):
+                    if ihook.testrunner_ignore_collect(
+                        collection_path=path, config=config
+                    ):
                         continue
                 col = ihook.testrunner_collect_directory(path=path, parent=self)
                 if col is not None:
@@ -582,7 +584,9 @@ class Dir(nodes.Directory):
             elif direntry.is_file():
                 path = Path(direntry.path)
                 if not self.session.isinitpath(path):
-                    if ihook.testrunner_ignore_collect(collection_path=path, config=config):
+                    if ihook.testrunner_ignore_collect(
+                        collection_path=path, config=config
+                    ):
                         continue
                 cols = ihook.testrunner_collect_file(file_path=path, parent=self)
                 yield from cols

@@ -163,7 +163,9 @@ def raises(
     The ``match`` argument searches the formatted exception string, which includes any
     `PEP-678 <https://peps.python.org/pep-0678/>`__ ``__notes__``:
 
-        >>> with testrunner.raises(ValueError, match=r"had a note added"):  # doctest: +SKIP
+        >>> with testrunner.raises(
+        ...     ValueError, match=r"had a note added"
+        ... ):  # doctest: +SKIP
         ...     e = ValueError("value must be 42")
         ...     e.add_note("had a note added")
         ...     raise e
@@ -726,7 +728,8 @@ class RaisesGroup(AbstractRaises[BaseExceptionGroup[BaseExcT_co]]):
     .. versionadded:: 8.4
 
     Contextmanager for checking for an expected :exc:`ExceptionGroup`.
-    This works similar to :func:`testrunner.raises`, but allows for specifying the structure of an :exc:`ExceptionGroup`.
+    This works similar to :func:`testrunner.raises`, but allows for specifying
+    the structure of an :exc:`ExceptionGroup`.
     :meth:`ExceptionInfo.group_contains` also tries to handle exception groups,
     but it is very bad at checking that you *didn't* get unexpected exceptions.
 

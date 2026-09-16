@@ -868,7 +868,9 @@ class TestApprox:
     @testrunner.mark.parametrize(
         ("values", "offset"),
         (
-            testrunner.param([Decimal("1.0"), Decimal("2.0")], Decimal(5), id="decimal"),
+            testrunner.param(
+                [Decimal("1.0"), Decimal("2.0")], Decimal(5), id="decimal"
+            ),
             testrunner.param([1.0, 2.0], 5.0, id="float"),
             testrunner.param([Fraction(1), Fraction(2)], Fraction(5), id="fraction"),
         ),
@@ -995,7 +997,9 @@ class TestApprox:
         despite being well inside the default tolerance, silently ignoring
         it rather than reporting that nesting is unsupported (#10210).
         """
-        with testrunner.raises(TypeError, match=r"testrunner.approx\(\) does not support"):
+        with testrunner.raises(
+            TypeError, match=r"testrunner.approx\(\) does not support"
+        ):
             actual == approx(expected)
 
     @testrunner.mark.parametrize(
@@ -1141,7 +1145,9 @@ class TestApprox:
             testrunner.param(2.60, {"rel": 0.01}, id="float-expected"),
             testrunner.param([1.0, 2.0], {"rel": 0.01}, id="float-sequence"),
             testrunner.param(Decimal("2.60"), {}, id="no-tolerance"),
-            testrunner.param(Decimal("2.60"), {"rel": Decimal("0.01")}, id="decimal-rel"),
+            testrunner.param(
+                Decimal("2.60"), {"rel": Decimal("0.01")}, id="decimal-rel"
+            ),
             testrunner.param(Decimal("2.60"), {"rel": 0.5}, id="exactly-representable"),
             testrunner.param(Decimal("2.60"), {"rel": 1}, id="int-rel"),
         ),
@@ -1151,7 +1157,9 @@ class TestApprox:
         assert not [
             w
             for w in recwarn
-            if issubclass(w.category, testrunner.TestrunnerApproxDecimalToleranceWarning)
+            if issubclass(
+                w.category, testrunner.TestrunnerApproxDecimalToleranceWarning
+            )
         ]
 
     def test_inexact_float_tolerance_warns_once_at_the_call_site(
@@ -1351,7 +1359,9 @@ class TestApprox:
             ]
         )
 
-    def test_approx_on_unordered_mapping_matching(self, testrunnerer: Testrunnerer) -> None:
+    def test_approx_on_unordered_mapping_matching(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """https://github.com/jacksonsr451/test-runner/issues/12444"""
         testrunnerer.makepyfile(
             """
@@ -1492,7 +1502,9 @@ class TestApproxDatetime:
     def test_timedelta_rel_must_be_non_negative(self):
         from datetime import timedelta
 
-        with testrunner.raises(ValueError, match="relative tolerance can't be negative"):
+        with testrunner.raises(
+            ValueError, match="relative tolerance can't be negative"
+        ):
             approx(timedelta(seconds=1), rel=-0.1)
 
     def test_timedelta_rel_must_not_be_nan(self):
@@ -1504,13 +1516,17 @@ class TestApproxDatetime:
     def test_timedelta_rel_must_not_be_infinite(self):
         from datetime import timedelta
 
-        with testrunner.raises(ValueError, match="relative tolerance can't be infinite"):
+        with testrunner.raises(
+            ValueError, match="relative tolerance can't be infinite"
+        ):
             approx(timedelta(seconds=1), rel=inf)
 
     def test_timedelta_abs_must_be_non_negative(self):
         from datetime import timedelta
 
-        with testrunner.raises(ValueError, match="absolute tolerance can't be negative"):
+        with testrunner.raises(
+            ValueError, match="absolute tolerance can't be negative"
+        ):
             approx(timedelta(seconds=1), abs=timedelta(seconds=-1))
 
     def test_timedelta_rel_with_abs(self):

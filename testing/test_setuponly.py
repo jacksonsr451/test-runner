@@ -8,7 +8,9 @@ from _testrunner.testrunnerer import Testrunnerer
 import testrunner
 
 
-@testrunner.fixture(params=["--setup-only", "--setup-plan", "--setup-show"], scope="module")
+@testrunner.fixture(
+    params=["--setup-only", "--setup-plan", "--setup-show"], scope="module"
+)
 def mode(request):
     return request.param
 
@@ -191,7 +193,9 @@ def test_show_fixtures_with_parameter_ids(testrunnerer: Testrunnerer, mode) -> N
     )
 
 
-def test_show_fixtures_with_parameter_ids_function(testrunnerer: Testrunnerer, mode) -> None:
+def test_show_fixtures_with_parameter_ids_function(
+    testrunnerer: Testrunnerer, mode
+) -> None:
     p = testrunnerer.makepyfile(
         """
         import testrunner

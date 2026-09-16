@@ -277,7 +277,9 @@ def test_should_not_show_direct_param_fixtures(testrunnerer: Testrunnerer) -> No
     assert result.ret == 0
 
 
-def test_should_show_parametrized_fixtures_used_by_test(testrunnerer: Testrunnerer) -> None:
+def test_should_show_parametrized_fixtures_used_by_test(
+    testrunnerer: Testrunnerer,
+) -> None:
     """A fixture with parameters should be included if it was created using
     the @testrunner.fixture decorator, including those that are indirectly
     parametrized."""

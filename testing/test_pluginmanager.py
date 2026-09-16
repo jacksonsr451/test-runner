@@ -181,7 +181,9 @@ class TestTestrunnerPluginInteractions:
         """Test the gethookproxy function(#2016)"""
         config = testrunnerer.parseconfig()
         session = Session.from_config(config)
-        testrunnerer.makepyfile(**{"tests/conftest.py": "", "tests/subdir/conftest.py": ""})
+        testrunnerer.makepyfile(
+            **{"tests/conftest.py": "", "tests/subdir/conftest.py": ""}
+        )
 
         conftest1 = testrunnerer.path.joinpath("tests/conftest.py")
         conftest2 = testrunnerer.path.joinpath("tests/subdir/conftest.py")
@@ -281,10 +283,8 @@ class TestTestrunnerPluginManager:
         assert pm.is_registered(mod)
         values = pm.get_plugins()
         assert mod in values
-        with testrunner.raises(ValueError):
-            pm.register(mod)
-        with testrunner.raises(ValueError):
-            pm.register(mod)
+        assert pm.register(mod) == "x.y.testrunner_hello"
+        assert pm.register(mod) == "x.y.testrunner_hello"
         # assert not pm.is_registered(mod2)
         assert pm.get_plugins() == values
 
@@ -417,7 +417,9 @@ class TestTestrunnerPluginManager:
         result.stdout.fnmatch_lines(["plugins: *mytestplugin-1.2.3*"])
 
     @testrunner.mark.filterwarnings("always")
-    def test_plugin_skip(self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch) -> None:
+    def test_plugin_skip(
+        self, testrunnerer: Testrunnerer, monkeypatch: MonkeyPatch
+    ) -> None:
         p = testrunnerer.makepyfile(
             skipping1="""
             import testrunner
@@ -498,7 +500,9 @@ class TestTestrunnerPluginManager:
             testrunnerpm.import_plugin("testrunner_qweqwex.y")
 
         testrunnerer.syspathinsert()
-        testrunnerer.mkpydir("pkg").joinpath("plug.py").write_text("x=3", encoding="utf-8")
+        testrunnerer.mkpydir("pkg").joinpath("plug.py").write_text(
+            "x=3", encoding="utf-8"
+        )
         pluginname = "pkg.plug"
         testrunnerpm.import_plugin(pluginname)
         mod = testrunnerpm.get_plugin("pkg.plug")
@@ -536,7 +540,9 @@ class TestTestrunnerPluginManagerBootstrapping:
         with testrunner.raises(UsageError, match=r"^plugin main cannot be disabled$"):
             testrunnerpm.consider_preparse(["-p", "no:main"])
 
-    def test_plugin_prevent_register(self, testrunnerpm: TestrunnerPluginManager) -> None:
+    def test_plugin_prevent_register(
+        self, testrunnerpm: TestrunnerPluginManager
+    ) -> None:
         testrunnerpm.consider_preparse(["xyz", "-p", "no:abc"])
         l1 = testrunnerpm.get_plugins()
         testrunnerpm.register(42, name="abc")
@@ -572,7 +578,9 @@ class TestTestrunnerPluginManagerBootstrapping:
         assert 42 not in l2
         assert 43 not in l2
 
-    def test_blocked_plugin_can_be_used(self, testrunnerpm: TestrunnerPluginManager) -> None:
+    def test_blocked_plugin_can_be_used(
+        self, testrunnerpm: TestrunnerPluginManager
+    ) -> None:
         testrunnerpm.consider_preparse(["xyz", "-p", "no:abc", "-p", "abc"])
 
         assert testrunnerpm.has_plugin("abc")

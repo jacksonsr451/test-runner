@@ -189,7 +189,9 @@ def evaluate_skip_marks(item: Item) -> Skip | None:
         try:
             return Skip(*mark.args, **mark.kwargs)
         except TypeError as e:
-            raise TypeError(str(e) + " - maybe you meant testrunner.mark.skipif?") from None
+            raise TypeError(
+                str(e) + " - maybe you meant testrunner.mark.skipif?"
+            ) from None
 
     return None
 

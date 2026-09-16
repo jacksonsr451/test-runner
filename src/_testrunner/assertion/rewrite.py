@@ -303,19 +303,30 @@ def _write_pyc_fp(fp: IO[bytes], source_hash: bytes, co: types.CodeType) -> None
     fp.write(marshal.dumps(co))
 
 
+def _long_path(path: Path) -> str | Path:
+    path_string = os.fspath(path)
+    if (
+        os.name == "nt"
+        and len(path_string) >= 260
+        and not path_string.startswith("\\\\?\\")
+    ):
+        return "\\\\?\\" + os.path.abspath(path_string)
+    return path
+
+
 def _write_pyc(
     state: AssertionState, co: types.CodeType, source_hash: bytes, pyc: Path
 ) -> bool:
     proc_pyc = f"{pyc}.{os.getpid()}"
     try:
-        with open(proc_pyc, "wb") as fp:
+        with open(_long_path(Path(proc_pyc)), "wb") as fp:
             _write_pyc_fp(fp, source_hash, co)
     except OSError as e:
         state.trace(f"error writing pyc file at {proc_pyc}: errno={e.errno}")
         return False
 
     try:
-        os.replace(proc_pyc, pyc)
+        os.replace(_long_path(Path(proc_pyc)), _long_path(pyc))
     except OSError as e:
         state.trace(f"error writing pyc file at {pyc}: {e}")
         # we ignore any failure to write the cache file
@@ -344,7 +355,7 @@ def _read_pyc(
     Return rewritten code if successful or None if not.
     """
     try:
-        fp = open(pyc, "rb")
+        fp = open(_long_path(pyc), "rb")
     except OSError:
         return None
     with fp:
@@ -856,7 +867,9 @@ class AssertionRewriter(ast.NodeVisitor):
 
         negation = ast.UnaryOp(ast.Not(), top_condition)
 
-        if self.enable_assertion_pass_hook:  # Experimental testrunner_assertion_pass hook
+        if (
+            self.enable_assertion_pass_hook
+        ):  # Experimental testrunner_assertion_pass hook
             msg = self.pop_format_context(ast.Constant(explanation))
 
             # Failed
@@ -1179,7 +1192,10 @@ def get_cache_dir(file_path: Path) -> Path:
         #   path = '/home/user/proj/test_app.py'
         # we want:
         #   '/tmp/pycs/home/user/proj'
-        return Path(sys.pycache_prefix) / Path(*file_path.parts[1:-1])
+        cache_dir = Path(sys.pycache_prefix) / Path(*file_path.parts[1:-1])
+        if os.name == "nt" and len(str(cache_dir / ("x" + PYC_TAIL))) >= 260:
+            return Path(_long_path(cache_dir / ("x" + PYC_TAIL))).parent
+        return cache_dir
     else:
         # classic pycache directory
         return file_path.parent / "__pycache__"

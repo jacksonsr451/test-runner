@@ -47,7 +47,9 @@ class TestDoctests:
             items, _reprec = testrunnerer.inline_genitems(p, "--doctest-modules")
             assert len(items) == 0
 
-    def test_collect_module_single_modulelevel_doctest(self, testrunnerer: Testrunnerer):
+    def test_collect_module_single_modulelevel_doctest(
+        self, testrunnerer: Testrunnerer
+    ):
         path = testrunnerer.makepyfile(whatever='""">>> pass"""')
         for p in (path, testrunnerer.path):
             items, _reprec = testrunnerer.inline_genitems(p, "--doctest-modules")
@@ -55,7 +57,9 @@ class TestDoctests:
             assert isinstance(items[0], DoctestItem)
             assert isinstance(items[0].parent, DoctestModule)
 
-    def test_collect_module_two_doctest_one_modulelevel(self, testrunnerer: Testrunnerer):
+    def test_collect_module_two_doctest_one_modulelevel(
+        self, testrunnerer: Testrunnerer
+    ):
         path = testrunnerer.makepyfile(
             whatever="""
             '>>> x = None'
@@ -396,7 +400,9 @@ class TestDoctests:
             ]
         )
 
-    def test_doctest_no_linedata_on_overridden_property(self, testrunnerer: Testrunnerer):
+    def test_doctest_no_linedata_on_overridden_property(
+        self, testrunnerer: Testrunnerer
+    ):
         testrunnerer.makepyfile(
             """
             class Sample(object):
@@ -800,7 +806,9 @@ class TestDoctests:
                 pass
         """
         )
-        reprec = testrunnerer.inline_run(p, "--doctest-modules", "--junit-xml=junit.xml")
+        reprec = testrunnerer.inline_run(
+            p, "--doctest-modules", "--junit-xml=junit.xml"
+        )
         reprec.assertoutcome(failed=1)
 
     def test_unicode_doctest(self, testrunnerer: Testrunnerer):
@@ -1356,7 +1364,9 @@ class TestDoctestAutoUseFixtures:
         result = testrunnerer.runtestrunner("--doctest-modules")
         result.stdout.fnmatch_lines(["*2 passed*"])
 
-    def test_doctest_and_python_fixtures_not_shared(self, testrunnerer: Testrunnerer) -> None:
+    def test_doctest_and_python_fixtures_not_shared(
+        self, testrunnerer: Testrunnerer
+    ) -> None:
         """Fixture scopes are not shared between doctest and python modules.
 
         This test is not meant as a hard behavioral test -- sharing scope is
@@ -1613,7 +1623,9 @@ class TestDoctestNamespaceFixture:
             encoding="utf-8",
         )
 
-        testing.joinpath("testrunner.ini").write_text("[testrunner]\n", encoding="utf-8")
+        testing.joinpath("testrunner.ini").write_text(
+            "[testrunner]\n", encoding="utf-8"
+        )
 
         # The config file sits next to the conftest at the rootdir, and the
         # collection argument (``xclim``) is a *parent* of the rootdir
@@ -1647,7 +1659,9 @@ class TestDoctestReportingOption:
                       '2  3  6')
             """
         )
-        return testrunnerer.runtestrunner("--doctest-modules", "--doctest-report", format)
+        return testrunnerer.runtestrunner(
+            "--doctest-modules", "--doctest-report", format
+        )
 
     @testrunner.mark.parametrize("format", ["udiff", "UDIFF", "uDiFf"])
     def test_doctest_report_udiff(self, testrunnerer, format):
@@ -1714,7 +1728,9 @@ class TestDoctestReportingOption:
 
 
 @testrunner.mark.parametrize("mock_module", ["mock", "unittest.mock"])
-def test_doctest_mock_objects_dont_recurse_missbehaved(mock_module, testrunnerer: Testrunnerer):
+def test_doctest_mock_objects_dont_recurse_missbehaved(
+    mock_module, testrunnerer: Testrunnerer
+):
     testrunner.importorskip(mock_module)
     testrunnerer.makepyfile(
         f"""

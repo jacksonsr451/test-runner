@@ -78,7 +78,9 @@ def test_collect_imports_disabled(testrunnerer: Testrunnerer) -> None:
 
 
 @testrunner.mark.parametrize("configure_ini", [False, True])
-def test_collect_imports_enabled(testrunnerer: Testrunnerer, configure_ini: bool) -> None:
+def test_collect_imports_enabled(
+    testrunnerer: Testrunnerer, configure_ini: bool
+) -> None:
     """
     When collect_imported_tests is enabled (the default), all names in the
     test modules are collected as tests.

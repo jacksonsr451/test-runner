@@ -428,8 +428,8 @@ class TestCaseFunction(Function):
         | tuple[type[BaseException], BaseException, TracebackType]
         | None,
     ) -> None:
-        # Importing this private symbol locally in case this symbol is renamed/removed in the future; importing
-        # it globally would break testrunner entirely, importing it locally only will break unittests using `addSubTest`.
+        # Importing this private symbol locally in case it is renamed/removed;
+        # importing it globally would break testrunner entirely.
         from unittest.case import _subtest_msg_sentinel  # type: ignore[attr-defined]
 
         exception_info: ExceptionInfo[BaseException] | None

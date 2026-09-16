@@ -14,7 +14,9 @@ import testrunner
 IS_PY311 = sys.version_info[:2] >= (3, 11)
 
 
-def test_failures(testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch) -> None:
+def test_failures(
+    testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
+) -> None:
     monkeypatch.setenv("COLUMNS", "120")
     testrunnerer.makepyfile(
         """
@@ -96,7 +98,9 @@ def test_failures(testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner
     result.stdout.no_fnmatch_line("test_*.py::test_zaz SUBPASSED[[]zaz subtest[]]*")
 
 
-def test_passes(testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch) -> None:
+def test_passes(
+    testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
+) -> None:
     monkeypatch.setenv("COLUMNS", "120")
     testrunnerer.makepyfile(
         """
@@ -146,7 +150,9 @@ def test_passes(testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.M
     result.stdout.no_fnmatch_line("*.py::test_bar SUBPASSED[[]bar subtest[]]*")
 
 
-def test_skip(testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch) -> None:
+def test_skip(
+    testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
+) -> None:
     monkeypatch.setenv("COLUMNS", "120")
     testrunnerer.makepyfile(
         """
@@ -211,7 +217,9 @@ def test_skip(testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.Mon
     )
 
 
-def test_xfail(testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch) -> None:
+def test_xfail(
+    testrunnerer: testrunner.Testrunnerer, monkeypatch: testrunner.MonkeyPatch
+) -> None:
     monkeypatch.setenv("COLUMNS", "120")
     testrunnerer.makepyfile(
         """
@@ -352,7 +360,9 @@ def test_subtests_fail_top_level_test(testrunnerer: testrunner.Testrunnerer) -> 
     )
 
 
-def test_subtests_do_not_overwrite_top_level_failure(testrunnerer: testrunner.Testrunnerer) -> None:
+def test_subtests_do_not_overwrite_top_level_failure(
+    testrunnerer: testrunner.Testrunnerer,
+) -> None:
     testrunnerer.makepyfile(
         """
         import testrunner
@@ -404,7 +414,9 @@ def test_msg_not_a_string(
 
 
 @testrunner.mark.parametrize("flag", ["--last-failed", "--stepwise"])
-def test_subtests_last_failed_step_wise(testrunnerer: testrunner.Testrunnerer, flag: str) -> None:
+def test_subtests_last_failed_step_wise(
+    testrunnerer: testrunner.Testrunnerer, flag: str
+) -> None:
     """Check that --last-failed and --step-wise correctly rerun tests with failed subtests."""
     testrunnerer.makepyfile(
         """
@@ -938,7 +950,9 @@ class TestDebugging:
         monkeypatch.setattr(
             _testrunner.subtests, "_CustomPdb", self._FakePdb, raising=False
         )
-        result = testrunnerer.runtestrunner("--pdb", "--pdbcls=_testrunner.subtests:_CustomPdb")
+        result = testrunnerer.runtestrunner(
+            "--pdb", "--pdbcls=_testrunner.subtests:_CustomPdb"
+        )
 
         # Ensure testrunner entered in debugging mode when encountering the failing
         # assert.
@@ -1048,7 +1062,9 @@ def test_serialization() -> None:
     )
 
 
-def test_serialization_xdist(testrunnerer: testrunner.Testrunnerer) -> None:  # pragma: no cover
+def test_serialization_xdist(
+    testrunnerer: testrunner.Testrunnerer,
+) -> None:  # pragma: no cover
     """Regression test for jacksonsr451/test-runner-xdist#1273."""
     testrunner.importorskip("xdist")
     testrunnerer.makepyfile(

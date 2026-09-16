@@ -44,7 +44,9 @@ CLASS_FIXTURE_INSTANCE_METHOD = UnformattedWarning(
 )
 
 # This deprecation is never really meant to be removed.
-PRIVATE = TestrunnerDeprecationWarning("A private testrunner class or function was used.")
+PRIVATE = TestrunnerDeprecationWarning(
+    "A private testrunner class or function was used."
+)
 
 
 HOOK_LEGACY_MARKING = UnformattedWarning(

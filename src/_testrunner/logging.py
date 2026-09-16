@@ -806,7 +806,9 @@ class LoggingPlugin:
                 return (yield)
 
     @hookimpl(wrapper=True)
-    def testrunner_runtestloop(self, session: Session) -> Generator[None, object, object]:
+    def testrunner_runtestloop(
+        self, session: Session
+    ) -> Generator[None, object, object]:
         if session.config.option.collectonly:
             return (yield)
 

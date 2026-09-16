@@ -50,7 +50,9 @@ def check_monkeypatch_typeddict(monkeypatch: MonkeyPatch) -> None:
 
 
 def check_raises_is_a_context_manager(val: bool) -> None:
-    with testrunner.raises(RuntimeError) if val else contextlib.nullcontext() as excinfo:
+    with (
+        testrunner.raises(RuntimeError) if val else contextlib.nullcontext() as excinfo
+    ):
         pass
     assert_type(excinfo, testrunner.ExceptionInfo[RuntimeError] | None)
 
