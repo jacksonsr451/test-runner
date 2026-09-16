@@ -184,7 +184,10 @@ def testrunner_pyfunc_call(pyfuncitem: Function) -> object | None:
         return result
     testfunction = pyfuncitem.obj
     if is_async_function(testfunction):
-        if pyfuncitem.get_closest_marker("anyio") is not None:
+        if (
+            pyfuncitem.get_closest_marker("anyio") is not None
+            or "anyio" in pyfuncitem.keywords
+        ):
             import anyio
             from functools import partial
 
