@@ -36,6 +36,11 @@ permissions: {}
 jobs:
   package:
     runs-on: ubuntu-latest
+    env:
+      # Pull-request checkouts may not include the release tags used by
+      # setuptools-scm. Keep the test artifact above the configured testrunner
+      # minimum instead of allowing the fallback 0.1.dev version.
+      SETUPTOOLS_SCM_PRETEND_VERSION_FOR_TESTRUNNER: "9.2.0.dev0"
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       with:
