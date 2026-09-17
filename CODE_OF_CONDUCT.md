@@ -52,6 +52,7 @@ address, posting via an official social media account, or acting as an appointed
 representative at an online or offline event. Representation of a project may be
 further defined and clarified by project maintainers.
 
+<!--
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
@@ -71,6 +72,7 @@ contacted individually:
 - Brianna Laugher ([@pfctdayelise](https://github.com/pfctdayelise)): brianna@laugher.id.au
 - Bruno Oliveira ([@nicoddemus](https://github.com/nicoddemus)): nicoddemus@gmail.com
 - Freya Bruhin ([@the-compiler](https://github.com/the-compiler)): testrunner@the-compiler.org
+-->
 
 ## Attribution
 
