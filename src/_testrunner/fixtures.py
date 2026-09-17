@@ -189,12 +189,17 @@ def get_scope_node(node: nodes.Node, scope: Scope) -> nodes.Node | None:
 # TODO: Try to use FixtureFunctionDefinition instead of the marker
 def getfixturemarker(obj: object) -> FixtureFunctionMarker | None:
     """Return fixturemarker or None if it doesn't exist"""
-    if isinstance(obj, FixtureFunctionDefinition) or (
-        type(obj).__name__ == "FixtureFunctionDefinition"
-        and hasattr(obj, "_fixture_function_marker")
-    ):
+    if _is_fixture_function_definition(obj):
         return obj._fixture_function_marker
     return None
+
+
+def _is_fixture_function_definition(obj: object) -> bool:
+    obj_type = type(obj)
+    return obj_type is FixtureFunctionDefinition or (
+        obj_type.__name__ == "FixtureFunctionDefinition"
+        and hasattr(obj, "_fixture_function_marker")
+    )
 
 
 # Algorithm for sorting on a per-parametrized resource setup basis.
@@ -2317,10 +2322,7 @@ class FixtureManager:
             # The attribute can be an arbitrary descriptor, so the attribute
             # access below can raise. safe_getattr() ignores such exceptions.
             obj_ub = safe_getattr(holderobj_tp, name, None)
-            if isinstance(obj_ub, FixtureFunctionDefinition) or (
-                type(obj_ub).__name__ == "FixtureFunctionDefinition"
-                and hasattr(obj_ub, "_fixture_function_marker")
-            ):
+            if _is_fixture_function_definition(obj_ub):
                 # On Python 3.9-3.12, classmethod chains through descriptors, so
                 # getattr may return a FixtureFunctionDefinition even when the
                 # raw __dict__ entry is classmethod(fixture). Do not register
