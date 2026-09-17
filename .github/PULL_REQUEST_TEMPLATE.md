@@ -1,24 +1,44 @@
 <!--
 Thanks for submitting a PR, your contribution is really appreciated!
 
+BRANCH POLICY
+-------------
+Normal contribution PRs MUST target `dev`, not `main`.
+
+Expected flow:
+  work branch -> dev -> main
+
+Create feature/fix/refactor/docs/test/security/build/ci branches from an up-to-date
+`dev` branch and open the PR back to `dev`. The stable `main` branch receives
+changes through an integration PR from `dev` after the development branch has
+passed its required checks.
+
+See the branch and pull request workflow documentation:
+https://github.com/jacksonsr451/test-runner/blob/dev/doc/en/contributing-workflow.rst
+
 Here is a quick checklist that should be present in PRs.
 
-- [ ] Include documentation when adding new features.
+- [ ] This PR targets `dev` (unless this is the dedicated `dev` -> `main` integration PR).
+- [ ] The branch was created from an up-to-date `dev` branch when applicable.
+- [ ] The PR has a focused scope and unrelated changes are excluded.
+- [ ] Include documentation when adding or changing public features, architecture, configuration, or contributor workflow.
 - [ ] Include new tests or update existing tests when applicable.
+- [ ] Required GitHub Actions checks pass before merge.
+- [ ] Review conversations are resolved before merge.
 - [X] Allow maintainers to push and squash when merging my commits. Please uncheck this if you prefer to squash the commits yourself.
 
 If this change fixes an issue, please:
 
-- [ ] Add text like ``closes #XYZW`` to the PR description and/or commits (where ``XYZW`` is the issue number). See the [github docs](https://help.github.com/en/github/managing-your-work-on-github/linking-a-pull-request-to-an-issue#linking-a-pull-request-to-an-issue-using-a-keyword) for more information.
+- [ ] Add text like `closes #XYZW` to the PR description and/or commits (where `XYZW` is the issue number). See the GitHub documentation for linking pull requests to issues.
 
 > [!IMPORTANT]
-> **Unsupervised agentic contributions are not accepted**. See our [AI/LLM-Assisted Contributions Policy](https://github.com/jacksonsr451/test-runner/blob/main/CONTRIBUTING.rst#aillm-assisted-contributions-policy).
+> **Unsupervised agentic contributions are not accepted**. See our AI/LLM-Assisted Contributions Policy in `CONTRIBUTING.rst`.
 
-- [ ] If AI agents were used, they are credited in `Co-authored-by` commit trailers.
+- [ ] If AI agents were used, they are credited in `Co-authored-by` commit trailers when appropriate.
 
-Unless your change is trivial or a small documentation fix (e.g., a typo or reword of a small section) please:
+Unless your change is trivial or a small documentation fix (e.g. a typo or reword of a small section) please:
 
-- [ ] Create a new changelog file in the `changelog` directory, with a name like `<ISSUE NUMBER>.<TYPE>.rst`. See [changelog/README.rst](https://github.com/jacksonsr451/test-runner/blob/main/changelog/README.rst) for details.
+- [ ] Create a new changelog file in the `changelog` directory, with a name like `<ISSUE NUMBER>.<TYPE>.rst`. See `changelog/README.rst` for details.
 
   Write sentences in the **past or present tense**, examples:
 
