@@ -39,12 +39,15 @@ RUNTIME_DEPENDENCIES = (
 )
 
 
-def _clean_environment() -> dict[str, str]:
+def _clean_environment(*, include_git: bool = True) -> dict[str, str]:
     env = os.environ.copy()
     env.pop("PYTHONPATH", None)
+    for key in tuple(env):
+        if key.startswith("SETUPTOOLS_SCM_PRETEND_VERSION"):
+            env.pop(key)
     env["PYTHONNOUSERSITE"] = "1"
     path_entries = [Path(sys.executable).parent]
-    if GIT is not None:
+    if include_git and GIT is not None:
         path_entries.append(Path(GIT).parent)
     env["PATH"] = os.pathsep.join(map(os.fspath, path_entries))
     return env
@@ -218,12 +221,14 @@ def _distribution_version(artifact: Path) -> str:
     return version
 
 
-def _build_artifacts(root: Path, output: Path) -> tuple[Path, Path]:
+def _build_artifacts(
+    root: Path, output: Path, *, include_git: bool = True
+) -> tuple[Path, Path]:
     build_python = _make_venv(output.parent / "build-venv")
     build_dependency_result = subprocess.run(
         [os.fspath(build_python), "-m", "pip", "install", "build"],
         cwd=output.parent,
-        env=_clean_environment(),
+        env=_clean_environment(include_git=include_git),
         capture_output=True,
         check=False,
         text=True,
@@ -244,7 +249,7 @@ def _build_artifacts(root: Path, output: Path) -> tuple[Path, Path]:
             os.fspath(output),
         ],
         cwd=root,
-        env=_clean_environment(),
+        env=_clean_environment(include_git=include_git),
         capture_output=True,
         check=False,
         text=True,
@@ -258,6 +263,29 @@ def _build_artifacts(root: Path, output: Path) -> tuple[Path, Path]:
     assert len(wheels) == 1
     assert len(sdists) == 1
     return wheels[0], sdists[0]
+
+
+def _extract_sdist(artifact: Path, destination: Path) -> Path:
+    destination = destination.resolve()
+    with tarfile.open(artifact) as archive:
+        destination.mkdir()
+        for member in archive.getmembers():
+            relative = Path(member.name)
+            assert not relative.is_absolute()
+            assert ".." not in relative.parts
+            assert member.isfile() or member.isdir()
+            target = (destination / relative).resolve()
+            assert os.path.commonpath(
+                (os.fspath(destination), os.fspath(target))
+            ) == os.fspath(destination)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            if sys.version_info >= (3, 12):
+                archive.extract(member, destination, filter="data")
+            else:
+                archive.extract(member, destination)
+    roots = sorted(path for path in destination.iterdir() if path.is_dir())
+    assert len(roots) == 1
+    return roots[0]
 
 
 def _clone_project(path: Path) -> None:
@@ -451,6 +479,9 @@ def test_wheel_version_contract(
             assert ".git" not in parts
             assert "build" not in parts
             assert "dist" not in parts
+            assert "__pycache__" not in parts
+            assert ".pytest_cache" not in parts
+            assert ".mypy_cache" not in parts
             assert not any(part.endswith(".egg-info") for part in parts)
     _install_and_probe(wheel, root, tmp_path)
 
@@ -465,9 +496,47 @@ def test_sdist_version_contract(
         names = archive.getnames()
         assert any(name.endswith("/PKG-INFO") for name in names)
         assert any(name.endswith("/pyproject.toml") for name in names)
-        assert any(name.endswith("_testrunner/_version.py") for name in names)
-        assert not any(".git" in Path(name).parts for name in names)
-    _install_and_probe(sdist, root, tmp_path)
+        assert any(name.endswith("src/_testrunner/_version.py") for name in names)
+        assert any("/src/_testrunner/" in f"/{name}" for name in names)
+        assert any("/src/testrunner/" in f"/{name}" for name in names)
+        for name in names:
+            parts = Path(name).parts
+            assert ".git" not in parts
+            assert "build" not in parts
+            assert "dist" not in parts
+            assert "__pycache__" not in parts
+            assert ".pytest_cache" not in parts
+            assert ".mypy_cache" not in parts
+
+    with TemporaryDirectory() as temporary:
+        work = Path(temporary)
+        extracted = _extract_sdist(sdist, work / "extracted")
+        assert not (extracted / ".git").exists()
+        derived_wheel, _ = _build_artifacts(
+            extracted, work / "derived-dist", include_git=False
+        )
+        sdist_name = _distribution_name(sdist)
+        sdist_version = _distribution_version(sdist)
+        derived_name = _distribution_name(derived_wheel)
+        derived_version = _distribution_version(derived_wheel)
+        assert canonicalize_name(derived_name) == canonicalize_name(sdist_name)
+        assert Version(derived_version) == Version(sdist_version)
+        wheel_name, wheel_version, _, _ = parse_wheel_filename(derived_wheel.name)
+        assert wheel_name == canonicalize_name(derived_name)
+        assert wheel_version == Version(derived_version)
+        with zipfile.ZipFile(derived_wheel) as archive:
+            for name in archive.namelist():
+                parts = Path(name).parts
+                assert ".git" not in parts
+                assert "build" not in parts
+                assert "dist" not in parts
+                assert "__pycache__" not in parts
+                assert ".pytest_cache" not in parts
+                assert ".mypy_cache" not in parts
+                assert not any(part.endswith(".egg-info") for part in parts)
+        _install_and_probe(derived_wheel, root, tmp_path / "derived-wheel-install")
+
+    _install_and_probe(sdist, root, tmp_path / "sdist-install")
 
 
 @testrunner.mark.slow
