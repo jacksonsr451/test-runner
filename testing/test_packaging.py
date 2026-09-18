@@ -80,6 +80,38 @@ def _install_runtime_dependencies(python: Path, cwd: Path) -> None:
     assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
 
 
+def _bootstrap_source_checkout(clone: Path, python: Path) -> None:
+    dependency_result = subprocess.run(
+        [
+            os.fspath(python),
+            "-m",
+            "pip",
+            "install",
+            "setuptools-scm[toml]>=10.1",
+        ],
+        cwd=clone,
+        env=_clean_environment(),
+        capture_output=True,
+        check=False,
+        text=True,
+        timeout=SUBPROCESS_TIMEOUT,
+    )
+    assert dependency_result.returncode == 0, (
+        f"stdout={dependency_result.stdout}\nstderr={dependency_result.stderr}"
+    )
+    result = subprocess.run(
+        [os.fspath(python), "-m", "setuptools_scm", "--force-write-version-files"],
+        cwd=clone,
+        env=_clean_environment(),
+        capture_output=True,
+        check=False,
+        text=True,
+        timeout=SUBPROCESS_TIMEOUT,
+    )
+    assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
+    _install_runtime_dependencies(python, clone)
+
+
 def _run_python(
     python: Path,
     cwd: Path,
@@ -129,6 +161,20 @@ print(json.dumps({
     "_testrunner_file": _testrunner.__file__,
     "testrunner_file": testrunner.__file__,
     "distribution_names": importlib.metadata.packages_distributions().get("_testrunner", []),
+}))
+"""
+
+
+def _source_probe() -> str:
+    return """
+import json
+import _testrunner
+import testrunner
+
+print(json.dumps({
+    "version": _testrunner.__version__,
+    "_testrunner_file": _testrunner.__file__,
+    "testrunner_file": testrunner.__file__,
 }))
 """
 
@@ -280,17 +326,29 @@ def _install_and_probe(artifact: Path, root: Path, work: Path) -> dict[str, Any]
 
 
 @testrunner.mark.slow
-def test_source_checkout_has_a_runtime_version() -> None:
+def test_raw_source_checkout_starts_without_generated_version() -> None:
     with TemporaryDirectory() as temporary:
         work = Path(temporary)
         clone = work / "source"
         _clone_project(clone)
+        assert (clone / ".git").exists()
         assert not (clone / "src" / "_testrunner" / "_version.py").exists()
         assert not (clone / "build").exists()
         assert not (clone / "dist").exists()
         assert not (clone / "src" / "testrunner.egg-info").exists()
+
+
+@testrunner.mark.slow
+def test_source_version_bootstrap_generates_runtime_version() -> None:
+    with TemporaryDirectory() as temporary:
+        work = Path(temporary)
+        clone = work / "source"
+        _clone_project(clone)
         python = _make_venv(work / "venv")
-        _install_runtime_dependencies(python, work)
+        version_file = clone / "src" / "_testrunner" / "_version.py"
+        assert not version_file.exists()
+        _bootstrap_source_checkout(clone, python)
+        assert version_file.exists()
         result = _run_python(
             python,
             work,
@@ -300,17 +358,7 @@ def test_source_checkout_has_a_runtime_version() -> None:
         )
         probe = _read_probe(result)
         _assert_valid_version(probe["version"])
-
-
-@testrunner.mark.slow
-def test_source_checkout_cli_reports_a_runtime_version() -> None:
-    with TemporaryDirectory() as temporary:
-        work = Path(temporary)
-        clone = work / "source"
-        _clone_project(clone)
-        python = _make_venv(work / "venv")
-        _install_runtime_dependencies(python, work)
-        result = _run_python(
+        cli_result = _run_python(
             python,
             work,
             "-m",
@@ -318,8 +366,40 @@ def test_source_checkout_cli_reports_a_runtime_version() -> None:
             "--version",
             pythonpath=clone / "src",
         )
-        assert result.returncode == 0, result.stderr
-        _assert_valid_version(result.stdout.removeprefix("testrunner ").strip())
+        assert cli_result.returncode == 0, cli_result.stderr
+        assert cli_result.stdout.strip() == f"testrunner {probe['version']}"
+
+
+@testrunner.mark.slow
+def test_prepared_source_checkout_reports_runtime_version() -> None:
+    with TemporaryDirectory() as temporary:
+        work = Path(temporary)
+        clone = work / "source"
+        _clone_project(clone)
+        python = _make_venv(work / "venv")
+        _bootstrap_source_checkout(clone, python)
+        probe = _read_probe(
+            _run_python(
+                python,
+                work,
+                "-c",
+                _source_probe(),
+                pythonpath=clone / "src",
+            )
+        )
+        _assert_valid_version(probe["version"])
+        assert probe["_testrunner_file"].startswith(os.fspath(clone / "src"))
+        assert probe["testrunner_file"].startswith(os.fspath(clone / "src"))
+        cli_result = _run_python(
+            python,
+            work,
+            "-m",
+            "testrunner",
+            "--version",
+            pythonpath=clone / "src",
+        )
+        assert cli_result.returncode == 0, cli_result.stderr
+        assert cli_result.stdout.strip() == f"testrunner {probe['version']}"
 
 
 @testrunner.fixture(scope="session")
