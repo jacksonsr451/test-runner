@@ -153,6 +153,8 @@ def _artifact_probe() -> str:
     return """
 import json
 import importlib.metadata
+import os
+import sys
 import _testrunner
 import testrunner
 
@@ -161,6 +163,8 @@ print(json.dumps({
     "_testrunner_file": _testrunner.__file__,
     "testrunner_file": testrunner.__file__,
     "distribution_names": importlib.metadata.packages_distributions().get("_testrunner", []),
+    "pythonpath": os.environ.get("PYTHONPATH"),
+    "sys_path": sys.path,
 }))
 """
 
@@ -320,6 +324,8 @@ def _install_and_probe(artifact: Path, root: Path, work: Path) -> dict[str, Any]
     assert metadata_version == version
     assert module_result.stdout.strip() == f"testrunner {version}"
     assert cli_result.stdout.strip() == f"testrunner {version}"
+    assert probe["pythonpath"] is None
+    assert all(os.fspath(root) not in entry for entry in probe["sys_path"])
     assert os.fspath(root) not in probe["_testrunner_file"]
     assert os.fspath(root) not in probe["testrunner_file"]
     return probe
@@ -434,9 +440,18 @@ def test_wheel_version_contract(
 ) -> None:
     root, wheel, _ = packaging_artifacts
     with zipfile.ZipFile(wheel) as archive:
-        assert any(
-            name.endswith("_testrunner/_version.py") for name in archive.namelist()
-        )
+        names = archive.namelist()
+        assert any(name.endswith("_testrunner/_version.py") for name in names)
+        assert any(name.endswith(".dist-info/METADATA") for name in names)
+        assert any(name.endswith(".dist-info/entry_points.txt") for name in names)
+        assert any(name.startswith("_testrunner/") for name in names)
+        assert any(name.startswith("testrunner/") for name in names)
+        for name in names:
+            parts = Path(name).parts
+            assert ".git" not in parts
+            assert "build" not in parts
+            assert "dist" not in parts
+            assert not any(part.endswith(".egg-info") for part in parts)
     _install_and_probe(wheel, root, tmp_path)
 
 
