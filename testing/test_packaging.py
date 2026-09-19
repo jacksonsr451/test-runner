@@ -49,8 +49,29 @@ def _clean_environment(*, include_git: bool = True) -> dict[str, str]:
     env["PYTHONNOUSERSITE"] = "1"
     path_entries = [Path(sys.executable).parent]
     if include_git and GIT is not None:
-        path_entries.append(Path(GIT).parent)
-    env["PATH"] = os.pathsep.join(map(os.fspath, path_entries))
+        git_dir = Path(GIT).parent
+        path_entries.append(git_dir)
+        if os.name == "nt":
+            # Git for Windows' git.exe depends on sibling runtime directories
+            # (notably mingw64/bin and usr/bin). Preserve those entries from
+            # the runner PATH while still excluding unrelated executables.
+            original_path = os.environ.get("PATH", "")
+            git_root = git_dir.parent
+            allowed_git_roots = (git_root, git_root.parent / "usr")
+            for entry in original_path.split(os.pathsep):
+                if not entry:
+                    continue
+                candidate = Path(entry)
+                try:
+                    resolved = candidate.resolve()
+                except OSError:
+                    continue
+                if any(
+                    resolved == root or root in resolved.parents
+                    for root in allowed_git_roots
+                ):
+                    path_entries.append(candidate)
+    env["PATH"] = os.pathsep.join(dict.fromkeys(map(os.fspath, path_entries)))
     return env
 
 
