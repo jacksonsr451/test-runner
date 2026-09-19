@@ -5,57 +5,138 @@ on:
     tags:
       - "v*"
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   build:
-    name: Build release distributions
+    name: Build and validate release distributions
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v6
-        with:
-          persist-credentials: false
-          fetch-depth: 0
+    - name: Check out repository
+      uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      with:
+        fetch-depth: 0
+        persist-credentials: false
 
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.x"
+    - name: Set up Python
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+      with:
+        python-version: "3.12"
 
-      - name: Install build tooling
-        run: python -m pip install --upgrade build
+    - name: Install uv
+      uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+      with:
+        enable-cache: false
 
-      - name: Build wheel and source distribution
-        run: python -m build
+    - name: Validate tag and main ancestry
+      shell: bash
+      env:
+        TAG_NAME: ${{ github.ref_name }}
+      run: |
+        set -euo pipefail
+        if [[ ! "$TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(rc[0-9]+)?$ ]]; then
+          echo "Unsupported release tag: $TAG_NAME" >&2
+          exit 1
+        fi
 
-      - name: Upload release distributions
-        uses: actions/upload-artifact@v4
-        with:
-          name: release-dists
-          path: dist/
-          if-no-files-found: error
+        git fetch --force origin main:refs/remotes/origin/main
+        tag_commit=$(git rev-list -n 1 "$TAG_NAME")
+        if ! git merge-base --is-ancestor "$tag_commit" origin/main; then
+          echo "Release tag does not point to a commit reachable from origin/main" >&2
+          exit 1
+        fi
+
+        tag_version=${TAG_NAME#v}
+        scm_version=$(env \
+          -u SETUPTOOLS_SCM_PRETEND_VERSION_FOR_JSR_TESTRUNNER \
+          -u SETUPTOOLS_SCM_PRETEND_VERSION_FOR_TESTRUNNER \
+          -u SETUPTOOLS_SCM_PRETEND_VERSION \
+          -u VCS_VERSIONING_PRETEND_VERSION \
+          uv run --no-project --with 'setuptools-scm[toml]==10.2.1' \
+          python -c 'import setuptools_scm; print(setuptools_scm.get_version(root="."))')
+        if [[ "$tag_version" != "$scm_version" ]]; then
+          echo "Tag version $tag_version does not match setuptools-scm version $scm_version" >&2
+          exit 1
+        fi
+        echo "TAG_VERSION=$tag_version" >> "$GITHUB_ENV"
+
+    - name: Build wheel and source distribution
+      shell: bash
+      run: >-
+        env -u SETUPTOOLS_SCM_PRETEND_VERSION_FOR_JSR_TESTRUNNER
+        -u SETUPTOOLS_SCM_PRETEND_VERSION_FOR_TESTRUNNER
+        -u SETUPTOOLS_SCM_PRETEND_VERSION
+        -u VCS_VERSIONING_PRETEND_VERSION
+        uv run --no-project --with 'build==1.3.0'
+        --with 'setuptools==80.9.0'
+        --with 'setuptools-scm[toml]==10.2.1'
+        --with 'packaging==25.0'
+        python -m build --no-isolation --wheel --sdist --outdir dist
+
+    - name: Validate release artifacts
+      shell: bash
+      run: >-
+        uv run --no-project --with 'packaging==25.0'
+        python scripts/validate_release_artifacts.py
+        --dist dist --version "$TAG_VERSION" --source-root .
+
+    - name: Prepare hashed artifact handoff
+      shell: bash
+      run: |
+        set -euo pipefail
+        (
+          cd dist
+          sha256sum *.whl *.tar.gz > ../SHA256SUMS
+        )
+        mkdir -p release-artifacts/packages
+        cp dist/*.whl dist/*.tar.gz release-artifacts/packages/
+        cp SHA256SUMS release-artifacts/SHA256SUMS
+        (
+          cd release-artifacts/packages
+          sha256sum --check ../SHA256SUMS
+        )
+
+    - name: Upload validated release artifacts
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      with:
+        name: release-dists
+        path: release-artifacts
+        if-no-files-found: error
 
   publish:
-    name: Publish distributions to PyPI
+    name: Publish release distributions to PyPI
+    if: github.repository == 'jacksonsr451/test-runner'
     needs: build
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
     environment:
       name: pypi
       url: https://pypi.org/project/jsr-testrunner/
-
     permissions:
       id-token: write
 
     steps:
-      - name: Download release distributions
-        uses: actions/download-artifact@v5
-        with:
-          name: release-dists
-          path: dist/
+    - name: Download validated release artifacts
+      uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+      with:
+        name: release-dists
+        path: release-artifacts
 
-      - name: Publish distributions to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+    - name: Verify release artifact hashes
+      shell: bash
+      run: |
+        set -euo pipefail
+        (
+          cd release-artifacts/packages
+          sha256sum --check ../SHA256SUMS
+        )
+
+    - name: Publish distributions to PyPI
+      uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+      with:
+        packages-dir: release-artifacts/packages
+        attestations: true

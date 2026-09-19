@@ -6,7 +6,7 @@ requires = [
 ]
 
 [project]
-name = "testrunner"
+name = "jsr-testrunner"
 description = "testrunner: simple powerful testing with Python"
 readme = "README.rst"
 keywords = [
@@ -60,7 +60,7 @@ dependencies = [
     "tomli>=2; python_version<'3.11'",
 ]
 # Kept as a published extra because many external repos still install
-# `testrunner[dev]` / `.[dev]`. Prefer the `dev` dependency group for local
+# `jsr-testrunner[dev]` / `.[dev]`. Prefer the `dev` dependency group for local
 # development of testrunner itself (see CONTRIBUTING.rst).
 optional-dependencies.dev = [
     # Core test dependencies
@@ -91,7 +91,7 @@ scripts.testrunner = "_testrunner.config:_console_main"
 [dependency-groups]
 # Preferred entry point for developing testrunner; pulls from optional-dependencies.dev.
 dev = [
-    "testrunner[dev]",
+    "jsr-testrunner[dev]",
 ]
 
 [tool.setuptools.package-data]
@@ -582,7 +582,7 @@ reportMissingImports = "none"
 reportMissingModuleSource = "none"
 
 [tool.testrunner]
-minversion = "2.0"
+minversion = "0.1.0.dev0"
 addopts = [ "-rfEX", "-p", "testrunnerer" ]
 python_files = [
     "test_*.py",
