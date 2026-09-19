@@ -146,13 +146,13 @@ class TestParseIni:
             textwrap.dedent(
                 f"""
             [{section}]
-            minversion = 3.36
+            minversion = 0.1.0.dev0
         """
             ),
             encoding="utf-8",
         )
         config = testrunnerer.parseconfig()
-        assert config.getini("minversion") == "3.36"
+        assert config.getini("minversion") == "0.1.0.dev0"
 
     @testrunner.mark.parametrize("name", ["testrunner.toml", ".testrunner.toml"])
     def test_toml_config_names(self, testrunnerer: Testrunnerer, name: str) -> None:
@@ -160,13 +160,13 @@ class TestParseIni:
             textwrap.dedent(
                 """
             [testrunner]
-            minversion = "3.36"
+            minversion = "0.1.0.dev0"
         """
             ),
             encoding="utf-8",
         )
         config = testrunnerer.parseconfig()
-        assert config.getini("minversion") == "3.36"
+        assert config.getini("minversion") == "0.1.0.dev0"
 
     @testrunner.mark.parametrize("name", ["testrunner.toml", ".testrunner.toml"])
     def test_toml_config_names_without_section_errors(
@@ -176,7 +176,7 @@ class TestParseIni:
         config_path.write_text(
             textwrap.dedent(
                 """
-            minversion = "3.36"
+            minversion = "0.1.0.dev0"
             addopts = ["-v"]
         """
             ),
@@ -194,12 +194,12 @@ class TestParseIni:
         pyproject_toml = testrunnerer.makepyprojecttoml(
             """
             [tool.testrunner.ini_options]
-            minversion = "1.0"
+            minversion = "0.1.0.dev0"
         """
         )
         config = testrunnerer.parseconfig()
         assert config.inipath == pyproject_toml
-        assert config.getini("minversion") == "1.0"
+        assert config.getini("minversion") == "0.1.0.dev0"
 
     def test_empty_pyproject_toml(self, testrunnerer: Testrunnerer) -> None:
         """An empty pyproject.toml is considered as config if no other option is found."""
@@ -228,12 +228,12 @@ class TestParseIni:
         testrunner_toml = testrunnerer.maketoml(
             """
             [testrunner]
-            minversion = "1.0"
+            minversion = "0.1.0.dev0"
             """
         )
         config = testrunnerer.parseconfig()
         assert config.inipath == testrunner_toml
-        assert config.getini("minversion") == "1.0"
+        assert config.getini("minversion") == "0.1.0.dev0"
 
     @testrunner.mark.parametrize("name", ["testrunner.toml", ".testrunner.toml"])
     def test_empty_testrunner_toml(self, testrunnerer: Testrunnerer, name: str) -> None:
@@ -250,18 +250,18 @@ class TestParseIni:
         testrunnerer.makepyprojecttoml(
             """
             [tool.testrunner]
-            minversion = "1.0"
+            minversion = "0.1.0.dev0"
             """
         )
         testrunner_toml = testrunnerer.maketoml(
             """
             [testrunner]
-            minversion = "2.0"
+            minversion = "0.1.0.dev0"
             """
         )
         config = testrunnerer.parseconfig()
         assert config.inipath == testrunner_toml
-        assert config.getini("minversion") == "2.0"
+        assert config.getini("minversion") == "0.1.0.dev0"
 
     def test_testrunner_toml_trumps_testrunner_ini(
         self, testrunnerer: Testrunnerer
@@ -270,18 +270,18 @@ class TestParseIni:
         testrunnerer.makeini(
             """
             [testrunner]
-            minversion = 1.0
+            minversion = 0.1.0.dev0
             """,
         )
         testrunner_toml = testrunnerer.maketoml(
             """
             [testrunner]
-            minversion = "2.0"
+            minversion = "0.1.0.dev0"
             """,
         )
         config = testrunnerer.parseconfig()
         assert config.inipath == testrunner_toml
-        assert config.getini("minversion") == "2.0"
+        assert config.getini("minversion") == "0.1.0.dev0"
 
     def test_dot_testrunner_toml_trumps_testrunner_ini(
         self, testrunnerer: Testrunnerer
@@ -290,18 +290,18 @@ class TestParseIni:
         testrunnerer.makeini(
             """
             [testrunner]
-            minversion = 1.0
+            minversion = 0.1.0.dev0
             """,
         )
         testrunner_toml = testrunnerer.maketoml(
             """
             [testrunner]
-            minversion = "2.0"
+            minversion = "0.1.0.dev0"
             """
         )
         config = testrunnerer.parseconfig()
         assert config.inipath == testrunner_toml
-        assert config.getini("minversion") == "2.0"
+        assert config.getini("minversion") == "0.1.0.dev0"
 
     def test_testrunner_ini_trumps_pyproject_toml(
         self, testrunnerer: Testrunnerer
@@ -310,7 +310,7 @@ class TestParseIni:
         testrunnerer.makepyprojecttoml(
             """
             [tool.testrunner]
-            minversion = "1.0"
+            minversion = "0.1.0.dev0"
             """
         )
         testrunner_ini = testrunnerer.makefile(".ini", testrunner="")
@@ -325,7 +325,7 @@ class TestParseIni:
             textwrap.dedent(
                 """
             [testrunner]
-            minversion = 2.0
+            minversion = 0.1.0.dev0
         """
             ),
             encoding="utf-8",
@@ -334,13 +334,13 @@ class TestParseIni:
             textwrap.dedent(
                 """
             [testrunner]
-            minversion = 1.5
+            minversion = 0.1.0.dev0
         """
             ),
             encoding="utf-8",
         )
         config = testrunnerer.parseconfigure(sub)
-        assert config.getini("minversion") == "2.0"
+        assert config.getini("minversion") == "0.1.0.dev0"
 
     def test_ini_parse_error(self, testrunnerer: Testrunnerer) -> None:
         testrunnerer.path.joinpath("testrunner.ini").write_text(
@@ -429,7 +429,7 @@ class TestParseIni:
                 """
                 [testrunner]
                 unknown_ini = value1
-                minversion = 5.0.0
+                minversion = 0.1.0.dev0
                 """,
                 ["unknown_ini"],
                 [
@@ -444,7 +444,7 @@ class TestParseIni:
                 [some_other_header]
                 unknown_ini = value1
                 [testrunner]
-                minversion = 5.0.0
+                minversion = 0.1.0.dev0
                 """,
                 [],
                 [],
@@ -454,7 +454,7 @@ class TestParseIni:
             testrunner.param(
                 """
                 [testrunner]
-                minversion = 5.0.0
+                minversion = 0.1.0.dev0
                 """,
                 [],
                 [],
@@ -3499,7 +3499,7 @@ class TestInicfgDeprecation:
         testrunnerer.makeini(
             """
             [testrunner]
-            minversion = 3.0
+            minversion = 0.1.0.dev0
             """
         )
         config = testrunnerer.parseconfig()
@@ -3509,13 +3509,13 @@ class TestInicfgDeprecation:
         ):
             inicfg = config.inicfg  # type: ignore[deprecated]
 
-        assert config.getini("minversion") == "3.0"
-        assert inicfg["minversion"] == "3.0"
-        assert inicfg.get("minversion") == "3.0"
+        assert config.getini("minversion") == "0.1.0.dev0"
+        assert inicfg["minversion"] == "0.1.0.dev0"
+        assert inicfg.get("minversion") == "0.1.0.dev0"
         del inicfg["minversion"]
-        inicfg["minversion"] = "4.0"
+        inicfg["minversion"] = "0.1.0"
         assert list(inicfg.keys()) == ["minversion"]
-        assert list(inicfg.items()) == [("minversion", "4.0")]
+        assert list(inicfg.items()) == [("minversion", "0.1.0")]
         assert len(inicfg) == 1
 
     def test_issue_13946_setting_bool_no_longer_crashes(

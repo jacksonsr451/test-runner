@@ -133,18 +133,18 @@ Releasing
 
 Both automatic and manual processes described above follow the same steps from this point onward.
 
-#. After all tests pass and the PR has been approved, trigger the ``deploy`` workflow
-   in https://github.com/jacksonsr451/test-runner/actions/workflows/deploy.yml, using the ``release-MAJOR.MINOR.PATCH`` branch
-   as source.
+#. After all tests pass and the PR has been approved, merge the PR into its
+   target branch. Ensure the resulting release commit is also reachable from
+   ``main`` before tagging it.
 
-   Using the command-line::
+#. Create and push the release tag from the resulting ``main`` commit::
 
-     $ gh workflow run deploy.yml -R jacksonsr451/test-runner --ref=release-{VERSION} -f version={VERSION}
+      $ git tag --annotate --message=v{VERSION} v{VERSION}
+      $ git push origin v{VERSION}
 
-   This job will require approval from ``testrunner-dev/core``, after which it will publish to PyPI
-   and tag the repository.
-
-#. Merge the PR. **Make sure it's not squash-merged**, so that the tagged commit ends up in the main branch.
+   The ``release.yml`` workflow verifies that the tag is reachable from ``main``,
+   builds and validates the distributions, and publishes them to PyPI using
+   Trusted Publishing.
 
 #. For major and minor releases (or the first prerelease of it),
    in the `ReadTheDocs admin page <https://app.readthedocs.org/projects/testrunner/>`__, click "Add Version" on the top right,

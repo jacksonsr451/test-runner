@@ -36,19 +36,17 @@ PR_BODY = """\
 Created by the [prepare release pr]\
 (https://github.com/jacksonsr451/test-runner/actions/workflows/prepare-release-pr.yml) workflow.
 
-Once all builds pass and it has been **approved** by one or more maintainers, start the \
-[deploy](https://github.com/jacksonsr451/test-runner/actions/workflows/deploy.yml) workflow, using these parameters:
-
-* `Use workflow from`: `release-{version}`.
-* `Release version`: `{version}`.
-
-Or execute on the command line:
+Once all builds pass and it has been **approved** by one or more maintainers, \
+merge the PR into its target branch and ensure the release commit is reachable \
+from ``main`` before creating the release tag:
 
 ```console
-gh workflow run deploy.yml -r release-{version} -f version={version}
+git tag --annotate --message=v{version} v{version}
+git push origin v{version}
 ```
 
-After the workflow has been approved by a core maintainer, the package will be uploaded to PyPI automatically.
+The ``release.yml`` workflow will validate the tag and publish the package to PyPI \
+using Trusted Publishing.
 """
 
 
@@ -144,12 +142,15 @@ def prepare_release_pr(base_branch: str, is_major: bool, prerelease: str) -> Non
 def find_next_version(
     base_branch: str, is_major: bool, is_feature_release: bool, prerelease: str
 ) -> str:
+    if prerelease and not re.fullmatch(r"rc[0-9]+", prerelease):
+        raise InvalidFeatureRelease("Only rcN prereleases are supported.")
+
     output = check_output(["git", "tag"], encoding="UTF-8")
     valid_versions = []
     for v in output.splitlines():
-        m = re.match(r"\d.\d.\d+$", v.strip())
+        m = re.match(r"v?(\d+)\.(\d+)\.(\d+)$", v.strip())
         if m:
-            valid_versions.append(tuple(int(x) for x in v.split(".")))
+            valid_versions.append(tuple(int(x) for x in m.groups()))
 
     valid_versions.sort()
     last_version = valid_versions[-1]
