@@ -1,7 +1,8 @@
 # mypy: disallow-untyped-defs
 """
-Script used to generate a Markdown file containing only the changelog entries of a specific testrunner release, which
-is then published as a GitHub Release during deploy (see workflows/deploy.yml).
+Script used to generate a Markdown file containing only the changelog entries of a \
+specific testrunner release.
+GitHub Release creation is outside the active PyPI release workflow.
 
 The script requires ``pandoc`` to be previously installed in the system -- we need to convert from RST (the format of
 our CHANGELOG) into Markdown (which is required by GitHub Releases).

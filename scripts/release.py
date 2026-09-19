@@ -81,7 +81,10 @@ def regen(version: str) -> None:
     print(f"{Fore.CYAN}[generate.regen] {Fore.RESET}Updating docs")
     check_call(
         ["tox", "-e", "regen"],
-        env={**os.environ, "SETUPTOOLS_SCM_PRETEND_VERSION_FOR_TESTRUNNER": version},
+        env={
+            **os.environ,
+            "SETUPTOOLS_SCM_PRETEND_VERSION_FOR_JSR_TESTRUNNER": version,
+        },
     )
 
 

@@ -301,6 +301,70 @@ wheels = [
 ]
 
 [[package]]
+name = "jsr-testrunner"
+source = { editable = "." }
+dependencies = [
+    { name = "colorama", marker = "sys_platform == 'win32'" },
+    { name = "exceptiongroup", marker = "python_full_version < '3.11'" },
+    { name = "iniconfig" },
+    { name = "packaging" },
+    { name = "pluggy" },
+    { name = "pygments" },
+    { name = "tomli", marker = "python_full_version < '3.11'" },
+]
+
+[package.optional-dependencies]
+dev = [
+    { name = "argcomplete" },
+    { name = "asynctest", marker = "python_full_version < '3.11'" },
+    { name = "attrs" },
+    { name = "coverage" },
+    { name = "hypothesis" },
+    { name = "mock" },
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.4.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
+    { name = "pexpect" },
+    { name = "pytest-xdist" },
+    { name = "pyyaml" },
+    { name = "requests" },
+    { name = "setuptools" },
+    { name = "xmlschema" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "jsr-testrunner", extra = ["dev"] },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "argcomplete", marker = "extra == 'dev'" },
+    { name = "asynctest", marker = "python_full_version < '3.11' and extra == 'dev'" },
+    { name = "attrs", marker = "extra == 'dev'", specifier = ">=23.1" },
+    { name = "colorama", marker = "sys_platform == 'win32'", specifier = ">=0.4" },
+    { name = "coverage", marker = "extra == 'dev'", specifier = ">=7.5" },
+    { name = "exceptiongroup", marker = "python_full_version < '3.11'", specifier = ">=1" },
+    { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.75" },
+    { name = "iniconfig", specifier = ">=2" },
+    { name = "mock", marker = "extra == 'dev'" },
+    { name = "numpy", marker = "extra == 'dev'", specifier = ">=1.26" },
+    { name = "packaging", specifier = ">=24" },
+    { name = "pexpect", marker = "extra == 'dev'", specifier = ">=4.9" },
+    { name = "pluggy", specifier = ">=1.5,<2" },
+    { name = "pygments", specifier = ">=2.15" },
+    { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.5" },
+    { name = "pyyaml", marker = "extra == 'dev'" },
+    { name = "requests", marker = "extra == 'dev'" },
+    { name = "setuptools", marker = "extra == 'dev'" },
+    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2" },
+    { name = "xmlschema", marker = "extra == 'dev'" },
+]
+provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "jsr-testrunner", extras = ["dev"] }]
+
+[[package]]
 name = "mock"
 version = "5.2.0"
 source = { registry = "https://pypi.org/simple" }
@@ -631,70 +695,6 @@ sdist = { url = "https://files.pythonhosted.org/packages/e8/c4/ba2f8066cceb6f233
 wheels = [
     { url = "https://files.pythonhosted.org/packages/32/46/9cb0e58b2deb7f82b84065f37f3bffeb12413f947f9388e4cac22c4621ce/sortedcontainers-2.4.0-py2.py3-none-any.whl", hash = "sha256:a163dcaede0f1c021485e957a39245190e74249897e2ae4b2aa38595db237ee0", size = 29575, upload-time = "2021-05-16T22:03:41.177Z" },
 ]
-
-[[package]]
-name = "testrunner"
-source = { editable = "." }
-dependencies = [
-    { name = "colorama", marker = "sys_platform == 'win32'" },
-    { name = "exceptiongroup", marker = "python_full_version < '3.11'" },
-    { name = "iniconfig" },
-    { name = "packaging" },
-    { name = "pluggy" },
-    { name = "pygments" },
-    { name = "tomli", marker = "python_full_version < '3.11'" },
-]
-
-[package.optional-dependencies]
-dev = [
-    { name = "argcomplete" },
-    { name = "asynctest", marker = "python_full_version < '3.11'" },
-    { name = "attrs" },
-    { name = "coverage" },
-    { name = "hypothesis" },
-    { name = "mock" },
-    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
-    { name = "numpy", version = "2.4.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
-    { name = "pexpect" },
-    { name = "pytest-xdist" },
-    { name = "pyyaml" },
-    { name = "requests" },
-    { name = "setuptools" },
-    { name = "xmlschema" },
-]
-
-[package.dev-dependencies]
-dev = [
-    { name = "testrunner", extra = ["dev"] },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "argcomplete", marker = "extra == 'dev'" },
-    { name = "asynctest", marker = "python_full_version < '3.11' and extra == 'dev'" },
-    { name = "attrs", marker = "extra == 'dev'", specifier = ">=23.1" },
-    { name = "colorama", marker = "sys_platform == 'win32'", specifier = ">=0.4" },
-    { name = "coverage", marker = "extra == 'dev'", specifier = ">=7.5" },
-    { name = "exceptiongroup", marker = "python_full_version < '3.11'", specifier = ">=1" },
-    { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.75" },
-    { name = "iniconfig", specifier = ">=2" },
-    { name = "mock", marker = "extra == 'dev'" },
-    { name = "numpy", marker = "extra == 'dev'", specifier = ">=1.26" },
-    { name = "packaging", specifier = ">=24" },
-    { name = "pexpect", marker = "extra == 'dev'", specifier = ">=4.9" },
-    { name = "pluggy", specifier = ">=1.5,<2" },
-    { name = "pygments", specifier = ">=2.15" },
-    { name = "pytest-xdist", marker = "extra == 'dev'", specifier = ">=3.5" },
-    { name = "pyyaml", marker = "extra == 'dev'" },
-    { name = "requests", marker = "extra == 'dev'" },
-    { name = "setuptools", marker = "extra == 'dev'" },
-    { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2" },
-    { name = "xmlschema", marker = "extra == 'dev'" },
-]
-provides-extras = ["dev"]
-
-[package.metadata.requires-dev]
-dev = [{ name = "testrunner", extras = ["dev"] }]
 
 [[package]]
 name = "tomli"
