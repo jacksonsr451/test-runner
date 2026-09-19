@@ -55,6 +55,12 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+    env:
+      # GitHub tests pull-request merge commits, whose synthetic SCM history can
+      # select an unrelated legacy tag. Give the test runner a deterministic
+      # development version; the packaging contracts still validate SCM and
+      # artifact version behavior in their own isolated repositories.
+      SETUPTOOLS_SCM_PRETEND_VERSION_FOR_JSR_TESTRUNNER: "9.2.0.dev0"
 
     steps:
     - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
