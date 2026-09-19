@@ -115,6 +115,30 @@ def _bootstrap_source_checkout(clone: Path, python: Path) -> None:
     _install_runtime_dependencies(python, clone)
 
 
+def _scm_version(root: Path, work: Path) -> str:
+    python = _make_venv(work / "scm-venv")
+    result = subprocess.run(
+        [os.fspath(python), "-m", "pip", "install", "setuptools-scm[toml]>=10.1"],
+        cwd=work,
+        env=_clean_environment(),
+        capture_output=True,
+        check=False,
+        text=True,
+        timeout=SUBPROCESS_TIMEOUT,
+    )
+    assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
+    result = _run_python(
+        python,
+        root,
+        "-c",
+        "import setuptools_scm; print(setuptools_scm.get_version(root='.'))",
+    )
+    assert result.returncode == 0, result.stderr
+    version = result.stdout.strip()
+    _assert_valid_version(version)
+    return version
+
+
 def _run_python(
     python: Path,
     cwd: Path,
@@ -138,6 +162,14 @@ def _run_python(
 def _assert_valid_version(version: str) -> None:
     assert version not in VERSION_SENTINELS
     Version(version)
+
+
+def _cli_version(output: str) -> str:
+    prefix = "testrunner "
+    assert output.startswith(prefix)
+    version = output[len(prefix) :]
+    _assert_valid_version(version)
+    return version
 
 
 def _version_probe() -> str:
@@ -222,8 +254,12 @@ def _distribution_version(artifact: Path) -> str:
 
 
 def _build_artifacts(
-    root: Path, output: Path, *, include_git: bool = True
-) -> tuple[Path, Path]:
+    root: Path,
+    output: Path,
+    *,
+    include_git: bool = True,
+    build_sdist: bool = True,
+) -> tuple[Path, Path | None]:
     build_python = _make_venv(output.parent / "build-venv")
     build_dependency_result = subprocess.run(
         [os.fspath(build_python), "-m", "pip", "install", "build"],
@@ -238,16 +274,17 @@ def _build_artifacts(
         f"stdout={build_dependency_result.stdout}\n"
         f"stderr={build_dependency_result.stderr}"
     )
+    build_arguments = [
+        os.fspath(build_python),
+        "-m",
+        "build",
+        "--wheel",
+    ]
+    if build_sdist:
+        build_arguments.append("--sdist")
+    build_arguments.extend(("--outdir", os.fspath(output)))
     build_result = subprocess.run(
-        [
-            os.fspath(build_python),
-            "-m",
-            "build",
-            "--wheel",
-            "--sdist",
-            "--outdir",
-            os.fspath(output),
-        ],
+        build_arguments,
         cwd=root,
         env=_clean_environment(include_git=include_git),
         capture_output=True,
@@ -261,8 +298,11 @@ def _build_artifacts(
     wheels = sorted(output.glob("*.whl"))
     sdists = sorted(output.glob("*.tar.gz"))
     assert len(wheels) == 1
-    assert len(sdists) == 1
-    return wheels[0], sdists[0]
+    if build_sdist:
+        assert len(sdists) == 1
+        return wheels[0], sdists[0]
+    assert not sdists
+    return wheels[0], None
 
 
 def _extract_sdist(artifact: Path, destination: Path) -> Path:
@@ -309,6 +349,21 @@ def _clone_project(path: Path) -> None:
     assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
 
 
+def _git_value(root: Path, *arguments: str) -> str:
+    assert GIT is not None, "git executable is required for source-tree contracts"
+    result = subprocess.run(
+        [GIT, *arguments],
+        cwd=root,
+        env=_clean_environment(),
+        capture_output=True,
+        check=False,
+        text=True,
+        timeout=SUBPROCESS_TIMEOUT,
+    )
+    assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
+    return result.stdout.strip()
+
+
 def _install_and_probe(artifact: Path, root: Path, work: Path) -> dict[str, Any]:
     environment = work / "venv"
     python = _make_venv(environment)
@@ -350,12 +405,17 @@ def _install_and_probe(artifact: Path, root: Path, work: Path) -> dict[str, Any]
     version = probe["version"]
     _assert_valid_version(version)
     assert metadata_version == version
-    assert module_result.stdout.strip() == f"testrunner {version}"
-    assert cli_result.stdout.strip() == f"testrunner {version}"
+    module_cli_version = _cli_version(module_result.stdout.strip())
+    console_cli_version = _cli_version(cli_result.stdout.strip())
+    assert module_cli_version == version
+    assert console_cli_version == version
     assert probe["pythonpath"] is None
     assert all(os.fspath(root) not in entry for entry in probe["sys_path"])
     assert os.fspath(root) not in probe["_testrunner_file"]
     assert os.fspath(root) not in probe["testrunner_file"]
+    probe["installed_version"] = metadata_version
+    probe["module_cli_version"] = module_cli_version
+    probe["console_cli_version"] = console_cli_version
     return probe
 
 
@@ -437,13 +497,20 @@ def test_prepared_source_checkout_reports_runtime_version() -> None:
 
 
 @testrunner.fixture(scope="session")
-def packaging_artifacts(tmp_path_factory: Any) -> Iterator[tuple[Path, Path, Path]]:
+def packaging_artifacts(
+    tmp_path_factory: Any,
+) -> Iterator[tuple[Path, Path, Path, Path]]:
     work = Path(tmp_path_factory.mktemp("packaging"))
     clone = work / "source"
     _clone_project(clone)
     output = work / "dist"
     output.mkdir()
     wheel, sdist = _build_artifacts(clone, output)
+    assert sdist is not None
+    assert _git_value(clone, "status", "--porcelain") == ""
+    assert _git_value(clone, "rev-parse", "HEAD") == _git_value(
+        PROJECT_ROOT, "rev-parse", "HEAD"
+    )
     distribution_name = _distribution_name(wheel)
     version = _distribution_version(wheel)
     assert distribution_name == _distribution_name(sdist)
@@ -457,16 +524,28 @@ def packaging_artifacts(tmp_path_factory: Any) -> Iterator[tuple[Path, Path, Pat
     assert (clone / "src" / "_testrunner" / "_version.py").exists()
     assert (clone / "build").exists()
     assert output.exists()
-    yield clone, wheel, sdist
+    with TemporaryDirectory(prefix="testrunner-sdist-") as derived_temporary:
+        derived_work = Path(derived_temporary)
+        extracted = _extract_sdist(sdist, derived_work / "extracted")
+        assert not (extracted / ".git").exists()
+        derived_result = _build_artifacts(
+            extracted,
+            derived_work / "derived-dist",
+            include_git=False,
+            build_sdist=False,
+        )
+        derived_wheel = derived_result[0]
+        assert derived_result[1] is None
+        yield clone, wheel, sdist, derived_wheel
     shutil.rmtree(work, ignore_errors=True)
 
 
 @testrunner.mark.slow
 def test_wheel_version_contract(
-    packaging_artifacts: tuple[Path, Path, Path],
+    packaging_artifacts: tuple[Path, Path, Path, Path],
     tmp_path: Path,
 ) -> None:
-    root, wheel, _ = packaging_artifacts
+    root, wheel, _, _ = packaging_artifacts
     with zipfile.ZipFile(wheel) as archive:
         names = archive.namelist()
         assert any(name.endswith("_testrunner/_version.py") for name in names)
@@ -488,10 +567,10 @@ def test_wheel_version_contract(
 
 @testrunner.mark.slow
 def test_sdist_version_contract(
-    packaging_artifacts: tuple[Path, Path, Path],
+    packaging_artifacts: tuple[Path, Path, Path, Path],
     tmp_path: Path,
 ) -> None:
-    root, _, sdist = packaging_artifacts
+    root, _, sdist, derived_wheel = packaging_artifacts
     with tarfile.open(sdist) as archive:
         names = archive.getnames()
         assert any(name.endswith("/PKG-INFO") for name in names)
@@ -508,35 +587,96 @@ def test_sdist_version_contract(
             assert ".pytest_cache" not in parts
             assert ".mypy_cache" not in parts
 
-    with TemporaryDirectory() as temporary:
-        work = Path(temporary)
-        extracted = _extract_sdist(sdist, work / "extracted")
-        assert not (extracted / ".git").exists()
-        derived_wheel, _ = _build_artifacts(
-            extracted, work / "derived-dist", include_git=False
-        )
-        sdist_name = _distribution_name(sdist)
-        sdist_version = _distribution_version(sdist)
-        derived_name = _distribution_name(derived_wheel)
-        derived_version = _distribution_version(derived_wheel)
-        assert canonicalize_name(derived_name) == canonicalize_name(sdist_name)
-        assert Version(derived_version) == Version(sdist_version)
-        wheel_name, wheel_version, _, _ = parse_wheel_filename(derived_wheel.name)
-        assert wheel_name == canonicalize_name(derived_name)
-        assert wheel_version == Version(derived_version)
-        with zipfile.ZipFile(derived_wheel) as archive:
-            for name in archive.namelist():
-                parts = Path(name).parts
-                assert ".git" not in parts
-                assert "build" not in parts
-                assert "dist" not in parts
-                assert "__pycache__" not in parts
-                assert ".pytest_cache" not in parts
-                assert ".mypy_cache" not in parts
-                assert not any(part.endswith(".egg-info") for part in parts)
-        _install_and_probe(derived_wheel, root, tmp_path / "derived-wheel-install")
+    sdist_name = _distribution_name(sdist)
+    sdist_version = _distribution_version(sdist)
+    derived_name = _distribution_name(derived_wheel)
+    derived_version = _distribution_version(derived_wheel)
+    assert canonicalize_name(derived_name) == canonicalize_name(sdist_name)
+    assert Version(derived_version) == Version(sdist_version)
+    wheel_name, wheel_version, _, _ = parse_wheel_filename(derived_wheel.name)
+    assert wheel_name == canonicalize_name(derived_name)
+    assert wheel_version == Version(derived_version)
+    with zipfile.ZipFile(derived_wheel) as archive:
+        for name in archive.namelist():
+            parts = Path(name).parts
+            assert ".git" not in parts
+            assert "build" not in parts
+            assert "dist" not in parts
+            assert "__pycache__" not in parts
+            assert ".pytest_cache" not in parts
+            assert ".mypy_cache" not in parts
+            assert not any(part.endswith(".egg-info") for part in parts)
+    _install_and_probe(derived_wheel, root, tmp_path / "derived-wheel-install")
 
     _install_and_probe(sdist, root, tmp_path / "sdist-install")
+
+
+@testrunner.mark.slow
+def test_version_is_consistent_across_source_and_artifacts(
+    packaging_artifacts: tuple[Path, Path, Path, Path],
+    tmp_path: Path,
+) -> None:
+    root, wheel, sdist, derived_wheel = packaging_artifacts
+    scm_version = _scm_version(root, tmp_path)
+    source_python = _make_venv(tmp_path / "source-venv")
+    _install_runtime_dependencies(source_python, root)
+    source_probe = _read_probe(
+        _run_python(
+            source_python,
+            tmp_path,
+            "-c",
+            _source_probe(),
+            pythonpath=root / "src",
+        )
+    )
+    source_cli = _run_python(
+        source_python,
+        tmp_path,
+        "-m",
+        "testrunner",
+        "--version",
+        pythonpath=root / "src",
+    )
+    assert source_cli.returncode == 0, source_cli.stderr
+    source_cli_version = _cli_version(source_cli.stdout.strip())
+    assert source_cli_version == scm_version
+
+    wheel_probe = _install_and_probe(wheel, root, tmp_path / "wheel-install")
+    sdist_probe = _install_and_probe(sdist, root, tmp_path / "sdist-install")
+    derived_probe = _install_and_probe(
+        derived_wheel, root, tmp_path / "derived-install"
+    )
+    versions = {
+        scm_version,
+        source_probe["version"],
+        source_cli_version,
+        _distribution_version(wheel),
+        wheel_probe["installed_version"],
+        wheel_probe["version"],
+        wheel_probe["module_cli_version"],
+        wheel_probe["console_cli_version"],
+        _distribution_version(sdist),
+        sdist_probe["installed_version"],
+        sdist_probe["version"],
+        sdist_probe["module_cli_version"],
+        sdist_probe["console_cli_version"],
+        _distribution_version(derived_wheel),
+        derived_probe["installed_version"],
+        derived_probe["version"],
+        derived_probe["module_cli_version"],
+        derived_probe["console_cli_version"],
+    }
+    assert versions == {scm_version}
+
+    distribution_names = {
+        canonicalize_name(_distribution_name(wheel)),
+        canonicalize_name(_distribution_name(sdist)),
+        canonicalize_name(_distribution_name(derived_wheel)),
+        canonicalize_name(wheel_probe["distribution_names"][0]),
+        canonicalize_name(sdist_probe["distribution_names"][0]),
+        canonicalize_name(derived_probe["distribution_names"][0]),
+    }
+    assert distribution_names == {"testrunner"}
 
 
 @testrunner.mark.slow
