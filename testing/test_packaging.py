@@ -26,6 +26,7 @@ import testrunner
 
 PROJECT_ROOT = Path(__file__).parents[1]
 VERSION_SENTINELS = {"unknown", "0.0.0"}
+DISTRIBUTION_NAME = "jsr-testrunner"
 GIT = shutil.which("git")
 SUBPROCESS_TIMEOUT = 300
 RUNTIME_DEPENDENCIES = (
@@ -413,6 +414,13 @@ def _install_and_probe(artifact: Path, root: Path, work: Path) -> dict[str, Any]
     assert all(os.fspath(root) not in entry for entry in probe["sys_path"])
     assert os.fspath(root) not in probe["_testrunner_file"]
     assert os.fspath(root) not in probe["testrunner_file"]
+    package_result = _run_python(
+        python,
+        work,
+        "-c",
+        "import importlib.util; raise SystemExit(importlib.util.find_spec('jsr_testrunner') is not None)",
+    )
+    assert package_result.returncode == 0, package_result.stderr
     probe["installed_version"] = metadata_version
     probe["module_cli_version"] = module_cli_version
     probe["console_cli_version"] = console_cli_version
@@ -429,7 +437,7 @@ def test_raw_source_checkout_starts_without_generated_version() -> None:
         assert not (clone / "src" / "_testrunner" / "_version.py").exists()
         assert not (clone / "build").exists()
         assert not (clone / "dist").exists()
-        assert not (clone / "src" / "testrunner.egg-info").exists()
+        assert not (clone / "src" / "jsr_testrunner.egg-info").exists()
 
 
 @testrunner.mark.slow
@@ -676,7 +684,7 @@ def test_version_is_consistent_across_source_and_artifacts(
         canonicalize_name(sdist_probe["distribution_names"][0]),
         canonicalize_name(derived_probe["distribution_names"][0]),
     }
-    assert distribution_names == {"testrunner"}
+    assert distribution_names == {DISTRIBUTION_NAME}
 
 
 @testrunner.mark.slow
