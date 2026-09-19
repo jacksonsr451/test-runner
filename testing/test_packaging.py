@@ -79,6 +79,7 @@ def _install_runtime_dependencies(python: Path, cwd: Path) -> None:
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
@@ -98,6 +99,7 @@ def _bootstrap_source_checkout(clone: Path, python: Path) -> None:
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert dependency_result.returncode == 0, (
@@ -110,6 +112,7 @@ def _bootstrap_source_checkout(clone: Path, python: Path) -> None:
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
@@ -125,6 +128,7 @@ def _scm_version(root: Path, work: Path) -> str:
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
@@ -156,6 +160,7 @@ def _run_python(
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
 
@@ -269,6 +274,7 @@ def _build_artifacts(
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert build_dependency_result.returncode == 0, (
@@ -291,6 +297,7 @@ def _build_artifacts(
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert build_result.returncode == 0, (
@@ -345,6 +352,7 @@ def _clone_project(path: Path) -> None:
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
@@ -359,6 +367,7 @@ def _git_value(root: Path, *arguments: str) -> str:
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
@@ -375,6 +384,7 @@ def _install_and_probe(artifact: Path, root: Path, work: Path) -> dict[str, Any]
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
@@ -399,6 +409,7 @@ def _install_and_probe(artifact: Path, root: Path, work: Path) -> dict[str, Any]
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert module_result.returncode == 0, module_result.stderr
@@ -701,6 +712,7 @@ def test_editable_install_bootstraps_version(tmp_path: Path) -> None:
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert result.returncode == 0, f"stdout={result.stdout}\nstderr={result.stderr}"
@@ -728,6 +740,7 @@ def test_editable_install_bootstraps_version(tmp_path: Path) -> None:
         capture_output=True,
         check=False,
         text=True,
+        encoding="utf-8",
         timeout=SUBPROCESS_TIMEOUT,
     )
     assert cli_result.returncode == 0, cli_result.stderr
