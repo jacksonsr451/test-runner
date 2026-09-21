@@ -276,6 +276,73 @@ def test_is_missing_module_without_name() -> None:
 
 
 class TestTestrunnerPluginManager:
+    def test_register_notifies_before_module_dependencies(self, testrunnerer) -> None:
+        testrunnerer.syspathinsert()
+        testrunnerer.makepyfile(dependency="")
+        plugin_path = testrunnerer.makepyfile(
+            plugin="""
+            testrunner_plugins = ['dependency']
+
+            def pytest_collection_modifyitems(session, config, items):
+                pass
+            """
+        )
+
+        pm = TestrunnerPluginManager()
+        observations = []
+
+        class Listener:
+            def testrunner_plugin_registered(self, plugin, manager):
+                if getattr(plugin, "__file__", None) == str(plugin_path):
+                    observations.append(
+                        (
+                            hasattr(plugin, "testrunner_collection_modifyitems"),
+                            manager.get_plugin("dependency"),
+                        )
+                    )
+
+        pm.register(Listener())
+        pm.import_plugin("plugin")
+
+        assert observations == [(True, None)]
+        assert pm.get_plugin("dependency") is not None
+
+    def test_historic_registration_replays_before_and_after_listener(self) -> None:
+        pm = TestrunnerPluginManager()
+        before = object()
+        after = object()
+        events = []
+
+        pm.register(before, "before")
+
+        class Listener:
+            def testrunner_plugin_registered(self, plugin, plugin_name):
+                if plugin in (before, after):
+                    events.append(plugin)
+
+        pm.register(Listener(), "listener")
+        assert events == [before]
+
+        pm.register(after, "after")
+        assert events == [before, after]
+
+    def test_registration_failure_leaves_plugin_registered(self) -> None:
+        pm = TestrunnerPluginManager()
+
+        class FailingListener:
+            def testrunner_plugin_registered(self, plugin):
+                if plugin is target:
+                    raise RuntimeError("registration failed")
+
+        target = object()
+        pm.register(FailingListener())
+
+        with testrunner.raises(RuntimeError, match="registration failed"):
+            pm.register(target, "target")
+
+        # Registration is not atomic when the historic notification fails.
+        assert pm.get_plugin("target") is target
+
     def test_register_imported_modules(self) -> None:
         pm = TestrunnerPluginManager()
         mod = types.ModuleType("x.y.testrunner_hello")

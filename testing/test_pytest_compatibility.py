@@ -9,6 +9,7 @@ import execnet
 
 from _testrunner.compatibility.pytest.remote import _replace_once
 from _testrunner.config import TestrunnerPluginManager
+from _testrunner.pathlib import import_path
 from _testrunner.reports import TestReport
 from _testrunner.testrunnerer import Testrunnerer
 import testrunner
@@ -63,6 +64,30 @@ def test_plugin_found_by_both_entry_point_protocols_is_registered_once(
     assert [p for p in testrunnerpm.get_plugins() if p is plugin] == [plugin]
 
 
+def test_plugin_found_by_pytest_entry_point_is_registered(
+    testrunnerpm, monkeypatch
+) -> None:
+    plugin = types.ModuleType("pytest_only_plugin")
+
+    class EntryPoint:
+        name = "pytest-only"
+        group = "pytest11"
+
+        def load(self):
+            return plugin
+
+    class Distribution:
+        version = "1.0"
+        files = ()
+        metadata = {"name": "pytest-only"}
+        entry_points = (EntryPoint(),)
+
+    monkeypatch.setattr(importlib.metadata, "distributions", lambda: (Distribution(),))
+    testrunnerpm.import_plugin("pytest-only", consider_entry_points=True)
+
+    assert testrunnerpm.get_plugin("pytest-only") is plugin
+
+
 def test_explicit_pytest_plugin_load_does_not_duplicate(
     testrunnerer: Testrunnerer,
 ) -> None:
@@ -81,6 +106,45 @@ def test_explicit_testrunner_plugin_load_does_not_duplicate(
     assert plugin is not None
     config.pluginmanager.import_plugin("_testrunner.compatibility.pytest")
     assert [p for p in config.pluginmanager.get_plugins() if p is plugin] == [plugin]
+
+
+def test_pytest_plugin_hooks_are_called_through_testrunner_hooks(
+    testrunnerpm,
+) -> None:
+    calls = []
+
+    class Plugin:
+        def pytest_collection_modifyitems(self, session, config, items):
+            calls.append((session, config, items))
+
+    plugin = Plugin()
+    testrunnerpm.register(plugin, "pytest-style")
+    session = object()
+    config = object()
+    items: list[object] = []
+
+    testrunnerpm.hook.testrunner_collection_modifyitems(
+        session=session, config=config, items=items
+    )
+
+    assert calls == [(session, config, items)]
+
+
+def test_pytest_plugins_module_dependency_is_loaded(
+    testrunnerer: Testrunnerer, testrunnerpm: TestrunnerPluginManager
+) -> None:
+    testrunnerer.syspathinsert()
+    testrunnerer.makepyfile(pytest_dependency="")
+    module = testrunnerer.makepyfile("pytest_plugins = ['pytest_dependency']")
+    loaded = import_path(
+        module,
+        root=testrunnerer.path,
+        consider_namespace_packages=False,
+    )
+
+    testrunnerpm.consider_module(loaded)
+
+    assert testrunnerpm.get_plugin("pytest_dependency") is not None
 
 
 def test_pytest_logreport_bridges_to_canonical_hook(
