@@ -69,14 +69,10 @@ from _testrunner.config.argparsing import Parser
 import _testrunner.deprecated
 import _testrunner.hookspec
 from _testrunner.nodeid import NodeId
-from _testrunner.outcomes import fail
 from _testrunner.outcomes import Skipped
 from _testrunner.pathlib import absolutepath
 from _testrunner.pathlib import bestrelpath
-from _testrunner.pathlib import import_path
 from _testrunner.pathlib import ImportMode
-from _testrunner.pathlib import resolve_package_path
-from _testrunner.pathlib import safe_exists
 from _testrunner.stash import Stash
 from _testrunner.warning_types import TestrunnerConfigWarning
 
@@ -496,14 +492,6 @@ def _prepareconfig(
         raise
 
 
-def _get_directory(path: pathlib.Path) -> pathlib.Path:
-    """Get the directory of a path - itself if already a directory."""
-    if path.is_file():
-        return path.parent
-    else:
-        return path
-
-
 @final
 class TestrunnerPluginManager(PluginManager):
     """A :py:class:`pluggy.PluginManager <pluggy.PluginManager>` with
@@ -520,26 +508,11 @@ class TestrunnerPluginManager(PluginManager):
         from _testrunner.compatibility.pytest.plugin_policy import (
             PluginCompatibilityPolicy,
         )
+        from _testrunner.config.conftest import ConftestManager
 
         super().__init__("testrunner")
         self._compatibility_policy = PluginCompatibilityPolicy(self)
-
-        # -- State related to local conftest plugins.
-        # All loaded conftest modules.
-        self._conftest_plugins: set[types.ModuleType] = set()
-        # All conftest modules applicable for a directory.
-        # This includes the directory's own conftest modules as well
-        # as those of its parent directories.
-        self._dirpath2confmods: dict[pathlib.Path, list[types.ModuleType]] = {}
-        # Cutoff directory above which conftests are no longer discovered.
-        self._confcutdir: pathlib.Path | None = None
-        # If set, conftest loading is skipped.
-        self._noconftest = False
-
-        # _getconftestmodules()'s call to _get_directory() causes a stat
-        # storm when it's called potentially thousands of times in a test
-        # session (#9478), often with the same path, so cache it.
-        self._get_directory = lru_cache(256)(_get_directory)
+        self._conftest_manager = ConftestManager(self)
 
         # plugins that were explicitly skipped with testrunner.skip
         # list of (module name, skip reason)
@@ -666,6 +639,38 @@ class TestrunnerPluginManager(PluginManager):
     #
     # Internal API for local conftest plugin handling.
     #
+    @property
+    def _conftest_plugins(self) -> set[types.ModuleType]:
+        return self._conftest_manager._conftest_plugins
+
+    @property
+    def _dirpath2confmods(self) -> dict[pathlib.Path, list[types.ModuleType]]:
+        return self._conftest_manager._dirpath2confmods
+
+    @property
+    def _confcutdir(self) -> pathlib.Path | None:
+        return self._conftest_manager._confcutdir
+
+    @_confcutdir.setter
+    def _confcutdir(self, value: pathlib.Path | None) -> None:
+        self._conftest_manager._confcutdir = value
+
+    @property
+    def _noconftest(self) -> bool:
+        return self._conftest_manager._noconftest
+
+    @_noconftest.setter
+    def _noconftest(self, value: bool) -> None:
+        self._conftest_manager._noconftest = value
+
+    @property
+    def _using_pyargs(self) -> bool:
+        return self._conftest_manager._using_pyargs
+
+    @property
+    def _get_directory(self):
+        return self._conftest_manager._get_directory
+
     def _set_initial_conftests(
         self,
         args: Sequence[str | pathlib.Path],
@@ -678,59 +683,20 @@ class TestrunnerPluginManager(PluginManager):
         *,
         consider_namespace_packages: bool,
     ) -> None:
-        """Load initial conftest files given a preparsed "namespace".
-
-        As conftest files may add their own command line options which have
-        arguments ('--my-opt somepath') we might get some false positives.
-        All builtin and 3rd party plugins will have been loaded, however, so
-        common options will not confuse our logic here.
-        """
-        self._confcutdir = (
-            absolutepath(invocation_dir / confcutdir) if confcutdir else None
+        self._conftest_manager.set_initial_conftests(
+            args,
+            pyargs,
+            noconftest,
+            rootpath,
+            confcutdir,
+            invocation_dir,
+            importmode,
+            consider_namespace_packages=consider_namespace_packages,
         )
-        self._noconftest = noconftest
-        self._using_pyargs = pyargs
-
-        anchors = []
-        for initial_path in args:
-            # Remove node-id syntax from the argument.
-            path = NodeId.parse(str(initial_path)).path
-            anchor = absolutepath(invocation_dir / path)
-            # Ensure we do not break if what appears to be an anchor
-            # is in fact a very long option (#10169, #11394).
-            if not safe_exists(anchor):
-                continue
-
-            anchors.append(anchor)
-            # Let's also consider test* subdirs.
-            if anchor.is_dir():
-                anchors.extend(x for x in anchor.glob("test*") if x.is_dir())
-        if not anchors:
-            anchors.append(invocation_dir)
-            anchors.extend(x for x in invocation_dir.glob("test*") if x.is_dir())
-
-        for anchor in anchors:
-            self._loadconftestmodules(
-                anchor,
-                importmode,
-                rootpath,
-                consider_namespace_packages=consider_namespace_packages,
-            )
 
     def _is_in_confcutdir(self, path: pathlib.Path) -> bool:
         """Whether to consider the given path to load conftests from."""
-        if self._confcutdir is None:
-            return True
-        # The semantics here are literally:
-        #   Do not load a conftest if it is found upwards from confcut dir.
-        # But this is *not* the same as:
-        #   Load only conftests from confcutdir or below.
-        # At first glance they might seem the same thing, however we do support use cases where
-        # we want to load conftests that are not found in confcutdir or below, but are found
-        # in completely different directory hierarchies like packages installed
-        # in out-of-source trees.
-        # (see #9767 for a regression where the logic was inverted).
-        return path not in self._confcutdir.parents
+        return self._conftest_manager.is_in_confcutdir(path)
 
     def _loadconftestmodules(
         self,
@@ -740,46 +706,22 @@ class TestrunnerPluginManager(PluginManager):
         *,
         consider_namespace_packages: bool,
     ) -> None:
-        if self._noconftest:
-            return
-
-        directory = self._get_directory(path)
-
-        # Optimization: avoid repeated searches in the same directory.
-        # Assumes always called with same importmode and rootpath.
-        if directory in self._dirpath2confmods:
-            return
-
-        clist = []
-        for parent in reversed((directory, *directory.parents)):
-            if self._is_in_confcutdir(parent):
-                conftestpath = parent / "conftest.py"
-                if conftestpath.is_file():
-                    mod = self._importconftest(
-                        conftestpath,
-                        importmode,
-                        rootpath,
-                        consider_namespace_packages=consider_namespace_packages,
-                    )
-                    clist.append(mod)
-        self._dirpath2confmods[directory] = clist
+        self._conftest_manager.load_conftest_modules(
+            path,
+            importmode,
+            rootpath,
+            consider_namespace_packages=consider_namespace_packages,
+        )
 
     def _getconftestmodules(self, path: pathlib.Path) -> Sequence[types.ModuleType]:
-        directory = self._get_directory(path)
-        return self._dirpath2confmods.get(directory, ())
+        return self._conftest_manager.get_conftest_modules(path)
 
     def _rget_with_confmod(
         self,
         name: str,
         path: pathlib.Path,
     ) -> tuple[types.ModuleType, Any]:
-        modules = self._getconftestmodules(path)
-        for mod in reversed(modules):
-            try:
-                return mod, getattr(mod, name)
-            except AttributeError:
-                continue
-        raise KeyError(name)
+        return self._conftest_manager.rget_with_confmod(name, path)
 
     def _importconftest(
         self,
@@ -789,76 +731,19 @@ class TestrunnerPluginManager(PluginManager):
         *,
         consider_namespace_packages: bool,
     ) -> types.ModuleType:
-        conftestpath_plugin_name = str(conftestpath)
-        existing = self.get_plugin(conftestpath_plugin_name)
-        if existing is not None:
-            return cast(types.ModuleType, existing)
-
-        # conftest.py files there are not in a Python package all have module
-        # name "conftest", and thus conflict with each other. Clear the existing
-        # before loading the new one, otherwise the existing one will be
-        # returned from the module cache.
-        pkgpath = resolve_package_path(conftestpath)
-        if pkgpath is None:
-            try:
-                del sys.modules[conftestpath.stem]
-            except KeyError:
-                pass
-
-        try:
-            mod = import_path(
-                conftestpath,
-                mode=importmode,
-                root=rootpath,
-                consider_namespace_packages=consider_namespace_packages,
-            )
-        except Exception as e:
-            assert e.__traceback__ is not None
-            raise ConftestImportFailure(conftestpath, cause=e) from e
-
-        self._check_non_top_testrunner_plugins(mod, conftestpath)
-
-        self._conftest_plugins.add(mod)
-        dirpath = conftestpath.parent
-        if dirpath in self._dirpath2confmods:
-            for path, mods in self._dirpath2confmods.items():
-                if dirpath in path.parents or path == dirpath:
-                    if mod in mods:
-                        raise AssertionError(
-                            f"While trying to load conftest path {conftestpath!s}, "
-                            f"found that the module {mod} is already loaded with path {mod.__file__}. "
-                            "This is not supposed to happen. Please report this issue to testrunner."
-                        )
-                    mods.append(mod)
-        self.trace(f"loading conftestmodule {mod!r}")
-        self.consider_conftest(mod, registration_name=conftestpath_plugin_name)
-        return mod
+        return self._conftest_manager.import_conftest(
+            conftestpath,
+            importmode,
+            rootpath,
+            consider_namespace_packages=consider_namespace_packages,
+        )
 
     def _check_non_top_testrunner_plugins(
         self,
         mod: types.ModuleType,
         conftestpath: pathlib.Path,
     ) -> None:
-        plugin_spec_name = (
-            "testrunner_plugins"
-            if hasattr(mod, "testrunner_plugins")
-            else "pytest_plugins"
-        )
-        if (
-            (hasattr(mod, "testrunner_plugins") or hasattr(mod, "pytest_plugins"))
-            and self._configured
-            and not self._using_pyargs
-        ):
-            msg = (
-                f"Defining '{plugin_spec_name}' in a non-top-level conftest is no longer supported:\n"
-                "It affects the entire test suite instead of just below the conftest as expected.\n"
-                "  {}\n"
-                "Please move it to a top level conftest file at the rootdir:\n"
-                "  {}\n"
-                "For more information, visit:\n"
-                "  https://github.com/jacksonsr451/test-runner/tree/main/doc/en/deprecations.html#testrunner-plugins-in-non-top-level-conftest-files"
-            )
-            fail(msg.format(conftestpath, self._confcutdir), pytrace=False)
+        self._conftest_manager.check_non_top_testrunner_plugins(mod, conftestpath)
 
     #
     # API for bootstrapping plugin loading
