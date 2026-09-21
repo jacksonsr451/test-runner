@@ -29,7 +29,6 @@ import shlex
 import sys
 from textwrap import dedent
 import types
-from types import FunctionType
 from typing import Any
 from typing import cast
 from typing import Final
@@ -80,7 +79,6 @@ from _testrunner.pathlib import resolve_package_path
 from _testrunner.pathlib import safe_exists
 from _testrunner.stash import Stash
 from _testrunner.warning_types import TestrunnerConfigWarning
-from _testrunner.warning_types import warn_explicit_for
 
 
 if TYPE_CHECKING:
@@ -506,38 +504,6 @@ def _get_directory(path: pathlib.Path) -> pathlib.Path:
         return path
 
 
-def _get_legacy_hook_marks(
-    method: Any,
-    hook_type: str,
-    opt_names: tuple[str, ...],
-) -> dict[str, bool]:
-    if TYPE_CHECKING:
-        # abuse typeguard from importlib to avoid massive method type union that's lacking an alias
-        assert inspect.isroutine(method)
-    known_marks: set[str] = {m.name for m in getattr(method, "_testrunner_mark", [])}
-    must_warn: list[str] = []
-    opts: dict[str, bool] = {}
-    for opt_name in opt_names:
-        opt_attr = getattr(method, opt_name, AttributeError)
-        if opt_attr is not AttributeError:
-            must_warn.append(f"{opt_name}={opt_attr}")
-            opts[opt_name] = True
-        elif opt_name in known_marks:
-            must_warn.append(f"{opt_name}=True")
-            opts[opt_name] = True
-        else:
-            opts[opt_name] = False
-    if must_warn:
-        hook_opts = ", ".join(must_warn)
-        message = _testrunner.deprecated.HOOK_LEGACY_MARKING.format(
-            type=hook_type,
-            fullname=method.__qualname__,
-            hook_opts=hook_opts,
-        )
-        warn_explicit_for(cast(FunctionType, method), message)
-    return opts
-
-
 @final
 class TestrunnerPluginManager(PluginManager):
     """A :py:class:`pluggy.PluginManager <pluggy.PluginManager>` with
@@ -551,8 +517,12 @@ class TestrunnerPluginManager(PluginManager):
     def __init__(self) -> None:
         from _testrunner.assertion import DummyRewriteHook
         from _testrunner.assertion import RewriteHook
+        from _testrunner.compatibility.pytest.plugin_policy import (
+            PluginCompatibilityPolicy,
+        )
 
         super().__init__("testrunner")
+        self._compatibility_policy = PluginCompatibilityPolicy(self)
 
         # -- State related to local conftest plugins.
         # All loaded conftest modules.
@@ -608,58 +578,15 @@ class TestrunnerPluginManager(PluginManager):
         self, plugin: _PluggyPlugin, name: str
     ) -> HookimplOpts | None:
         """:meta private:"""
-        # Both prefixes are supported: testrunner is the project identity,
-        # while pytest is retained for ecosystem plugin compatibility.
-        is_testrunner_hook = name.startswith("testrunner_")
-        is_pytest_hook = name.startswith("pytest_")
-        if not (is_testrunner_hook or is_pytest_hook):
-            return None
-        if name in {"testrunner_plugins", "pytest_plugins"}:
-            return None
-
-        method = getattr(plugin, name)
-        if not inspect.isroutine(method):
-            return None
-
-        marker = "testrunner_impl" if is_testrunner_hook else "pytest_impl"
-        opts = getattr(method, marker, None)
-        if opts is None and is_pytest_hook:
-            # ``hookimpl`` is the public TestRunner marker and therefore stores
-            # its options under ``testrunner_impl`` even for pytest-prefixed
-            # compatibility hooks.
-            opts = getattr(method, "testrunner_impl", None)
-        if opts is None and is_testrunner_hook:
-            opts = getattr(method, "pytest_impl", None)
-        if opts is not None:
-            return cast(HookimplOpts, opts)
-
-        # testrunner hooks are always prefixed with "testrunner_",
-        # so we avoid accessing possibly non-readable attributes
-        # (see issue #1073).
-        opts = super().parse_hookimpl_opts(plugin, name) if is_testrunner_hook else None
-        if opts is not None:
-            return opts
-
-        # Collect unmarked hooks as long as they have the `testrunner_' prefix.
-        legacy = _get_legacy_hook_marks(
-            method, "impl", ("tryfirst", "trylast", "optionalhook", "hookwrapper")
+        return self._compatibility_policy.parse_hookimpl_opts(
+            plugin, name, super().parse_hookimpl_opts
         )
-        return cast(HookimplOpts, legacy)
 
     def parse_hookspec_opts(self, module_or_class, name: str) -> HookspecOpts | None:
         """:meta private:"""
-        opts = super().parse_hookspec_opts(module_or_class, name)
-        if opts is None:
-            method = getattr(module_or_class, name)
-            opts = getattr(method, "pytest_spec", None)
-        if opts is None:
-            method = getattr(module_or_class, name)
-            if name.startswith(("testrunner_", "pytest_")):
-                legacy = _get_legacy_hook_marks(
-                    method, "spec", ("firstresult", "historic")
-                )
-                opts = cast(HookspecOpts, legacy)
-        return opts
+        return self._compatibility_policy.parse_hookspec_opts(
+            module_or_class, name, super().parse_hookspec_opts
+        )
 
     def add_hookspecs(self, module_or_class: object) -> None:
         # Pluggy accepts the generated SimpleNamespace at runtime, although its
@@ -707,18 +634,7 @@ class TestrunnerPluginManager(PluginManager):
 
     def _add_pytest_hook_aliases(self, plugin: _PluggyPlugin) -> None:
         """Make standard pytest hooks participate in the internal hook calls."""
-        for name in dir(plugin):
-            if not name.startswith("pytest_") or name == "pytest_plugins":
-                continue
-            testrunner_name = "testrunner_" + name.removeprefix("pytest_")
-            if not hasattr(self.hook, testrunner_name) or hasattr(
-                plugin, testrunner_name
-            ):
-                continue
-            try:
-                setattr(plugin, testrunner_name, getattr(plugin, name))
-            except (AttributeError, TypeError):
-                continue
+        self._compatibility_policy.add_pytest_hook_aliases(plugin)
 
     def getplugin(self, name: str):
         # Support deprecated naming because plugins (xdist e.g.) use it.
