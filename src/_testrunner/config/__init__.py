@@ -29,7 +29,6 @@ import shlex
 import sys
 from textwrap import dedent
 import types
-from types import FunctionType
 from typing import Any
 from typing import cast
 from typing import Final
@@ -70,17 +69,11 @@ from _testrunner.config.argparsing import Parser
 import _testrunner.deprecated
 import _testrunner.hookspec
 from _testrunner.nodeid import NodeId
-from _testrunner.outcomes import fail
-from _testrunner.outcomes import Skipped
 from _testrunner.pathlib import absolutepath
 from _testrunner.pathlib import bestrelpath
-from _testrunner.pathlib import import_path
 from _testrunner.pathlib import ImportMode
-from _testrunner.pathlib import resolve_package_path
-from _testrunner.pathlib import safe_exists
 from _testrunner.stash import Stash
 from _testrunner.warning_types import TestrunnerConfigWarning
-from _testrunner.warning_types import warn_explicit_for
 
 
 if TYPE_CHECKING:
@@ -498,46 +491,6 @@ def _prepareconfig(
         raise
 
 
-def _get_directory(path: pathlib.Path) -> pathlib.Path:
-    """Get the directory of a path - itself if already a directory."""
-    if path.is_file():
-        return path.parent
-    else:
-        return path
-
-
-def _get_legacy_hook_marks(
-    method: Any,
-    hook_type: str,
-    opt_names: tuple[str, ...],
-) -> dict[str, bool]:
-    if TYPE_CHECKING:
-        # abuse typeguard from importlib to avoid massive method type union that's lacking an alias
-        assert inspect.isroutine(method)
-    known_marks: set[str] = {m.name for m in getattr(method, "_testrunner_mark", [])}
-    must_warn: list[str] = []
-    opts: dict[str, bool] = {}
-    for opt_name in opt_names:
-        opt_attr = getattr(method, opt_name, AttributeError)
-        if opt_attr is not AttributeError:
-            must_warn.append(f"{opt_name}={opt_attr}")
-            opts[opt_name] = True
-        elif opt_name in known_marks:
-            must_warn.append(f"{opt_name}=True")
-            opts[opt_name] = True
-        else:
-            opts[opt_name] = False
-    if must_warn:
-        hook_opts = ", ".join(must_warn)
-        message = _testrunner.deprecated.HOOK_LEGACY_MARKING.format(
-            type=hook_type,
-            fullname=method.__qualname__,
-            hook_opts=hook_opts,
-        )
-        warn_explicit_for(cast(FunctionType, method), message)
-    return opts
-
-
 @final
 class TestrunnerPluginManager(PluginManager):
     """A :py:class:`pluggy.PluginManager <pluggy.PluginManager>` with
@@ -551,25 +504,22 @@ class TestrunnerPluginManager(PluginManager):
     def __init__(self) -> None:
         from _testrunner.assertion import DummyRewriteHook
         from _testrunner.assertion import RewriteHook
+        from _testrunner.compatibility.pytest.plugin_policy import (
+            PluginCompatibilityPolicy,
+        )
+        from _testrunner.config.conftest import ConftestManager
+        from _testrunner.config.plugin_discovery import PluginDiscovery
 
         super().__init__("testrunner")
-
-        # -- State related to local conftest plugins.
-        # All loaded conftest modules.
-        self._conftest_plugins: set[types.ModuleType] = set()
-        # All conftest modules applicable for a directory.
-        # This includes the directory's own conftest modules as well
-        # as those of its parent directories.
-        self._dirpath2confmods: dict[pathlib.Path, list[types.ModuleType]] = {}
-        # Cutoff directory above which conftests are no longer discovered.
-        self._confcutdir: pathlib.Path | None = None
-        # If set, conftest loading is skipped.
-        self._noconftest = False
-
-        # _getconftestmodules()'s call to _get_directory() causes a stat
-        # storm when it's called potentially thousands of times in a test
-        # session (#9478), often with the same path, so cache it.
-        self._get_directory = lru_cache(256)(_get_directory)
+        self._compatibility_policy = PluginCompatibilityPolicy(self)
+        self._conftest_manager = ConftestManager(self)
+        self._plugin_discovery = PluginDiscovery(
+            self,
+            essential_plugins,
+            builtin_plugins,
+            _get_plugin_specs_as_list,
+            _is_missing_module,
+        )
 
         # plugins that were explicitly skipped with testrunner.skip
         # list of (module name, skip reason)
@@ -608,58 +558,15 @@ class TestrunnerPluginManager(PluginManager):
         self, plugin: _PluggyPlugin, name: str
     ) -> HookimplOpts | None:
         """:meta private:"""
-        # Both prefixes are supported: testrunner is the project identity,
-        # while pytest is retained for ecosystem plugin compatibility.
-        is_testrunner_hook = name.startswith("testrunner_")
-        is_pytest_hook = name.startswith("pytest_")
-        if not (is_testrunner_hook or is_pytest_hook):
-            return None
-        if name in {"testrunner_plugins", "pytest_plugins"}:
-            return None
-
-        method = getattr(plugin, name)
-        if not inspect.isroutine(method):
-            return None
-
-        marker = "testrunner_impl" if is_testrunner_hook else "pytest_impl"
-        opts = getattr(method, marker, None)
-        if opts is None and is_pytest_hook:
-            # ``hookimpl`` is the public TestRunner marker and therefore stores
-            # its options under ``testrunner_impl`` even for pytest-prefixed
-            # compatibility hooks.
-            opts = getattr(method, "testrunner_impl", None)
-        if opts is None and is_testrunner_hook:
-            opts = getattr(method, "pytest_impl", None)
-        if opts is not None:
-            return cast(HookimplOpts, opts)
-
-        # testrunner hooks are always prefixed with "testrunner_",
-        # so we avoid accessing possibly non-readable attributes
-        # (see issue #1073).
-        opts = super().parse_hookimpl_opts(plugin, name) if is_testrunner_hook else None
-        if opts is not None:
-            return opts
-
-        # Collect unmarked hooks as long as they have the `testrunner_' prefix.
-        legacy = _get_legacy_hook_marks(
-            method, "impl", ("tryfirst", "trylast", "optionalhook", "hookwrapper")
+        return self._compatibility_policy.parse_hookimpl_opts(
+            plugin, name, super().parse_hookimpl_opts
         )
-        return cast(HookimplOpts, legacy)
 
     def parse_hookspec_opts(self, module_or_class, name: str) -> HookspecOpts | None:
         """:meta private:"""
-        opts = super().parse_hookspec_opts(module_or_class, name)
-        if opts is None:
-            method = getattr(module_or_class, name)
-            opts = getattr(method, "pytest_spec", None)
-        if opts is None:
-            method = getattr(module_or_class, name)
-            if name.startswith(("testrunner_", "pytest_")):
-                legacy = _get_legacy_hook_marks(
-                    method, "spec", ("firstresult", "historic")
-                )
-                opts = cast(HookspecOpts, legacy)
-        return opts
+        return self._compatibility_policy.parse_hookspec_opts(
+            module_or_class, name, super().parse_hookspec_opts
+        )
 
     def add_hookspecs(self, module_or_class: object) -> None:
         # Pluggy accepts the generated SimpleNamespace at runtime, although its
@@ -707,18 +614,7 @@ class TestrunnerPluginManager(PluginManager):
 
     def _add_pytest_hook_aliases(self, plugin: _PluggyPlugin) -> None:
         """Make standard pytest hooks participate in the internal hook calls."""
-        for name in dir(plugin):
-            if not name.startswith("pytest_") or name == "pytest_plugins":
-                continue
-            testrunner_name = "testrunner_" + name.removeprefix("pytest_")
-            if not hasattr(self.hook, testrunner_name) or hasattr(
-                plugin, testrunner_name
-            ):
-                continue
-            try:
-                setattr(plugin, testrunner_name, getattr(plugin, name))
-            except (AttributeError, TypeError):
-                continue
+        self._compatibility_policy.add_pytest_hook_aliases(plugin)
 
     def getplugin(self, name: str):
         # Support deprecated naming because plugins (xdist e.g.) use it.
@@ -750,6 +646,38 @@ class TestrunnerPluginManager(PluginManager):
     #
     # Internal API for local conftest plugin handling.
     #
+    @property
+    def _conftest_plugins(self) -> set[types.ModuleType]:
+        return self._conftest_manager._conftest_plugins
+
+    @property
+    def _dirpath2confmods(self) -> dict[pathlib.Path, list[types.ModuleType]]:
+        return self._conftest_manager._dirpath2confmods
+
+    @property
+    def _confcutdir(self) -> pathlib.Path | None:
+        return self._conftest_manager._confcutdir
+
+    @_confcutdir.setter
+    def _confcutdir(self, value: pathlib.Path | None) -> None:
+        self._conftest_manager._confcutdir = value
+
+    @property
+    def _noconftest(self) -> bool:
+        return self._conftest_manager._noconftest
+
+    @_noconftest.setter
+    def _noconftest(self, value: bool) -> None:
+        self._conftest_manager._noconftest = value
+
+    @property
+    def _using_pyargs(self) -> bool:
+        return self._conftest_manager._using_pyargs
+
+    @property
+    def _get_directory(self):
+        return self._conftest_manager._get_directory
+
     def _set_initial_conftests(
         self,
         args: Sequence[str | pathlib.Path],
@@ -762,59 +690,20 @@ class TestrunnerPluginManager(PluginManager):
         *,
         consider_namespace_packages: bool,
     ) -> None:
-        """Load initial conftest files given a preparsed "namespace".
-
-        As conftest files may add their own command line options which have
-        arguments ('--my-opt somepath') we might get some false positives.
-        All builtin and 3rd party plugins will have been loaded, however, so
-        common options will not confuse our logic here.
-        """
-        self._confcutdir = (
-            absolutepath(invocation_dir / confcutdir) if confcutdir else None
+        self._conftest_manager.set_initial_conftests(
+            args,
+            pyargs,
+            noconftest,
+            rootpath,
+            confcutdir,
+            invocation_dir,
+            importmode,
+            consider_namespace_packages=consider_namespace_packages,
         )
-        self._noconftest = noconftest
-        self._using_pyargs = pyargs
-
-        anchors = []
-        for initial_path in args:
-            # Remove node-id syntax from the argument.
-            path = NodeId.parse(str(initial_path)).path
-            anchor = absolutepath(invocation_dir / path)
-            # Ensure we do not break if what appears to be an anchor
-            # is in fact a very long option (#10169, #11394).
-            if not safe_exists(anchor):
-                continue
-
-            anchors.append(anchor)
-            # Let's also consider test* subdirs.
-            if anchor.is_dir():
-                anchors.extend(x for x in anchor.glob("test*") if x.is_dir())
-        if not anchors:
-            anchors.append(invocation_dir)
-            anchors.extend(x for x in invocation_dir.glob("test*") if x.is_dir())
-
-        for anchor in anchors:
-            self._loadconftestmodules(
-                anchor,
-                importmode,
-                rootpath,
-                consider_namespace_packages=consider_namespace_packages,
-            )
 
     def _is_in_confcutdir(self, path: pathlib.Path) -> bool:
         """Whether to consider the given path to load conftests from."""
-        if self._confcutdir is None:
-            return True
-        # The semantics here are literally:
-        #   Do not load a conftest if it is found upwards from confcut dir.
-        # But this is *not* the same as:
-        #   Load only conftests from confcutdir or below.
-        # At first glance they might seem the same thing, however we do support use cases where
-        # we want to load conftests that are not found in confcutdir or below, but are found
-        # in completely different directory hierarchies like packages installed
-        # in out-of-source trees.
-        # (see #9767 for a regression where the logic was inverted).
-        return path not in self._confcutdir.parents
+        return self._conftest_manager.is_in_confcutdir(path)
 
     def _loadconftestmodules(
         self,
@@ -824,46 +713,22 @@ class TestrunnerPluginManager(PluginManager):
         *,
         consider_namespace_packages: bool,
     ) -> None:
-        if self._noconftest:
-            return
-
-        directory = self._get_directory(path)
-
-        # Optimization: avoid repeated searches in the same directory.
-        # Assumes always called with same importmode and rootpath.
-        if directory in self._dirpath2confmods:
-            return
-
-        clist = []
-        for parent in reversed((directory, *directory.parents)):
-            if self._is_in_confcutdir(parent):
-                conftestpath = parent / "conftest.py"
-                if conftestpath.is_file():
-                    mod = self._importconftest(
-                        conftestpath,
-                        importmode,
-                        rootpath,
-                        consider_namespace_packages=consider_namespace_packages,
-                    )
-                    clist.append(mod)
-        self._dirpath2confmods[directory] = clist
+        self._conftest_manager.load_conftest_modules(
+            path,
+            importmode,
+            rootpath,
+            consider_namespace_packages=consider_namespace_packages,
+        )
 
     def _getconftestmodules(self, path: pathlib.Path) -> Sequence[types.ModuleType]:
-        directory = self._get_directory(path)
-        return self._dirpath2confmods.get(directory, ())
+        return self._conftest_manager.get_conftest_modules(path)
 
     def _rget_with_confmod(
         self,
         name: str,
         path: pathlib.Path,
     ) -> tuple[types.ModuleType, Any]:
-        modules = self._getconftestmodules(path)
-        for mod in reversed(modules):
-            try:
-                return mod, getattr(mod, name)
-            except AttributeError:
-                continue
-        raise KeyError(name)
+        return self._conftest_manager.rget_with_confmod(name, path)
 
     def _importconftest(
         self,
@@ -873,76 +738,19 @@ class TestrunnerPluginManager(PluginManager):
         *,
         consider_namespace_packages: bool,
     ) -> types.ModuleType:
-        conftestpath_plugin_name = str(conftestpath)
-        existing = self.get_plugin(conftestpath_plugin_name)
-        if existing is not None:
-            return cast(types.ModuleType, existing)
-
-        # conftest.py files there are not in a Python package all have module
-        # name "conftest", and thus conflict with each other. Clear the existing
-        # before loading the new one, otherwise the existing one will be
-        # returned from the module cache.
-        pkgpath = resolve_package_path(conftestpath)
-        if pkgpath is None:
-            try:
-                del sys.modules[conftestpath.stem]
-            except KeyError:
-                pass
-
-        try:
-            mod = import_path(
-                conftestpath,
-                mode=importmode,
-                root=rootpath,
-                consider_namespace_packages=consider_namespace_packages,
-            )
-        except Exception as e:
-            assert e.__traceback__ is not None
-            raise ConftestImportFailure(conftestpath, cause=e) from e
-
-        self._check_non_top_testrunner_plugins(mod, conftestpath)
-
-        self._conftest_plugins.add(mod)
-        dirpath = conftestpath.parent
-        if dirpath in self._dirpath2confmods:
-            for path, mods in self._dirpath2confmods.items():
-                if dirpath in path.parents or path == dirpath:
-                    if mod in mods:
-                        raise AssertionError(
-                            f"While trying to load conftest path {conftestpath!s}, "
-                            f"found that the module {mod} is already loaded with path {mod.__file__}. "
-                            "This is not supposed to happen. Please report this issue to testrunner."
-                        )
-                    mods.append(mod)
-        self.trace(f"loading conftestmodule {mod!r}")
-        self.consider_conftest(mod, registration_name=conftestpath_plugin_name)
-        return mod
+        return self._conftest_manager.import_conftest(
+            conftestpath,
+            importmode,
+            rootpath,
+            consider_namespace_packages=consider_namespace_packages,
+        )
 
     def _check_non_top_testrunner_plugins(
         self,
         mod: types.ModuleType,
         conftestpath: pathlib.Path,
     ) -> None:
-        plugin_spec_name = (
-            "testrunner_plugins"
-            if hasattr(mod, "testrunner_plugins")
-            else "pytest_plugins"
-        )
-        if (
-            (hasattr(mod, "testrunner_plugins") or hasattr(mod, "pytest_plugins"))
-            and self._configured
-            and not self._using_pyargs
-        ):
-            msg = (
-                f"Defining '{plugin_spec_name}' in a non-top-level conftest is no longer supported:\n"
-                "It affects the entire test suite instead of just below the conftest as expected.\n"
-                "  {}\n"
-                "Please move it to a top level conftest file at the rootdir:\n"
-                "  {}\n"
-                "For more information, visit:\n"
-                "  https://github.com/jacksonsr451/test-runner/tree/main/doc/en/deprecations.html#testrunner-plugins-in-non-top-level-conftest-files"
-            )
-            fail(msg.format(conftestpath, self._confcutdir), pytrace=False)
+        self._conftest_manager.check_non_top_testrunner_plugins(mod, conftestpath)
 
     #
     # API for bootstrapping plugin loading
@@ -953,78 +761,30 @@ class TestrunnerPluginManager(PluginManager):
         self, args: Sequence[str], *, exclude_only: bool = False
     ) -> None:
         """:meta private:"""
-        i = 0
-        n = len(args)
-        while i < n:
-            opt = args[i]
-            i += 1
-            if isinstance(opt, str):
-                if opt == "-p":
-                    try:
-                        parg = args[i]
-                    except IndexError:
-                        return
-                    i += 1
-                elif opt.startswith("-p"):
-                    parg = opt[2:]
-                else:
-                    continue
-                parg = parg.strip()
-                if exclude_only and not parg.startswith("no:"):
-                    continue
-                self.consider_pluginarg(parg)
+        self._plugin_discovery.consider_preparse(args, exclude_only=exclude_only)
 
     def consider_pluginarg(self, arg: str) -> None:
         """:meta private:"""
-        if arg.startswith("no:"):
-            name = arg[3:]
-            if name in essential_plugins:
-                raise UsageError(f"plugin {name} cannot be disabled")
-
-            if name.endswith("conftest.py"):
-                raise UsageError(
-                    f"Blocking conftest files using -p is not supported: -p no:{name}\n"
-                    "conftest.py files are not plugins and cannot be disabled via -p.\n"
-                )
-
-            # PR #4304: remove stepwise if cacheprovider is blocked.
-            if name == "cacheprovider":
-                self.set_blocked("stepwise")
-                self.set_blocked("testrunner_stepwise")
-
-            self.set_blocked(name)
-            if not name.startswith("testrunner_"):
-                self.set_blocked("testrunner_" + name)
-        else:
-            name = arg
-            # Unblock the plugin.
-            self.unblock(name)
-            if not name.startswith("testrunner_"):
-                self.unblock("testrunner_" + name)
-            self.import_plugin(arg, consider_entry_points=True)
+        self._plugin_discovery.consider_pluginarg(arg)
 
     def consider_conftest(
         self, conftestmodule: types.ModuleType, registration_name: str
     ) -> None:
         """:meta private:"""
-        self.register(conftestmodule, name=registration_name)
+        self._plugin_discovery.consider_conftest(conftestmodule, registration_name)
 
     def consider_env(self) -> None:
         """:meta private:"""
-        self._import_plugin_specs(os.environ.get("TESTRUNNER_PLUGINS"))
-        self._import_plugin_specs(os.environ.get("PYTEST_PLUGINS"))
+        self._plugin_discovery.consider_env()
 
     def consider_module(self, mod: types.ModuleType) -> None:
         """:meta private:"""
-        self._import_plugin_specs(getattr(mod, "testrunner_plugins", []))
-        self._import_plugin_specs(getattr(mod, "pytest_plugins", []))
+        self._plugin_discovery.consider_module(mod)
 
     def _import_plugin_specs(
         self, spec: types.ModuleType | str | Sequence[str] | None
     ) -> None:
-        plugins = _get_plugin_specs_as_list(spec)
-        for import_spec in plugins:
-            self.import_plugin(import_spec, consider_entry_points=True)
+        self._plugin_discovery._import_plugin_specs(spec)
 
     def import_plugin(self, modname: str, consider_entry_points: bool = False) -> None:
         """Import a plugin with ``modname``.
@@ -1032,49 +792,7 @@ class TestrunnerPluginManager(PluginManager):
         If ``consider_entry_points`` is True, entry point names are also
         considered to find a plugin.
         """
-        # Most often modname refers to builtin modules, e.g. "testrunnerer",
-        # "terminal" or "capture".  Those plugins are registered under their
-        # basename for historic purposes but must be imported with the
-        # _testrunner prefix.
-        assert isinstance(modname, str), (
-            f"module name as text required, got {modname!r}"
-        )
-        if self.is_blocked(modname) or self.get_plugin(modname) is not None:
-            return
-
-        importspec = "_testrunner." + modname if modname in builtin_plugins else modname
-        self.rewrite_hook.mark_rewrite(importspec)
-
-        if consider_entry_points:
-            loaded = self.load_setuptools_entrypoints("testrunner11", name=modname)
-            loaded += self.load_setuptools_entrypoints("pytest11", name=modname)
-            if loaded:
-                return
-
-        try:
-            if sys.version_info >= (3, 11):
-                mod = importlib.import_module(importspec)
-            else:
-                # On Python 3.10, import_module breaks
-                # testing/test_config.py::test_disable_plugin_autoload.
-                __import__(importspec)
-                mod = sys.modules[importspec]
-        except Skipped as e:
-            self.skipped_plugins.append((modname, e.msg or ""))
-        except ModuleNotFoundError as e:
-            if _is_missing_module(e, importspec):
-                # The plugin itself is nowhere to be found - testrunner was pointed
-                # at something which does not exist, so this is a usage error.
-                raise UsageError(f'Error importing plugin "{modname}": {e}') from e
-            # Some *other* module the plugin imports is missing: the plugin was
-            # found, so this is a defect in the plugin, not a usage error.
-            raise PluginImportFailure(modname) from e
-        except UsageError:
-            raise
-        except Exception as e:
-            raise PluginImportFailure(modname) from e
-        else:
-            self.register(mod, modname)
+        self._plugin_discovery.import_plugin(modname, consider_entry_points)
 
     def load_setuptools_entrypoints(self, group: str, name: str | None = None) -> int:
         """:meta private:"""
