@@ -8,8 +8,10 @@ from pathlib import Path
 import textwrap
 from typing import cast
 
+from _testrunner.config import ConftestImportFailure
 from _testrunner.config import ExitCode
 from _testrunner.config import TestrunnerPluginManager
+from _testrunner.config.conftest import ConftestManager
 from _testrunner.monkeypatch import MonkeyPatch
 from _testrunner.pathlib import symlink_or_skip
 from _testrunner.testrunnerer import Testrunnerer
@@ -46,6 +48,37 @@ def _user_plugins(pluginmanager: TestrunnerPluginManager) -> set[object]:
         pluginmanager.get_plugin("_testrunner_xdist_compat"),
     }
     return set(pluginmanager.get_plugins()) - internal_plugins - {pluginmanager}
+
+
+def test_conftest_managers_have_isolated_state(tmp_path: Path) -> None:
+    first = TestrunnerPluginManager()
+    second = TestrunnerPluginManager()
+
+    assert isinstance(first._conftest_manager, ConftestManager)
+    assert first._conftest_manager is not second._conftest_manager
+    assert first._dirpath2confmods is not second._dirpath2confmods
+    assert first._conftest_plugins is not second._conftest_plugins
+
+    first._confcutdir = tmp_path
+    assert second._confcutdir is None
+
+
+def test_conftest_import_failure_preserves_cause(
+    testrunnerer: Testrunnerer,
+) -> None:
+    conftest = testrunnerer.makeconftest("raise ValueError('broken conftest')")
+    manager = TestrunnerPluginManager()
+
+    with testrunner.raises(ConftestImportFailure) as excinfo:
+        manager._importconftest(
+            conftest,
+            importmode="prepend",
+            rootpath=testrunnerer.path,
+            consider_namespace_packages=False,
+        )
+
+    assert isinstance(excinfo.value.__cause__, ValueError)
+    assert str(excinfo.value.__cause__) == "broken conftest"
 
 
 @testrunner.mark.usefixtures("_sys_snapshot")
