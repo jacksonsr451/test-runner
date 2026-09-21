@@ -69,7 +69,6 @@ from _testrunner.config.argparsing import Parser
 import _testrunner.deprecated
 import _testrunner.hookspec
 from _testrunner.nodeid import NodeId
-from _testrunner.outcomes import Skipped
 from _testrunner.pathlib import absolutepath
 from _testrunner.pathlib import bestrelpath
 from _testrunner.pathlib import ImportMode
@@ -509,10 +508,18 @@ class TestrunnerPluginManager(PluginManager):
             PluginCompatibilityPolicy,
         )
         from _testrunner.config.conftest import ConftestManager
+        from _testrunner.config.plugin_discovery import PluginDiscovery
 
         super().__init__("testrunner")
         self._compatibility_policy = PluginCompatibilityPolicy(self)
         self._conftest_manager = ConftestManager(self)
+        self._plugin_discovery = PluginDiscovery(
+            self,
+            essential_plugins,
+            builtin_plugins,
+            _get_plugin_specs_as_list,
+            _is_missing_module,
+        )
 
         # plugins that were explicitly skipped with testrunner.skip
         # list of (module name, skip reason)
@@ -754,78 +761,30 @@ class TestrunnerPluginManager(PluginManager):
         self, args: Sequence[str], *, exclude_only: bool = False
     ) -> None:
         """:meta private:"""
-        i = 0
-        n = len(args)
-        while i < n:
-            opt = args[i]
-            i += 1
-            if isinstance(opt, str):
-                if opt == "-p":
-                    try:
-                        parg = args[i]
-                    except IndexError:
-                        return
-                    i += 1
-                elif opt.startswith("-p"):
-                    parg = opt[2:]
-                else:
-                    continue
-                parg = parg.strip()
-                if exclude_only and not parg.startswith("no:"):
-                    continue
-                self.consider_pluginarg(parg)
+        self._plugin_discovery.consider_preparse(args, exclude_only=exclude_only)
 
     def consider_pluginarg(self, arg: str) -> None:
         """:meta private:"""
-        if arg.startswith("no:"):
-            name = arg[3:]
-            if name in essential_plugins:
-                raise UsageError(f"plugin {name} cannot be disabled")
-
-            if name.endswith("conftest.py"):
-                raise UsageError(
-                    f"Blocking conftest files using -p is not supported: -p no:{name}\n"
-                    "conftest.py files are not plugins and cannot be disabled via -p.\n"
-                )
-
-            # PR #4304: remove stepwise if cacheprovider is blocked.
-            if name == "cacheprovider":
-                self.set_blocked("stepwise")
-                self.set_blocked("testrunner_stepwise")
-
-            self.set_blocked(name)
-            if not name.startswith("testrunner_"):
-                self.set_blocked("testrunner_" + name)
-        else:
-            name = arg
-            # Unblock the plugin.
-            self.unblock(name)
-            if not name.startswith("testrunner_"):
-                self.unblock("testrunner_" + name)
-            self.import_plugin(arg, consider_entry_points=True)
+        self._plugin_discovery.consider_pluginarg(arg)
 
     def consider_conftest(
         self, conftestmodule: types.ModuleType, registration_name: str
     ) -> None:
         """:meta private:"""
-        self.register(conftestmodule, name=registration_name)
+        self._plugin_discovery.consider_conftest(conftestmodule, registration_name)
 
     def consider_env(self) -> None:
         """:meta private:"""
-        self._import_plugin_specs(os.environ.get("TESTRUNNER_PLUGINS"))
-        self._import_plugin_specs(os.environ.get("PYTEST_PLUGINS"))
+        self._plugin_discovery.consider_env()
 
     def consider_module(self, mod: types.ModuleType) -> None:
         """:meta private:"""
-        self._import_plugin_specs(getattr(mod, "testrunner_plugins", []))
-        self._import_plugin_specs(getattr(mod, "pytest_plugins", []))
+        self._plugin_discovery.consider_module(mod)
 
     def _import_plugin_specs(
         self, spec: types.ModuleType | str | Sequence[str] | None
     ) -> None:
-        plugins = _get_plugin_specs_as_list(spec)
-        for import_spec in plugins:
-            self.import_plugin(import_spec, consider_entry_points=True)
+        self._plugin_discovery._import_plugin_specs(spec)
 
     def import_plugin(self, modname: str, consider_entry_points: bool = False) -> None:
         """Import a plugin with ``modname``.
@@ -833,49 +792,7 @@ class TestrunnerPluginManager(PluginManager):
         If ``consider_entry_points`` is True, entry point names are also
         considered to find a plugin.
         """
-        # Most often modname refers to builtin modules, e.g. "testrunnerer",
-        # "terminal" or "capture".  Those plugins are registered under their
-        # basename for historic purposes but must be imported with the
-        # _testrunner prefix.
-        assert isinstance(modname, str), (
-            f"module name as text required, got {modname!r}"
-        )
-        if self.is_blocked(modname) or self.get_plugin(modname) is not None:
-            return
-
-        importspec = "_testrunner." + modname if modname in builtin_plugins else modname
-        self.rewrite_hook.mark_rewrite(importspec)
-
-        if consider_entry_points:
-            loaded = self.load_setuptools_entrypoints("testrunner11", name=modname)
-            loaded += self.load_setuptools_entrypoints("pytest11", name=modname)
-            if loaded:
-                return
-
-        try:
-            if sys.version_info >= (3, 11):
-                mod = importlib.import_module(importspec)
-            else:
-                # On Python 3.10, import_module breaks
-                # testing/test_config.py::test_disable_plugin_autoload.
-                __import__(importspec)
-                mod = sys.modules[importspec]
-        except Skipped as e:
-            self.skipped_plugins.append((modname, e.msg or ""))
-        except ModuleNotFoundError as e:
-            if _is_missing_module(e, importspec):
-                # The plugin itself is nowhere to be found - testrunner was pointed
-                # at something which does not exist, so this is a usage error.
-                raise UsageError(f'Error importing plugin "{modname}": {e}') from e
-            # Some *other* module the plugin imports is missing: the plugin was
-            # found, so this is a defect in the plugin, not a usage error.
-            raise PluginImportFailure(modname) from e
-        except UsageError:
-            raise
-        except Exception as e:
-            raise PluginImportFailure(modname) from e
-        else:
-            self.register(mod, modname)
+        self._plugin_discovery.import_plugin(modname, consider_entry_points)
 
     def load_setuptools_entrypoints(self, group: str, name: str | None = None) -> int:
         """:meta private:"""

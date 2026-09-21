@@ -14,6 +14,7 @@ from _testrunner.config import ExitCode
 from _testrunner.config import PluginImportFailure
 from _testrunner.config import TestrunnerPluginManager
 from _testrunner.config.exceptions import UsageError
+from _testrunner.config.plugin_discovery import PluginDiscovery
 from _testrunner.main import Session
 from _testrunner.monkeypatch import MonkeyPatch
 from _testrunner.pathlib import import_path
@@ -276,6 +277,15 @@ def test_is_missing_module_without_name() -> None:
 
 
 class TestTestrunnerPluginManager:
+    def test_each_manager_owns_isolated_plugin_discovery(self) -> None:
+        first = TestrunnerPluginManager()
+        second = TestrunnerPluginManager()
+
+        assert isinstance(first._plugin_discovery, PluginDiscovery)
+        assert first._plugin_discovery is not second._plugin_discovery
+        assert first._plugin_discovery._pluginmanager is first
+        assert not hasattr(first._plugin_discovery, "_plugins")
+
     def test_register_notifies_before_module_dependencies(self, testrunnerer) -> None:
         testrunnerer.syspathinsert()
         testrunnerer.makepyfile(dependency="")
