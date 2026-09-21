@@ -35,7 +35,7 @@ testrunner: helps you write better programs
     :caption: Useful links
     :hidden:
 
-    testrunner @ PyPI <https://pypi.org/project/testrunner/>
+    testrunner @ PyPI <https://pypi.org/project/jsr-testrunner/>
     testrunner @ GitHub <https://github.com/jacksonsr451/test-runner/>
     Issue Tracker <https://github.com/jacksonsr451/test-runner/issues>
     PDF Documentation <https://media.readthedocs.org/pdf/testrunner/latest/testrunner.pdf>
@@ -46,7 +46,7 @@ The ``testrunner`` framework makes it easy to write small, readable tests, and c
 scale to support complex functional testing for applications and libraries.
 
 
-**PyPI package name**: :pypi:`testrunner`
+**PyPI package name**: :pypi:`jsr-testrunner`
 
 A quick example
 ---------------

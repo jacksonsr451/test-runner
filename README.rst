@@ -7,41 +7,17 @@
 
 ------
 
-.. image:: https://img.shields.io/pypi/v/testrunner.svg
-    :target: https://pypi.org/project/testrunner/
+.. image:: https://img.shields.io/pypi/v/jsr-testrunner.svg
+    :target: https://pypi.org/project/jsr-testrunner/
+    :alt: PyPI version
 
-.. image:: https://img.shields.io/conda/vn/conda-forge/testrunner.svg
-    :target: https://anaconda.org/conda-forge/testrunner
-
-.. image:: https://img.shields.io/pypi/pyversions/testrunner.svg
-    :target: https://pypi.org/project/testrunner/
-
-.. image:: https://codecov.io/gh/jacksonsr451/test-runner/branch/main/graph/badge.svg
-    :target: https://codecov.io/gh/jacksonsr451/test-runner
-    :alt: Code coverage Status
+.. image:: https://img.shields.io/pypi/pyversions/jsr-testrunner.svg
+    :target: https://pypi.org/project/jsr-testrunner/
+    :alt: Supported Python versions
 
 .. image:: https://github.com/jacksonsr451/test-runner/actions/workflows/test.yml/badge.svg
-    :target: https://github.com/jacksonsr451/test-runner/actions?query=workflow%3Atest
-
-.. image:: https://results.pre-commit.ci/badge/github/jacksonsr451/test-runner/main.svg
-   :target: https://results.pre-commit.ci/latest/github/jacksonsr451/test-runner/main
-   :alt: pre-commit.ci status
-
-.. image:: https://www.codetriage.com/jacksonsr451/test-runner/badges/users.svg
-    :target: https://www.codetriage.com/jacksonsr451/test-runner
-
-.. image:: https://readthedocs.org/projects/testrunner/badge/?version=latest
-    :target: https://testrunner.readthedocs.io/en/latest/?badge=latest
-    :alt: Documentation Status
-
-.. image:: https://img.shields.io/badge/Discord-testrunner--dev-blue
-    :target: https://discord.com/invite/testrunner-dev
-    :alt: Discord
-
-.. image:: https://img.shields.io/badge/Libera%20chat-%23testrunner-orange
-    :target: https://web.libera.chat/#testrunner
-    :alt: Libera chat
-
+    :target: https://github.com/jacksonsr451/test-runner/actions/workflows/test.yml
+    :alt: Test status
 
 The ``testrunner`` framework makes it easy to write small tests, yet
 scales to support complex functional testing for applications and libraries.
